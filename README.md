@@ -19,9 +19,10 @@ This project is a personal collection of study resources and class materials org
 
 Open the `index.html` file in a browser to access the main landing page, or browse the course folders directly.
 
-## Repository
+## Links
 
-- GitHub: https://github.com/canafifcode/HTMLS-for-2-2
+- GitHub Repository: https://github.com/canafifcode/HTMLS-for-2-2
+- Live Site: https://buet-2-2-notes.vercel.app/
 
 ## Notes
 
