@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chapter 3 — Arithmetic for Computers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#F6F1E4;
+  --paper-panel:#EEE6D2;
+  --paper-deep:#E7DCC2;
+  --ink:#2A2520;
+  --ink-soft:#5B5346;
+  --navy:#1F3454;
+  --navy-deep:#152539;
+  --maroon:#7C2B29;
+  --maroon-soft:#F2E2DE;
+  --brass:#96762E;
+  --brass-soft:#F2E9CF;
+  --green:#3E5C46;
+  --green-soft:#E6EEE3;
+  --rule:#C9BC9A;
+  --rule-dark:#A99A73;
+  --serif-display:'Playfair Display', Georgia, serif;
+  --serif-body:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper-deep);
+  color:var(--ink);
+  font-family:var(--serif-body);
+  font-size:16px;
+  line-height:1.65;
+}
+
+/* ============ LAYOUT ============ */
+.app{
+  display:flex;
+  min-height:100vh;
+  max-width:1400px;
+  margin:0 auto;
+  background:var(--paper);
+  box-shadow:0 0 60px rgba(0,0,0,0.18);
+}
+
+/* ---- Sidebar ---- */
+.sidebar{
+  width:290px;
+  flex-shrink:0;
+  background:var(--navy-deep);
+  color:#E9E1CC;
+  padding:28px 0 20px 0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  border-right:6px double var(--brass);
+}
+.sidebar::-webkit-scrollbar{width:8px;}
+.sidebar::-webkit-scrollbar-thumb{background:#3a4f6e;border-radius:4px;}
+
+.brand{
+  padding:0 22px 18px 22px;
+  border-bottom:1px solid #33455f;
+  margin-bottom:14px;
+}
+.brand .kicker{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:2.5px;
+  color:#B79F5A;
+  text-transform:uppercase;
+}
+.brand h1{
+  font-family:var(--serif-display);
+  font-size:22px;
+  font-weight:700;
+  margin:6px 0 4px 0;
+  line-height:1.2;
+  color:#F4EEDB;
+}
+.brand .sub{
+  font-size:12.5px;
+  color:#9FADC2;
+  font-style:italic;
+}
+
+.part-label{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#8FA0BC;
+  padding:16px 22px 6px 22px;
+}
+.navbtn{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  color:#CCD3E0;
+  font-family:var(--serif-body);
+  font-size:14.5px;
+  padding:8px 22px 8px 22px;
+  cursor:pointer;
+  border-left:3px solid transparent;
+  transition:background .15s, border-color .15s, color .15s;
+  line-height:1.35;
+}
+.navbtn .num{
+  font-family:var(--mono);
+  color:#7C8CA6;
+  font-size:11.5px;
+  margin-right:7px;
+}
+.navbtn:hover{ background:#22344c; color:#fff;}
+.navbtn.active{
+  background:#26314a;
+  border-left:3px solid var(--brass);
+  color:#F4EEDB;
+  font-weight:600;
+}
+.navbtn.active .num{ color:var(--brass); }
+
+.sidebar-foot{
+  padding:16px 22px 4px 22px;
+  margin-top:10px;
+  border-top:1px solid #33455f;
+  font-size:11.5px;
+  color:#7C8CA6;
+  font-family:var(--mono);
+}
+
+/* ---- Main content ---- */
+.main{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+}
+
+.progress-track{
+  height:4px;
+  background:var(--paper-deep);
+  flex-shrink:0;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg, var(--maroon), var(--brass));
+  transition:width .25s ease;
+}
+
+.runninghead{
+  flex-shrink:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 48px;
+  border-bottom:1px solid var(--rule);
+  background:var(--paper-panel);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.runninghead span.tag{ color:var(--maroon); font-weight:600;}
+
+.content-scroll{
+  flex:1;
+  overflow-y:auto;
+  padding:0 0 60px 0;
+}
+
+.section{ display:none; padding:46px 60px 20px 60px; max-width:840px; margin:0 auto;}
+.section.active{ display:block; animation:fadein .3s ease; }
+@keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.sec-eyebrow{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:2px;
+  color:var(--maroon);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.sec-title{
+  font-family:var(--serif-display);
+  font-weight:700;
+  font-size:34px;
+  color:var(--navy-deep);
+  margin:0 0 4px 0;
+  line-height:1.15;
+}
+.sec-dek{
+  font-style:italic;
+  color:var(--ink-soft);
+  font-size:16px;
+  margin:0 0 28px 0;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--rule);
+}
+
+h3.h{
+  font-family:var(--serif-display);
+  font-size:21px;
+  color:var(--navy);
+  margin:34px 0 12px 0;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom:6px;
+}
+h4.h4{
+  font-family:var(--serif-display);
+  font-weight:700;
+  font-size:16.5px;
+  color:var(--maroon);
+  margin:22px 0 8px 0;
+}
+p{ margin:0 0 14px 0; }
+ul,ol{ margin:0 0 14px 0; padding-left:22px; }
+li{ margin-bottom:6px; }
+strong{ color:var(--navy-deep); }
+code, .mono{ font-family:var(--mono); font-size:0.92em; background:var(--paper-panel); padding:1px 5px; border-radius:3px;}
+
+/* ---- Callouts ---- */
+.callout{
+  border-left:4px solid var(--navy);
+  background:var(--paper-panel);
+  padding:14px 18px;
+  margin:18px 0;
+  border-radius:0 3px 3px 0;
+}
+.callout .ctitle{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.callout.trap{ border-left-color:var(--maroon); background:var(--maroon-soft); }
+.callout.trap .ctitle{ color:var(--maroon); }
+.callout.tip{ border-left-color:var(--navy); background:var(--paper-panel); }
+.callout.tip .ctitle{ color:var(--navy); }
+.callout.formula{ border-left-color:var(--brass); background:var(--brass-soft); }
+.callout.formula .ctitle{ color:var(--brass); }
+.callout.note{ border-left-color:var(--green); background:var(--green-soft); }
+.callout.note .ctitle{ color:var(--green); }
+.callout p:last-child{ margin-bottom:0; }
+
+/* ---- Formula display ---- */
+.formula-box{
+  font-family:var(--mono);
+  text-align:center;
+  font-size:17px;
+  background:var(--paper-panel);
+  border:1px solid var(--rule-dark);
+  border-radius:4px;
+  padding:14px 10px;
+  margin:16px 0;
+  color:var(--navy-deep);
+}
+
+/* ---- Bit field diagram ---- */
+.bitfield{
+  display:flex;
+  margin:20px 0 6px 0;
+  border:1px solid var(--ink);
+  border-radius:2px;
+  overflow:hidden;
+  font-family:var(--mono);
+  font-size:13px;
+}
+.bitfield .bf-seg{
+  padding:12px 4px;
+  text-align:center;
+  border-right:1px solid var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.bitfield .bf-seg:last-child{ border-right:none; }
+.bf-s{ background:#EFD9D9; flex:0 0 40px; font-weight:700; color:var(--maroon);}
+.bf-e{ background:#DCE6F0; color:var(--navy-deep); font-weight:700;}
+.bf-f{ background:#EFE9D3; color:var(--brass); font-weight:700;}
+.bf-labels{ display:flex; font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
+.bf-labels div{ text-align:center; }
+
+/* ---- worked tables ---- */
+table.work{
+  border-collapse:collapse;
+  width:100%;
+  margin:16px 0;
+  font-family:var(--mono);
+  font-size:14px;
+}
+table.work th, table.work td{
+  border:1px solid var(--rule-dark);
+  padding:8px 10px;
+  text-align:center;
+}
+table.work th{
+  background:var(--navy);
+  color:#F4EEDB;
+  font-family:var(--serif-body);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.4px;
+}
+table.work tr:nth-child(even) td{ background:var(--paper-panel); }
+table.work td.lbl{ text-align:left; font-family:var(--serif-body); font-style:italic; color:var(--ink-soft); }
+
+/* ---- diagram boxes ---- */
+.diagram{
+  background:var(--paper-panel);
+  border:1px solid var(--rule-dark);
+  border-radius:6px;
+  padding:26px 20px;
+  margin:20px 0;
+}
+.dbox{
+  border:2px solid var(--navy);
+  border-radius:4px;
+  background:var(--paper);
+  padding:8px 14px;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--navy-deep);
+  font-weight:600;
+}
+.dbox.alu{ border-color:var(--maroon); color:var(--maroon); border-width:3px;}
+.drow{ display:flex; align-items:center; justify-content:center; gap:10px; margin:8px 0;}
+.darrow{ font-size:20px; color:var(--ink-soft); }
+.dnote{ text-align:center; font-size:12px; color:var(--ink-soft); font-style:italic; margin-top:4px;}
+
+/* ---- Q&A reveal ---- */
+.qa{
+  margin:20px 0;
+  border:1px solid var(--rule-dark);
+  border-radius:5px;
+  overflow:hidden;
+}
+.qa-q{
+  background:var(--navy);
+  color:#F4EEDB;
+  padding:12px 16px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:14.5px;
+  user-select:none;
+}
+.qa-q:hover{ background:var(--navy-deep); }
+.qa-q .plus{ font-family:var(--mono); font-size:16px; }
+.qa-a{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .3s ease, padding .3s ease;
+  background:#FBF8EF;
+  padding:0 16px;
+}
+.qa-a.open{ max-height:800px; padding:14px 16px; }
+.qa-a p:last-child{ margin-bottom:0; }
+
+/* ---- exam trap chip ---- */
+.chip{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  background:var(--maroon);
+  color:#fff;
+  padding:2px 8px;
+  border-radius:3px;
+  margin-right:6px;
+}
+
+/* ---- nav footer ---- */
+.pagefoot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:40px 0 0 0;
+  padding-top:18px;
+  border-top:1px solid var(--rule);
+}
+.pfbtn{
+  background:var(--navy);
+  color:#F4EEDB;
+  border:none;
+  padding:10px 20px;
+  border-radius:3px;
+  font-family:var(--serif-body);
+  font-size:14px;
+  cursor:pointer;
+  max-width:320px;
+}
+.pfbtn:hover{ background:var(--navy-deep); }
+.pfbtn.ghost{ background:none; border:1px solid var(--rule-dark); color:var(--ink-soft); }
+.pfbtn.ghost:hover{ background:var(--paper-panel); }
+.pfbtn small{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:1px; opacity:.75; margin-bottom:2px;}
+.pfbtn:disabled{ opacity:.35; cursor:default; }
+
+/* ---- roadmap list on section 1 ---- */
+.roadmap{ list-style:none; padding:0; margin:20px 0; counter-reset:rm; }
+.roadmap li{
+  counter-increment:rm;
+  display:flex;
+  gap:14px;
+  padding:10px 0;
+  border-bottom:1px dashed var(--rule);
+}
+.roadmap li:last-child{ border-bottom:none; }
+.roadmap .rmnum{
+  font-family:var(--serif-display);
+  font-weight:700;
+  color:var(--brass);
+  font-size:20px;
+  width:34px;
+  flex-shrink:0;
+}
+.roadmap .rmtitle{ font-weight:600; color:var(--navy-deep); }
+.roadmap .rmdesc{ color:var(--ink-soft); font-size:14.5px; }
+
+.opendrop{
+  float:left;
+  font-family:var(--serif-display);
+  font-size:62px;
+  line-height:0.8;
+  font-weight:900;
+  color:var(--maroon);
+  padding:6px 8px 0 0;
+}
+
+/* ---- mobile ---- */
+@media (max-width: 880px){
+  .app{ flex-direction:column; }
+  .sidebar{ width:100%; height:auto; position:relative; }
+  .main{ height:auto; }
+  .content-scroll{ overflow-y:visible; }
+  .section{ padding:32px 20px; }
+  .sec-title{ font-size:26px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="kicker">CSE 209 · Computer Architecture</div>
+      <h1>Arithmetic for&nbsp;Computers</h1>
+      <div class="sub">Chapter 3 — Patterson &amp; Hennessy, 5th Ed.</div>
+    </div>
+
+    <div class="part-label">Prologue</div>
+    <button class="navbtn" data-id="s1"><span class="num">§3.1</span>Chapter Roadmap</button>
+
+    <div class="part-label">Part I · §3.2 Integer Arithmetic</div>
+    <button class="navbtn" data-id="s2"><span class="num">01</span>Integer Addition &amp; Overflow</button>
+    <button class="navbtn" data-id="s3"><span class="num">02</span>Integer Subtraction &amp; Overflow</button>
+
+    <div class="part-label">Part II · §3.3 Multiplication</div>
+    <button class="navbtn" data-id="s4"><span class="num">03</span>Long Multiplication</button>
+    <button class="navbtn" data-id="s5"><span class="num">04</span>Multiplication Hardware v1</button>
+    <button class="navbtn" data-id="s6"><span class="num">05</span>Optimized Multiplier v2</button>
+    <button class="navbtn" data-id="s7"><span class="num">06</span>MIPS Multiply Instructions</button>
+
+    <div class="part-label">Part III · §3.5 Floating Point</div>
+    <button class="navbtn" data-id="s8"><span class="num">07</span>Why Floating Point?</button>
+    <button class="navbtn" data-id="s9"><span class="num">08</span>IEEE 754 Bit Format</button>
+    <button class="navbtn" data-id="s10"><span class="num">09</span>Precision Ranges</button>
+    <button class="navbtn" data-id="s11"><span class="num">10</span>Precision &amp; Sig. Digits</button>
+    <button class="navbtn" data-id="s12"><span class="num">11</span>Encoding &amp; Decoding</button>
+    <button class="navbtn" data-id="s13"><span class="num">12</span>FP Addition Algorithm</button>
+    <button class="navbtn" data-id="s14"><span class="num">13</span>FP Adder Hardware</button>
+
+    <div class="part-label">Part IV · Review</div>
+    <button class="navbtn" data-id="s15"><span class="num">14</span>Exam Traps &amp; Quick Reference</button>
+    <button class="navbtn" data-id="s16"><span class="num">15</span>Practice Problem Set</button>
+
+    <div class="sidebar-foot">16 sections · click to jump</div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:6%"></div></div>
+    <div class="runninghead">
+      <span>Computer Organization &amp; Design · Ch. 3</span>
+      <span class="tag" id="rhTag">§3.1 · 1 / 16</span>
+    </div>
+
+    <div class="content-scroll" id="scrollArea">
+
+      <!-- ================================================================= -->
+      <!-- SECTION 1 -->
+      <!-- ================================================================= -->
+      <section class="section active" id="s1">
+        <div class="sec-eyebrow">§3.1 · Introduction</div>
+        <h1 class="sec-title">Chapter Roadmap</h1>
+        <p class="sec-dek">Everything a CPU does with numbers, in one chapter — from a schoolbook addition to the bit pattern hiding inside every <span class="mono">float</span> you've ever written.</p>
+
+        <p><span class="opendrop">A</span>rithmetic looks like the "easy" chapter — you already know how to add and multiply. The real content of Chapter 3 is not arithmetic itself, but <strong>how a finite, fixed-width machine is forced to approximate an infinite world of numbers</strong>, and what breaks when it does. Every topic below is really a variation on one question: <em>what happens at the edges?</em> — when a sum won't fit, when a product doubles in width, when a real number has infinitely many digits but our register only has 32 or 64 bits to spend.</p>
+
+        <h3 class="h">What this chapter covers</h3>
+        <ul>
+          <li><strong>Operations on integers</strong> — addition and subtraction, and precisely when they silently produce a wrong answer (<em>overflow</em>).</li>
+          <li><strong>Multiplication and division</strong> — how a machine builds a wide product from narrow operands, and the hardware evolution from a naive design to an efficient one.</li>
+          <li><strong>Floating-point real numbers</strong> — how we represent numbers that aren't integers at all, using a binary cousin of scientific notation, standardized as <strong>IEEE 754</strong>.</li>
+        </ul>
+
+        <h3 class="h">The roadmap ahead</h3>
+        <ol class="roadmap">
+          <li><span class="rmnum">01</span><div><div class="rmtitle">Integer Addition &amp; Subtraction</div><div class="rmdesc">Two's complement arithmetic, and the exact sign-bit rule for detecting overflow.</div></div></li>
+          <li><span class="rmnum">02</span><div><div class="rmtitle">Multiplication</div><div class="rmdesc">From grade-school long multiplication to real shift-and-add hardware, plus the MIPS <span class="mono">mult</span>/<span class="mono">mul</span> instructions.</div></div></li>
+          <li><span class="rmnum">03</span><div><div class="rmtitle">Floating-Point Representation</div><div class="rmdesc">Scientific notation in binary, the IEEE 754 bit layout, biased exponents, and the hidden bit.</div></div></li>
+          <li><span class="rmnum">04</span><div><div class="rmtitle">Floating-Point Arithmetic</div><div class="rmdesc">The four-step align → add → normalize → round algorithm, worked in both decimal and binary, plus the hardware that implements it.</div></div></li>
+        </ol>
+
+        <div class="callout note">
+          <div class="ctitle">✎ How to use this guide</div>
+          <p>Each section ends with a click-to-reveal self-test — try to answer <em>before</em> you click. Maroon boxes flag classic exam traps; gold boxes are formulas worth memorizing cold. Use the sidebar or the Next button below to move through the chapter in order.</p>
+        </div>
+
+        <div class="callout tip">
+          <div class="ctitle">✎ A note on scope</div>
+          <p>This slide deck lists "multiplication <em>and division</em>" as a topic, but the deck you were given moves straight from multiplication into floating point without dedicated division slides. We'll drop in a short bridging note on MIPS division where it's relevant, since it is fair game for the exam even though it didn't get its own slide.</p>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" disabled>← Beginning</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Integer Addition &amp; Overflow →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 2 : INTEGER ADDITION -->
+      <!-- ================================================================= -->
+      <section class="section" id="s2">
+        <div class="sec-eyebrow">§3.2 · Addition and Subtraction</div>
+        <h1 class="sec-title">Integer Addition &amp; Overflow</h1>
+        <p class="sec-dek">Binary addition is bit-for-bit identical to the addition you learned in grade school. The only new idea is that the register has a fixed width — and that width can run out.</p>
+
+        <h3 class="h">The mechanics: 7 + 6</h3>
+        <p>MIPS registers are 32 bits wide, but the ripple-carry logic is identical no matter the width, so a short example makes the pattern easy to see:</p>
+        <table class="work">
+          <tr><th>Operand</th><th>Binary</th><th>Decimal</th></tr>
+          <tr><td class="lbl">a</td><td>0000&nbsp;0111</td><td>7</td></tr>
+          <tr><td class="lbl">b</td><td>0000&nbsp;0110</td><td>6</td></tr>
+          <tr><td class="lbl"><strong>a + b</strong></td><td><strong>0000&nbsp;1101</strong></td><td><strong>13</strong></td></tr>
+        </table>
+        <p>Add bit by bit from right to left, carrying just like decimal addition. No surprises — <em>as long as the true sum fits in the available bits.</em></p>
+
+        <h3 class="h">What "overflow" actually means</h3>
+        <p>Overflow is not "the answer is wrong." It's a very specific, mechanical event: <strong>the true mathematical result cannot be represented in the number of bits available</strong>, so the bit pattern that comes out no longer means what it should.</p>
+
+        <div class="callout formula">
+          <div class="ctitle">§ The three overflow rules for addition</div>
+          <p><strong>Adding a positive and a negative operand → never overflows.</strong> The true sum's magnitude can only be smaller than the larger operand, so it always fits.</p>
+          <p><strong>Adding two positive operands → overflow if the result's sign bit is 1.</strong> Two positives can never sum to something negative.</p>
+          <p><strong>Adding two negative operands → overflow if the result's sign bit is 0.</strong> Two negatives can never sum to something non-negative.</p>
+        </div>
+
+        <p>Notice the pattern: overflow is only <em>possible</em> when both operands share a sign, and it is detected by comparing that shared sign to the sign of the result. If the result's sign doesn't match what both operands agree it should be, the machine ran out of room.</p>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Exam trap — overflow ≠ carry-out</div>
+          <p>Students routinely conflate signed overflow with unsigned carry-out of the most-significant bit. They are <strong>different flags</strong> checking different things: carry-out matters for <em>unsigned</em> arithmetic; the sign-bit-mismatch rule above matters for <em>signed, two's-complement</em> arithmetic. A calculation can carry out with no signed overflow, or overflow with no carry-out. If a question says "unsigned," throw out everything above and just watch the carry out of bit 31.</p>
+        </div>
+
+        <div class="diagram">
+          <div class="dnote" style="margin-bottom:10px;">Worked overflow check — is 4-bit <span class="mono">0110 + 0101</span> safe?</div>
+          <div class="drow"><div class="dbox">0110 (+6)</div><span class="darrow">+</span><div class="dbox">0101 (+5)</div></div>
+          <div class="drow"><span class="darrow">↓</span></div>
+          <div class="drow"><div class="dbox alu">1011</div></div>
+          <div class="dnote">Both operands positive, but the result's sign bit is <strong>1</strong> (interpreted as −5). Two positives summing to a negative is impossible → <strong>overflow.</strong> (True sum is +11, which needs 5 bits and can't fit in a 4-bit signed field whose range is −8…+7.)</div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Does 4-bit <span class="mono">1000 + 1001</span> overflow? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>1000 = −8, 1001 = −7. Both negative. Sum = 1 0001 → truncate to 4 bits → <span class="mono">0001</span> (+1). The result's sign bit is <strong>0</strong>, but both operands were negative — by the rule, that's overflow. Correct: −8 + (−7) = −15, which cannot be represented in a 4-bit signed range of −8…+7.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Does 4-bit <span class="mono">0011 + 1101</span> overflow? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>0011 = +3, 1101 = −3. One positive, one negative — overflow is impossible by rule one, no need to even compute. (Sum is 10000 → truncates to 0000 = 0, which is correct: 3 + (−3) = 0.)</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Chapter Roadmap</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Integer Subtraction &amp; Overflow →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 3 : INTEGER SUBTRACTION -->
+      <!-- ================================================================= -->
+      <section class="section" id="s3">
+        <div class="sec-eyebrow">§3.2 · Addition and Subtraction</div>
+        <h1 class="sec-title">Integer Subtraction &amp; Overflow</h1>
+        <p class="sec-dek">The single best design decision in this whole chapter: the machine never learns to subtract. It only ever adds.</p>
+
+        <h3 class="h">The trick: negate, then add</h3>
+        <p>Two's-complement representation makes <span class="mono">a − b</span> exactly equal to <span class="mono">a + (−b)</span>, where negation is "invert every bit, then add 1." This means the same adder circuit used for addition handles subtraction too — just feed it the negated second operand. No separate subtractor hardware is needed.</p>
+
+        <h3 class="h">Worked example: 7 − 6</h3>
+        <table class="work">
+          <tr><th>Step</th><th>Value</th><th>Binary (8-bit)</th></tr>
+          <tr><td class="lbl">Minuend</td><td>+7</td><td>0000&nbsp;0111</td></tr>
+          <tr><td class="lbl">Subtrahend, negated</td><td>−6</td><td>1111&nbsp;1010</td></tr>
+          <tr><td class="lbl"><strong>Sum (= 7 − 6)</strong></td><td><strong>+1</strong></td><td><strong>0000&nbsp;0001</strong></td></tr>
+        </table>
+        <p>To get <span class="mono">1111 1010</span> from <span class="mono">0000 0110</span> (+6): flip every bit → <span class="mono">1111 1001</span>, then add 1 → <span class="mono">1111 1010</span>. Add that to <span class="mono">0000 0111</span> and the carry out of the top bit is simply discarded (registers only keep the bits that fit), leaving <span class="mono">0000 0001</span> = +1. Exactly right.</p>
+
+        <div class="callout formula">
+          <div class="ctitle">§ The three overflow rules for subtraction</div>
+          <p><strong>Subtracting two operands of the same sign → never overflows.</strong> (Positive − positive, or negative − negative.)</p>
+          <p><strong>Subtracting a positive from a negative (neg − pos) → overflow if the result's sign bit is 0.</strong> A negative number minus a positive number must get more negative; if the sign flips to positive, something didn't fit.</p>
+          <p><strong>Subtracting a negative from a positive (pos − neg) → overflow if the result's sign bit is 1.</strong> A positive number minus a negative number must get more positive; if the sign flips to negative, it overflowed.</p>
+        </div>
+
+        <div class="callout tip">
+          <div class="ctitle">✎ Don't memorize two rulebooks — derive one from the other</div>
+          <p>Subtraction overflow is not a new set of rules to memorize. It's the <em>addition</em> rule applied to <span class="mono">a + (−b)</span>. "Negative minus positive" is really "negative plus negative" once you negate <span class="mono">b</span> — so of course it follows the addition rule for two negative operands. Internalizing this one substitution cuts your memorization load in half and is exactly the kind of insight professors like to test with a "why" question rather than a "what" question.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: 4-bit signed. Does <span class="mono">1000 − 0001</span> (−8 − 1) overflow? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>This is negative − positive. True result is −9, outside the 4-bit signed range (−8…+7). Negate 0001 → 1111, add: 1000 + 1111 = 1 0111 → truncate → 0111 (+7). The result's sign bit is <strong>0</strong>, and by the neg−pos rule, overflow occurs exactly when the result's sign is 0. Confirmed: overflow, and the wrong-looking answer (+7 instead of −9) is the telltale symptom.</p>
+          </div>
+        </div>
+
+        <h3 class="h">A quick bridge to division</h3>
+        <p>The original topic list also names <em>division</em>, which this slide deck doesn't walk through in detail — but you should still know the shape of it for MIPS, since it reuses ideas from multiplication (a shift-based, cycle-by-cycle hardware algorithm) that we'll see next.</p>
+        <div class="callout note">
+          <div class="ctitle">✎ MIPS division, briefly</div>
+          <p><span class="mono">div rs, rt</span> and <span class="mono">divu rs, rt</span> compute signed/unsigned division, placing the <strong>quotient in LO</strong> and the <strong>remainder in HI</strong> — retrieved afterward with <span class="mono">mflo</span> / <span class="mono">mfhi</span>, the same register pair multiplication uses. MIPS division hardware does <strong>not</strong> detect overflow or divide-by-zero automatically; software must check for a zero divisor itself.</p>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Integer Addition &amp; Overflow</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Long Multiplication →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 4 : LONG MULTIPLICATION -->
+      <!-- ================================================================= -->
+      <section class="section" id="s4">
+        <div class="sec-eyebrow">§3.3 · Multiplication</div>
+        <h1 class="sec-title">Long Multiplication</h1>
+        <p class="sec-dek">Before building hardware, build intuition with the same pencil-and-paper method you learned for decimal multiplication — it transfers to binary with zero modification.</p>
+
+        <h3 class="h">The grade-school method, in binary</h3>
+        <p>Multiply the multiplicand by each bit of the multiplier, shifting each partial product one position further left, then add every partial product together. In binary this is even simpler than decimal, because every partial product is either the multiplicand itself (multiplier bit = 1) or all zeros (multiplier bit = 0) — <strong>no multiplication table to memorize, ever.</strong></p>
+
+        <h3 class="h">Worked example: 1000₂ × 1001₂ (8 × 9)</h3>
+        <table class="work">
+          <tr><th>Source bit</th><th>Partial product</th><th>Shift</th></tr>
+          <tr><td class="lbl">multiplier bit 0 = 1</td><td>1000</td><td>× 2⁰</td></tr>
+          <tr><td class="lbl">multiplier bit 1 = 0</td><td>0000</td><td>× 2¹</td></tr>
+          <tr><td class="lbl">multiplier bit 2 = 0</td><td>0000</td><td>× 2²</td></tr>
+          <tr><td class="lbl">multiplier bit 3 = 1</td><td>1000</td><td>× 2³</td></tr>
+          <tr><td class="lbl"><strong>Sum of partial products</strong></td><td colspan="2"><strong>0100 1000₂ = 72₁₀</strong></td></tr>
+        </table>
+        <p>Check: 8 × 9 = 72. ✓ — and 72 in binary is indeed 1001000, padded to 8 bits as 01001000.</p>
+
+        <div class="callout formula">
+          <div class="ctitle">§ Key structural fact</div>
+          <p>The <strong>length of the product is the sum of the operand lengths.</strong> Multiplying two <em>n</em>-bit numbers can require up to <em>2n</em> bits to hold the result without overflow — a 4-bit × 4-bit multiply needs up to 8 bits; a 32-bit × 32-bit multiply needs up to 64 bits. This single fact is the reason MIPS multiplication hardware uses a double-width product register, which drives everything in the next two sections.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Compute 1011₂ × 0110₂ by long multiplication. <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>1011 = 11, 0110 = 6 → expect 66.</p>
+            <p>Multiplier bits, LSB first: 0,1,1,0. Partial products: bit0=0 → 0000; bit1=1 → 1011 shifted left 1 → 10110; bit2=1 → 1011 shifted left 2 → 101100; bit3=0 → 0.</p>
+            <p>Sum: 010110 + 101100 = 1000010₂ = 66₁₀. ✓</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Integer Subtraction &amp; Overflow</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Multiplication Hardware v1 →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 5 : MULT HARDWARE V1 -->
+      <!-- ================================================================= -->
+      <section class="section" id="s5">
+        <div class="sec-eyebrow">§3.3 · Multiplication</div>
+        <h1 class="sec-title">Multiplication Hardware (Version 1)</h1>
+        <p class="sec-dek">Turning the paper method into a circuit: instead of writing every partial product on its own line and adding them all at once, add them one at a time, into a running total.</p>
+
+        <h3 class="h">The building blocks</h3>
+        <div class="diagram">
+          <div class="drow"><div class="dbox" style="width:220px;">Multiplicand register — 64 bits<br><span style="font-weight:400;font-size:11.5px;">shifted <strong>left</strong> by 1 each cycle</span></div></div>
+          <div class="drow"><span class="darrow">↓ feeds</span></div>
+          <div class="drow"><div class="dbox alu" style="width:220px;">64-bit ALU</div></div>
+          <div class="drow"><span class="darrow">↓ result added into</span></div>
+          <div class="drow"><div class="dbox" style="width:220px;">Product register — 64 bits<br><span style="font-weight:400;font-size:11.5px;">initially <strong>0</strong></span></div></div>
+          <div class="drow"><span class="darrow">Multiplier register — 32 bits, shifted <strong>right</strong> each cycle. Its LSB is tested by Control.</span></div>
+          <div class="dnote" style="margin-top:8px;">Control logic tests the multiplier's current LSB each cycle: if 1, add the (shifted) multiplicand into the product; either way, shift the multiplicand left and the multiplier right, and repeat for 32 cycles.</div>
+        </div>
+
+        <h3 class="h">The algorithm, cycle by cycle</h3>
+        <ol>
+          <li><strong>Test</strong> bit 0 of the Multiplier register.</li>
+          <li><strong>If it's 1</strong>, add the (currently shifted) Multiplicand into the Product register; if it's 0, do nothing this cycle.</li>
+          <li><strong>Shift</strong> the Multiplicand register left by one bit (making it "line up" with the next partial product's position).</li>
+          <li><strong>Shift</strong> the Multiplier register right by one bit (bringing the next bit to test into position 0).</li>
+          <li>Repeat for as many cycles as there are bits in the multiplier (32, for MIPS).</li>
+        </ol>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Why this "obvious" design is wasteful</div>
+          <p>Three inefficiencies to be able to name on an exam: <strong>(1)</strong> the Multiplicand register has to be as wide as the Product register (64 bits) purely to accommodate left-shifting, even though the multiplicand's actual value only ever needs 32 bits. <strong>(2)</strong> Half the bits of the ALU are doing nothing on any given cycle where the low bits of the product are already settled. <strong>(3)</strong> It takes one full clock cycle per multiplier bit regardless of whether that cycle actually performs an addition — a lot of cycles spent shifting with nothing added. Version 2, next, fixes the first two problems directly.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Why does the Multiplicand register need to be 64 bits wide, not 32? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>Because it gets shifted <em>left</em> up to 31 times over the course of the multiplication (once per remaining multiplier bit). A 32-bit value shifted left by 31 positions needs up to 63 bits to hold its significant digits without losing them off the top — so the register is sized at 64 bits to have room to grow into as the algorithm proceeds.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Long Multiplication</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Optimized Multiplier v2 →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 6 : OPTIMIZED MULTIPLIER V2 -->
+      <!-- ================================================================= -->
+      <section class="section" id="s6">
+        <div class="sec-eyebrow">§3.3 · Multiplication</div>
+        <h1 class="sec-title">Optimized Multiplier (Version 2)</h1>
+        <p class="sec-dek">One clever change — shift the <em>product</em> instead of the multiplicand — removes the oversized register and halves the ALU width, with no loss of correctness.</p>
+
+        <h3 class="h">The key idea</h3>
+        <p>Instead of shifting the multiplicand <em>left</em> to align it with each partial product, keep the multiplicand fixed at 32 bits and instead shift the <strong>product register right</strong> after each addition. This has the same aligning effect, but now:</p>
+        <ul>
+          <li>The Multiplicand register only ever needs to be <strong>32 bits</strong> (it never grows).</li>
+          <li>The ALU only needs to be <strong>32 bits</strong> wide, not 64 — it only ever adds into the upper half of the product.</li>
+          <li>The Multiplier register can be <strong>eliminated entirely</strong> and packed into the lower half of the Product register itself, since bits are shifted out of the multiplier exactly as fast as they're shifted into the product — the two halves share one 64-bit register.</li>
+        </ul>
+
+        <h3 class="h">Worked example: 1000₂ × 1001₂ (8 × 9), shift-and-add</h3>
+        <p>The 64-bit Product register is split conceptually into a left half (running accumulator) and a right half (remaining multiplier bits, shrinking each cycle as it's consumed).</p>
+        <table class="work">
+          <tr><th>Cycle</th><th>Test bit (LSB)</th><th>Action</th><th>Product after step</th></tr>
+          <tr><td>Start</td><td>—</td><td>Load multiplier into lower half</td><td>0000 · 1001</td></tr>
+          <tr><td>1</td><td>1</td><td>Add multiplicand (1000) to upper half → 0000+1000=1000; shift right 1</td><td>0100 · 0100</td></tr>
+          <tr><td>2</td><td>0</td><td>No add; shift right 1</td><td>0010 · 0010</td></tr>
+          <tr><td>3</td><td>0</td><td>No add; shift right 1</td><td>0001 · 0001</td></tr>
+          <tr><td>4</td><td>1</td><td>Add multiplicand (1000) to upper half → 0001+1000=1001; shift right 1</td><td><strong>0100 · 1000</strong></td></tr>
+        </table>
+        <p>Final 8-bit Product = <span class="mono">01001000</span> = 72₁₀. Identical answer to the long-multiplication method — same math, far leaner hardware.</p>
+
+        <div class="callout formula">
+          <div class="ctitle">§ Version 1 vs. Version 2, at a glance</div>
+          <p><strong>Version 1:</strong> Multiplicand shifts left (64-bit register), Product accumulates in place, 64-bit ALU.</p>
+          <p><strong>Version 2:</strong> Multiplicand stays put (32-bit register), Product shifts right after each add, 32-bit ALU, Multiplier register folded into Product's lower half.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: In Version 2, why does shifting the Product right achieve the same alignment as shifting the Multiplicand left in Version 1? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>Alignment is relative — what matters is the <em>position</em> of the multiplicand relative to the accumulating sum, not which register physically moves. Shifting the multiplicand left by one bit each cycle and shifting the (fixed) product right by one bit each cycle produce the same relative offset between them; the second approach just achieves it by moving the (already-settled) low bits of the product out of the way instead of growing the multiplicand upward. It's the arithmetic equivalent of "does the train move past the platform, or the platform move past the train" — the relative motion is identical.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Multiplication Hardware v1</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>MIPS Multiply Instructions →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 7 : MIPS MULT INSTRUCTIONS -->
+      <!-- ================================================================= -->
+      <section class="section" id="s7">
+        <div class="sec-eyebrow">§3.3 · Multiplication</div>
+        <h1 class="sec-title">MIPS Multiply Instructions</h1>
+        <p class="sec-dek">Real MIPS hardware carries a dedicated pair of 32-bit registers just to hold results too wide for the normal register file — because, as we established, a product can be twice as wide as either operand.</p>
+
+        <h3 class="h">HI and LO: the special product registers</h3>
+        <div class="diagram">
+          <div class="drow">
+            <div class="dbox" style="width:180px;">HI<br><span style="font-weight:400;font-size:11.5px;">most-significant 32 bits</span></div>
+            <div class="dbox" style="width:180px;">LO<br><span style="font-weight:400;font-size:11.5px;">least-significant 32 bits</span></div>
+          </div>
+          <div class="dnote">Together, HI:LO hold the full 64-bit product of two 32-bit operands.</div>
+        </div>
+
+        <table class="work">
+          <tr><th>Instruction</th><th>Effect</th></tr>
+          <tr><td class="mono">mult rs, rt</td><td class="lbl">Signed multiply; full 64-bit product placed in HI (upper) / LO (lower).</td></tr>
+          <tr><td class="mono">multu rs, rt</td><td class="lbl">Unsigned multiply; same 64-bit split into HI / LO.</td></tr>
+          <tr><td class="mono">mul rd, rs, rt</td><td class="lbl">Only the least-significant 32 bits of the product are kept, written directly to a normal register <span class="mono">rd</span>.</td></tr>
+          <tr><td class="mono">mfhi rd / mflo rd</td><td class="lbl">Copy HI or LO into a general-purpose register — the only way to retrieve results from <span class="mono">mult</span>/<span class="mono">multu</span>.</td></tr>
+        </table>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Exam trap — mult vs. mul are not interchangeable</div>
+          <p><span class="mono">mult</span>/<span class="mono">multu</span> preserve the entire mathematically correct 64-bit product — nothing is lost, but you must follow up with <span class="mono">mflo</span> (and <span class="mono">mfhi</span>, if you need the upper half) to actually use the result in a normal register. <span class="mono">mul</span> is convenient — one instruction, one destination register — but it <strong>silently discards</strong> the upper 32 bits. If the true product doesn't fit in 32 bits, <span class="mono">mul</span> gives you a truncated, wrong answer with no warning flag at all. This is a favorite "spot the bug" exam question: code that uses <span class="mono">mul</span> where products might exceed 32 bits is quietly broken.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: You need the full, correct 64-bit product of two large 32-bit values and must store both halves in $t0 and $t1. What instruction sequence works? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p><span class="mono">mult $t2, $t3</span> (or <span class="mono">multu</span> if unsigned) to compute the product into HI/LO, then <span class="mono">mflo $t0</span> to grab the low 32 bits and <span class="mono">mfhi $t1</span> to grab the high 32 bits. <span class="mono">mul</span> alone cannot do this — it never populates HI at all.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Optimized Multiplier v2</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Why Floating Point? →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 8 : WHY FLOATING POINT -->
+      <!-- ================================================================= -->
+      <section class="section" id="s8">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">Why Floating Point?</h1>
+        <p class="sec-dek">Everything so far has assumed we're representing whole numbers. But most of the interesting quantities in science, graphics, and engineering aren't integers at all.</p>
+
+        <h3 class="h">The problem integers can't solve</h3>
+        <p>Integer representation gives every bit pattern equal, fixed "weight" — bit <em>i</em> is always worth 2<sup>i</sup>. That's perfect for counting things, but useless for representing very large numbers (like Avogadro's number), very small numbers (like the mass of an electron in kilograms), or anything with a fractional part. We need something that behaves like <strong>scientific notation</strong>.</p>
+
+        <div class="formula-box">±1.xxxxxxx₂ × 2^yyyy</div>
+
+        <p>Just as decimal scientific notation writes a number as a small significand times a power of ten, floating point writes a binary number as a significand (between 1 and 2) times a power of two. Two data types in C map directly onto this idea: <span class="mono">float</span> (single precision) and <span class="mono">double</span> (double precision).</p>
+
+        <h3 class="h">Normalized vs. not normalized</h3>
+        <p>A scientific-notation number is <strong>normalized</strong> when there is exactly one non-zero digit to the left of the point. Compare three decimal examples:</p>
+        <table class="work">
+          <tr><th>Example</th><th>Digits left of point</th><th>Normalized?</th></tr>
+          <tr><td class="mono">−2.34 × 10⁵⁶</td><td class="lbl">one non-zero digit ("2")</td><td><strong>Yes</strong></td></tr>
+          <tr><td class="mono">+0.002 × 10⁻⁴</td><td class="lbl">leading zero — not 1–9</td><td>No</td></tr>
+          <tr><td class="mono">+987.02 × 10⁹</td><td class="lbl">three digits before the point</td><td>No</td></tr>
+        </table>
+        <p>Binary has it even easier: the only non-zero digit possible in a single bit position is <strong>1</strong>. So a normalized binary float always has the form <span class="mono">1.xxxxx × 2^y</span> — the leading digit is guaranteed to be 1 whenever the number is normalized. That guarantee is exactly what IEEE 754 exploits next, with the "hidden bit" trick.</p>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Is 0.5 × 2⁴ normalized? If not, what's the normalized form? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>Not normalized — 0.5 in binary is 0.1₂, so the significand starts with a 0, not a 1. Rewriting: 0.5 × 2⁴ = 8, and 8 in normalized binary scientific notation is 1.0 × 2³.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>MIPS Multiply Instructions</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>IEEE 754 Bit Format →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 9 : IEEE 754 FORMAT -->
+      <!-- ================================================================= -->
+      <section class="section" id="s9">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">IEEE 754 Bit Format</h1>
+        <p class="sec-dek">Before 1985, every manufacturer had its own floating-point format — meaning the exact same program could produce different answers on different machines. IEEE Std 754-1985 ended that.</p>
+
+        <h3 class="h">Single vs. double precision</h3>
+        <p>IEEE 754 defines two widths: <strong>single precision</strong> (32 bits, C's <span class="mono">float</span>) and <strong>double precision</strong> (64 bits, C's <span class="mono">double</span>). Both share the same three-field layout, just with different field widths:</p>
+
+        <div class="bf-labels"><div style="flex:0 0 40px;">S</div><div style="flex:1;">Exponent</div><div style="flex:2;">Fraction</div></div>
+        <div class="bitfield">
+          <div class="bf-seg bf-s" style="flex:0 0 40px;">S</div>
+          <div class="bf-seg bf-e" style="flex:1;">Exponent</div>
+          <div class="bf-seg bf-f" style="flex:2;">Fraction</div>
+        </div>
+        <table class="work">
+          <tr><th></th><th>Sign</th><th>Exponent</th><th>Fraction</th><th>Total</th></tr>
+          <tr><td class="lbl">Single</td><td>1 bit</td><td>8 bits</td><td>23 bits</td><td>32 bits</td></tr>
+          <tr><td class="lbl">Double</td><td>1 bit</td><td>11 bits</td><td>52 bits</td><td>64 bits</td></tr>
+        </table>
+
+        <h3 class="h">The three fields, decoded</h3>
+        <ul>
+          <li><strong>S (sign):</strong> 0 = non-negative, 1 = negative. Note this applies only to the significand's sign — it is not two's complement.</li>
+          <li><strong>Fraction:</strong> the bits <em>after</em> the binary point of the normalized significand. Since normalized binary always starts with an implicit 1, that leading "1." is never stored — it's the <strong>hidden bit</strong>. To reconstruct the true significand, restore it yourself: significand = 1.Fraction.</li>
+          <li><strong>Exponent:</strong> stored in <strong>biased (excess) notation</strong> — the stored value is the actual exponent <em>plus a bias</em>. Bias = 127 for single, 1023 for double.</li>
+        </ul>
+
+        <div class="callout formula">
+          <div class="ctitle">§ Why a biased exponent instead of two's complement?</div>
+          <p>Biasing guarantees the stored exponent field is <strong>always non-negative</strong> (unsigned). That, combined with placing the exponent field directly after the sign bit, means two floating-point numbers can be compared for magnitude using an ordinary unsigned integer comparator on their raw bit patterns — larger bit pattern really does mean larger floating-point value (for same-signed numbers). This is a genuinely elegant design choice and a favorite "why" exam question.</p>
+        </div>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Exam trap — the hidden bit is the #1 decoding mistake</div>
+          <p>Forgetting to restore the implicit leading "1." before the fraction bits is the single most common error when decoding an IEEE-754 pattern by hand. The stored Fraction field is <em>not</em> the significand — it's the significand <em>minus</em> its leading 1. Always write "significand = 1." then append the fraction bits, before doing anything else.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: What is the stored (biased) single-precision exponent for an actual exponent of −5? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>Stored = actual + bias = −5 + 127 = 122 = <span class="mono">01111010₂</span> (8 bits).</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Why Floating Point?</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Precision Ranges →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 10 : PRECISION RANGES -->
+      <!-- ================================================================= -->
+      <section class="section" id="s10">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">Precision Ranges</h1>
+        <p class="sec-dek">How large, and how small, can a float actually get? The answer hides two reserved exponent patterns that don't behave like the rest.</p>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Two exponent patterns are off-limits</div>
+          <p>The all-zero exponent field and the all-one exponent field are <strong>reserved</strong>, not part of the normal range. All-zero represents zero and denormalized (subnormal) numbers; all-one represents infinity and NaN ("not a number"). Every range calculation below therefore uses the <em>second-smallest</em> and <em>second-largest</em> exponent field values, not the true extremes of the field.</p>
+        </div>
+
+        <h3 class="h">Single precision (8-bit exponent field)</h3>
+        <table class="work">
+          <tr><th></th><th>Exponent field</th><th>Actual exponent</th><th>Significand</th><th>Value</th></tr>
+          <tr><td class="lbl">Smallest</td><td class="mono">00000001</td><td>1 − 127 = −126</td><td>1.0 (fraction all 0)</td><td>≈ ±1.2 × 10⁻³⁸</td></tr>
+          <tr><td class="lbl">Largest</td><td class="mono">11111110</td><td>254 − 127 = +127</td><td>≈2.0 (fraction all 1)</td><td>≈ ±3.4 × 10⁺³⁸</td></tr>
+        </table>
+
+        <h3 class="h">Double precision (11-bit exponent field)</h3>
+        <table class="work">
+          <tr><th></th><th>Exponent field</th><th>Actual exponent</th><th>Significand</th><th>Value</th></tr>
+          <tr><td class="lbl">Smallest</td><td class="mono">00000000001</td><td>1 − 1023 = −1022</td><td>1.0</td><td>≈ ±2.2 × 10⁻³⁰⁸</td></tr>
+          <tr><td class="lbl">Largest</td><td class="mono">11111111110</td><td>2046 − 1023 = +1023</td><td>≈2.0</td><td>≈ ±1.8 × 10⁺³⁰⁸</td></tr>
+        </table>
+
+        <p>Notice how much range 11 extra bits of exponent buys: double precision's largest magnitude is roughly 270 orders of magnitude beyond single precision's — a direct consequence of the exponent field width, not the fraction width.</p>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Why is the "largest value" significand only ≈2.0, never exactly 2.0? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>The normalized significand form is 1.fraction, and the maximum fraction (all 1s) is 1 − 2⁻²³ (single) or 1 − 2⁻⁵² (double) — infinitesimally short of 1.0, so 1 + that fraction is infinitesimally short of 2.0. It can get arbitrarily close to 2.0 but, with a finite number of fraction bits, can never reach it exactly.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>IEEE 754 Bit Format</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Precision &amp; Sig. Digits →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 11 : PRECISION -->
+      <!-- ================================================================= -->
+      <section class="section" id="s11">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">Precision &amp; Significant Digits</h1>
+        <p class="sec-dek">Range tells you how big a number can be. Precision tells you how many digits of that number you can actually trust.</p>
+
+        <h3 class="h">Relative precision</h3>
+        <p>Every fraction bit is significant, so precision is governed purely by <em>how many fraction bits exist</em> — not by the exponent at all. This is a crucial distinction: a huge number and a tiny number represented in the same format carry the <em>same number of significant digits</em>, just applied at different scales.</p>
+
+        <table class="work">
+          <tr><th></th><th>Fraction bits</th><th>Relative precision</th><th>≈ Decimal digits</th></tr>
+          <tr><td class="lbl">Single</td><td>23</td><td>2⁻²³</td><td>23 × log₁₀2 ≈ 23 × 0.301 ≈ <strong>6</strong></td></tr>
+          <tr><td class="lbl">Double</td><td>52</td><td>2⁻⁵²</td><td>52 × log₁₀2 ≈ 52 × 0.301 ≈ <strong>16</strong></td></tr>
+        </table>
+
+        <div class="callout formula">
+          <div class="ctitle">§ Where the log₁₀2 conversion comes from</div>
+          <p>Each binary fraction bit doubles your resolving power, but decimal digits require a factor of 10 improvement each. Converting "how many bits" into "how many decimal digits of equivalent resolution" is a base-conversion: <span class="mono">digits ≈ bits × log₁₀(2)</span>, since log₁₀(2) ≈ 0.301 tells you how many decimal digits one extra bit is "worth."</p>
+        </div>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Exam trap — "6 digits" and "16 digits" are approximate, not exact</div>
+          <p>These numbers are commonly memorized as exact facts, but they're a rounded consequence of a formula. If a question changes the fraction width (e.g., asks about a hypothetical 10-bit fraction format), you're expected to redo the multiplication yourself: 10 × 0.301 ≈ 3 decimal digits — not recall a memorized constant.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: A hypothetical "half precision" float has 10 fraction bits. Roughly how many decimal digits of precision does it carry? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>10 × log₁₀2 ≈ 10 × 0.301 ≈ 3.0 decimal digits. (This matches real IEEE 754 half precision, which does use a 10-bit fraction and is indeed cited as having about 3 decimal digits of precision.)</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Precision Ranges</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Encoding &amp; Decoding →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 12 : ENCODE/DECODE EXAMPLES -->
+      <!-- ================================================================= -->
+      <section class="section" id="s12">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">Encoding &amp; Decoding — Worked Examples</h1>
+        <p class="sec-dek">The best way to internalize the IEEE-754 format is to run the conversion by hand, both directions, until it's automatic.</p>
+
+        <h3 class="h">Encode: represent −0.75</h3>
+        <p><strong>Step 1 — write in normalized binary scientific notation.</strong> 0.75 = 0.11₂ = 1.1₂ × 2⁻¹. With the sign: −0.75 = (−1)¹ × 1.1₂ × 2⁻¹.</p>
+        <p><strong>Step 2 — read off each field.</strong> S = 1 (negative). Fraction = the bits after "1." → <span class="mono">1000…0</span> (pad with zeros to field width). Exponent = actual exponent + bias = −1 + bias.</p>
+        <table class="work">
+          <tr><th></th><th>S</th><th>Exponent (biased)</th><th>Fraction</th></tr>
+          <tr><td class="lbl">Single (bias 127)</td><td>1</td><td>−1+127=126 = <span class="mono">01111110</span></td><td><span class="mono">1000…0</span> (23 bits)</td></tr>
+          <tr><td class="lbl">Double (bias 1023)</td><td>1</td><td>−1+1023=1022 = <span class="mono">01111111110</span></td><td><span class="mono">1000…0</span> (52 bits)</td></tr>
+        </table>
+        <p>Concatenated single-precision bit pattern: <span class="mono">1 01111110 10000000000000000000000</span></p>
+
+        <h3 class="h">Decode: what value is 11000000101000…00?</h3>
+        <p>Read off the fields directly, single precision (1 + 8 + 23):</p>
+        <table class="work">
+          <tr><th>Field</th><th>Bits</th><th>Meaning</th></tr>
+          <tr><td>S</td><td class="mono">1</td><td>negative</td></tr>
+          <tr><td>Exponent</td><td class="mono">10000001</td><td>129 (biased)</td></tr>
+          <tr><td>Fraction</td><td class="mono">01000…0</td><td>significand = 1 + 0.01₂ = 1.25</td></tr>
+        </table>
+        <div class="formula-box">x = (−1)¹ × 1.25 × 2^(129−127) = −1.25 × 2² = −5.0</div>
+
+        <div class="callout tip">
+          <div class="ctitle">✎ A reusable four-step recipe</div>
+          <p><strong>Encoding:</strong> (1) normalize to 1.xxx × 2^y, (2) set S from the sign, (3) Fraction = the bits after "1.", (4) Exponent = y + bias, in binary.<br><strong>Decoding:</strong> (1) split the bit string into S / Exponent / Fraction by field width, (2) significand = 1.Fraction, (3) actual exponent = stored exponent − bias, (4) value = (−1)^S × significand × 2^(actual exponent).</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Encode +5.0 in single precision. <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>5.0 = 101₂ = 1.01₂ × 2². S = 0. Fraction = <span class="mono">01000…0</span> (23 bits). Exponent = 2 + 127 = 129 = <span class="mono">10000001₂</span>.</p>
+            <p>Full pattern: <span class="mono">0 10000001 01000000000000000000000</span>.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: What single-precision value has S=0, Exponent=01111111, Fraction=all zeros? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>Exponent field 01111111 = 127 (decimal) → actual exponent = 127 − 127 = 0. Significand = 1.0 (fraction all zero). Value = (−1)⁰ × 1.0 × 2⁰ = <strong>1.0</strong>. (Bias 127 exists precisely so that "actual exponent 0" lands at the field's midpoint, 127 — a nice sanity check that your bias arithmetic is right.)</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Precision &amp; Sig. Digits</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>FP Addition Algorithm →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 13 : FP ADDITION ALGORITHM -->
+      <!-- ================================================================= -->
+      <section class="section" id="s13">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">Floating-Point Addition Algorithm</h1>
+        <p class="sec-dek">Unlike integer addition, you cannot just add two floats bit-for-bit — their binary points aren't lined up unless the exponents already match. Four steps fix that.</p>
+
+        <div class="callout formula">
+          <div class="ctitle">§ The four-step algorithm</div>
+          <p><strong>1. Align</strong> — shift the significand of the operand with the <em>smaller</em> exponent right, until both exponents match.<br>
+          <strong>2. Add</strong> — add the two (now-aligned) significands.<br>
+          <strong>3. Normalize</strong> — shift the sum so it's back in the form 1.xxx × 2^y, adjusting the exponent to compensate; check for overflow/underflow of the exponent.<br>
+          <strong>4. Round</strong> — trim (or round) the significand back down to the available number of fraction bits, and renormalize again if rounding produced a carry-out.</p>
+        </div>
+
+        <h3 class="h">Worked example (decimal, 4 significant digits): 9.999 × 10¹ + 1.610 × 10⁻¹</h3>
+        <table class="work">
+          <tr><th>Step</th><th>Result</th></tr>
+          <tr><td class="lbl">1. Align (shift the smaller exponent's number)</td><td>9.999×10¹ + 0.016×10¹</td></tr>
+          <tr><td class="lbl">2. Add significands</td><td>9.999 + 0.016 = 10.015 → 10.015×10¹</td></tr>
+          <tr><td class="lbl">3. Normalize (shift right 1, exponent +1)</td><td>1.0015×10²</td></tr>
+          <tr><td class="lbl">4. Round to 4 digits</td><td><strong>1.002×10²</strong></td></tr>
+        </table>
+
+        <h3 class="h">Worked example (binary, 4 significant bits): 1.000₂×2⁻¹ + (−1.110₂×2⁻²)</h3>
+        <p>In decimal, this is 0.5 + (−0.4375) = 0.0625 — keep that target in mind as a sanity check.</p>
+        <table class="work">
+          <tr><th>Step</th><th>Result</th></tr>
+          <tr><td class="lbl">1. Align (2⁻² is smaller; shift its significand right 1, exponent → −1)</td><td>1.000×2⁻¹ + (−0.111×2⁻¹)</td></tr>
+          <tr><td class="lbl">2. Add significands</td><td>1.000 − 0.111 = 0.001 → 0.001×2⁻¹</td></tr>
+          <tr><td class="lbl">3. Normalize (shift left 3, exponent −3)</td><td>1.000×2⁻⁴ — no over/underflow</td></tr>
+          <tr><td class="lbl">4. Round</td><td>no change needed → <strong>1.000×2⁻⁴ = 0.0625</strong></td></tr>
+        </table>
+        <p>Matches the sanity check exactly: 0.5 − 0.4375 = 0.0625. ✓</p>
+
+        <div class="callout trap">
+          <div class="ctitle">⚠ Exam trap — align, don't just "add the exponents"</div>
+          <p>A common instinct carried over from multiplication (where exponents <em>do</em> add) is to try the same shortcut for addition. It's wrong: addition requires the significands to represent the <em>same</em> power of two before their bits can be meaningfully summed. Skipping the alignment step and adding mismatched significands directly produces a number with no mathematical meaning.</p>
+        </div>
+
+        <div class="callout note">
+          <div class="ctitle">✎ A famous consequence: floating-point addition isn't associative</div>
+          <p>Because every addition ends with a rounding step, <span class="mono">(a + b) + c</span> can give a genuinely different bit pattern than <span class="mono">a + (b + c)</span> for the same three floats. This is a real, well-known property of floating-point arithmetic (not a bug) — compilers are generally forbidden from silently reordering floating-point sums for this exact reason, and it's a great example to cite if a professor asks you to justify why floating-point math needs special care in numerical code.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: When aligning, which operand's exponent "wins" and stays unchanged? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>The operand with the <em>larger</em> exponent stays fixed; the operand with the smaller exponent has its significand shifted right (losing precision off the bottom, potentially) until its exponent catches up to match.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Encoding &amp; Decoding</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>FP Adder Hardware →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 14 : FP ADDER HARDWARE -->
+      <!-- ================================================================= -->
+      <section class="section" id="s14">
+        <div class="sec-eyebrow">§3.5 · Floating Point</div>
+        <h1 class="sec-title">FP Adder Hardware</h1>
+        <p class="sec-dek">The four-step algorithm from the last section isn't just a paper method — it maps directly onto four stages of real hardware.</p>
+
+        <h3 class="h">Why it's slower than an integer adder</h3>
+        <p>An integer adder is simple enough to finish in a single clock cycle. A floating-point adder has to run the small ALU (for exponent comparison), a shifter (for alignment), the big ALU (for the significand addition), and another shifter plus rounding logic (for normalization) — doing all of that in one cycle would force the clock to slow down for <em>every</em> instruction, not just floating-point ones. So FP adders are instead built to take <strong>several clock cycles</strong>, keeping the clock fast, and are typically <strong>pipelined</strong> so a new pair of operands can start through the adder before the previous pair has finished.</p>
+
+        <h3 class="h">The four hardware stages</h3>
+        <div class="diagram">
+          <div class="drow"><div class="dbox alu" style="width:230px;">Step 1 — Small ALU<br><span style="font-weight:400;font-size:11.5px;">subtract exponents to find the alignment shift</span></div></div>
+          <div class="drow"><span class="darrow">↓</span></div>
+          <div class="drow"><div class="dbox" style="width:230px;">Step 2 — Shifter<br><span style="font-weight:400;font-size:11.5px;">align the smaller-exponent significand right by that amount</span></div></div>
+          <div class="drow"><span class="darrow">↓</span></div>
+          <div class="drow"><div class="dbox alu" style="width:230px;">Step 3 — Big ALU<br><span style="font-weight:400;font-size:11.5px;">add the two aligned significands</span></div></div>
+          <div class="drow"><span class="darrow">↓</span></div>
+          <div class="drow"><div class="dbox" style="width:230px;">Step 4 — Normalize &amp; Round<br><span style="font-weight:400;font-size:11.5px;">re-normalize the sum, adjust the exponent, round to fit, renormalize again if rounding overflowed</span></div></div>
+        </div>
+        <p>Line these four hardware stages up against the four algorithm steps from the previous section and they match exactly: <strong>Step 1 ↔ Align's exponent comparison, Step 2 ↔ Align's shift, Step 3 ↔ Add, Step 4 ↔ Normalize + Round.</strong> The hardware is nothing more than the algorithm, wired directly into silicon.</p>
+
+        <div class="callout tip">
+          <div class="ctitle">✎ Pipelining intuition</div>
+          <p>Even though any single floating-point add still takes multiple cycles to finish (higher <em>latency</em>), a pipelined design can accept a brand-new pair of operands every single cycle — while an earlier pair is still working through a later stage. Latency per operation stays the same or even grows slightly, but <em>throughput</em> (results completed per cycle, once the pipeline is full) approaches one per cycle. This is the same idea you'll see formalized later in the course when pipelining is covered on its own.</p>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">Self-test: Why does Step 1 use a separate "small" ALU rather than reusing the big significand ALU from Step 3? <span class="plus">+</span></div>
+          <div class="qa-a">
+            <p>The exponent fields are much narrower than the significand fields (8 or 11 bits vs. 23 or 52 bits), so a dedicated small ALU sized just for exponent subtraction is cheaper and faster than routing that work through the wide significand ALU. It also lets exponent comparison (Step 1) run in parallel/pipeline-overlap with other stages rather than contending for the same hardware the significand addition needs.</p>
+          </div>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>FP Addition Algorithm</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Exam Traps &amp; Quick Reference →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 15 : EXAM TRAPS -->
+      <!-- ================================================================= -->
+      <section class="section" id="s15">
+        <div class="sec-eyebrow">Part IV · Review</div>
+        <h1 class="sec-title">Exam Traps &amp; Quick Reference</h1>
+        <p class="sec-dek">Every trap called out earlier in this guide, collected in one place, plus the formulas worth having cold before you walk into the exam.</p>
+
+        <h3 class="h">The trap list</h3>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 1</div><p>Signed overflow ≠ unsigned carry-out. They're separate flags for separate representations.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 2</div><p>Overflow is only <em>possible</em> when both addition operands share a sign (equivalently, when subtraction operands have opposite signs).</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 3</div><p>Subtraction overflow rules aren't a second rulebook — derive them from addition's rules via <span class="mono">a − b = a + (−b)</span>.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 4</div><p><span class="mono">mult</span>/<span class="mono">multu</span> keep the full 64-bit product in HI:LO; <span class="mono">mul</span> silently truncates to the low 32 bits with no overflow warning.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 5</div><p>The IEEE-754 hidden bit ("1.") is never stored — restore it before doing anything with a decoded Fraction field.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 6</div><p>All-0 and all-1 exponent fields are reserved (zero/denormals, and infinity/NaN) — exclude them from normal range calculations.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 7</div><p>"~6 digits" and "~16 digits" of precision are derived from <span class="mono">bits × log₁₀2</span>, not memorized constants — be ready to redo the arithmetic for a different fraction width.</p></div>
+        <div class="callout trap"><div class="ctitle">⚠ Trap 8</div><p>FP addition aligns exponents by shifting significands — it does <em>not</em> add exponents the way multiplication does.</p></div>
+
+        <h3 class="h">Formula sheet</h3>
+        <table class="work">
+          <tr><th>Concept</th><th>Formula / Rule</th></tr>
+          <tr><td class="lbl">Product width</td><td>an n-bit × n-bit multiply needs up to 2n bits</td></tr>
+          <tr><td class="lbl">IEEE-754 value</td><td>(−1)^S × 1.Fraction × 2^(Exponent − Bias)</td></tr>
+          <tr><td class="lbl">Single-precision bias</td><td>127 &nbsp;(8-bit exponent field)</td></tr>
+          <tr><td class="lbl">Double-precision bias</td><td>1023 &nbsp;(11-bit exponent field)</td></tr>
+          <tr><td class="lbl">Decimal digits of precision</td><td>fraction bits × log₁₀(2) ≈ fraction bits × 0.301</td></tr>
+          <tr><td class="lbl">FP addition steps</td><td>Align → Add → Normalize → Round</td></tr>
+        </table>
+
+        <div class="callout note">
+          <div class="ctitle">✎ Looking ahead</div>
+          <p>Real MIPS floating-point arithmetic runs on a separate register file, <span class="mono">$f0</span>–<span class="mono">$f31</span>, using instructions like <span class="mono">add.s</span> / <span class="mono">add.d</span>, handled by a coprocessor (coprocessor 1). That level of detail sits slightly beyond this slide set, but it's the natural next stop after this chapter if your syllabus goes there.</p>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>FP Adder Hardware</button>
+          <button class="pfbtn" onclick="go(1)"><small>Next</small>Practice Problem Set →</button>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- SECTION 16 : PRACTICE PROBLEMS -->
+      <!-- ================================================================= -->
+      <section class="section" id="s16">
+        <div class="sec-eyebrow">Part IV · Review</div>
+        <h1 class="sec-title">Practice Problem Set</h1>
+        <p class="sec-dek">Ten problems spanning the whole chapter. Work each one on paper before revealing the answer.</p>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">1. (4-bit signed) Does 0111 + 0001 overflow? What's the stored result? <span class="plus">+</span></div>
+          <div class="qa-a"><p>0111(+7) + 0001(+1) = 1000. Both positive, result sign bit = 1 → <strong>overflow</strong>. (True sum +8 is outside the 4-bit range of −8…+7.) Stored bit pattern reads as −8, which is wrong.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">2. (4-bit signed) Compute 0010 − 1110 and state whether it overflows. <span class="plus">+</span></div>
+          <div class="qa-a"><p>0010(+2) − 1110(−2) is pos − neg = +2 + 2 = +4. Negate 1110 → 0010, add: 0010+0010=0100 (+4). Result sign = 0, matches the pos−neg rule (overflow only if sign is 1) → <strong>no overflow</strong>. Correct: 2−(−2)=4.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">3. Multiply 0101₂ × 0011₂ using long multiplication. <span class="plus">+</span></div>
+          <div class="qa-a"><p>0101=5, 0011=3 → expect 15. Bits of multiplier LSB-first: 1,1,0,0. Partial products: 0101, 01010, 0, 0. Sum: 0101+01010 = 01111₂ = 15. ✓</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">4. In Multiplier Hardware Version 1, how many clock cycles does a 32-bit × 32-bit multiply take, and why? <span class="plus">+</span></div>
+          <div class="qa-a"><p>32 cycles — one per bit of the 32-bit Multiplier register, since exactly one shift (and conditional add) happens per cycle regardless of the bit's value.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">5. What does <span class="mono">mul $t0, $t1, $t2</span> do if the true product of $t1 and $t2 needs 40 bits to represent? <span class="plus">+</span></div>
+          <div class="qa-a"><p>$t0 receives only the low 32 bits of the true product — the upper 8 bits that don't fit are silently discarded, with no overflow indication. The value in $t0 is not the mathematically correct product.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">6. Normalize the binary number 0.0011₂ × 2⁵ into the form 1.xxx × 2^y. <span class="plus">+</span></div>
+          <div class="qa-a"><p>Shift the significand left until the leading digit is 1, decreasing the exponent by 1 for each shift (to keep the value unchanged): 0.0011 → 0.011 (shift 1, exp 5→4) → 0.11 (shift 2, exp 4→3) → 1.1 (shift 3, exp 3→2). Result: <strong>1.1₂ × 2²</strong>. Check: 0.0011₂ = 0.1875, and 0.1875 × 2⁵ = 6.0; 1.1₂ × 2² = 1.5 × 4 = 6.0. ✓ Matches.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">7. Encode +0.25 in single-precision IEEE 754. <span class="plus">+</span></div>
+          <div class="qa-a"><p>0.25 = 0.01₂ = 1.0₂ × 2⁻². S=0. Exponent = −2+127=125=<span class="mono">01111101</span>. Fraction = <span class="mono">000…0</span> (23 bits). Full: <span class="mono">0 01111101 00000000000000000000000</span>.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">8. Decode single-precision pattern: S=0, Exponent=10000010, Fraction=1000000... (23 bits). <span class="plus">+</span></div>
+          <div class="qa-a"><p>Exponent field = 10000010₂ = 130 → actual = 130−127=3. Significand = 1 + 0.5 (first fraction bit worth 2⁻¹) = 1.5. Value = (−1)⁰ × 1.5 × 2³ = 1.5×8 = <strong>12.0</strong>.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">9. Add 1.010₂×2² + 1.100₂×2⁰ using the 4-step FP addition algorithm (4 significant bits). <span class="plus">+</span></div>
+          <div class="qa-a"><p><strong>Align:</strong> the smaller exponent (0) shifts right 2 to match exponent 2: 1.100×2⁰ = 0.011×2² (exact — the bits shifted out were both zero, so nothing is lost here). <strong>Add:</strong> 1.010 + 0.011 = 1.101 → 1.101×2². <strong>Normalize:</strong> already normalized (leading digit 1), no change needed. <strong>Round:</strong> fits in 4 significant bits already, no change. Result: <strong>1.101₂ × 2²</strong> = (1 + 0.5 + 0.125) × 4 = 1.625 × 4 = <strong>6.5</strong>. Check against the un-aligned inputs: 1.010₂×2² = 1.25×4 = 5.0, and 1.100₂×2⁰ = 1.5; 5.0 + 1.5 = 6.5. ✓ Exact match — this particular pair happened to align with no bits lost, so the four-step algorithm reproduces the true sum precisely.</p></div>
+        </div>
+
+        <div class="qa">
+          <div class="qa-q" onclick="toggleQA(this)">10. Conceptual: name the two design decisions that let Multiplier Version 2 use a 32-bit ALU instead of Version 1's 64-bit ALU. <span class="plus">+</span></div>
+          <div class="qa-a"><p>(1) The multiplicand is kept fixed at 32 bits rather than growing via left-shifts, so the ALU only ever adds two 32-bit quantities. (2) Alignment is instead achieved by shifting the <em>product</em> register right after each add, which only requires wiring a shifter onto the product register — not widening the adder itself.</p></div>
+        </div>
+
+        <div class="callout note" style="margin-top:32px;">
+          <div class="ctitle">✎ End of Chapter 3</div>
+          <p>You've now covered every slide in this deck, plus the surrounding context a professor would fill in verbally: overflow mechanics, both multiplier hardware designs, the MIPS instruction pair for each, and the full IEEE-754 lifecycle from representation through addition hardware. Revisit the Exam Traps section the night before the exam — it's the fastest possible review pass.</p>
+        </div>
+
+        <div class="pagefoot">
+          <button class="pfbtn ghost" onclick="go(-1)"><small>Back</small>Exam Traps &amp; Quick Reference</button>
+          <button class="pfbtn ghost" onclick="go(-15)"><small>Restart</small>Back to Chapter Roadmap</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16'];
+const titles = {
+  s1:['§3.1','Chapter Roadmap'], s2:['§3.2','Integer Addition & Overflow'], s3:['§3.2','Integer Subtraction & Overflow'],
+  s4:['§3.3','Long Multiplication'], s5:['§3.3','Multiplication Hardware v1'], s6:['§3.3','Optimized Multiplier v2'],
+  s7:['§3.3','MIPS Multiply Instructions'], s8:['§3.5','Why Floating Point?'], s9:['§3.5','IEEE 754 Bit Format'],
+  s10:['§3.5','Precision Ranges'], s11:['§3.5','Precision & Sig. Digits'], s12:['§3.5','Encoding & Decoding'],
+  s13:['§3.5','FP Addition Algorithm'], s14:['§3.5','FP Adder Hardware'], s15:['Review','Exam Traps & Quick Reference'],
+  s16:['Review','Practice Problem Set']
+};
+let current = 0;
+
+function setActive(id){
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+  const idx = order.indexOf(id);
+  current = idx;
+  const pct = Math.round(((idx+1)/order.length)*100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  const t = titles[id];
+  document.getElementById('rhTag').textContent = t[0] + ' · ' + (idx+1) + ' / ' + order.length;
+  document.getElementById('scrollArea').scrollTop = 0;
+}
+
+function go(delta){
+  let next = current + delta;
+  if(next < 0) next = 0;
+  if(next > order.length-1) next = order.length-1;
+  setActive(order[next]);
+}
+
+document.querySelectorAll('.navbtn').forEach(btn => {
+  btn.addEventListener('click', () => setActive(btn.dataset.id));
+});
+
+function toggleQA(el){
+  const answer = el.nextElementSibling;
+  const plus = el.querySelector('.plus');
+  const isOpen = answer.classList.toggle('open');
+  plus.textContent = isOpen ? '−' : '+';
+}
+
+setActive('s1');
+</script>
+</body>
+</html>

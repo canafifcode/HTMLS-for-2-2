@@ -1,0 +1,1837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refactoring: an interactive course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F7; --surface:#FFFFFF; --ink:#15222D; --muted:#546570; --line:#D3DCE2; --line-strong:#9FB0BB;
+  --accent:#1F5FD6; --accent-soft:#E4EDFC;
+  --add:#15774D; --add-bg:#E1F3E9; --del:#B2352D; --del-bg:#FBE6E3;
+  --warn:#7A5800; --warn-bg:#FFF3D0;
+  --code-bg:#0F1F2A; --code-ink:#DCE8EE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D151B; --surface:#152029; --ink:#E3ECF0; --muted:#98A9B2; --line:#28373F; --line-strong:#4A606C;
+    --accent:#7AA5FF; --accent-soft:#1A2B4A;
+    --add:#5ED09A; --add-bg:#12301F; --del:#FF8D84; --del-bg:#3A1D1B;
+    --warn:#F0CD72; --warn-bg:#352D10;
+    --code-bg:#09111760; --code-ink:#DCE8EE;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D151B; --surface:#152029; --ink:#E3ECF0; --muted:#98A9B2; --line:#28373F; --line-strong:#4A606C;
+  --accent:#7AA5FF; --accent-soft:#1A2B4A;
+  --add:#5ED09A; --add-bg:#12301F; --del:#FF8D84; --del-bg:#3A1D1B;
+  --warn:#F0CD72; --warn-bg:#352D10;
+  --code-bg:#091117; --code-ink:#DCE8EE;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --code-bg:#091117; } }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.65 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;line-height:1.15;margin:0 0 .5em;letter-spacing:-.01em}
+h1{font-size:clamp(2.4rem,6vw,3.6rem);font-weight:800}
+h2{font-size:1.8rem;font-weight:700;margin-top:0}
+h3{font-size:1.2rem;font-weight:700;margin-top:1.8em}
+p{margin:.6em 0;max-width:68ch}
+a{color:var(--accent)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+:not(pre)>code{font-size:.88em;background:var(--accent-soft);padding:.1em .35em;border-radius:4px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;align-self:start;height:100vh;padding:24px 16px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:6px;overflow:auto}
+.brand{font:800 1.25rem "Bricolage Grotesque",sans-serif;margin-bottom:2px}
+.brand small{display:block;font:400 .78rem "IBM Plex Sans",sans-serif;color:var(--muted);margin-top:2px}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.nav button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:8px;border-left:3px solid transparent;color:var(--muted);font-weight:500}
+.nav button:hover{background:var(--accent-soft);color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--ink);border-left-color:var(--accent);font-weight:600}
+.theme{margin-top:auto;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--muted)}
+main{padding:40px clamp(18px,5vw,64px) 80px;max-width:940px}
+.panel{display:none}
+.panel.active{display:block}
+.lead{font-size:1.12rem;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.callout.edge{border-left-color:var(--warn);background:var(--warn-bg)}
+.callout b.t{display:block;margin-bottom:2px}
+.callout.edge b.t{color:var(--warn)}
+.callout p{margin:.3em 0}
+details.think{border:1px dashed var(--line-strong);border-radius:10px;padding:10px 14px;margin:14px 0;background:var(--surface)}
+details.think summary{cursor:pointer;font-weight:600}
+details.think[open] summary{margin-bottom:6px}
+ul.tight{margin:.4em 0;padding-left:1.2em}
+ul.tight li{margin:.25em 0}
+
+pre.code{margin:0;background:var(--code-bg);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:.84rem;line-height:1.55;border-left:4px solid var(--line-strong);border-radius:0 0 8px 8px;tab-size:2}
+pre.code.before{border-left-color:var(--del)}
+pre.code.after{border-left-color:var(--add)}
+pre.code.plain{border-radius:8px}
+.ba{margin:14px 0}
+.ba-tabs{display:flex;gap:0}
+.ba-tabs button{border:1px solid var(--line);border-bottom:0;background:var(--surface);padding:6px 16px;border-radius:8px 8px 0 0;font-size:.88rem;color:var(--muted);font-weight:600}
+.ba-tabs button[aria-selected="true"]{color:var(--ink)}
+.ba-tabs button.b[aria-selected="true"]{background:var(--del-bg);color:var(--del);border-color:var(--del)}
+.ba-tabs button.a[aria-selected="true"]{background:var(--add-bg);color:var(--add);border-color:var(--add)}
+.hidden{display:none!important}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem;margin:12px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+
+.hero{padding:6px 0 10px}
+.demo{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px;margin:22px 0}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+:root[data-theme="dark"] .btn{color:#081018}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#081018}}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line-strong)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.results td.ok{color:var(--add);font-weight:600}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:.9rem}
+.chip:hover{background:var(--accent-soft)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#081018}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#081018}}
+
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.cat{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface)}
+.cat h3{margin:0 0 4px;font-size:1.05rem}
+.cat p{font-size:.88rem;color:var(--muted);margin:0 0 8px}
+.cat.b{border-top:5px solid #C4572E}
+.cat.o{border-top:5px solid #6B4FD0}
+.cat.c{border-top:5px solid #C58A10}
+.cat.d{border-top:5px solid #2C74C4}
+.cat.k{border-top:5px solid #1E8A62}
+.cat .chips{margin:0}
+.cat .chip{padding:3px 10px;font-size:.82rem}
+.smellinfo{min-height:70px}
+
+.svgrow{display:flex;flex-wrap:wrap;gap:16px}
+.svgrow figure{margin:0;flex:1 1 280px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.svgrow figcaption{font-size:.88rem;color:var(--muted);padding:4px 6px}
+svg .box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5}
+svg text{fill:var(--ink);font:500 12px "IBM Plex Sans",sans-serif}
+svg text.s{fill:var(--muted);font-size:11px}
+svg line{stroke:var(--del);stroke-width:1.6}
+
+.loop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.loop span.st{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:6px 12px;font-size:.88rem}
+.loop span.ar{color:var(--muted)}
+.log{min-height:52px;margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font-size:.92rem}
+.log.ok{border-color:var(--add)}
+.log.bad{border-color:var(--del)}
+
+.quizbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:.9rem}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 16px}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.opt{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:10px;padding:12px 14px;text-align:left;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt.correct{border-color:var(--add);background:var(--add-bg);color:var(--add)}
+.opt.wrong{border-color:var(--del);background:var(--del-bg);color:var(--del)}
+.opt:disabled{cursor:default}
+.verdict{font:700 1.15rem "Bricolage Grotesque",sans-serif;margin:0 0 6px}
+.verdict.ok{color:var(--add)}
+.verdict.no{color:var(--del)}
+.fixed{margin-top:12px}
+.fixed .lbl{font-weight:600;font-size:.9rem;margin-bottom:4px;color:var(--add)}
+.fixed pre.code{border-radius:8px}
+.score{font:800 3rem "Bricolage Grotesque",sans-serif}
+.review li{margin:.3em 0}
+.review .g{color:var(--add)}
+.review .r{color:var(--del)}
+
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px 14px}
+  .brand small{display:none}
+  .nav{flex-direction:row;overflow-x:auto;width:100%;order:3;margin-top:6px;padding-bottom:4px}
+  .nav button{white-space:nowrap;border-left:0;border-bottom:3px solid transparent}
+  .nav button[aria-current="page"]{border-bottom-color:var(--accent)}
+  .theme{margin:0 0 0 auto}
+  main{padding-top:24px}
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} .progress i{transition:none} }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">Refactoring<small>Software Engineering · slide-by-slide</small></div>
+  <nav class="nav" id="nav" aria-label="Course sections"></nav>
+  <button class="theme" id="theme" type="button">Toggle dark / light</button>
+</aside>
+
+<main id="main">
+
+<!-- 1 -->
+<section class="panel" id="p1" data-title="1. What is refactoring?">
+  <div class="hero">
+    <h1>Change how the code is built, not what it does.</h1>
+    <p class="lead">Refactoring restructures a system so its external behavior stays identical while its internal structure gets better. Think of tidying a workshop: the same jobs get done, but now you can find the tools.</p>
+  </div>
+
+  <div class="demo">
+    <h3 style="margin-top:0">Try it: same behavior, cleaner structure</h3>
+    <p>This is the "magic number" example from the slides. Flip between versions, then run the same tests on both.</p>
+    <div data-ba="magic"></div>
+    <button class="btn" id="runTests" type="button">Run the same tests on both</button>
+    <div class="tablewrap"><table class="results" id="results" aria-live="polite"></table></div>
+  </div>
+
+  <h3>The two meanings (Fowler)</h3>
+  <div class="card">
+    <p><b>Refactoring (noun):</b> a change to the internal structure of software that makes it easier to understand and cheaper to modify, without changing its observable behavior.</p>
+    <p><b>Refactoring (verb):</b> restructuring software by applying a series of refactorings, again without changing observable behavior.</p>
+    <p>Notice the word "series". A refactoring is a small, named step. A big rewrite is not a refactoring.</p>
+  </div>
+
+  <h3>Second example: consolidate duplicate conditional fragments</h3>
+  <p>The <code>send()</code> call runs on both branches, so it belongs after the <code>if</code>. This is "good programming practice, formalized".</p>
+  <div data-ba="consolidate"></div>
+
+  <h3>Refactoring vs performance optimization</h3>
+  <div class="tablewrap"><table>
+    <tr><th></th><th>Refactoring</th><th>Performance optimization</th></tr>
+    <tr><td>Behavior</td><td>Unchanged</td><td>Unchanged</td></tr>
+    <tr><td>Goal</td><td>Easier to understand and modify</td><td>Faster or lighter</td></tr>
+    <tr><td>Effect on readability</td><td>Improves it, sometimes shrinks code</td><td>Often makes code harder to read</td></tr>
+  </table></div>
+
+  <div class="callout edge"><b class="t">Edge cases: is it refactoring?</b>
+    <ul class="tight">
+      <li>Renaming a confusing variable: yes.</li>
+      <li>Fixing a bug: no, behavior changes (a bug fix is a behavior change on purpose).</li>
+      <li>Adding a feature: no. Fowler's advice is to wear "two hats" and never wear both at once.</li>
+      <li>Rewriting a module from scratch: no. It isn't a series of small, behavior-preserving steps.</li>
+      <li>Timing changes: "observable behavior" means what callers and requirements can see. Speed differences are normally tolerated, hard real-time code excepted.</li>
+    </ul>
+  </div>
+  <details class="think"><summary>Brainstorm: you shortened a method, then a test fails. Was it a refactoring?</summary>
+    <p>No. By definition a refactoring preserves behavior, so a failing test means you changed behavior. Either you introduced a bug, or the test was coupled to internals it shouldn't know about. Check which, but in the first case undo and retry with a smaller step.</p>
+  </details>
+</section>
+
+<!-- 2 -->
+<section class="panel" id="p2" data-title="2. Safety, timing, limits">
+  <h2>Refactoring is dangerous... and useful</h2>
+  <p class="lead">It can introduce bugs, and a manager sees "cleaning code" as time not spent on features. The answer is to make refactoring <b>systematic, incremental, and safe</b>.</p>
+
+  <h3>How to make it safe</h3>
+  <ul class="tight">
+    <li><b>Use named refactoring patterns.</b> Fowler names refactorings like the Gang of Four named design patterns, so each one has known steps and pitfalls.</li>
+    <li><b>Test constantly.</b> Write tests first (agile style), refactor in a tiny step, run the tests. A failure points at the step you just took.</li>
+  </ul>
+
+  <div class="demo">
+    <h3 style="margin-top:0">Toy: small steps vs big bang</h3>
+    <p>Each edit has a 15% chance of breaking something. See what a failure costs you in each style.</p>
+    <div class="loop"><span class="st">tests green</span><span class="ar">→</span><span class="st">one small refactoring</span><span class="ar">→</span><span class="st">run tests</span><span class="ar">→</span><span class="st">green: continue / red: undo</span></div>
+    <button class="btn" id="smallStep" type="button">Do one small refactoring</button>
+    <button class="btn ghost" id="bigBang" type="button">Do 10 edits, then test</button>
+    <div class="log" id="loopLog" aria-live="polite">Pick a style.</div>
+  </div>
+
+  <h3>Why refactor</h3>
+  <ul class="tight">
+    <li><b>Design decays</b> as changes pile up. Refactoring pushes back.</li>
+    <li><b>Easier to understand:</b> better structure, less duplication.</li>
+    <li><b>Finds bugs:</b> you must understand the code deeply to restructure it.</li>
+    <li><b>Faster programming</b> later, because a good design enables progress.</li>
+  </ul>
+
+  <h3>When to refactor</h3>
+  <ul class="tight">
+    <li><b>Rule of Three:</b> the first time you do something, just do it. The second time you wince and duplicate. The third time, refactor.</li>
+    <li><b>When adding functionality:</b> before (to make the new function easy to add) or after (to clean up).</li>
+    <li><b>When fixing a bug</b> and when doing a <b>code review</b>.</li>
+  </ul>
+
+  <h3>Problems with refactoring</h3>
+  <div class="cats">
+    <div class="cat"><h3>Databases</h3><p>Business apps are tightly coupled to their schema. Code is easy to change, databases are not (data migration, other systems reading the tables).</p></div>
+    <div class="cat"><h3>Changing interfaces</h3><p>If you own every caller, change freely. If the interface is <i>published</i> to code you can't edit, you can't just change it.</p></div>
+  </div>
+  <div class="callout edge"><b class="t">Edge case: what to do with a published interface</b>
+    <p>Keep the old method as a thin delegate to the new one and mark it deprecated. That is the same idea as the "optional delegation" in Move Method later on.</p></div>
+
+  <h3>The cookbook</h3>
+  <p>Martin Fowler's book <i>Refactoring: Improving the Design of Existing Code</i> is a catalog of refactoring patterns. Online: <a href="https://refactoring.com/catalog" target="_blank" rel="noopener">refactoring.com/catalog</a> and <a href="https://sourcemaking.com/refactoring" target="_blank" rel="noopener">sourcemaking.com/refactoring</a>.</p>
+  <details class="think"><summary>Brainstorm: how would you persuade a manager whose schedule is slipping?</summary>
+    <p>Frame it as reducing the cost of the next change. Refactor right before adding a feature (so the feature is faster), do it in small tested steps (so risk is low), and use the Rule of Three so you only pay when duplication has proven itself.</p></details>
+</section>
+
+<!-- 3 -->
+<section class="panel" id="p3" data-title="3. Bad-smell map">
+  <h2>Where do I start? Follow the smell.</h2>
+  <p class="lead">A "bad smell" is a symptom in code that suggests a refactoring is due. It isn't a bug; the code runs. It is a hint that the design will hurt later. Tools such as Codegrip, Checkstyle, PMD, FindBugs, and SonarQube detect many smells automatically.</p>
+  <p>This is the five-family map from your slides. Click any smell for a one-line idea.</p>
+  <div class="cats" id="cats"></div>
+  <div class="card smellinfo" id="smellInfo" aria-live="polite"><p>Select a smell above.</p></div>
+  <div class="callout"><b class="t">Memory hook</b>
+    <p><b>Bloaters</b> are too big. <b>OO Abusers</b> misuse object orientation. <b>Change Preventers</b> make one change ripple. <b>Dispensables</b> could simply go away. <b>Couplers</b> are too tangled together.</p></div>
+  <div class="callout edge"><b class="t">Exam note</b>
+    <p>The slides explain 13 smells in detail (next section). The rest appear only in the diagram, so know their one-line idea, and expect the detailed 13 in code questions.</p></div>
+</section>
+
+<!-- 4 -->
+<section class="panel" id="p4" data-title="4. Smell lab">
+  <h2>Smell lab</h2>
+  <p class="lead">Pick a smell. You get the symptom, why it hurts, code before and after, the fix, edge cases, and a brainstorm question.</p>
+  <div class="chips" id="smellChips" role="group" aria-label="Choose a smell"></div>
+  <div id="smellDetail"></div>
+
+  <h3>Confusing pair: Divergent Change vs Shotgun Surgery</h3>
+  <p>They are mirror images. Learn the direction of the arrows.</p>
+  <div class="svgrow">
+    <figure>
+      <svg viewBox="0 0 300 190" role="img" aria-label="Three different reasons for change all pointing into one class">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--del)"/></marker></defs>
+        <rect class="box" x="185" y="40" width="105" height="100" rx="8"/>
+        <text x="237" y="95" text-anchor="middle">Employee</text>
+        <text x="4" y="30">tax rules change</text><text x="4" y="98">report format changes</text><text x="4" y="166">email provider changes</text>
+        <line x1="112" y1="27" x2="183" y2="70" marker-end="url(#ar)"/>
+        <line x1="128" y1="94" x2="183" y2="92" marker-end="url(#ar)"/>
+        <line x1="130" y1="162" x2="183" y2="118" marker-end="url(#ar)"/>
+      </svg>
+      <figcaption><b>Divergent Change:</b> one class, many different reasons to change. Fix: split it (Extract Class).</figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 300 190" role="img" aria-label="One change pointing out to three different classes">
+        <rect class="box" x="190" y="12" width="100" height="42" rx="8"/><text x="240" y="38" text-anchor="middle">Account</text>
+        <rect class="box" x="190" y="74" width="100" height="42" rx="8"/><text x="240" y="100" text-anchor="middle">TransferService</text>
+        <rect class="box" x="190" y="136" width="100" height="42" rx="8"/><text x="240" y="162" text-anchor="middle">AtmService</text>
+        <text x="4" y="90">min balance</text><text x="4" y="106">rule changes</text>
+        <line x1="88" y1="90" x2="188" y2="36" marker-end="url(#ar)"/>
+        <line x1="88" y1="96" x2="188" y2="96" marker-end="url(#ar)"/>
+        <line x1="88" y1="104" x2="188" y2="158" marker-end="url(#ar)"/>
+      </svg>
+      <figcaption><b>Shotgun Surgery:</b> one reason to change, many classes to edit. Fix: gather the scattered piece into one class (Move Method / Move Field).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="panel" id="p5" data-title="5. Refactoring catalog">
+  <h2>The catalog: the moves you can make</h2>
+  <p class="lead">Each refactoring has a name, a trigger (usually a smell), and a mechanical recipe. Names are a shared vocabulary, so "extract a class" tells a teammate exactly what you did.</p>
+  <div class="chips" id="refChips" role="group" aria-label="Choose a refactoring"></div>
+  <div id="refDetail"></div>
+
+  <h3>Smell to refactoring map</h3>
+  <div class="tablewrap"><table id="mapTable"></table></div>
+</section>
+
+<!-- 6 -->
+<section class="panel" id="p6" data-title="6. Practice quiz">
+  <h2>Name that smell</h2>
+  <p class="lead">Read the code, choose the smell. After you answer you get the reasoning, why the other options are wrong, and the corrected code.</p>
+  <div id="quiz"></div>
+</section>
+
+<!-- 7 -->
+<section class="panel" id="p7" data-title="7. Exam prep">
+  <h2>Exam prep</h2>
+  <h3>One-page cheat sheet</h3>
+  <div class="tablewrap"><table id="cheat"></table></div>
+
+  <h3>Mix-ups that cost marks</h3>
+  <ul class="tight">
+    <li><b>Divergent Change vs Shotgun Surgery:</b> one class many reasons, versus one reason many classes.</li>
+    <li><b>Data Class vs Lazy Class:</b> a Data Class has fields plus getters and setters but its logic lives elsewhere. A Lazy Class doesn't do enough to justify existing. Not every Data Class is bad; it is a problem when it should have behavior but doesn't, or when the behavior is scattered.</li>
+    <li><b>Feature Envy vs Data Class:</b> they often come as a pair. The envious method sits in class A and wants data from class B, and B is the data class. Move Method fixes both.</li>
+    <li><b>Extract Variable vs Replace Temp with Query:</b> a variable names a value inside one method. A query method makes that value reusable across methods.</li>
+    <li><b>Refactoring vs optimization:</b> both preserve behavior, but refactoring aims at clarity, optimization at speed.</li>
+    <li><b>Comments:</b> only comments that cover for bad code are the smell. Comments that explain <i>why</i> are fine.</li>
+  </ul>
+
+  <h3>Likely written questions (click to reveal a model answer)</h3>
+  <div id="qa"></div>
+
+  <h3>Method for "identify smells and refactor this code"</h3>
+  <ol class="tight">
+    <li>Read once for what the code does.</li>
+    <li>List smells with the exact slide names, and quote the evidence (line or pattern).</li>
+    <li>For each smell, name the refactoring and show the "after" code.</li>
+    <li>State that behavior is preserved and mention re-running tests.</li>
+  </ol>
+  <div class="callout"><b class="t">Go again</b><p>Retake the quiz in a few days. Recognizing smells is a skill that fades unless you practice it.</p></div>
+</section>
+
+<div class="pager" id="pager">
+  <button class="btn ghost" id="prev" type="button">Previous</button>
+  <button class="btn" id="next" type="button">Next</button>
+</div>
+
+</main>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+function h(tag, props, ...kids){
+  const e = document.createElement(tag);
+  if (props) for (const k in props){
+    const v = props[k];
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c == null) return; e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+function code(str, kind){
+  const pre = h('pre', {class: 'code ' + (kind || 'plain')});
+  pre.append(h('code', {text: str}));
+  return pre;
+}
+function ba(before, after, l1, l2){
+  const wrap = h('div', {class: 'ba'});
+  const b = code(before, 'before'), a = code(after, 'after');
+  a.classList.add('hidden');
+  const t1 = h('button', {type:'button', class:'b', role:'tab', 'aria-selected':'true', text: l1 || 'Before'});
+  const t2 = h('button', {type:'button', class:'a', role:'tab', 'aria-selected':'false', text: l2 || 'After'});
+  t1.onclick = () => { b.classList.remove('hidden'); a.classList.add('hidden'); t1.setAttribute('aria-selected','true'); t2.setAttribute('aria-selected','false'); };
+  t2.onclick = () => { a.classList.remove('hidden'); b.classList.add('hidden'); t2.setAttribute('aria-selected','true'); t1.setAttribute('aria-selected','false'); };
+  wrap.append(h('div', {class:'ba-tabs', role:'tablist'}, t1, t2), b, a);
+  return wrap;
+}
+function callout(title, htmlText, edge){
+  return h('div', {class: 'callout' + (edge ? ' edge' : '')}, h('b', {class:'t', text:title}), h('div', {html: htmlText}));
+}
+function think(q, a){
+  return h('details', {class:'think'}, h('summary', {text:'Brainstorm: ' + q}), h('p', {html:a}));
+}
+
+/* ---------- static code samples ---------- */
+const CODE = {
+magic: {
+before:
+`double potentialEnergy(double mass, double height) {
+    return mass * 9.81 * height;
+}`,
+after:
+`static final double GRAVITATIONAL_CONSTANT = 9.81;
+
+double potentialEnergy(double mass, double height) {
+    return mass * GRAVITATIONAL_CONSTANT * height;
+}`},
+consolidate: {
+before:
+`if (isSpecialDeal()) {
+    total = price * 0.95;
+    send();
+} else {
+    total = price * 0.98;
+    send();
+}`,
+after:
+`if (isSpecialDeal()) {
+    total = price * 0.95;
+} else {
+    total = price * 0.98;
+}
+send();`}
+};
+
+/* ---------- smells ---------- */
+const ONE = {
+ 'Long Method':'A method that has grown too long to grasp at a glance.',
+ 'Large Class':'A class doing too much, with low cohesion.',
+ 'Primitive Obsession':'Using primitives (or arrays of them) where a small class belongs.',
+ 'Long Parameter List':'Too many parameters; easy to pass in the wrong order.',
+ 'Data Clumps':'The same group of fields or parameters keeps appearing together.',
+ 'Alternative Classes with Different Interfaces':'Two classes do the same job but expose different method names.',
+ 'Refused Bequest':'A subclass inherits methods or data it doesn\'t want or use.',
+ 'Switch Statements':'Type-based switches, often duplicated, that polymorphism should handle.',
+ 'Temporary Field':'A field that is only set and used in some situations.',
+ 'Divergent Change':'One class changes for many unrelated reasons.',
+ 'Parallel Inheritance Hierarchies':'Adding a subclass in one hierarchy forces adding one in another.',
+ 'Shotgun Surgery':'One change forces small edits in many classes.',
+ 'Comments':'Comments used as a deodorant for confusing code.',
+ 'Duplicate Code':'The same logic in more than one place.',
+ 'Data Class':'A class with only fields and getters/setters.',
+ 'Dead Code':'Variables, methods or branches that are never used.',
+ 'Lazy Class':'A class that doesn\'t do enough to pay its way.',
+ 'Speculative Generality':'Hooks and abstractions built for a future that never came.',
+ 'Feature Envy':'A method wants another class\'s data more than its own.',
+ 'Inappropriate Intimacy':'Two classes dig into each other\'s private details.',
+ 'Incomplete Library Class':'A library you can\'t modify lacks a feature you need.',
+ 'Message Chains':'a.getB().getC().getD(): the client knows the whole navigation path.',
+ 'Middle Man':'A class that mostly forwards calls to another class.'
+};
+const CATS = [
+ {k:'b', name:'Bloaters', d:'Things that have grown too big to work with.', s:['Long Method','Large Class','Primitive Obsession','Long Parameter List','Data Clumps']},
+ {k:'o', name:'OO Abusers', d:'Object orientation used incorrectly or incompletely.', s:['Alternative Classes with Different Interfaces','Refused Bequest','Switch Statements','Temporary Field']},
+ {k:'c', name:'Change Preventers', d:'Changes become painful and ripple outward.', s:['Divergent Change','Parallel Inheritance Hierarchies','Shotgun Surgery']},
+ {k:'d', name:'Dispensables', d:'Things whose removal would make the code cleaner.', s:['Comments','Duplicate Code','Data Class','Dead Code','Lazy Class','Speculative Generality']},
+ {k:'k', name:'Couplers', d:'Excessive coupling between classes.', s:['Feature Envy','Inappropriate Intimacy','Incomplete Library Class','Message Chains','Middle Man']}
+];
+
+const SMELLS = [
+{id:'dup', name:'Duplicated Code', cat:'Dispensables',
+ sym:'The same (or nearly the same) logic appears in more than one place.',
+ why:'Change one copy and forget the others, and you have introduced a bug.',
+ before:
+`class InvoicePrinter {
+    void print(Order o) {
+        double t = 0;
+        for (Item i : o.items) t += i.price * i.qty;
+        t = t * 1.15;
+        System.out.println("Total: " + t);
+    }
+}
+class ReportBuilder {
+    double monthlyTotal(Order o) {
+        double t = 0;
+        for (Item i : o.items) t += i.price * i.qty;
+        return t * 1.15;
+    }
+}`,
+ after:
+`class Order {
+    static final double VAT_MULTIPLIER = 1.15;
+
+    double totalWithVat() {
+        double t = 0;
+        for (Item i : items) t += i.price * i.qty;
+        return t * VAT_MULTIPLIER;
+    }
+}
+// InvoicePrinter and ReportBuilder both call order.totalWithVat()`,
+ fix:'Extract Method (then Move Method to the class that owns the data)',
+ edge:[
+  'Similar but not identical blocks: first make them identical (rename, extract the differing bit), then merge.',
+  'Duplication in sibling subclasses points to the parent class (Fowler: Pull Up Method, beyond your slides).',
+  'Accidental similarity: two blocks that look alike but express different business rules should stay separate, or you will couple things that change for different reasons.',
+  'Rule of Three: two copies are tolerable, three demand action.'],
+ think:['Two methods differ only by a constant (0.05 vs 0.10). What would you do?','Extract the shared logic into one method and pass the constant as a parameter. If the constants carry business meaning, give them names.']},
+
+{id:'lm', name:'Long Method', cat:'Bloaters',
+ sym:'A method is long, or has blocks you would naturally label ("validate", "calculate", "print").',
+ why:'Long methods are hard to understand. The old performance excuse for short methods is largely obsolete.',
+ before:
+`class OrderService {
+    public void processOrder(Order order) {
+        // validate order
+        // calculate total price
+        // apply discount
+        // format receipt
+        // print receipt
+    }
+}`,
+ after:
+`class OrderService {
+    public void processOrder(Order order) {
+        validate(order);
+        double total = calculateTotal(order);
+        double payable = applyDiscount(order, total);
+        printReceipt(formatReceipt(order, payable));
+    }
+    private void validate(Order o) { ... }
+    private double calculateTotal(Order o) { ... }
+    private double applyDiscount(Order o, double t) { ... }
+    private String formatReceipt(Order o, double t) { ... }
+    private void printReceipt(String r) { ... }
+}`,
+ fix:'Extract Method (Replace Temp with Query if temporaries get in the way)',
+ edge:[
+  'A block you want to comment is a block you want to name: turn the comment into a method name.',
+  'If the extraction needs many parameters, the boundary is wrong, or you need Replace Temp with Query or Introduce Parameter Object first.',
+  'Length alone is not the test; a flat list of ten trivial assignments is less scary than 15 nested lines.'],
+ think:['How short is short enough?','There is no magic number. A method should do one thing at one level of abstraction, and its name should tell you what that thing is.']},
+
+{id:'lc', name:'Large Class', cat:'Bloaters',
+ sym:'A class has too many fields and methods; groups of methods use different groups of fields.',
+ why:'It tries to do too much, so cohesion drops. Names like Manager, Util or Helper are warning signs.',
+ before:
+`class UserManager {
+    String name, email, passwordHash;      // identity
+    String street, city, zip;              // address
+    String smtpHost; int smtpPort;         // mail settings
+    void login() { ... }
+    void resetPassword() { ... }
+    void sendWelcomeEmail() { ... }
+    void formatAddressLabel() { ... }
+    // ...30 more
+}`,
+ after:
+`class User            { String name; Credentials credentials; Address address; }
+class Credentials     { String email, passwordHash; void login() { ... } }
+class Address         { String street, city, zip; String toLabel() { ... } }
+class WelcomeMailer   { String smtpHost; int smtpPort; void send(User u) { ... } }`,
+ fix:'Extract Class',
+ edge:[
+  'Find the seams by looking for fields that always travel together and methods that touch only some fields.',
+  'Overlaps with Divergent Change: Large Class is judged by size and cohesion, Divergent Change by the pattern of changes.',
+  'Split gradually with tests; a big-bang split is exactly the risky refactoring the slides warn about.'],
+ think:['Is a 2,000-line parser class always a Large Class?','It can be legitimate if it is highly cohesive. Check whether its parts change for different reasons; if they do, split.']},
+
+{id:'lpl', name:'Long Parameter List', cat:'Bloaters',
+ sym:'A method takes many parameters, often the same ones repeated across methods.',
+ why:'Hard to remember the order, easy to pass wrong values, and becomes inconsistent when the same chain of parameters is passed method to method.',
+ before:
+`class PaymentService {
+    public void processPayment(String name, String email,
+                               String cardNumber, String expiry,
+                               double amount) {
+        // processing logic
+    }
+}`,
+ after:
+`class CardHolder {
+    String name, email, cardNumber, expiry;
+}
+class PaymentService {
+    public void processPayment(CardHolder holder, double amount) {
+        // processing logic
+    }
+}`,
+ fix:'Introduce Parameter Object',
+ edge:[
+  'Do not bundle unrelated values just to reduce the count; that creates a meaningless "Params" class.',
+  'If the callee could get the values from an object you already pass, pass that object instead (Fowler: Preserve Whole Object).',
+  'Also related to Data Clumps and Primitive Obsession.'],
+ think:['Which is worse: one 6-argument method or a "Params" bag with 6 unrelated fields?','Both hide the real problem. Look for the concept the values express, and name it.']},
+
+{id:'dc', name:'Data Clumps', cat:'Bloaters',
+ sym:'The same few fields or parameters keep showing up together but are not part of one class.',
+ why:'Test: delete one of the values. If the others stop making sense, they belong together in a class.',
+ before:
+`class Customer { String street, city, zip; }
+class Supplier { String street, city, zip; }
+
+class ShippingService {
+    void ship(Order o, String street, String city, String zip) { ... }
+}`,
+ after:
+`class Address { String street, city, zip; }
+class Customer { Address address; }
+class Supplier { Address address; }
+
+class ShippingService {
+    void ship(Order o, Address to) { ... }
+}`,
+ fix:'Extract Class (and Introduce Parameter Object for the method parameters)',
+ edge:[
+  'The new class often attracts behavior later (formatting, validation), which is a good sign.',
+  'Related to Primitive Obsession: clumps are usually primitives that should be one object.'],
+ think:['startDate and endDate travel together everywhere. Is that a data clump?','Yes. It becomes DateRange, and a method like includes(date) will move in, as in the slides.']},
+
+{id:'po', name:'Primitive Obsession', cat:'Bloaters',
+ sym:'Reluctance to use small classes; primitives or parallel arrays stand in for real concepts.',
+ why:'The concept has no home, so its rules are scattered and unchecked. Slide example: arrays for student ID, name and marks instead of a Student class.',
+ before:
+`int[]    studentIds   = new int[50];
+String[] studentNames = new String[50];
+double[] studentMarks = new double[50];
+
+void print(int i) {
+    System.out.println(studentIds[i] + " " + studentNames[i] + " " + studentMarks[i]);
+}`,
+ after:
+`class Student {
+    private final int id;
+    private final String name;
+    private double marks;
+    Student(int id, String name, double marks) { ... }
+    void print() { System.out.println(id + " " + name + " " + marks); }
+}
+Student[] students = new Student[50];`,
+ fix:'Extract Class (replace the primitives with a class)',
+ edge:[
+  'Parallel arrays get out of sync when you delete or sort one of them, and the compiler cannot help.',
+  'Money, dates, phone numbers, ranges and IDs are classic hiding places.',
+  'Not every primitive is a smell: a plain counter is fine.'],
+ think:['How is this different from Data Clumps?','Clumps stress values that travel together across the code. Primitive Obsession stresses that a concept is being represented by raw primitives at all. They often overlap.']},
+
+{id:'sw', name:'Switch Statements', cat:'OO Abusers',
+ sym:'A switch or if-chain selects behavior by the type of an object, often repeated in several places.',
+ why:'Adding a new type means finding and editing every switch. Let the object model do the selection.',
+ before:
+`double getSpeed() {
+    switch (_type) {
+        case EUROPEAN:
+            return getBaseSpeed();
+        case AFRICAN:
+            return getBaseSpeed() - getLoadFactor() * _numberOfCoconuts;
+        case NORWEGIAN_BLUE:
+            return _isNailed ? 0 : getBaseSpeed(_voltage);
+    }
+    throw new RuntimeException("Unknown Type of Bird");
+}`,
+ after:
+`abstract class Bird { abstract double getSpeed(); }
+
+class European extends Bird {
+    double getSpeed() { return getBaseSpeed(); }
+}
+class African extends Bird {
+    double getSpeed() { return getBaseSpeed() - getLoadFactor() * numberOfCoconuts; }
+}
+class NorwegianBlue extends Bird {
+    double getSpeed() { return isNailed ? 0 : getBaseSpeed(voltage); }
+}
+
+void printSpeed(Bird[] birds) {
+    for (Bird b : birds) System.out.println("" + b.getSpeed());
+}`,
+ fix:'Replace Conditional with Polymorphism',
+ edge:[
+  'If an object changes type during its life, subclassing is awkward; use State or Strategy (Replace Type Code with State/Strategy).',
+  'A single small switch on a simple value is not worth the class explosion; the smell is strongest when it is duplicated.',
+  'The "Unknown Type" exception vanishes: the compiler now guarantees every Bird has getSpeed().'],
+ think:['Is every switch a smell?','No. Switches on type that are duplicated across the code are. A lone switch in a factory that decides which subclass to create is usually fine.']},
+
+{id:'dv', name:'Divergent Change', cat:'Change Preventers',
+ sym:'One type of change edits one subset of a class\'s methods; a different kind of change edits another subset.',
+ why:'Example: "I have to change these three methods every time I get a new database." It is a cohesion problem.',
+ before:
+`public class Employee {
+    public void updatePersonalInfo(String newName, String newEmail) { ... }
+
+    // changes when UI or report formats evolve
+    public String formatForReport() { ... }
+    public void sendEmailNotification(String message) { ... }
+
+    // changes when tax laws or pay rules update
+    public double calculatePay() { ... }
+}`,
+ after:
+`class Employee        { String name, email; void updatePersonalInfo(...) { ... } }
+class PayCalculator   { double calculatePay(Employee e) { ... } }
+class ReportFormatter { String format(Employee e) { ... } }
+class EmailNotifier   { void send(Employee e, String msg) { ... } }`,
+ fix:'Extract Class (one class per reason to change)',
+ edge:[
+  'Mirror image of Shotgun Surgery. Ask yourself: is the arrow going into one class or out to many?',
+  'Split only along real axes of change; over-splitting creates Shotgun Surgery.'],
+ think:['How do you tell the reasons for change apart?','Ask "who would ask me to change this?" Finance changes pay rules, the UI team changes reports, IT changes email providers. Different requesters, different classes.']},
+
+{id:'ss', name:'Shotgun Surgery', cat:'Change Preventers',
+ sym:'A single change requires many little edits across many classes.',
+ why:'It is easy to miss one, and each miss is a bug. Slide example: changing the minimum balance or the message wording touches several places.',
+ before:
+`class Account {
+    void debit(int amt) throws Exception {
+        if (balance - amt < 500) throw new Exception("Minimum balance should be over 500");
+        ...
+    }
+}
+class TransferService {
+    void transfer(Account from, Account to, int amt) throws Exception {
+        if (from.balance <= 500) throw new Exception("Minimum balance should be over 500");
+        ...
+    }
+}`,
+ after:
+`class Account {
+    static final int MIN_BALANCE = 500;
+
+    boolean canWithdraw(int amt) { return balance - amt >= MIN_BALANCE; }
+
+    void debit(int amt) throws Exception {
+        if (!canWithdraw(amt)) throw new InsufficientBalanceException(MIN_BALANCE);
+        balance -= amt;
+    }
+}
+class TransferService {
+    void transfer(Account from, Account to, int amt) throws Exception {
+        from.debit(amt);     // rule now lives in one place
+        to.credit(amt);
+    }
+}`,
+ fix:'Move Method / Move Field so the scattered rule lives in one class',
+ edge:[
+  'It often begins as Duplicated Code; when copies are similar rather than identical you feel it as shotgun surgery.',
+  'Notice the slide code also has a subtle bug: <code>debit</code> checks <code>amount &lt;= 500</code> before subtracting, so it does not protect the minimum after the debit. Central rules make such bugs easier to spot.'],
+ think:['Where should the minimum-balance rule live?','With the data it protects: Account. Other classes ask the Account rather than re-implementing the rule.']},
+
+{id:'fe', name:'Feature Envy', cat:'Couplers',
+ sym:'A method uses lots of another class\'s data and little of its own.',
+ why:'Behavior sits far from the data it works on. Move it closer.',
+ before:
+`public class Invoice {
+    public double calculateDiscount(Customer customer) {
+        if (customer.getTotalSpent() > 1000 && customer.getYearsAsMember() > 2) {
+            return customer.getTotalSpent() * 0.15;
+        } else if (customer.getTotalSpent() > 500) {
+            return customer.getTotalSpent() * 0.10;
+        }
+        return 0.0;
+    }
+}`,
+ after:
+`public class Customer {
+    private double totalSpent;
+    private int yearsAsMember;
+
+    public double calculateDiscount() {
+        if (totalSpent > 1000 && yearsAsMember > 2) return totalSpent * 0.15;
+        if (totalSpent > 500) return totalSpent * 0.10;
+        return 0.0;
+    }
+}
+// Invoice now calls customer.calculateDiscount()`,
+ fix:'Move Method',
+ edge:[
+  'Not always a smell: Strategy and Visitor patterns intentionally keep behavior apart from data to isolate change.',
+  'If a method envies two classes, move it to the one it uses most, or extract the parts first.'],
+ think:['Customer had only getters. What other smell is that?','Data Class. Feature Envy and Data Class are usually two views of the same problem.']},
+
+{id:'lz', name:'Lazy Class', cat:'Dispensables',
+ sym:'A class no longer "pays its way", perhaps after an earlier refactoring shrank it, or because planned functionality never arrived.',
+ why:'It adds indirection and maintenance for no benefit.',
+ before:
+`class Logger {
+    // Originally meant to do complex logging,
+    // but now just prints a simple message
+    public void log(String message) {
+        System.out.println(message);
+    }
+}`,
+ after:
+`// Inline Class: remove Logger and call the target directly
+System.out.println(message);`,
+ fix:'Inline Class (collapse it into its user) or remove the class',
+ edge:[
+  'Keep it if there is real, imminent need for the abstraction; a logging seam for tests may justify a thin class.',
+  'Cousins: Middle Man (forwards most calls), Speculative Generality (built for a future that never came).'],
+ think:['Is deleting a class a "refactoring"?','Yes, if behavior stays the same. It is also a good example of refactoring reducing code size.']},
+
+{id:'dcl', name:'Data Class', cat:'Dispensables',
+ sym:'A class with fields, getters and setters, and nothing else.',
+ why:'Objects should combine data and behavior. If behavior leaks into other classes, the data class is just a struct with extra steps.',
+ before:
+`class Order {
+    private String item;
+    private int quantity;
+    private double price;
+    // getItem() setItem() getQuantity() setQuantity() getPrice() setPrice()
+}
+// elsewhere: OrderService.calcTotal(order)`,
+ after:
+`class Order {
+    private String item;
+    private int quantity;
+    private double price;
+
+    double totalPrice()   { return price * quantity; }
+    boolean isLargeOrder(){ return quantity > 100; }
+}
+// order.totalPrice(), order.isLargeOrder()`,
+ fix:'Move Method (pull the behavior into the data), Encapsulate Field, remove setters that nobody needs',
+ edge:[
+  'The slide says it plainly: not all data classes are bad. DTOs, records and transfer objects exist to carry data.',
+  'It is a problem only when the class should have behavior but doesn\'t, or the behavior is scattered.'],
+ think:['When is a data class fine?','At system boundaries (API payloads, database rows) where the point is to carry data, not to model behavior.']},
+
+{id:'cm', name:'Comments', cat:'Dispensables',
+ sym:'Comments explaining what a confusing block of code does.',
+ why:'Fowler: comments are often used as a deodorant. Fix the smell, and the comment becomes unnecessary.',
+ before:
+`// check if employee is eligible for full benefits
+if ((e.grade > 3) && (e.months > 12) && !e.onProbation) {
+    ...
+}`,
+ after:
+`if (e.isEligibleForFullBenefits()) {
+    ...
+}
+
+boolean isEligibleForFullBenefits() {
+    return grade > 3 && months > 12 && !onProbation;
+}`,
+ fix:'Extract Method, Extract Variable, Rename',
+ edge:[
+  'Comments that explain why a decision was made, or legal and performance constraints, are valuable.',
+  'Stale comments that contradict the code are worse than none.'],
+ think:['Should you delete all comments?','No. Delete the ones that repeat the code. Keep the ones that say why.']}
+];
+
+/* ---------- refactorings ---------- */
+const REFS = [
+{id:'em', name:'Extract Method', trig:'Long Method, Duplicated Code, Comments',
+ idea:'You have a code fragment that can be grouped together. Turn it into a method whose name explains its purpose.',
+ steps:['Create a method named for what it does, not how.','Copy the fragment in.','Pass locals it reads as parameters; return the one it changes.','Replace the fragment with a call, then run the tests.'],
+ before:
+`def print_invoice(order):
+    print(f"Invoice for {order.customer_name}")
+
+    # calculate total - this block deserves its own name
+    total = 0
+    for item in order.items:
+        total += item.price * item.quantity
+    if order.customer_type == "premium":
+        total *= 0.9  # 10% discount
+
+    print(f"Total: $\{total:.2f}")
+    print(f"Date: {order.date}")`,
+ after:
+`def print_invoice(order):
+    print(f"Invoice for {order.customer_name}")
+    print(f"Total: $\{calculate_total(order):.2f}")
+    print(f"Date: {order.date}")
+
+def calculate_total(order):
+    total = sum(item.price * item.quantity for item in order.items)
+    if order.customer_type == "premium":
+        total *= 0.9
+    return total`,
+ edge:['If the fragment assigns several locals that are used afterwards, extraction gets hard. Simplify first (Replace Temp with Query, Introduce Parameter Object).','A very long parameter list for the new method means the boundary is in the wrong place.','Avoid names like doStuff(); the point is an intention-revealing name.']},
+
+{id:'ev', name:'Extract Variable', trig:'A hard-to-read expression',
+ idea:'Place the result of an expression, or its parts, in separate variables with self-explanatory names.',
+ steps:['Pick the sub-expression.','Assign it to a well-named final/local variable.','Replace the sub-expression with the variable and test.'],
+ before:
+`class PriceCalculator {
+    public double calculatePrice(double quantity, double itemPrice) {
+        return quantity * itemPrice * (quantity > 100 ? 0.9 : 0.95);
+    }
+}`,
+ after:
+`class PriceCalculator {
+    public double calculatePrice(double quantity, double itemPrice) {
+        double basePrice = quantity * itemPrice;
+        boolean isBulkOrder = quantity > 100;
+        double discountRate = isBulkOrder ? 0.9 : 0.95;
+        return basePrice * discountRate;
+    }
+}`,
+ edge:['The slide shows two "after" versions; naming the condition (isBulkOrder) is the "even better" one.','Don\'t over-do it: a variable for every trivial sub-expression is noise.','If the same value is useful in other methods, prefer Replace Temp with Query.']},
+
+{id:'ec', name:'Extract Class', trig:'Large Class, Divergent Change, Data Clumps',
+ idea:'One class is doing the work of two. Create a new class and move the relevant fields and methods into it.',
+ steps:['Decide how to split responsibilities.','Create the new class and link from the old one.','Move Field, then Move Method, testing after each.','Decide whether to expose the new class.'],
+ before:
+`class Person {
+    String name;
+    String officeAreaCode;
+    String officeNumber;
+
+    String getTelephoneNumber() {
+        return "(" + officeAreaCode + ") " + officeNumber;
+    }
+}`,
+ after:
+`class Person {
+    String name;
+    TelephoneNumber telephone = new TelephoneNumber();
+
+    String getTelephoneNumber() { return telephone.getTelephoneNumber(); }
+}
+class TelephoneNumber {
+    String officeAreaCode;
+    String officeNumber;
+
+    String getTelephoneNumber() {
+        return "(" + officeAreaCode + ") " + officeNumber;
+    }
+}`,
+ edge:['Watch for aliasing: if the extracted object can be shared, changes leak between owners.','Threading and persistence: new objects may need their own ids or table.','Stop when the new class has one clear responsibility; more splitting yields Lazy Classes.']},
+
+{id:'tq', name:'Replace Temp with Query', trig:'A temporary variable holding an expression',
+ idea:'Extract the expression into a method and replace references to the temp with calls to it. The method can then be reused by other methods.',
+ steps:['Make sure the temp is assigned only once.','Extract the right-hand side into a method.','Replace each use of the temp with the call.','Remove the temp and test.'],
+ before:
+`class Order {
+    private int quantity;
+    private double itemPrice;
+
+    public double calculateTotal() {
+        double basePrice = quantity * itemPrice;   // temp variable
+        if (basePrice > 1000) {
+            return basePrice * 0.95;
+        } else {
+            return basePrice * 0.98;
+        }
+    }
+}`,
+ after:
+`class Order {
+    private int quantity;
+    private double itemPrice;
+
+    public double calculateTotal() {
+        if (getBasePrice() > 1000) {
+            return getBasePrice() * 0.95;
+        } else {
+            return getBasePrice() * 0.98;
+        }
+    }
+    private double getBasePrice() {
+        return quantity * itemPrice;
+    }
+}`,
+ edge:['Only safe if the temp is assigned once and the expression has no side effects.','The query runs several times. It is usually cheap and the compiler may help; measure before worrying, and profile if it is truly expensive (the slide on performance concerns applies).','It also enables Extract Method, because the temp no longer blocks it.']},
+
+{id:'mm', name:'Move Method', trig:'Feature Envy, Shotgun Surgery, Data Class',
+ idea:'A method uses more features of another class than of its own. Create a similar method in the class it uses most, then delegate or remove the old one.',
+ steps:['Examine what the method uses from its own class.','Check subclasses/superclasses for other declarations.','Declare the method in the target class and adapt the body.','Turn the old method into a delegate or delete it; test.'],
+ before:
+`class Engine {
+    private double distance;
+    private double fuelUsed;
+    public double getDistance() { return distance; }
+    public double getFuelUsed() { return fuelUsed; }
+}
+class Car {
+    Engine engine;
+    public double calculateFuelEfficiency() {
+        // mostly using Engine data
+        return engine.getDistance() / engine.getFuelUsed();
+    }
+}`,
+ after:
+`class Engine {
+    private double distance;
+    private double fuelUsed;
+    public double calculateFuelEfficiency() {
+        return distance / fuelUsed;
+    }
+}
+class Car {
+    Engine engine;
+    // optional delegation, useful if Car's method is a published interface
+    public double calculateFuelEfficiency() {
+        return engine.calculateFuelEfficiency();
+    }
+}`,
+ edge:['If the method is overridden in subclasses, moving it is harder.','Division by zero: <code>fuelUsed == 0</code> was already a problem before; moving doesn\'t change behavior, so it isn\'t fixed by the refactoring.','If only part of a method envies another class, Extract Method first, then move the extracted part.']},
+
+{id:'rcp', name:'Replace Conditional with Polymorphism', trig:'Switch Statements',
+ idea:'Move each leg of the conditional to an overriding method in a subclass, and make the original method abstract.',
+ steps:['Ensure the conditional is at the start of a method (Extract Method if not).','Create subclasses for each case.','Copy each leg into the matching subclass override.','Delete legs one at a time, testing; finally make the parent method abstract.'],
+ before:
+`double getSpeed() {
+    switch (_type) {
+        case EUROPEAN:       return getBaseSpeed();
+        case AFRICAN:        return getBaseSpeed() - getLoadFactor() * _numberOfCoconuts;
+        case NORWEGIAN_BLUE: return _isNailed ? 0 : getBaseSpeed(_voltage);
+    }
+    throw new RuntimeException("Unknown Type of Bird");
+}`,
+ after:
+`abstract class Bird { abstract double getSpeed(); }
+class European extends Bird     { double getSpeed() { ... } }
+class African extends Bird      { double getSpeed() { ... } }
+class NorwegianBlue extends Bird{ double getSpeed() { ... } }
+
+void printSpeed(Bird[] birds) {
+    for (int i = 0; i < birds.length; i++) {
+        System.out.println("" + birds[i].getSpeed());
+    }
+}`,
+ edge:['If an object needs to change its type at runtime, use State/Strategy instead of subclasses.','Creation still needs a decision somewhere (a factory).','Many small classes are the price; it pays off when there are several switches on the same type.']},
+
+{id:'sq', name:'Separate Query from Modifier', trig:'A getter that also changes state',
+ idea:'A method that returns a value but also has a side effect is confusing. Split it into a pure query and a separate modifier.',
+ steps:['Create a query that returns the same value without side effects.','Create a modifier that does the state change.','Replace callers: query where the value is wanted, modifier where the effect is wanted.','Test.'],
+ before:
+`class Invoice {
+    private boolean readyForSummaries = false;
+    private double totalOutstanding;
+
+    public double getTotalOutstandingAndSetReadyForSummaries() {
+        totalOutstanding = 500.0;          // calculate total
+        readyForSummaries = true;          // side effect
+        return totalOutstanding;
+    }
+}`,
+ after:
+`class Invoice {
+    private boolean readyForSummaries = false;
+    private double totalOutstanding;
+
+    // pure query (no side effects)
+    public double getTotalOutstanding() {
+        return totalOutstanding;
+    }
+    // explicit modifier
+    public void setReadyForSummaries() {
+        readyForSummaries = true;
+    }
+}`,
+ edge:['In the slide\'s "after" version the query still assigns totalOutstanding. To be truly pure, compute and return without storing (or cache deliberately). Good thing to point out in an exam.','Concurrency: splitting "check and change" (like a stack pop) into two calls can create race conditions; keep such operations atomic.','Rule of thumb: asking a question should not change the answer.']},
+
+{id:'ipo', name:'Introduce Parameter Object', trig:'Long Parameter List, Data Clumps',
+ idea:'You have a group of parameters that naturally go together. Put them in an object and pass the object. The new class starts as a data holder but tends to attract methods.',
+ steps:['Create an immutable class for the group.','Add the parameter object to the method.','Replace uses of each old parameter with fields of the object.','Move behavior into the new class over time.'],
+ before:
+`class InvoiceService {
+    public double amountInvoicedIn(Date start, Date end) { ... }
+    public double amountOverdueIn(Date start, Date end)  { ... }
+}`,
+ after:
+`class DateRange {
+    private final Date start, end;
+    public DateRange(Date start, Date end) { this.start = start; this.end = end; }
+    public Date getStart() { return start; }
+    public Date getEnd()   { return end; }
+    public boolean includes(Date d) { return !d.before(start) && !d.after(end); }
+}
+class InvoiceService {
+    public double amountInvoicedIn(DateRange range) { ... }
+    public double amountOverdueIn(DateRange range)  { ... }
+}`,
+ edge:['Make the object immutable to avoid surprises.','A DateRange object also fixes Primitive Obsession (dates as loose values) and removes repeated validation of start &lt;= end.']},
+
+{id:'no', name:'Introduce Null Object', trig:'Repeated null checks', brief:true,
+ idea:'Listed on the slide catalog. Instead of checking for null everywhere, return a special object that implements the same interface with harmless default behavior.',
+ steps:[],
+ before:
+`Customer c = site.getCustomer();
+String plan = (c == null) ? "Basic" : c.getPlan();`,
+ after:
+`class NullCustomer extends Customer {
+    String getPlan() { return "Basic"; }
+}
+String plan = site.getCustomer().getPlan();   // never null`,
+ edge:['Use only when "do nothing / default" is a sensible behavior for the missing case.']},
+
+{id:'ecoll', name:'Encapsulate Collection', trig:'A getter that hands out the raw list', brief:true,
+ idea:'Listed on the slide catalog. Return a read-only view and provide add/remove methods, so the owner controls changes.',
+ steps:[],
+ before:
+`public List<Course> getCourses() { return courses; }   // callers can modify it`,
+ after:
+`public List<Course> getCourses() { return Collections.unmodifiableList(courses); }
+public void addCourse(Course c)    { courses.add(c); }
+public void removeCourse(Course c) { courses.remove(c); }`,
+ edge:['Return a view or copy; a raw reference lets outsiders break invariants.']},
+
+{id:'gc', name:'Replace Nested Conditional with Guard Clauses', trig:'Deeply nested if / else', brief:true,
+ idea:'Listed on the slide catalog. Handle special cases first with early returns, so the normal path reads straight down.',
+ steps:[],
+ before:
+`double payAmount() {
+    double result;
+    if (isDead) { result = deadAmount(); }
+    else {
+        if (isSeparated) { result = separatedAmount(); }
+        else {
+            if (isRetired) { result = retiredAmount(); }
+            else { result = normalPayAmount(); }
+        }
+    }
+    return result;
+}`,
+ after:
+`double payAmount() {
+    if (isDead)      return deadAmount();
+    if (isSeparated) return separatedAmount();
+    if (isRetired)   return retiredAmount();
+    return normalPayAmount();
+}`,
+ edge:['Some teams follow "single exit point" rules; guard clauses deliberately break that for readability.']}
+];
+
+const MAP = [
+ ['Duplicated Code','Extract Method'],
+ ['Long Method','Extract Method, Replace Temp with Query'],
+ ['Large Class','Extract Class'],
+ ['Long Parameter List','Introduce Parameter Object'],
+ ['Data Clumps','Extract Class, Introduce Parameter Object'],
+ ['Primitive Obsession','Extract Class (replace primitives with an object)'],
+ ['Switch Statements','Replace Conditional with Polymorphism'],
+ ['Divergent Change','Extract Class'],
+ ['Shotgun Surgery','Move Method / Move Field'],
+ ['Feature Envy','Move Method'],
+ ['Data Class','Move Method (add behavior)'],
+ ['Lazy Class','Inline Class'],
+ ['Comments','Extract Method, Extract Variable'],
+ ['Hard-to-read expression','Extract Variable'],
+ ['Temp holding an expression','Replace Temp with Query'],
+ ['Query that changes state','Separate Query from Modifier'],
+ ['Deeply nested conditionals','Replace Nested Conditional with Guard Clauses']
+];
+
+/* ---------- quiz ---------- */
+const QUIZ = [
+{ scenario:'Two teams wrote these independently. The VAT rate changes to 1.18 and only one of them gets updated.',
+  code:
+`class InvoicePrinter {
+    void print(Order o) {
+        double t = 0;
+        for (Item i : o.items) t += i.price * i.qty;
+        t = t * 1.15;
+        System.out.println("Invoice: " + t);
+    }
+}
+class ReportBuilder {
+    double monthlyTotal(Order o) {
+        double t = 0;
+        for (Item i : o.items) t += i.price * i.qty;
+        t = t * 1.15;
+        return t;
+    }
+}`,
+  options:['Shotgun Surgery','Duplicated Code','Data Clumps','Long Method'], answer:'Duplicated Code',
+  why:'The same calculation (sum of items, then times 1.15) is copy-pasted in two classes. Modify one copy and you may introduce a bug in the other.',
+  wrong:{'Shotgun Surgery':'That describes the effect (one change, many edits). The root cause here is literally repeated logic.','Data Clumps':'Data clumps are groups of fields or parameters appearing together, not repeated algorithms.','Long Method':'Both methods are short.'},
+  fix:'Extract Method (and put it on Order, which owns the data)',
+  fixed:
+`class Order {
+    static final double VAT_MULTIPLIER = 1.15;
+
+    double totalWithVat() {
+        double t = 0;
+        for (Item i : items) t += i.price * i.qty;
+        return t * VAT_MULTIPLIER;
+    }
+}
+// InvoicePrinter: System.out.println("Invoice: " + o.totalWithVat());
+// ReportBuilder:  return o.totalWithVat();` },
+
+{ scenario:'A caller just swapped the card number and expiry, and the code compiled fine.',
+  code:
+`class PaymentService {
+    public void processPayment(String name, String email,
+                               String cardNumber, String expiry,
+                               double amount) { ... }
+}
+
+pay.processPayment("Rafi", "rafi@mail.com", "12/27", "4111222233334444", 250.0);`,
+  options:['Long Parameter List','Large Class','Lazy Class','Switch Statements'], answer:'Long Parameter List',
+  why:'Five parameters, several of the same type, all strings. It is hard to remember the order and easy to pass wrong values, exactly as the slide says.',
+  wrong:{'Large Class':'The class has one method.','Lazy Class':'The class does real work; the problem is its signature.','Switch Statements':'No conditionals on type appear.'},
+  fix:'Introduce Parameter Object',
+  fixed:
+`class CardHolder {
+    final String name, email, cardNumber, expiry;
+    CardHolder(String name, String email, String cardNumber, String expiry) { ... }
+}
+class PaymentService {
+    public void processPayment(CardHolder holder, double amount) { ... }
+}
+
+pay.processPayment(new CardHolder("Rafi", "rafi@mail.com", "4111222233334444", "12/27"), 250.0);` },
+
+{ scenario:'Tax law changes: you edit calculatePay. The email provider changes: you edit sendEmailNotification. The report layout changes: you edit formatForReport. All in this one class.',
+  code:
+`public class Employee {
+    private String name, email, department;
+    private double salary, hoursWorked, taxRate;
+
+    public void updatePersonalInfo(String newName, String newEmail) { ... }
+    public String formatForReport() {
+        return String.format("Employee Report: %s (%s) - Salary: $%.2f", name, department, salary);
+    }
+    public void sendEmailNotification(String message) { ... }
+    public double calculatePay() {
+        double basePay = salary + (hoursWorked * 50.0);
+        return basePay * (1 - taxRate);
+    }
+}`,
+  options:['Divergent Change','Shotgun Surgery','Feature Envy','Data Class'], answer:'Divergent Change',
+  why:'One class is changed for several unrelated reasons. Each kind of change touches a different subset of methods.',
+  wrong:{'Shotgun Surgery':'That is the reverse: one change causes edits across many classes. Here it is one class, many reasons.','Feature Envy':'No method is reaching into another class\'s data.','Data Class':'The class has real behavior (pay, email, formatting).'},
+  fix:'Extract Class (one per reason to change)',
+  fixed:
+`class Employee        { String name, email, department; double salary; void updatePersonalInfo(...) { ... } }
+class PayCalculator   { double calculatePay(Employee e, double hours, double taxRate) { ... } }
+class ReportFormatter { String format(Employee e) { ... } }
+class EmailNotifier   { void send(Employee e, String message) { ... } }` },
+
+{ scenario:'The bank raises the minimum balance to 1000 and rewords the error message. You must edit Account, TransferService, AtmService and StatementService.',
+  code:
+`class Account {
+    void debit(int amt) throws Exception {
+        if (balance - amt < 500) throw new Exception("Minimum balance should be over 500");
+        balance -= amt;
+    }
+}
+class TransferService {
+    void transfer(Account from, Account to, int amt) throws Exception {
+        if (from.balance <= 500) throw new Exception("Min balance must exceed 500");
+        ...
+    }
+}
+class AtmService {
+    boolean canWithdraw(Account a, int amt) { return a.balance - amt >= 500; }
+}`,
+  options:['Divergent Change','Duplicated Code','Shotgun Surgery','Parallel Inheritance Hierarchies'], answer:'Shotgun Surgery',
+  why:'A single business change (the minimum balance) forces many small edits in many classes. The pattern of change is the symptom.',
+  wrong:{'Divergent Change':'That is one class changing for many reasons. Here one reason changes many classes.','Duplicated Code':'The snippets are not copies of each other; the shared piece of knowledge is scattered in different shapes. Duplication is a cousin, but the change pattern is the key.','Parallel Inheritance Hierarchies':'No class hierarchies are involved.'},
+  fix:'Move Method / Move Field: put the rule in Account',
+  fixed:
+`class Account {
+    static final int MIN_BALANCE = 500;
+
+    boolean canWithdraw(int amt) { return balance - amt >= MIN_BALANCE; }
+    void debit(int amt) throws Exception {
+        if (!canWithdraw(amt)) throw new InsufficientBalanceException(MIN_BALANCE);
+        balance -= amt;
+    }
+}
+class TransferService { void transfer(Account f, Account t, int amt) throws Exception { f.debit(amt); t.credit(amt); } }
+class AtmService      { boolean canWithdraw(Account a, int amt) { return a.canWithdraw(amt); } }` },
+
+{ scenario:'Look at which object\'s data this method spends its time on.',
+  code:
+`public class Invoice {
+    public double calculateDiscount(Customer customer) {
+        if (customer.getTotalSpent() > 1000 && customer.getYearsAsMember() > 2) {
+            return customer.getTotalSpent() * 0.15;
+        } else if (customer.getTotalSpent() > 500) {
+            return customer.getTotalSpent() * 0.10;
+        }
+        return 0.0;
+    }
+}
+public class Customer {
+    private double totalSpent;
+    private int yearsAsMember;
+    public double getTotalSpent() { return totalSpent; }
+    public int getYearsAsMember() { return yearsAsMember; }
+}`,
+  options:['Feature Envy','Data Class','Lazy Class','Message Chains'], answer:'Feature Envy',
+  why:'calculateDiscount uses only Customer data and none of Invoice\'s own. The method wants to live in Customer.',
+  wrong:{'Data Class':'Customer does look like one (it is the victim), but the smell in this code is the envious method in Invoice.','Lazy Class':'Neither class is trivially small in purpose.','Message Chains':'There are no a.b().c().d() chains.'},
+  fix:'Move Method',
+  fixed:
+`public class Customer {
+    private double totalSpent;
+    private int yearsAsMember;
+
+    public double calculateDiscount() {
+        if (totalSpent > 1000 && yearsAsMember > 2) return totalSpent * 0.15;
+        if (totalSpent > 500) return totalSpent * 0.10;
+        return 0.0;
+    }
+}
+// Invoice: double d = customer.calculateDiscount();` },
+
+{ scenario:'Every time a customer, supplier or warehouse needs shipping, these same three values appear.',
+  code:
+`class Customer  { String street; String city; String zip; }
+class Supplier  { String street; String city; String zip; }
+
+class ShippingService {
+    void ship(Order o, String street, String city, String zip) { ... }
+    boolean isLocal(String street, String city, String zip)   { ... }
+}`,
+  options:['Data Clumps','Long Parameter List','Data Class','Lazy Class'], answer:'Data Clumps',
+  why:'The same trio (street, city, zip) travels together across classes and method signatures without being a class. Remove one value and the others lose meaning.',
+  wrong:{'Long Parameter List':'Three parameters is not long; the issue is that the same group repeats.','Data Class':'The classes here are not the problem; the missing Address class is.','Lazy Class':'Nothing here is an underused class.'},
+  fix:'Extract Class (Address), then Introduce Parameter Object',
+  fixed:
+`class Address { String street, city, zip; boolean isLocal() { ... } }
+class Customer { Address address; }
+class Supplier { Address address; }
+
+class ShippingService {
+    void ship(Order o, Address to) { ... }
+}` },
+
+{ scenario:'You delete a student from the middle and now the marks belong to the wrong names.',
+  code:
+`int[]    studentIds   = new int[50];
+String[] studentNames = new String[50];
+double[] studentMarks = new double[50];
+
+void print(int i) {
+    System.out.println(studentIds[i] + " " + studentNames[i] + " " + studentMarks[i]);
+}`,
+  options:['Primitive Obsession','Large Class','Temporary Field','Divergent Change'], answer:'Primitive Obsession',
+  why:'Arrays of primitives stand in for a Student class. The concept has no home, so rules and consistency are unprotected. This is the slide\'s own example.',
+  wrong:{'Large Class':'There is no class here at all.','Temporary Field':'These are not fields that are sometimes unused.','Divergent Change':'Not about one class changing for many reasons.'},
+  fix:'Extract Class (Student) and use one array or list of it',
+  fixed:
+`class Student {
+    private final int id;
+    private final String name;
+    private double marks;
+    Student(int id, String name, double marks) { ... }
+    void print() { System.out.println(id + " " + name + " " + marks); }
+}
+List<Student> students = new ArrayList<>();
+students.get(i).print();` },
+
+{ scenario:'You add a new bird species and must remember to update every place that switches on the bird type.',
+  code:
+`double getSpeed() {
+    switch (_type) {
+        case EUROPEAN:       return getBaseSpeed();
+        case AFRICAN:        return getBaseSpeed() - getLoadFactor() * _numberOfCoconuts;
+        case NORWEGIAN_BLUE: return _isNailed ? 0 : getBaseSpeed(_voltage);
+    }
+    throw new RuntimeException("Unknown Type of Bird");
+}`,
+  options:['Switch Statements','Refused Bequest','Temporary Field','Parallel Inheritance Hierarchies'], answer:'Switch Statements',
+  why:'Behavior is chosen by a type code. Let polymorphism do the selection.',
+  wrong:{'Refused Bequest':'That is a subclass ignoring what it inherits; there is no inheritance here.','Temporary Field':'No field is only sometimes used.','Parallel Inheritance Hierarchies':'There is only one (missing) hierarchy.'},
+  fix:'Replace Conditional with Polymorphism',
+  fixed:
+`abstract class Bird { abstract double getSpeed(); }
+class European extends Bird      { double getSpeed() { return getBaseSpeed(); } }
+class African extends Bird       { double getSpeed() { return getBaseSpeed() - getLoadFactor() * coconuts; } }
+class NorwegianBlue extends Bird { double getSpeed() { return isNailed ? 0 : getBaseSpeed(voltage); } }` },
+
+{ scenario:'This class was once meant to be a full logging framework.',
+  code:
+`class Logger {
+    // Originally meant to do complex logging
+    // but now just prints a simple message
+    public void log(String message) {
+        System.out.println(message);
+    }
+}`,
+  options:['Divergent Change','Data Class','Lazy Class','Large Class'], answer:'Lazy Class',
+  why:'The class no longer pays its way. It adds indirection and maintenance but almost no benefit. Slide: it could be replaced by System.out.println directly.',
+  wrong:{'Divergent Change':'It has a single trivial method; it can\'t change for many reasons.','Data Class':'It has behavior (however little), not just fields and getters.','Large Class':'It is the opposite: tiny.'},
+  fix:'Inline Class',
+  fixed:
+`// Inline Class: delete Logger, call the target directly.
+System.out.println(message);` },
+
+{ scenario:'Order holds data; a service somewhere else does all the thinking about it.',
+  code:
+`class Order {
+    private String item;
+    private int quantity;
+    private double price;
+
+    public String getItem() { return item; }         public void setItem(String i) { item = i; }
+    public int getQuantity() { return quantity; }    public void setQuantity(int q) { quantity = q; }
+    public double getPrice() { return price; }       public void setPrice(double p) { price = p; }
+}
+
+// OrderService.calcTotal(order): price * quantity
+// OrderService.isLargeOrder(order): quantity > 100`,
+  options:['Data Class','Lazy Class','Large Class','Shotgun Surgery'], answer:'Data Class',
+  why:'Fields plus getters and setters, and nothing else. The behavior that belongs to Order leaked into OrderService.',
+  wrong:{'Lazy Class':'A Lazy Class lacks a reason to exist; Order clearly has a role, it just lacks behavior.','Large Class':'It is small.','Shotgun Surgery':'That is about change patterns, not a class\'s shape.'},
+  fix:'Move Method: bring totalPrice() and isLargeOrder() into Order',
+  fixed:
+`class Order {
+    private String item;
+    private int quantity;
+    private double price;
+
+    double totalPrice()    { return price * quantity; }
+    boolean isLargeOrder() { return quantity > 100; }
+}
+// order.totalPrice(), order.isLargeOrder()` },
+
+{ scenario:'A comment is needed to explain what the condition means.',
+  code:
+`// check if employee is eligible for full benefits
+if ((e.grade > 3) && (e.months > 12) && !e.onProbation) {
+    grantBenefits(e);
+}`,
+  options:['Comments','Long Method','Dead Code','Data Clumps'], answer:'Comments',
+  why:'The comment is a deodorant covering a cryptic condition. Give the condition a name and the comment becomes unnecessary.',
+  wrong:{'Long Method':'This is a single if statement.','Dead Code':'Nothing here is unused.','Data Clumps':'grade/months/onProbation are read from one object, not passed around together.'},
+  fix:'Extract Method (or Extract Variable) with an intention-revealing name',
+  fixed:
+`if (e.isEligibleForFullBenefits()) {
+    grantBenefits(e);
+}
+
+// in Employee
+boolean isEligibleForFullBenefits() {
+    return grade > 3 && months > 12 && !onProbation;
+}` },
+
+{ scenario:'To follow this method you have to read every line; it validates, calculates, applies discount, formats and prints.',
+  code:
+`public void processOrder(Order order) {
+    if (order.items.isEmpty()) throw new IllegalArgumentException("empty");
+    if (order.customer == null) throw new IllegalArgumentException("no customer");
+    double total = 0;
+    for (Item i : order.items) total += i.price * i.qty;
+    if (order.customer.isPremium()) total *= 0.9;
+    if (total > 1000) total -= 50;
+    StringBuilder sb = new StringBuilder();
+    sb.append("Receipt for ").append(order.customer.name).append(System.lineSeparator());
+    for (Item i : order.items) sb.append(i.name).append(" x").append(i.qty).append(System.lineSeparator());
+    sb.append("Total: ").append(total);
+    System.out.println(sb);
+    order.status = "PROCESSED";
+}`,
+  options:['Long Method','Large Class','Comments','Duplicated Code'], answer:'Long Method',
+  why:'One method carries several distinct jobs at different levels of abstraction. Long methods are hard to understand.',
+  wrong:{'Large Class':'We only see one method, and the problem is its length.','Comments':'There are none in this snippet.','Duplicated Code':'The two loops over items do different things.'},
+  fix:'Extract Method (validate, calculateTotal, applyDiscount, formatReceipt)',
+  fixed:
+`public void processOrder(Order order) {
+    validate(order);
+    double total = applyDiscount(order, calculateTotal(order));
+    System.out.println(formatReceipt(order, total));
+    order.status = "PROCESSED";
+}
+private void validate(Order o) { ... }
+private double calculateTotal(Order o) { ... }
+private double applyDiscount(Order o, double total) { ... }
+private String formatReceipt(Order o, double total) { ... }` },
+
+{ scenario:'UserManager is 3,000 lines with 40+ fields and methods for login, email, address formatting and PDF export.',
+  code:
+`class UserManager {
+    String name, email, passwordHash;
+    String street, city, zip;
+    String smtpHost; int smtpPort;
+    PdfSettings pdf;
+    void login() { ... }
+    void resetPassword() { ... }
+    void sendWelcomeEmail() { ... }
+    void formatAddressLabel() { ... }
+    byte[] exportPdf() { ... }
+    // ... 35 more members
+}`,
+  options:['Large Class','Lazy Class','Data Class','Message Chains'], answer:'Large Class',
+  why:'It tries to do too much and its cohesion is low; groups of methods use separate groups of fields.',
+  wrong:{'Lazy Class':'The opposite problem.','Data Class':'It has plenty of behavior.','Message Chains':'No call chains.'},
+  fix:'Extract Class (Credentials, Address, WelcomeMailer, PdfExporter)',
+  fixed:
+`class User          { String name; Credentials credentials; Address address; }
+class Credentials   { String email, passwordHash; void login() { ... } void resetPassword() { ... } }
+class Address       { String street, city, zip; String toLabel() { ... } }
+class WelcomeMailer { String smtpHost; int smtpPort; void send(User u) { ... } }
+class PdfExporter   { PdfSettings settings; byte[] export(User u) { ... } }` },
+
+{ scenario:'Address is restructured, and every line that navigates through it breaks.',
+  code:
+`String city = order.getCustomer().getAddress().getCity().getName();
+String zip  = order.getCustomer().getAddress().getZip();`,
+  options:['Message Chains','Feature Envy','Middle Man','Data Class'], answer:'Message Chains',
+  why:'The client knows the whole navigation path a.b().c().d(). Any structural change along the chain breaks every caller. (This one appears in your slide diagram under Couplers.)',
+  wrong:{'Feature Envy':'That is about a method that uses another class\'s data heavily; here the issue is the path.','Middle Man':'That is a class that only forwards calls; that\'s the opposite (a possible over-correction).','Data Class':'No class is shown at all.'},
+  fix:'Hide Delegate: let Order expose what callers need',
+  fixed:
+`class Order {
+    String getShippingCityName() { return customer.getShippingCityName(); }
+    String getShippingZip()      { return customer.getShippingZip(); }
+}
+
+String city = order.getShippingCityName();
+String zip  = order.getShippingZip();` },
+
+{ scenario:'tempFuel and tempStops hold garbage or null everywhere except while planRoute() is running.',
+  code:
+`class Trip {
+    private double tempFuel;      // only set inside planRoute()
+    private int    tempStops;     // only set inside planRoute()
+    private Route  route;
+
+    void planRoute(Map map) {
+        tempFuel = estimateFuel(map);
+        tempStops = countStops(map);
+        route = buildRoute(tempFuel, tempStops);
+    }
+    Route getRoute() { return route; }
+}`,
+  options:['Temporary Field','Data Clumps','Lazy Class','Primitive Obsession'], answer:'Temporary Field',
+  why:'Fields exist to carry values for just one algorithm and are meaningless the rest of the time. That confuses readers and invites stale-state bugs. (Named in the OO Abusers box of the slide diagram.)',
+  wrong:{'Data Clumps':'They aren\'t appearing together across many places.','Lazy Class':'The class does real work.','Primitive Obsession':'The issue isn\'t primitives standing for a concept, it is state kept only temporarily.'},
+  fix:'Turn them into local variables (or Extract Class for the algorithm)',
+  fixed:
+`class Trip {
+    private Route route;
+
+    void planRoute(Map map) {
+        double fuel = estimateFuel(map);
+        int stops = countStops(map);
+        route = buildRoute(fuel, stops);
+    }
+    Route getRoute() { return route; }
+}` },
+
+{ scenario:'Nobody has been able to trigger the legacy path for two years, and oldPricing has no callers.',
+  code:
+`double price(Order o) {
+    double base = o.total();
+    boolean legacy = false;
+    if (legacy) {
+        base = oldPricing(o);
+    }
+    return base;
+}
+private double oldPricing(Order o) { ... 40 lines ... }`,
+  options:['Dead Code','Lazy Class','Speculative Generality','Comments'], answer:'Dead Code',
+  why:'The branch can never run and the method is never used. It costs reading time and is a trap for maintainers. (Named in the Dispensables box of the slide diagram.)',
+  wrong:{'Lazy Class':'This is about classes, not statements or methods.','Speculative Generality':'That is code added for a possible future need; this is code left over from the past.','Comments':'There are none.'},
+  fix:'Delete it (version control remembers)',
+  fixed:
+`double price(Order o) {
+    return o.total();
+}` }
+];
+
+/* ---------- exam Q&A ---------- */
+const QA = [
+ ['Define refactoring and contrast it with performance optimization.','Refactoring changes the internal structure of software to make it easier to understand and cheaper to modify, without changing observable behavior. Performance optimization also preserves behavior, but aims at speed or resource use and often makes code harder to understand.'],
+ ['Why is refactoring dangerous, and how do you make it safe?','It can introduce bugs, and managers see it as time not spent on requirements. Make it systematic, incremental and safe: apply named refactoring patterns in small steps and test constantly, so any failure points at the last step.'],
+ ['When should you refactor?','Rule of Three (third time you do something similar), when adding functionality (before or after), when fixing a bug, and during code review.'],
+ ['State two problems that limit refactoring.','Databases: business applications are tightly coupled to their schemas and databases are hard to change. Changing interfaces: published interfaces used by code you cannot edit cannot simply be changed.'],
+ ['Differentiate Divergent Change from Shotgun Surgery with an example each.','Divergent Change: one class changes for many different reasons (Employee edited for tax, email and reports). Shotgun Surgery: one change requires edits in many classes (changing the minimum balance rule in Account, TransferService and AtmService).'],
+ ['Which smell does this show and how do you fix it: a method uses mostly another class\'s data?','Feature Envy. Apply Move Method to put the method in the class whose data it uses (with a delegating stub if the interface is published).'],
+ ['Distinguish Extract Variable from Replace Temp with Query.','Extract Variable gives a hard-to-read expression a self-explanatory local name. Replace Temp with Query turns a temp that holds an expression into a method so other methods can reuse it and Extract Method is no longer blocked.'],
+ ['Is a Data Class always a smell?','No. It is a problem when the class should have behavior but doesn\'t, or when its behavior is scattered in other classes. Data transfer objects can legitimately be pure data.'],
+ ['Why replace a switch statement with polymorphism?','Switches on type are usually duplicated; adding a type means editing all of them. Moving each branch into a subclass override lets the object model do the selection and the compiler enforces completeness.'],
+ ['Name tools that detect code smells automatically.','Codegrip, Checkstyle, PMD, FindBugs and SonarQube (from the slides).']
+];
+
+/* ---------- navigation ---------- */
+const panels = [...document.querySelectorAll('.panel')];
+const nav = document.getElementById('nav');
+let current = 0;
+panels.forEach((p, i) => {
+  const b = h('button', {type:'button', text:p.dataset.title});
+  b.addEventListener('click', () => go(i));
+  nav.append(b);
+});
+function go(i){
+  current = Math.max(0, Math.min(panels.length - 1, i));
+  panels.forEach((p, k) => p.classList.toggle('active', k === current));
+  [...nav.children].forEach((b, k) => { if (k === current) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  document.getElementById('prev').disabled = current === 0;
+  document.getElementById('next').disabled = current === panels.length - 1;
+  document.getElementById('prev').textContent = current > 0 ? 'Previous: ' + panels[current-1].dataset.title.replace(/^\d+\.\s*/, '') : 'Previous';
+  document.getElementById('next').textContent = current < panels.length - 1 ? 'Next: ' + panels[current+1].dataset.title.replace(/^\d+\.\s*/, '') : 'Next';
+  try { history.replaceState(null, '', '#s' + (current + 1)); } catch(e) {}
+  window.scrollTo({top: 0});
+}
+document.getElementById('prev').onclick = () => go(current - 1);
+document.getElementById('next').onclick = () => go(current + 1);
+document.getElementById('theme').onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+};
+
+/* ---------- static blocks ---------- */
+document.querySelectorAll('[data-ba]').forEach(n => {
+  const c = CODE[n.dataset.ba];
+  n.replaceWith(ba(c.before, c.after));
+});
+
+/* hero test runner */
+(function(){
+  const before = (m, hgt) => m * 9.81 * hgt;
+  const G = 9.81;
+  const after = (m, hgt) => m * G * hgt;
+  const cases = [[2,10],[0,5],[70,1.5],[1250,0.3]];
+  document.getElementById('runTests').onclick = () => {
+    const t = document.getElementById('results');
+    t.replaceChildren(h('tr', null, h('th',{text:'mass, height'}), h('th',{text:'before'}), h('th',{text:'after'}), h('th',{text:'same?'})));
+    cases.forEach(([m, hh]) => {
+      const a = before(m, hh), b = after(m, hh);
+      t.append(h('tr', null, h('td',{text:m + ', ' + hh}), h('td',{text:a.toFixed(3)}), h('td',{text:b.toFixed(3)}), h('td',{class: a === b ? 'ok' : '', text: a === b ? 'pass' : 'FAIL'})));
+    });
+  };
+})();
+
+/* safe-loop toy */
+(function(){
+  const log = document.getElementById('loopLog');
+  let steps = 0;
+  document.getElementById('smallStep').onclick = () => {
+    steps++;
+    const fail = Math.random() < 0.15;
+    log.className = 'log ' + (fail ? 'bad' : 'ok');
+    log.textContent = fail
+      ? 'Step ' + steps + ': tests are red. Exactly one suspect: the edit you just made. Undo it or fix it, then continue.'
+      : 'Step ' + steps + ': tests are green. Commit and take the next small step.';
+  };
+  document.getElementById('bigBang').onclick = () => {
+    let failed = 0;
+    for (let i = 0; i < 10; i++) if (Math.random() < 0.15) failed++;
+    if (failed) {
+      log.className = 'log bad';
+      log.textContent = 'Tests are red after 10 edits, and ' + failed + ' of them were faulty. Which ones? You now have 10 suspects and must bisect. (Chance of at least one failure in 10 edits at 15% each is about 80%.)';
+    } else {
+      log.className = 'log ok';
+      log.textContent = 'You got lucky this time: tests green. Try again; the odds catch up with you.';
+    }
+  };
+})();
+
+/* smell map */
+(function(){
+  const host = document.getElementById('cats');
+  const info = document.getElementById('smellInfo');
+  const detailed = new Set(['Duplicate Code','Long Method','Large Class','Long Parameter List','Data Clumps','Primitive Obsession','Switch Statements','Divergent Change','Shotgun Surgery','Feature Envy','Lazy Class','Data Class','Comments']);
+  CATS.forEach(c => {
+    const chips = h('div', {class:'chips'});
+    c.s.forEach(name => {
+      const b = h('button', {type:'button', class:'chip', 'aria-pressed':'false', text:name});
+      b.onclick = () => {
+        host.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed','false'));
+        b.setAttribute('aria-pressed','true');
+        info.replaceChildren(h('p', null, h('b', {text:name + ': '}), ONE[name]));
+        if (detailed.has(name)) {
+          info.append(h('button', {type:'button', class:'btn ghost', text:'Study this smell', onclick: () => { go(3); pickSmell(name === 'Duplicate Code' ? 'dup' : SMELLS.find(s => s.name === name).id); }}));
+        } else {
+          info.append(h('p', {class:'lead', text:'Named in the slide diagram only, so know the one-line idea.'}));
+        }
+      };
+      chips.append(b);
+    });
+    host.append(h('div', {class:'cat ' + c.k}, h('h3', {text:c.name}), h('p', {text:c.d}), chips));
+  });
+})();
+
+/* smell lab */
+const smellChips = document.getElementById('smellChips');
+const smellDetail = document.getElementById('smellDetail');
+function pickSmell(id){
+  const s = SMELLS.find(x => x.id === id);
+  [...smellChips.children].forEach(b => b.setAttribute('aria-pressed', b.dataset.id === id ? 'true' : 'false'));
+  smellDetail.replaceChildren(
+    h('h3', {text: s.name + '  (' + s.cat + ')'}),
+    h('div', {class:'card'}, h('p', null, h('b',{text:'Symptom: '}), s.sym), h('p', null, h('b',{text:'Why it hurts: '}), s.why), h('p', null, h('b',{text:'Fix: '}), s.fix)),
+    ba(s.before, s.after),
+    callout('Edge cases and traps', '<ul class="tight">' + s.edge.map(e => '<li>' + e + '</li>').join('') + '</ul>', true),
+    think(s.think[0], s.think[1])
+  );
+}
+SMELLS.forEach(s => {
+  const b = h('button', {type:'button', class:'chip', 'aria-pressed':'false', 'data-id': s.id, text:s.name});
+  b.onclick = () => pickSmell(s.id);
+  smellChips.append(b);
+});
+pickSmell('dup');
+
+/* catalog */
+const refChips = document.getElementById('refChips');
+const refDetail = document.getElementById('refDetail');
+function pickRef(id){
+  const r = REFS.find(x => x.id === id);
+  [...refChips.children].forEach(b => b.setAttribute('aria-pressed', b.dataset.id === id ? 'true' : 'false'));
+  const kids = [
+    h('h3', {text: r.name}),
+    h('div', {class:'card'}, h('p', null, h('b',{text:'Use it for: '}), r.trig), h('p', {text:r.idea}))
+  ];
+  if (r.steps.length) kids.push(h('div', {class:'card'}, h('b', {text:'Mechanics'}), h('ol', {class:'tight'}, r.steps.map(s => h('li', {text:s})))));
+  kids.push(ba(r.before, r.after));
+  kids.push(callout('Edge cases and traps', '<ul class="tight">' + r.edge.map(e => '<li>' + e + '</li>').join('') + '</ul>', true));
+  if (r.brief) kids.push(callout('Scope note', 'This one is named in the slide catalog list but not worked through in the slides. Know the idea; the example above is a compact illustration.', false));
+  refDetail.replaceChildren(...kids);
+}
+REFS.forEach(r => {
+  const b = h('button', {type:'button', class:'chip', 'aria-pressed':'false', 'data-id': r.id, text:r.name});
+  b.onclick = () => pickRef(r.id);
+  refChips.append(b);
+});
+pickRef('em');
+document.getElementById('mapTable').append(
+  h('tr', null, h('th',{text:'Smell / situation'}), h('th',{text:'Reach for'})),
+  ...MAP.map(([a, b]) => h('tr', null, h('td',{text:a}), h('td',{text:b})))
+);
+
+/* cheat sheet */
+(function(){
+  const rows = [
+   ['Duplicated Code','Same logic in 2+ places','Extract Method'],
+   ['Long Method','Hard to read; blocks you would label','Extract Method, Replace Temp with Query'],
+   ['Large Class','Too many fields/methods, low cohesion','Extract Class'],
+   ['Long Parameter List','Many parameters, easy to misorder','Introduce Parameter Object'],
+   ['Data Clumps','Same fields/params always together','Extract Class, Introduce Parameter Object'],
+   ['Primitive Obsession','Primitives/arrays instead of a class','Extract Class'],
+   ['Switch Statements','Type switch, often duplicated','Replace Conditional with Polymorphism'],
+   ['Divergent Change','One class, many reasons to change','Extract Class'],
+   ['Shotgun Surgery','One change, many classes','Move Method / Move Field'],
+   ['Feature Envy','Method wants another class\'s data','Move Method'],
+   ['Lazy Class','Doesn\'t pay its way','Inline Class'],
+   ['Data Class','Only fields + getters/setters','Move Method (add behavior)'],
+   ['Comments','Comment covers confusing code','Extract Method / Variable']
+  ];
+  document.getElementById('cheat').append(
+    h('tr', null, h('th',{text:'Smell'}), h('th',{text:'Symptom'}), h('th',{text:'Refactoring'})),
+    ...rows.map(r => h('tr', null, r.map(c => h('td', {text:c}))))
+  );
+  const qa = document.getElementById('qa');
+  QA.forEach(([q, a], i) => qa.append(h('details', {class:'think'}, h('summary', {text:(i + 1) + '. ' + q}), h('p', {text:a}))));
+})();
+
+/* quiz */
+(function(){
+  const host = document.getElementById('quiz');
+  let order, idx, score, results;
+  function shuffle(a){ const b = a.slice(); for (let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+  function start(subset){
+    order = subset ? subset.slice() : QUIZ.map((_, i) => i);
+    idx = 0; score = 0; results = [];
+    render();
+  }
+  function render(){
+    if (idx >= order.length) return finish();
+    const q = QUIZ[order[idx]];
+    const bar = h('div', {class:'quizbar'}, h('span', {text:'Question ' + (idx + 1) + ' of ' + order.length}), h('span', {text:'Score: ' + score}));
+    const prog = h('div', {class:'progress'}, h('i', {style:'width:' + (idx / order.length * 100) + '%'}));
+    const opts = h('div', {class:'opts', role:'group', 'aria-label':'Answer options'});
+    const fb = h('div', {'aria-live':'polite'});
+    shuffle(q.options).forEach(o => {
+      const b = h('button', {type:'button', class:'opt', text:o});
+      b.onclick = () => answer(q, o, opts, fb);
+      opts.append(b);
+    });
+    host.replaceChildren(bar, prog, h('p', {html:'<b>Scenario:</b> ' + q.scenario}), code(q.code), h('p', {text:'Which code smell is this?'}), opts, fb);
+  }
+  function answer(q, choice, opts, fb){
+    const ok = choice === q.answer;
+    if (ok) score++;
+    results.push({i: order[idx], ok, choice});
+    [...opts.children].forEach(b => {
+      b.disabled = true;
+      if (b.textContent === q.answer) b.classList.add('correct');
+      else if (b.textContent === choice) b.classList.add('wrong');
+    });
+    const wrongItems = Object.keys(q.wrong).map(k => '<li><b>' + k + ':</b> ' + q.wrong[k] + '</li>').join('');
+    fb.replaceChildren(
+      h('div', {class:'card'},
+        h('p', {class:'verdict ' + (ok ? 'ok' : 'no'), text: ok ? 'Correct: ' + q.answer : 'Not quite. The answer is ' + q.answer}),
+        h('p', {text:q.why}),
+        h('p', null, h('b', {text:'Why not the others'})),
+        h('ul', {class:'tight', html: wrongItems}),
+        h('div', {class:'fixed'}, h('div', {class:'lbl', text:'Corrected code. Refactoring used: ' + q.fix}), code(q.fixed, 'after'))
+      ),
+      h('button', {type:'button', class:'btn', text: idx + 1 < order.length ? 'Next question' : 'See results', onclick: () => { idx++; render(); window.scrollTo({top:0}); }})
+    );
+    fb.querySelector('.card').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  function finish(){
+    const pct = Math.round(score / order.length * 100);
+    const missed = results.filter(r => !r.ok).map(r => r.i);
+    const msg = pct === 100 ? 'Flawless.' : pct >= 80 ? 'Strong. Review the misses below.' : pct >= 50 ? 'Getting there. Revisit the Smell lab for the ones you missed.' : 'Go through the Smell lab once more, then retry.';
+    host.replaceChildren(
+      h('div', {class:'card'},
+        h('div', {class:'score', text: score + ' / ' + order.length}),
+        h('p', {text: msg}),
+        h('ul', {class:'review tight'}, results.map(r => h('li', {class: r.ok ? 'g' : 'r', text: (r.ok ? 'Correct: ' : 'Missed: ') + QUIZ[r.i].answer + (r.ok ? '' : ' (you chose ' + r.choice + ')')})))
+      ),
+      h('div', {class:'loop'},
+        h('button', {type:'button', class:'btn', text:'Retake all', onclick: () => start()}),
+        missed.length ? h('button', {type:'button', class:'btn ghost', text:'Retry only the ' + missed.length + ' missed', onclick: () => start(missed)}) : null)
+    );
+  }
+  host.append(
+    h('div', {class:'card'}, h('p', {text: QUIZ.length + ' questions covering the 13 smells from the slides plus a few named in the slide diagram.'}),
+      h('button', {type:'button', class:'btn', text:'Start quiz', onclick: () => start()}))
+  );
+})();
+
+/* boot */
+const m = /^#s(\d)$/.exec(location.hash);
+go(m ? parseInt(m[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

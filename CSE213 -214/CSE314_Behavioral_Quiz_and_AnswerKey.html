@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE314 · Behavioral Patterns · Quiz &amp; Answer Key</title>
+<style>
+  :root{
+    --ink:#1b2430; --paper:#f7f5ef; --panel:#ffffff; --line:#e2ddd0;
+    --strat:#2f6f6d; --tmpl:#b98a2e; --obs:#3f6ea5; --med:#5b5a9e; --cmd:#a84e5e; --state:#5e7d3a;
+    --code-bg:#101722; --code-ink:#dbe4f0; --kw:#7fb4ff; --str:#8fd0a0; --com:#6a7a90; --typ:#e0b06a; --fn:#c79bf2;
+    --good:#3f8f63; --bad:#c25b6a; --tip:#eaf4f1; --note:#fff8e8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif; background:var(--paper); color:var(--ink); line-height:1.65;}
+  header{background:#141b26; color:#f2f5fa; padding:26px 28px 0;}
+  header .course{font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:#8fa2ba; text-transform:uppercase;}
+  header h1{font-size:24px; margin:4px 0 18px; font-weight:600;}
+  .tabs{display:flex; gap:4px;}
+  .tabbtn{font-family:Georgia,serif; font-size:15px; padding:12px 22px; background:#1c2635; color:#b9c5d6; border:none; border-radius:10px 10px 0 0; cursor:pointer;}
+  .tabbtn.active{background:var(--paper); color:var(--ink); font-weight:bold;}
+  main{max-width:980px; margin:0 auto; padding:36px 28px 100px;}
+  .view{display:none;}
+  .view.visible{display:block;}
+  .intro{background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--gold,#b98a2e); border-radius:0 10px 10px 0; padding:16px 20px; margin-bottom:26px; font-size:15px;}
+  .legend{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 28px;}
+  .pill{display:inline-block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1px; padding:4px 11px; border-radius:999px; color:#fff;}
+  /* ---- quiz ---- */
+  .q{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:16px 0;}
+  .qn{font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:#b98a2e; text-transform:uppercase;}
+  .q p.stem{font-size:15.5px; margin:8px 0 14px;}
+  .opt{display:block; width:100%; text-align:left; font-family:Georgia,serif; font-size:14.5px; padding:10px 14px; margin:6px 0; border-radius:8px; border:1.5px solid var(--line); background:#fbfaf6; cursor:pointer; line-height:1.5;}
+  .opt:hover{border-color:#888;}
+  .opt.correct{background:#e4f2ea; border-color:var(--good); font-weight:bold;}
+  .opt.wrong{background:#f9e6e8; border-color:var(--bad);}
+  .opt:disabled{cursor:default;}
+  .verdict{display:none; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-top:10px; padding:4px 0;}
+  .verdict.show{display:block;}
+  .verdict.ok{color:var(--good);}
+  .verdict.no{color:var(--bad);}
+  .expl{display:none; margin-top:10px; padding:12px 15px; border-radius:8px; background:var(--tip); border:1px solid #bcd9d0; font-size:14px;}
+  .expl.show{display:block;}
+  .score{font-size:18px; background:var(--panel); border:2px solid #b98a2e; border-radius:12px; padding:18px 22px; margin-top:24px; text-align:center;}
+  .resetbtn{font-family:Georgia,serif; font-size:14px; padding:10px 18px; border-radius:9px; border:1.5px solid #888; background:transparent; color:#333; cursor:pointer; margin-top:18px;}
+  /* ---- answer key ---- */
+  .prob{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin:24px 0 40px;}
+  .prob .tag{display:inline-block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1.5px; padding:3px 10px; border-radius:6px; color:#fff; margin-bottom:10px;}
+  .prob h3{font-size:20px; margin-bottom:6px;}
+  .prob .orig{font-style:italic; color:#5d6673; font-size:14px; margin-bottom:14px; border-left:3px solid var(--line); padding-left:12px;}
+  .why{background:var(--note); border:1px solid #ecd9a8; border-radius:8px; padding:12px 16px; margin:14px 0; font-size:14.5px;}
+  .why .lbl{font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; display:block; margin-bottom:6px; color:#8a6414; font-weight:bold;}
+  pre{background:var(--code-bg); color:var(--code-ink); font-family:'Courier New',monospace; font-size:13px; line-height:1.55; padding:17px 19px; border-radius:10px; overflow-x:auto; margin:14px 0;}
+  pre .k{color:var(--kw);} pre .s{color:var(--str);} pre .c{color:var(--com); font-style:italic;} pre .t{color:var(--typ);} pre .f{color:var(--fn);}
+  .outbox{background:#0d1420; color:#a8f0c0; font-family:'Courier New',monospace; font-size:12.5px; line-height:1.55; padding:16px 19px; border-radius:10px; margin:12px 0; white-space:pre-wrap;}
+  .outbox .lbl{color:#6a8fae; text-transform:uppercase; letter-spacing:1.5px; font-size:10.5px; display:block; margin-bottom:8px;}
+  .quicknav{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;}
+  .quicknav a{font-family:'Courier New',monospace; font-size:12px; padding:6px 12px; border-radius:999px; border:1.5px solid var(--line); text-decoration:none; color:var(--ink); background:var(--panel);}
+  @media(max-width:700px){header{padding:18px 16px 0;} main{padding:24px 16px 80px;} .tabbtn{padding:10px 14px; font-size:13.5px;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="course">CSE 314 · Software Engineering Sessional</div>
+  <h1>Behavioral Patterns — Practice Quiz &amp; Answer Key</h1>
+  <div class="tabs">
+    <button class="tabbtn active" data-v="quiz" onclick="showView('quiz')">🎯 Practice Quiz — 22 New Scenarios</button>
+    <button class="tabbtn" data-v="answers" onclick="showView('answers')">📘 Answer Key — Uploaded PDF (Full Code)</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════ QUIZ VIEW ═══════════════════════ -->
+<div class="view visible" id="view-quiz">
+  <div class="intro">
+    These are <strong>brand-new scenarios</strong> — none are copied from your uploaded online questions. Pattern names are never given away; read for the underlying <em>shape</em> of the problem. Pick an answer and you'll immediately see if you're right, with an explanation either way, so you can calibrate your recognition instincts before the real online test.
+  </div>
+  <div class="legend">
+    <span class="pill" style="background:var(--strat)">Strategy</span>
+    <span class="pill" style="background:var(--tmpl)">Template Method</span>
+    <span class="pill" style="background:var(--obs)">Observer</span>
+    <span class="pill" style="background:var(--med)">Mediator</span>
+    <span class="pill" style="background:var(--cmd)">Command</span>
+    <span class="pill" style="background:var(--state)">State</span>
+  </div>
+  <div id="quizbox"></div>
+  <div class="score" id="scorebox" style="display:none"></div>
+  <button class="resetbtn" onclick="resetQuiz()">↺ Reset &amp; Retake</button>
+</div>
+
+<!-- ═══════════════════════ ANSWER KEY VIEW ═══════════════════════ -->
+<div class="view" id="view-answers">
+  <div class="intro">
+    Full worked solutions for all five questions in <strong>Behavioral_Online_Questions.pdf</strong>. Each includes the pattern chosen, a one-paragraph justification, complete runnable Java, and a traced sample output. Read the justification paragraphs closely — in a live online test, that reasoning is what separates full marks from partial credit.
+  </div>
+  <div class="quicknav">
+    <a href="#a1">A1 · Subscription Simulator</a>
+    <a href="#a2">A2 · RavenBoard</a>
+    <a href="#b2">B2 · Smart Home Hub</a>
+    <a href="#c1">C1 · Hospital Visit</a>
+    <a href="#c2">C2 · Trading Dashboard</a>
+  </div>
+
+  <!-- A1 -->
+  <div class="prob" id="a1">
+    <span class="tag" style="background:var(--state)">STATE (with a temporary-override twist)</span>
+    <h3>A1 — Brain-Support Subscription Simulator</h3>
+    <div class="orig">Three tiers (Common/Plus/Lux) with different coverage radius, promote()/demote() transitions, a temporary activateLux(hours) that auto-reverts, and setMood() gated on Lux being active.</div>
+    <div class="why"><span class="lbl">Why State</span>
+      Every operation's behavior — the safe travel radius, whether mood control is available — depends entirely on <strong>which tier is currently active</strong>, and that tier changes over the object's lifetime (promote/demote/temporary-Lux). That's the textbook State signature: instead of an <code>if(tier==COMMON) ... else if(tier==PLUS) ...</code> ladder inside every method, each tier becomes its own class implementing the shared behavior. The twist — <code>activateLux(hours)</code> temporarily overriding the state and then restoring the previous one — is a common real-world extension of State: the context simply remembers <em>which</em> state to snap back to, the same idea as a "return to previous screen" stack.
+    </div>
+    <pre><span class="c">// ---------- TierState.java ----------</span>
+<span class="k">public interface</span> <span class="t">TierState</span> {
+    String <span class="f">getName</span>();
+    <span class="k">int</span> <span class="f">getRangeKm</span>();
+    <span class="k">void</span> <span class="f">promote</span>(<span class="t">PatientMonitor</span> ctx);
+    <span class="k">void</span> <span class="f">demote</span>(<span class="t">PatientMonitor</span> ctx);
+}
+
+<span class="c">// ---------- CommonState.java ----------</span>
+<span class="k">public class</span> <span class="t">CommonState</span> <span class="k">implements</span> <span class="t">TierState</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Common"</span>; }
+    <span class="k">public int</span> <span class="f">getRangeKm</span>() { <span class="k">return</span> 10; }
+    <span class="k">public void</span> <span class="f">promote</span>(<span class="t">PatientMonitor</span> ctx) {
+        ctx.setTier(ctx.getPlusState());
+        System.out.println(<span class="s">"[promote] Common -> Plus"</span>);
+    }
+    <span class="k">public void</span> <span class="f">demote</span>(<span class="t">PatientMonitor</span> ctx) {
+        System.out.println(<span class="s">"[demote] Already at Common. No change."</span>);
+    }
+}
+
+<span class="c">// ---------- PlusState.java ----------</span>
+<span class="k">public class</span> <span class="t">PlusState</span> <span class="k">implements</span> <span class="t">TierState</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Plus"</span>; }
+    <span class="k">public int</span> <span class="f">getRangeKm</span>() { <span class="k">return</span> 50; }
+    <span class="k">public void</span> <span class="f">promote</span>(<span class="t">PatientMonitor</span> ctx) {
+        ctx.setTier(ctx.getLuxState());
+        System.out.println(<span class="s">"[promote] Plus -> Lux"</span>);
+    }
+    <span class="k">public void</span> <span class="f">demote</span>(<span class="t">PatientMonitor</span> ctx) {
+        ctx.setTier(ctx.getCommonState());
+        System.out.println(<span class="s">"[demote] Plus -> Common"</span>);
+    }
+}
+
+<span class="c">// ---------- LuxState.java ----------</span>
+<span class="k">public class</span> <span class="t">LuxState</span> <span class="k">implements</span> <span class="t">TierState</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Lux"</span>; }
+    <span class="k">public int</span> <span class="f">getRangeKm</span>() { <span class="k">return</span> 50; }
+    <span class="k">public void</span> <span class="f">promote</span>(<span class="t">PatientMonitor</span> ctx) {
+        System.out.println(<span class="s">"[promote] Already at Lux. No change."</span>);
+    }
+    <span class="k">public void</span> <span class="f">demote</span>(<span class="t">PatientMonitor</span> ctx) {
+        ctx.setTier(ctx.getPlusState());
+        System.out.println(<span class="s">"[demote] Lux -> Plus"</span>);
+    }
+}
+
+<span class="c">// ---------- PatientMonitor.java (Context) ----------</span>
+<span class="k">public class</span> <span class="t">PatientMonitor</span> {
+    <span class="k">private final</span> <span class="t">TierState</span> common = <span class="k">new</span> <span class="t">CommonState</span>();
+    <span class="k">private final</span> <span class="t">TierState</span> plus   = <span class="k">new</span> <span class="t">PlusState</span>();
+    <span class="k">private final</span> <span class="t">TierState</span> lux    = <span class="k">new</span> <span class="t">LuxState</span>();
+    <span class="k">private</span> <span class="t">TierState</span> currentTier = common;      <span class="c">// starts at Common</span>
+
+    <span class="t">TierState</span> <span class="f">getCommonState</span>() { <span class="k">return</span> common; }
+    <span class="t">TierState</span> <span class="f">getPlusState</span>()   { <span class="k">return</span> plus; }
+    <span class="t">TierState</span> <span class="f">getLuxState</span>()    { <span class="k">return</span> lux; }
+    <span class="k">void</span> <span class="f">setTier</span>(<span class="t">TierState</span> t) { currentTier = t; }
+
+    <span class="c">// ---- 1. travelCheck(km) ----</span>
+    <span class="k">public void</span> <span class="f">travelCheck</span>(<span class="k">int</span> km) {
+        <span class="k">if</span> (km <= currentTier.getRangeKm()) {
+            System.out.println(<span class="s">"[travelCheck("</span> + km + <span class="s">"km)] "</span> + currentTier.getName() + <span class="s">" tier -> STABLE"</span>);
+        } <span class="k">else</span> {
+            System.out.println(<span class="s">"[travelCheck("</span> + km + <span class="s">"km)] "</span> + currentTier.getName()
+                + <span class="s">" tier -> UNSTABLE! ALERT: patient has blacked out -- bring the patient back into coverage now."</span>);
+            System.out.println(<span class="s">"   -> Bringing patient back into range..."</span>);
+            travelCheck(0);                              <span class="c">// simulation continues with travelCheck(0)</span>
+            System.out.println(<span class="s">"   -> Patient regains consciousness."</span>);
+        }
+    }
+
+    <span class="c">// ---- 2. activateLux(hours) — temporary override with auto-revert ----</span>
+    <span class="k">private</span> <span class="t">TierState</span> preLuxTier = <span class="k">null</span>;
+    <span class="k">public void</span> <span class="f">activateLux</span>(<span class="k">int</span> hours) {
+        <span class="k">if</span> (currentTier == lux) {
+            System.out.println(<span class="s">"[activateLux] Already on Lux. Nothing to override."</span>);
+            <span class="k">return</span>;
+        }
+        preLuxTier = currentTier;
+        currentTier = lux;
+        System.out.println(<span class="s">"[activateLux] Temporarily switching to Lux for "</span> + hours + <span class="s">" hour(s)..."</span>);
+        <span class="k">final</span> <span class="t">TierState</span> toRestore = preLuxTier;
+        <span class="c">// background timer thread -- keeps the demo non-blocking so we can</span>
+        <span class="c">// call setMood() WHILE Lux is still active, then watch it auto-revert</span>
+        <span class="k">new</span> Thread(() -> {
+            <span class="k">try</span> { Thread.sleep(hours * 300L); } <span class="k">catch</span> (InterruptedException ignored) {}
+            currentTier = toRestore;
+            preLuxTier = <span class="k">null</span>;
+            System.out.println(<span class="s">"[activateLux] Duration elapsed. Reverted to "</span> + toRestore.getName() + <span class="s">" tier."</span>);
+        }).start();
+    }
+
+    <span class="c">// ---- 3. setMood(...) — only while Lux is active ----</span>
+    <span class="k">public void</span> <span class="f">setMood</span>(String mood) {
+        <span class="k">if</span> (currentTier == lux) System.out.println(<span class="s">"[setMood] Mood set to: "</span> + mood);
+        <span class="k">else</span> System.out.println(<span class="s">"[setMood] Mood control unavailable."</span>);
+    }
+
+    <span class="c">// ---- 4 &amp; 5. promote() / demote() — delegate to current state ----</span>
+    <span class="k">public void</span> <span class="f">promote</span>() { currentTier.promote(<span class="k">this</span>); }
+    <span class="k">public void</span> <span class="f">demote</span>() { currentTier.demote(<span class="k">this</span>); }
+}
+
+<span class="c">// ---------- Demo.java ----------</span>
+<span class="k">public class</span> <span class="t">Demo</span> {
+    <span class="k">public static void</span> <span class="f">main</span>(String[] args) <span class="k">throws</span> InterruptedException {
+        <span class="t">PatientMonitor</span> monitor = <span class="k">new</span> <span class="t">PatientMonitor</span>();
+
+        monitor.travelCheck(5);        <span class="c">// Common, in range</span>
+        monitor.travelCheck(15);       <span class="c">// Common, OUT of range -> alert + auto-recover</span>
+        monitor.promote();             <span class="c">// Common -> Plus</span>
+        monitor.travelCheck(30);       <span class="c">// Plus, in range</span>
+        monitor.setMood(<span class="s">"calm"</span>);     <span class="c">// not Lux -> unavailable</span>
+
+        monitor.activateLux(2);        <span class="c">// temporary Lux for ~2 units</span>
+        monitor.setMood(<span class="s">"happy"</span>);    <span class="c">// Lux active -> succeeds</span>
+        Thread.sleep(900);             <span class="c">// let the background revert finish</span>
+        monitor.setMood(<span class="s">"exhausted"</span>); <span class="c">// reverted to Plus -> unavailable again</span>
+
+        monitor.demote();              <span class="c">// Plus -> Common</span>
+        monitor.demote();              <span class="c">// Common -> Common (no change)</span>
+    }
+}</pre>
+    <div class="outbox"><span class="lbl">Sample output</span>[travelCheck(5km)] Common tier -> STABLE
+[travelCheck(15km)] Common tier -> UNSTABLE! ALERT: patient has blacked out -- bring the patient back into coverage now.
+   -> Bringing patient back into range...
+[travelCheck(0km)] Common tier -> STABLE
+   -> Patient regains consciousness.
+[promote] Common -> Plus
+[travelCheck(30km)] Plus tier -> STABLE
+[setMood] Mood control unavailable.
+[activateLux] Temporarily switching to Lux for 2 hour(s)...
+[setMood] Mood set to: happy
+[activateLux] Duration elapsed. Reverted to Plus tier.
+[setMood] Mood control unavailable.
+[demote] Plus -> Common
+[demote] Already at Common. No change.</div>
+  </div>
+
+  <!-- A2 -->
+  <div class="prob" id="a2">
+    <span class="tag" style="background:var(--obs)">OBSERVER</span>
+    <h3>A2 — RavenBoard</h3>
+    <div class="orig">Multiple groups (Commander, Scouts, Supply Team) receive new scroll messages and react; groups can subscribe/unsubscribe at runtime.</div>
+    <div class="why"><span class="lbl">Why Observer</span>
+      This is the magazine-subscription story from lecture, reskinned as ravens: one publisher (the board), many subscribers who each react in their own way, and a runtime subscribe/unsubscribe list. The board never needs to know <em>what</em> Scouts or the Supply Team do with a message — it just calls <code>receive()</code> on whoever is currently registered. That decoupling plus the explicit "subscribe/unsubscribe at runtime" phrase are the two strongest Observer tells.
+    </div>
+    <pre><span class="c">// ---------- Subscriber.java ----------</span>
+<span class="k">public interface</span> <span class="t">Subscriber</span> {
+    String <span class="f">getName</span>();
+    <span class="k">void</span> <span class="f">receive</span>(String message);
+}
+
+<span class="c">// ---------- Commander.java / Scouts.java / SupplyTeam.java ----------</span>
+<span class="k">public class</span> <span class="t">Commander</span> <span class="k">implements</span> <span class="t">Subscriber</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Commander"</span>; }
+    <span class="k">public void</span> <span class="f">receive</span>(String message) {
+        System.out.println(<span class="s">"[Commander] Noted: \""</span> + message + <span class="s">"\""</span>);
+    }
+}
+<span class="k">public class</span> <span class="t">Scouts</span> <span class="k">implements</span> <span class="t">Subscriber</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Scouts"</span>; }
+    <span class="k">public void</span> <span class="f">receive</span>(String message) {
+        System.out.println(<span class="s">"[Scouts] "</span> + message + <span class="s"> -> Dispatch riders!"</span>);
+    }
+}
+<span class="k">public class</span> <span class="t">SupplyTeam</span> <span class="k">implements</span> <span class="t">Subscriber</span> {
+    <span class="k">public</span> String <span class="f">getName</span>() { <span class="k">return</span> <span class="s">"Supply Team"</span>; }
+    <span class="k">public void</span> <span class="f">receive</span>(String message) {
+        System.out.println(<span class="s">"[Supply Team] "</span> + message + <span class="s"> -> Update inventory!"</span>);
+    }
+}
+
+<span class="c">// ---------- RavenBoard.java (Subject) ----------</span>
+<span class="k">import</span> java.util.*;
+<span class="k">public class</span> <span class="t">RavenBoard</span> {
+    <span class="k">private</span> List&lt;<span class="t">Subscriber</span>&gt; subscribers = <span class="k">new</span> ArrayList&lt;&gt;();
+
+    <span class="k">public void</span> <span class="f">subscribe</span>(<span class="t">Subscriber</span> s) {
+        subscribers.add(s);
+        System.out.println(<span class="s">"[RavenBoard] "</span> + s.getName() + <span class="s">" has joined the board room."</span>);
+    }
+    <span class="k">public void</span> <span class="f">unsubscribe</span>(<span class="t">Subscriber</span> s) {
+        subscribers.remove(s);
+        System.out.println(<span class="s">"[RavenBoard] "</span> + s.getName() + <span class="s">" has left the board room."</span>);
+    }
+    <span class="k">public void</span> <span class="f">postMessage</span>(String message) {
+        System.out.println(<span class="s">"\n[RavenBoard] New scroll: \""</span> + message + <span class="s">"\""</span>);
+        <span class="k">for</span> (<span class="t">Subscriber</span> s : subscribers) s.receive(message);
+    }
+}
+
+<span class="c">// ---------- Demo.java ----------</span>
+<span class="k">public class</span> <span class="t">Demo</span> {
+    <span class="k">public static void</span> <span class="f">main</span>(String[] args) {
+        <span class="t">RavenBoard</span> board = <span class="k">new</span> <span class="t">RavenBoard</span>();
+        <span class="t">Subscriber</span> commander = <span class="k">new</span> <span class="t">Commander</span>();
+        <span class="t">Subscriber</span> scouts    = <span class="k">new</span> <span class="t">Scouts</span>();
+        <span class="t">Subscriber</span> supply    = <span class="k">new</span> <span class="t">SupplyTeam</span>();
+
+        board.subscribe(commander);
+        board.subscribe(scouts);
+        board.subscribe(supply);
+
+        board.postMessage(<span class="s">"Enemy spotted near the river"</span>);
+
+        board.unsubscribe(scouts);                       <span class="c">// Scouts leave the board room</span>
+        board.postMessage(<span class="s">"Winter supplies running low"</span>);
+
+        board.subscribe(scouts);                          <span class="c">// Scouts rejoin at runtime</span>
+        board.postMessage(<span class="s">"Ships seen in the east"</span>);
+    }
+}</pre>
+    <div class="outbox"><span class="lbl">Sample output</span>[RavenBoard] Commander has joined the board room.
+[RavenBoard] Scouts has joined the board room.
+[RavenBoard] Supply Team has joined the board room.
+
+[RavenBoard] New scroll: "Enemy spotted near the river"
+[Commander] Noted: "Enemy spotted near the river"
+[Scouts] Enemy spotted near the river -> Dispatch riders!
+[Supply Team] Enemy spotted near the river -> Update inventory!
+[RavenBoard] Scouts has left the board room.
+
+[RavenBoard] New scroll: "Winter supplies running low"
+[Commander] Noted: "Winter supplies running low"
+[Supply Team] Winter supplies running low -> Update inventory!
+[RavenBoard] Scouts has joined the board room.
+
+[RavenBoard] New scroll: "Ships seen in the east"
+[Commander] Noted: "Ships seen in the east"
+[Scouts] Ships seen in the east -> Dispatch riders!
+[Supply Team] Ships seen in the east -> Update inventory!</div>
+  </div>
+
+  <!-- B2 -->
+  <div class="prob" id="b2">
+    <span class="tag" style="background:var(--med)">MEDIATOR</span>
+    <h3>B2 — Smart Home Automation Hub</h3>
+    <div class="orig">Light Sensor, Blinds and Air Conditioner must not talk to each other directly; a Central Hub coordinates the chain reaction between them.</div>
+    <div class="why"><span class="lbl">Why Mediator</span>
+      The requirement states this outright: <em>"the devices should not talk to each other directly... they all report to the Central Hub."</em> That's the air-traffic-control structure exactly — each device knows only the Hub, and the Hub decides what happens next, including chaining a second reaction (Blinds close → Hub tells AC to turn on). Notice this is Mediator and <em>not</em> Observer: the Hub doesn't just broadcast a plain notification to a list of subscribers, it actively interprets each event and issues specific commands to specific other devices — coordination logic lives centrally, which is the Mediator's defining trait.
+    </div>
+    <pre><span class="c">// ---------- Mediator.java ----------</span>
+<span class="k">public interface</span> <span class="t">Mediator</span> {
+    <span class="k">void</span> <span class="f">notify</span>(Object sender, String event);
+}
+
+<span class="c">// ---------- LightSensor.java ----------</span>
+<span class="k">public class</span> <span class="t">LightSensor</span> {
+    <span class="k">private</span> <span class="t">Mediator</span> hub;
+    <span class="k">public</span> <span class="f">LightSensor</span>(<span class="t">Mediator</span> hub) { <span class="k">this</span>.hub = hub; }
+    <span class="k">public void</span> <span class="f">detectHighBrightness</span>() {
+        System.out.println(<span class="s">"[LightSensor] High brightness detected."</span>);
+        hub.notify(<span class="k">this</span>, <span class="s">"HIGH_BRIGHTNESS"</span>);      <span class="c">// no direct call to Blinds</span>
+    }
+}
+
+<span class="c">// ---------- Blinds.java ----------</span>
+<span class="k">public class</span> <span class="t">Blinds</span> {
+    <span class="k">private</span> <span class="t">Mediator</span> hub;
+    <span class="k">public</span> <span class="f">Blinds</span>(<span class="t">Mediator</span> hub) { <span class="k">this</span>.hub = hub; }
+    <span class="k">public void</span> <span class="f">close</span>() {
+        System.out.println(<span class="s">"[Blinds] Closing."</span>);
+        hub.notify(<span class="k">this</span>, <span class="s">"BLINDS_CLOSED"</span>);          <span class="c">// no direct call to AC</span>
+    }
+}
+
+<span class="c">// ---------- AirConditioner.java ----------</span>
+<span class="k">public class</span> <span class="t">AirConditioner</span> {
+    <span class="k">public void</span> <span class="f">turnOn</span>() {
+        System.out.println(<span class="s">"[AirConditioner] Turning ON -- cooling the room."</span>);
+    }
+}
+
+<span class="c">// ---------- SmartHomeHub.java (concrete Mediator) ----------</span>
+<span class="k">public class</span> <span class="t">SmartHomeHub</span> <span class="k">implements</span> <span class="t">Mediator</span> {
+    <span class="k">private</span> <span class="t">Blinds</span> blinds;
+    <span class="k">private</span> <span class="t">AirConditioner</span> ac;
+
+    <span class="k">public void</span> <span class="f">register</span>(<span class="t">Blinds</span> b, <span class="t">AirConditioner</span> a) { <span class="k">this</span>.blinds = b; <span class="k">this</span>.ac = a; }
+
+    <span class="k">public void</span> <span class="f">notify</span>(Object sender, String event) {
+        <span class="k">if</span> (sender <span class="k">instanceof</span> <span class="t">LightSensor</span> && event.equals(<span class="s">"HIGH_BRIGHTNESS"</span>)) {
+            System.out.println(<span class="s">"[Hub] High brightness -> closing blinds."</span>);
+            blinds.close();
+        } <span class="k">else if</span> (sender <span class="k">instanceof</span> <span class="t">Blinds</span> && event.equals(<span class="s">"BLINDS_CLOSED"</span>)) {
+            System.out.println(<span class="s">"[Hub] Blinds closed -> turning on AC."</span>);
+            ac.turnOn();
+        }
+    }
+}
+
+<span class="c">// ---------- Demo.java ----------</span>
+<span class="k">public class</span> <span class="t">Demo</span> {
+    <span class="k">public static void</span> <span class="f">main</span>(String[] args) {
+        <span class="t">SmartHomeHub</span> hub = <span class="k">new</span> <span class="t">SmartHomeHub</span>();
+        <span class="t">LightSensor</span> sensor = <span class="k">new</span> <span class="t">LightSensor</span>(hub);
+        <span class="t">Blinds</span> blinds = <span class="k">new</span> <span class="t">Blinds</span>(hub);
+        <span class="t">AirConditioner</span> ac = <span class="k">new</span> <span class="t">AirConditioner</span>();
+        hub.register(blinds, ac);
+
+        sensor.detectHighBrightness();   <span class="c">// triggers the whole chain through the hub</span>
+    }
+}</pre>
+    <div class="outbox"><span class="lbl">Sample output</span>[LightSensor] High brightness detected.
+[Hub] High brightness -> closing blinds.
+[Blinds] Closing.
+[Hub] Blinds closed -> turning on AC.
+[AirConditioner] Turning ON -- cooling the room.</div>
+  </div>
+
+  <!-- C1 -->
+  <div class="prob" id="c1">
+    <span class="tag" style="background:var(--tmpl)">TEMPLATE METHOD</span>
+    <h3>C1 — Hospital Visit Simulator</h3>
+    <div class="orig">Check-In → Vitals → Assessment → Treatment → Discharge is the same 5-step flow for every department, but Assessment and Treatment differ per department.</div>
+    <div class="why"><span class="lbl">Why Template Method</span>
+      This is your Coffee/Tea slide with a stethoscope. The <strong>order and count of steps never changes</strong> — that invariant skeleton belongs in an abstract superclass as a <code>final</code> method. Check-In, Record Vitals and Discharge Summary are identical everywhere, so they stay concrete in the base class; Assessment and Treatment are declared <code>abstract</code> and supplied per department. If instead each department picked a <em>whole different algorithm</em> with no shared skeleton, you'd reach for Strategy — but here the structure is fixed and only two steps vary, which is exactly Template Method's territory.
+    </div>
+    <pre><span class="c">// ---------- Department.java (abstract class with the template method) ----------</span>
+<span class="k">public abstract class</span> <span class="t">Department</span> {
+
+    <span class="k">public final void</span> <span class="f">visit</span>(String patientName, <span class="k">int</span> visitId) {   <span class="c">// the fixed skeleton</span>
+        checkIn(patientName, visitId);
+        recordVitals();
+        assessment();          <span class="c">// abstract step</span>
+        treatment();           <span class="c">// abstract step</span>
+        dischargeSummary();
+        System.out.println();
+    }
+
+    <span class="k">private void</span> <span class="f">checkIn</span>(String name, <span class="k">int</span> id) {
+        System.out.println(<span class="s">"[Check-In] "</span> + name + <span class="s">" registered, Visit ID #"</span> + id);
+    }
+    <span class="k">private void</span> <span class="f">recordVitals</span>() {
+        System.out.println(<span class="s">"[Vitals] Temperature: 98.6F, Blood Pressure: 120/80"</span>);
+    }
+    <span class="k">protected abstract void</span> <span class="f">assessment</span>();
+    <span class="k">protected abstract void</span> <span class="f">treatment</span>();
+    <span class="k">private void</span> <span class="f">dischargeSummary</span>() {
+        System.out.println(<span class="s">"[Discharge] Patient discharged. Notes filed in patient record."</span>);
+    }
+}
+
+<span class="c">// ---------- GeneralDepartment.java ----------</span>
+<span class="k">public class</span> <span class="t">GeneralDepartment</span> <span class="k">extends</span> <span class="t">Department</span> {
+    <span class="k">protected void</span> <span class="f">assessment</span>() { System.out.println(<span class="s">"[Assessment] Doctor performs normal diagnosis"</span>); }
+    <span class="k">protected void</span> <span class="f">treatment</span>()  { System.out.println(<span class="s">"[Treatment] Prescribe standard medicine"</span>); }
+}
+
+<span class="c">// ---------- PediatricsDepartment.java ----------</span>
+<span class="k">public class</span> <span class="t">PediatricsDepartment</span> <span class="k">extends</span> <span class="t">Department</span> {
+    <span class="k">protected void</span> <span class="f">assessment</span>() { System.out.println(<span class="s">"[Assessment] Doctor checks symptoms while ensuring child comfort level"</span>); }
+    <span class="k">protected void</span> <span class="f">treatment</span>()  { System.out.println(<span class="s">"[Treatment] Give child-safe medicine, friendly reassurance message"</span>); }
+}
+
+<span class="c">// ---------- EmergencyDepartment.java ----------</span>
+<span class="k">public class</span> <span class="t">EmergencyDepartment</span> <span class="k">extends</span> <span class="t">Department</span> {
+    <span class="k">protected void</span> <span class="f">assessment</span>() { System.out.println(<span class="s">"[Assessment] Quick triage check (urgent/non-urgent)"</span>); }
+    <span class="k">protected void</span> <span class="f">treatment</span>()  { System.out.println(<span class="s">"[Treatment] Immediate emergency procedure"</span>); }
+}
+
+<span class="c">// ---------- Demo.java ----------</span>
+<span class="k">public class</span> <span class="t">Demo</span> {
+    <span class="k">public static void</span> <span class="f">main</span>(String[] args) {
+        <span class="t">Department</span> general    = <span class="k">new</span> <span class="t">GeneralDepartment</span>();
+        <span class="t">Department</span> pediatrics = <span class="k">new</span> <span class="t">PediatricsDepartment</span>();
+        <span class="t">Department</span> emergency  = <span class="k">new</span> <span class="t">EmergencyDepartment</span>();
+
+        System.out.println(<span class="s">"=== General Department ==="</span>);
+        general.visit(<span class="s">"Rahim"</span>, 101);
+        System.out.println(<span class="s">"=== Pediatrics Department ==="</span>);
+        pediatrics.visit(<span class="s">"Tumpa"</span>, 102);
+        System.out.println(<span class="s">"=== Emergency Department ==="</span>);
+        emergency.visit(<span class="s">"Karim"</span>, 103);
+    }
+}</pre>
+    <div class="outbox"><span class="lbl">Sample output</span>=== General Department ===
+[Check-In] Rahim registered, Visit ID #101
+[Vitals] Temperature: 98.6F, Blood Pressure: 120/80
+[Assessment] Doctor performs normal diagnosis
+[Treatment] Prescribe standard medicine
+[Discharge] Patient discharged. Notes filed in patient record.
+
+=== Pediatrics Department ===
+[Check-In] Tumpa registered, Visit ID #102
+[Vitals] Temperature: 98.6F, Blood Pressure: 120/80
+[Assessment] Doctor checks symptoms while ensuring child comfort level
+[Treatment] Give child-safe medicine, friendly reassurance message
+[Discharge] Patient discharged. Notes filed in patient record.
+
+=== Emergency Department ===
+[Check-In] Karim registered, Visit ID #103
+[Vitals] Temperature: 98.6F, Blood Pressure: 120/80
+[Assessment] Quick triage check (urgent/non-urgent)
+[Treatment] Immediate emergency procedure
+[Discharge] Patient discharged. Notes filed in patient record.</div>
+  </div>
+
+  <!-- C2 -->
+  <div class="prob" id="c2">
+    <span class="tag" style="background:var(--obs)">OBSERVER</span>
+    <h3>C2 — Financial Dashboard (Stock Feed)</h3>
+    <div class="orig">StockData feed must notify Ticker Tape, Graph and Buy/Sell Bot automatically on price change, without knowing their specifics, and support adding/removing widgets.</div>
+    <div class="why"><span class="lbl">Why Observer</span>
+      Textbook Weather-o-Rama, just with candlesticks instead of clouds. The phrase to underline in the question is <em>"StockData feed doesn't know the specifics of these widgets but can notify all of them automatically"</em> — that's the Subject/Observer decoupling by definition, and "provision of adding or removing widgets" is literally <code>registerObserver</code>/<code>removeObserver</code>. Don't be tempted by Mediator here: the widgets never coordinate with <em>each other</em> or need central arbitration — they all just react independently to the one subject's state change, which is precisely Observer's one-way, one-to-many shape.
+    </div>
+    <pre><span class="c">// ---------- StockObserver.java ----------</span>
+<span class="k">public interface</span> <span class="t">StockObserver</span> {
+    <span class="k">void</span> <span class="f">onPriceUpdate</span>(String symbol, <span class="k">double</span> price);
+}
+
+<span class="c">// ---------- TickerTape.java ----------</span>
+<span class="k">public class</span> <span class="t">TickerTape</span> <span class="k">implements</span> <span class="t">StockObserver</span> {
+    <span class="k">public void</span> <span class="f">onPriceUpdate</span>(String symbol, <span class="k">double</span> price) {
+        System.out.println(<span class="s">"[TickerTape] scrolling "</span> + symbol + <span class="s">" @ $"</span> + price);
+    }
+}
+
+<span class="c">// ---------- GraphWidget.java ----------</span>
+<span class="k">public class</span> <span class="t">GraphWidget</span> <span class="k">implements</span> <span class="t">StockObserver</span> {
+    <span class="k">public void</span> <span class="f">onPriceUpdate</span>(String symbol, <span class="k">double</span> price) {
+        System.out.println(<span class="s">"[Graph] plotting new point for "</span> + symbol + <span class="s">": "</span> + price);
+    }
+}
+
+<span class="c">// ---------- TradeBot.java ----------</span>
+<span class="k">public class</span> <span class="t">TradeBot</span> <span class="k">implements</span> <span class="t">StockObserver</span> {
+    <span class="k">private final double</span> threshold;
+    <span class="k">public</span> <span class="f">TradeBot</span>(<span class="k">double</span> threshold) { <span class="k">this</span>.threshold = threshold; }
+    <span class="k">public void</span> <span class="f">onPriceUpdate</span>(String symbol, <span class="k">double</span> price) {
+        String action = price > threshold ? <span class="s">"SELL signal"</span> : <span class="s">"BUY signal"</span>;
+        System.out.println(<span class="s">"[TradeBot] "</span> + symbol + <span class="s"> @ "</span> + price + <span class="s"> vs threshold "</span> + threshold + <span class="s"> -> "</span> + action);
+    }
+}
+
+<span class="c">// ---------- StockData.java (Subject) ----------</span>
+<span class="k">import</span> java.util.*;
+<span class="k">public class</span> <span class="t">StockData</span> {
+    <span class="k">private</span> List&lt;<span class="t">StockObserver</span>&gt; observers = <span class="k">new</span> ArrayList&lt;&gt;();
+
+    <span class="k">public void</span> <span class="f">addObserver</span>(<span class="t">StockObserver</span> o)    { observers.add(o); }
+    <span class="k">public void</span> <span class="f">removeObserver</span>(<span class="t">StockObserver</span> o) { observers.remove(o); }
+
+    <span class="k">public void</span> <span class="f">setPrice</span>(String symbol, <span class="k">double</span> price) {
+        System.out.println(<span class="s">"\n[StockData] "</span> + symbol + <span class="s"> updated to $"</span> + price);
+        <span class="k">for</span> (<span class="t">StockObserver</span> o : observers) o.onPriceUpdate(symbol, price);
+    }
+}
+
+<span class="c">// ---------- Demo.java ----------</span>
+<span class="k">public class</span> <span class="t">Demo</span> {
+    <span class="k">public static void</span> <span class="f">main</span>(String[] args) {
+        <span class="t">StockData</span> feed = <span class="k">new</span> <span class="t">StockData</span>();
+        <span class="t">StockObserver</span> ticker = <span class="k">new</span> <span class="t">TickerTape</span>();
+        <span class="t">StockObserver</span> graph  = <span class="k">new</span> <span class="t">GraphWidget</span>();
+        <span class="t">StockObserver</span> bot    = <span class="k">new</span> <span class="t">TradeBot</span>(700.0);
+
+        feed.addObserver(ticker);
+        feed.addObserver(graph);
+        feed.addObserver(bot);
+        feed.setPrice(<span class="s">"AAPL"</span>, 150.25);
+
+        feed.removeObserver(bot);           <span class="c">// bot detaches -- runtime removal</span>
+        feed.setPrice(<span class="s">"AAPL"</span>, 151.10);
+
+        feed.addObserver(bot);              <span class="c">// bot re-attaches</span>
+        feed.setPrice(<span class="s">"TSLA"</span>, 705.50);
+    }
+}</pre>
+    <div class="outbox"><span class="lbl">Sample output</span>[StockData] AAPL updated to $150.25
+[TickerTape] scrolling AAPL @ $150.25
+[Graph] plotting new point for AAPL: 150.25
+[TradeBot] AAPL @ 150.25 vs threshold 700.0 -> BUY signal
+
+[StockData] AAPL updated to $151.1
+[TickerTape] scrolling AAPL @ $151.1
+[Graph] plotting new point for AAPL: 151.1
+
+[StockData] TSLA updated to $705.5
+[TickerTape] scrolling TSLA @ $705.5
+[Graph] plotting new point for TSLA: 705.5
+[TradeBot] TSLA @ 705.5 vs threshold 700.0 -> SELL signal</div>
+  </div>
+
+</div>
+</main>
+
+<script>
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.toggle('visible', el.id==='view-'+v));
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.v===v));
+  window.scrollTo({top:0});
+}
+
+const COLORS={Strategy:'var(--strat)','Template Method':'var(--tmpl)',Observer:'var(--obs)',Mediator:'var(--med)',Command:'var(--cmd)',State:'var(--state)'};
+
+const QS=[
+ {s:"A logistics app computes delivery cost. Depending on package type — standard, fragile, or refrigerated — a completely different cost-calculation formula is used, and the formula in use can be swapped per shipment without touching the checkout code.",
+  o:["Strategy","State","Template Method","Command"], a:0,
+  e:"<strong>Strategy.</strong> Interchangeable, self-contained algorithms selected per call, with no shared skeleton and no lifecycle of transitions. <strong>Key point:</strong> the formula is chosen once per shipment by the caller — it isn't the object 'remembering what mode it's in' (that would be State)."},
+ {s:"A group project's shared whiteboard app: when User A draws a shape, Users B, C, D (all currently viewing) must see it appear instantly. Viewers can join or leave the whiteboard session at any time.",
+  o:["Mediator","Observer","Command","Template Method"], a:1,
+  e:"<strong>Observer.</strong> One publisher (the whiteboard/canvas state), many independent viewers reacting the same way (render the new shape), with dynamic join/leave. <strong>Key point:</strong> viewers don't coordinate with each other or need a hub to interpret events — they all just react to the same change."},
+ {s:"An online exam portal: while a student is 'In Progress', the submit button grades answers; while 'Under Review', submit is disabled and shows a message; while 'Graded', submit shows the score. Same button, three different behaviors depending on exam phase.",
+  o:["Strategy","Command","State","Mediator"], a:2,
+  e:"<strong>State.</strong> Behavior changes based on the object's own internal phase, and the phase itself progresses over time (In Progress -> Under Review -> Graded). <strong>Key point:</strong> this isn't a client choosing an algorithm (Strategy) — the exam object itself tracks and transitions through its own lifecycle."},
+ {s:"A ride-hailing app's driver, rider, and support-chat panels never message each other directly. Instead, every action (driver arrives, rider cancels, support intervenes) is sent to a Trip Coordinator object, which decides what each panel should do next.",
+  o:["Observer","Mediator","Command","State"], a:1,
+  e:"<strong>Mediator.</strong> 'Never message each other directly... sent to a Trip Coordinator which decides what happens next' is the Mediator's textbook phrasing — a central object interprets events and issues follow-up instructions to specific other participants. <strong>Key point:</strong> compare to Observer, where a subject just broadcasts to a passive list; here the coordinator actively decides differentiated next actions."},
+ {s:"A smart-home voice assistant: 'turn on the lights', 'lower the AC by 2 degrees', and 'lock the door' are each wrapped as an object with an execute() method. These objects can be scheduled for later ('turn off lights at 11 PM') and the last spoken action can be undone by saying 'undo'.",
+  o:["Command","Mediator","Strategy","Observer"], a:0,
+  e:"<strong>Command.</strong> Requests reified as stand-alone objects, schedulable and undoable — the three defining consequences of Command listed on your slides. <strong>Key point:</strong> 'can be scheduled for later' and 'can be undone' together are almost never anything but Command."},
+ {s:"A file-compression tool offers ZIP, RAR-like, and 7z-style algorithms. The compress() method on the FileCompressor class delegates to whichever algorithm object was configured at construction time; algorithms know nothing about each other and never call one another.",
+  o:["State","Strategy","Template Method","Mediator"], a:1,
+  e:"<strong>Strategy.</strong> A family of interchangeable, mutually-unaware algorithm objects behind one interface, injected into a context that delegates to them. <strong>Key point:</strong> 'algorithms know nothing about each other' directly echoes the State-vs-Strategy distinction from your slides — mutual unawareness is Strategy's signature."},
+ {s:"A university's course registration process: for every course type (lecture, lab, seminar) registration always goes Validate Prerequisites -> Reserve Seat -> Generate Receipt, in that exact order — but 'Reserve Seat' logic differs for labs (checks equipment capacity) versus lectures (checks room capacity).",
+  o:["Command","Template Method","Observer","State"], a:1,
+  e:"<strong>Template Method.</strong> Fixed three-step skeleton that must run in the same order for every course type, with exactly one step's implementation varying by subclass. <strong>Key point:</strong> when a question says 'always happens in this exact order, but step N differs' — that fixed-order phrasing is the giveaway over Strategy, where the whole algorithm would be swappable as a unit."},
+ {s:"A social media app: when a user's follower count crosses 1,000 / 10,000 / 100,000, their profile badge changes from 'Rising' to 'Popular' to 'Influencer', and each badge tier changes what profile actions are available (e.g., only Influencer tier can enable monetized posts).",
+  o:["State","Observer","Strategy","Command"], a:0,
+  e:"<strong>State.</strong> The badge tier is the object's internal condition, and available behavior (which actions are enabled) changes as that condition changes — classic State, just triggered by a numeric threshold instead of a button press. <strong>Key point:</strong> don't confuse this with Observer just because 'follower count crosses a threshold' sounds like an event — the essential behavior here is 'what can I do NOW', which is a State question, not a notify-everyone question."},
+ {s:"A newsroom's live blog: reporters in the field submit updates; the update should immediately appear on the Web homepage widget, the Mobile push-notification service, and the Social-media auto-poster — three completely unrelated systems that the live-blog engine has zero knowledge of.",
+  o:["Mediator","Command","Observer","Template Method"], a:2,
+  e:"<strong>Observer.</strong> One source of truth (the live blog), multiple unrelated consumers that react independently and don't need to be known by name. <strong>Key point:</strong> 'the engine has zero knowledge of them' is the loose-coupling clue — the source only depends on an abstract observer interface, never on concrete widget classes."},
+ {s:"A drawing app: 'Draw Circle', 'Draw Rectangle', and 'Erase' are each turned into objects held in a history list, so the app can replay the entire drawing sequence to reconstruct the canvas after a crash, and also step backward one action at a time.",
+  o:["State","Command","Strategy","Mediator"], a:1,
+  e:"<strong>Command.</strong> Each user action becomes a stand-alone object stored in a list/stack — that's what makes replay-from-history and step-by-step undo possible at all. <strong>Key point:</strong> 'replay the entire sequence' is a strong Command signal — you can only replay a request if it was captured as a reusable object in the first place."},
+ {s:"An online multiplayer card game: no player can see or interact with another player's hand directly. Every move (play a card, pass, challenge) is submitted to a Game Referee object, which validates it and then tells the affected players what changed.",
+  o:["Observer","Mediator","Command","State"], a:1,
+  e:"<strong>Mediator.</strong> Players are deliberately prevented from interacting with each other directly; a central referee validates and routes consequences to specific participants. <strong>Key point:</strong> the referee doing validation and deciding WHO gets told WHAT is coordination logic, which is Mediator's job — a plain Observer subject wouldn't validate or selectively route, it would just broadcast to everyone equally."},
+ {s:"A text-to-speech reader app lets users switch between 'Male Voice', 'Female Voice', and 'Robotic Voice' synthesis engines mid-sentence via a settings toggle, with the reading logic (splitting sentences, pacing) staying completely unchanged.",
+  o:["Strategy","State","Template Method","Command"], a:0,
+  e:"<strong>Strategy.</strong> The voice-synthesis engine is an interchangeable algorithm swapped by explicit user choice while the surrounding reading logic never changes. <strong>Key point:</strong> 'reading logic stays completely unchanged' rules out Template Method (no shared skeleton being executed here) and points to a pure algorithm swap."},
+ {s:"A parcel-tracking system: a package's status field moves through Ordered -> Packed -> Shipped -> OutForDelivery -> Delivered, and calling cancel() prints a different result depending on which of these five statuses the package is currently in (allowed only up to 'Packed').",
+  o:["Observer","State","Strategy","Mediator"], a:1,
+  e:"<strong>State.</strong> A single method's (cancel()) behavior depends entirely on which lifecycle stage the object currently occupies, and the object clearly transitions through an ordered sequence of stages. <strong>Key point:</strong> a lifecycle/status field driving different behavior per method, especially with 'allowed only in some stages', is State's calling card."},
+ {s:"A restaurant kitchen display system: every order type (dine-in, takeout, delivery) is prepared using the same four stations in the same order — Prep, Cook, Plate, Pack — but 'Pack' differs (dine-in skips packing, delivery adds a sealed bag and receipt).",
+  o:["Template Method","Strategy","Command","Observer"], a:0,
+  e:"<strong>Template Method.</strong> Same four-station pipeline, same order, for every order type — only the 'Pack' step's implementation (and whether it's skipped) varies. <strong>Key point:</strong> a hook that can even be skipped entirely, like Pack for dine-in, maps to the 'hook with a default no-op' idea from your Template Method slides."},
+ {s:"An e-commerce warehouse robot swarm: robots don't negotiate shelf access with each other directly (that caused collisions before); instead each robot reports its intended path to a Warehouse Controller, which grants or delays access to avoid conflicts.",
+  o:["Command","Mediator","Observer","State"], a:1,
+  e:"<strong>Mediator.</strong> Direct negotiation between robots was explicitly identified as the problem ('caused collisions'), and the fix funnels everything through one controller that arbitrates access — textbook Mediator motivation. <strong>Key point:</strong> when a scenario explicitly says peer-to-peer coordination was tried and failed, and centralizing fixed it, that origin story itself is a Mediator tell."},
+ {s:"A photo-editing app's toolbar 'Apply Filter' button can trigger any of the currently loaded filter objects (Sepia, Grayscale, Vivid); loading a brand-new filter plugin requires zero changes to the toolbar or button code.",
+  o:["Strategy","State","Template Method","Mediator"], a:0,
+  e:"<strong>Strategy.</strong> Filters are interchangeable algorithm objects behind a common interface; adding a new one needs no change to the client (toolbar) — Open/Closed in action, the same argument your slides make about the map app's routing modes."},
+ {s:"A hotel booking system's Room object behaves differently for checkIn(), checkOut(), and reportIssue() depending on whether the room is currently Vacant, Occupied, or UnderMaintenance — and reportIssue() while Occupied automatically transitions the room to UnderMaintenance once the guest checks out.",
+  o:["Observer","Command","State","Strategy"], a:2,
+  e:"<strong>State.</strong> Multiple methods behave differently by current room status, and one state's action even triggers a transition to a different state — states deciding transitions themselves is exactly the Gumball Machine structure."},
+ {s:"A video conferencing app: whenever the active speaker changes, the Speaker Spotlight tile, the Live Captions panel, and the Recording Indicator must all update — none of these three components know about the other two, and any of them can be turned off in the UI without affecting the rest.",
+  o:["Mediator","Observer","Command","Template Method"], a:1,
+  e:"<strong>Observer.</strong> Independent components reacting to one shared change with zero awareness of each other, and can be toggled off individually — no coordination between them, no shared hub logic, just plain notify-on-change."},
+ {s:"A macro-recorder plugin for a spreadsheet: a user records a sequence of cell edits and formatting actions as a single reusable 'macro' object, which can later be executed with one click, or undone as a whole in one click.",
+  o:["Command","Strategy","Mediator","Template Method"], a:0,
+  e:"<strong>Command (specifically the Macro/Composite-Command variant).</strong> A bundle of individual command objects treated as one executable, undoable unit — same core idea as your text-editor slides' undo stack, just grouped."},
+ {s:"A quiz app grades answers differently based on question type: MCQ uses exact-match scoring, short-answer uses keyword matching, essay uses a rubric checklist. The grading method used for a question is decided once, when the question is created, and never changes afterward for that question.",
+  o:["State","Strategy","Template Method","Observer"], a:1,
+  e:"<strong>Strategy.</strong> A grading algorithm is picked per question and simply executed — no shared multi-step skeleton, and no notion of the question 'changing state' over time. <strong>Key point:</strong> 'decided once and never changes' actually strengthens Strategy here — even though it's not swapped at runtime in THIS scenario, the essential shape (interchangeable, self-contained algorithm chosen per instance) is still Strategy's, not State's (there's no internal lifecycle transition happening)."},
+ {s:"A CI/CD pipeline: every deployment goes through Build -> Test -> Deploy -> Notify, always in that order for every project. However, if a project uses feature flags, an extra optional 'Canary Rollout' step may or may not run between Deploy and Notify, decided by a simple project setting.",
+  o:["Template Method","Strategy","Command","State"], a:0,
+  e:"<strong>Template Method.</strong> Fixed step order for every project, plus an optional step controlled by a simple on/off setting — that optional step is a hook with a default (skip) that subclasses/settings can override to include. <strong>Key point:</strong> hooks aren't just 'steps that differ' — they can be steps that are conditionally included at all, exactly like the 'customerWantsCondiments()' hook in your Coffee/Tea example."}
+];
+
+const box=document.getElementById('quizbox');
+let answered=0, correct=0;
+function renderQuiz(){
+  box.innerHTML=''; answered=0; correct=0;
+  document.getElementById('scorebox').style.display='none';
+  QS.forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='q';
+    d.innerHTML=`<div class="qn">Question ${i+1} / ${QS.length}</div><p class="stem">${q.s}</p>`;
+    q.o.forEach((opt,j)=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(97+j)+') '+opt;
+      b.onclick=()=>{
+        if(d.dataset.done)return; d.dataset.done=1; answered++;
+        const isCorrect = (j===q.a);
+        [...d.querySelectorAll('.opt')].forEach((bb,k)=>{bb.disabled=true; if(k===q.a)bb.classList.add('correct');});
+        if(isCorrect){correct++;} else b.classList.add('wrong');
+        const v=d.querySelector('.verdict');
+        v.textContent = isCorrect ? '✓ Correct' : '✗ Not quite — correct answer highlighted above';
+        v.classList.add('show', isCorrect?'ok':'no');
+        d.querySelector('.expl').classList.add('show');
+        if(answered===QS.length){
+          const sc=document.getElementById('scorebox');
+          const pct=Math.round(100*correct/QS.length);
+          sc.style.display='block';
+          sc.innerHTML=`<strong>Score: ${correct} / ${QS.length} (${pct}%)</strong><br>${pct>=90?'Excellent pattern-recognition instincts — you are ready for the online test.':pct>=70?'Good grasp — revisit the questions you missed and re-read the Key point lines.':'Re-walk the six patterns and the trigger-word table before the next attempt.'}`;
+        }
+      };
+      d.appendChild(b);
+    });
+    const v=document.createElement('div'); v.className='verdict'; d.appendChild(v);
+    const e=document.createElement('div'); e.className='expl'; e.innerHTML=q.e; d.appendChild(e);
+    box.appendChild(d);
+  });
+}
+function resetQuiz(){renderQuiz(); window.scrollTo({top:0});}
+renderQuiz();
+</script>
+</body>
+</html>

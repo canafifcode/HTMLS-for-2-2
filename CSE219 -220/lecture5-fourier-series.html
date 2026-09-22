@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 219 — Lecture 05 — Fourier Series</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#191c1e;
+  --sidebar-bg:#131516;
+  --panel:#212528;
+  --panel-raised:#262b2e;
+  --line:#33393d;
+  --line-soft:#282e31;
+  --text:#e8e5de;
+  --text-dim:#9aa1a6;
+  --text-faint:#686f74;
+  --gold:#c9a24c;
+  --gold-dim:#8d7638;
+  --rust:#b5654a;
+  --sage:#8ba888;
+  --steel:#6c8fa0;
+  --font-display:'Oswald',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);}
+body{font-family:var(--font-body);color:var(--text);-webkit-font-smoothing:antialiased;}
+
+.app{display:flex;min-height:100vh;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:290px;flex-shrink:0;background:var(--sidebar-bg);
+  border-right:1px solid var(--line);
+  height:100vh;position:sticky;top:0;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--line);}
+
+.sb-header{
+  padding:26px 22px 20px;border-bottom:1px solid var(--line);
+  position:relative;
+}
+.sb-header::before,.sb-header::after{content:"";position:absolute;top:10px;width:4px;height:4px;border-radius:50%;background:var(--line);}
+.sb-header::before{left:10px;}
+.sb-header::after{right:10px;}
+.sb-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;}
+.sb-title{font-family:var(--font-display);font-size:28px;font-weight:600;letter-spacing:.03em;color:var(--text);margin:4px 0 2px;text-transform:uppercase;line-height:1.05;}
+.sb-subtitle{font-size:13px;color:var(--text-dim);margin-top:6px;line-height:1.4;}
+.sb-meta{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-top:14px;letter-spacing:.03em;}
+
+.nav-group{padding:16px 12px 4px;}
+.nav-group-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--text-faint);text-transform:uppercase;padding:6px 10px 6px;}
+.nav-item{
+  display:flex;align-items:baseline;gap:10px;padding:9px 10px;margin:1px 0;
+  border-left:2px solid transparent;cursor:pointer;border-radius:2px;
+  transition:background .12s ease,border-color .12s ease;
+}
+.nav-item:hover{background:var(--panel);}
+.nav-item.active{background:var(--panel-raised);border-left-color:var(--gold);}
+.nav-idx{font-family:var(--font-mono);font-size:11px;color:var(--gold-dim);flex-shrink:0;min-width:26px;}
+.nav-item.active .nav-idx{color:var(--gold);}
+.nav-label{font-size:13px;color:var(--text-dim);line-height:1.3;}
+.nav-item.active .nav-label{color:var(--text);font-weight:500;}
+
+.sb-footer{margin-top:auto;padding:16px 22px 22px;border-top:1px solid var(--line);}
+.sb-footer-text{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);line-height:1.6;}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;min-width:0;}
+.content{max-width:900px;margin:0 auto;padding:54px 48px 120px;}
+.section{display:none;}
+.section.active{display:block;animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.spec-label{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.section-title{font-family:var(--font-display);font-size:38px;font-weight:600;text-transform:uppercase;letter-spacing:.01em;line-height:1.08;margin:0 0 12px;}
+.section-sub{font-size:15.5px;color:var(--text-dim);line-height:1.6;max-width:640px;margin-bottom:38px;}
+.section-header{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px;position:relative;}
+.section-header::before,.section-header::after{content:"";position:absolute;top:-6px;width:4px;height:4px;border-radius:50%;background:var(--line-soft);}
+.section-header::before{left:-4px;}
+.section-header::after{right:-4px;}
+
+h3.h{font-family:var(--font-display);font-size:20px;text-transform:uppercase;letter-spacing:.02em;font-weight:600;color:var(--text);margin:38px 0 14px;}
+h3.h:first-child{margin-top:0;}
+p{line-height:1.75;font-size:15px;color:var(--text);margin:0 0 14px;}
+p.dim{color:var(--text-dim);}
+strong{color:var(--gold);font-weight:600;}
+ul,ol{line-height:1.75;font-size:15px;padding-left:22px;margin:0 0 14px;}
+li{margin-bottom:6px;}
+
+.plate{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px 24px;margin:18px 0;}
+.plate-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;color:var(--text-faint);text-transform:uppercase;margin-bottom:12px;}
+
+.formula-plate{background:var(--panel);border-left:3px solid var(--gold);border-radius:0 3px 3px 0;padding:20px 26px;margin:18px 0;overflow-x:auto;}
+.formula-plate .katex{font-size:1.12em;color:var(--text);}
+.formula-plate .katex-display{margin:0;}
+.formula-caption{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);margin-top:10px;letter-spacing:.02em;}
+
+.callout{border-left:3px solid var(--steel);background:var(--panel);border-radius:0 3px 3px 0;padding:14px 20px;margin:18px 0;}
+.callout-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.callout p{margin-bottom:0;font-size:14px;}
+.callout--trap{border-left-color:var(--rust);}
+.callout--trap .callout-label{color:var(--rust);}
+.callout--tip{border-left-color:var(--sage);}
+.callout--tip .callout-label{color:var(--sage);}
+.callout--note{border-left-color:var(--steel);}
+.callout--note .callout-label{color:var(--steel);}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0;}
+@media(max-width:760px){.two-col{grid-template-columns:1fr;}}
+
+table.spec{width:100%;border-collapse:collapse;margin:18px 0;font-family:var(--font-mono);font-size:13px;}
+table.spec th{background:var(--panel-raised);color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px;padding:9px 12px;text-align:center;border:1px solid var(--line);font-weight:600;}
+table.spec td{padding:9px 12px;text-align:center;border:1px solid var(--line);color:var(--text);}
+
+.divider{height:1px;background:var(--line);margin:36px 0;}
+
+.viz-box{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;margin:20px 0;}
+.viz-caption{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);text-align:center;margin-top:10px;}
+canvas{display:block;max-width:100%;}
+
+.controls-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
+.btn{
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;
+  background:var(--panel-raised);color:var(--text-dim);border:1px solid var(--line);
+  padding:8px 14px;border-radius:2px;cursor:pointer;transition:all .12s ease;
+}
+.btn:hover{border-color:var(--gold-dim);color:var(--text);}
+.btn.active{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:600;}
+.slider-wrap{display:flex;align-items:center;gap:12px;flex:1;min-width:200px;}
+.slider-wrap label{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);white-space:nowrap;}
+input[type=range]{flex:1;accent-color:var(--gold);}
+.readout{font-family:var(--font-mono);font-size:12px;color:var(--gold);min-width:34px;text-align:right;}
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
+.stat-row b{color:var(--sage);}
+
+.quiz-card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:20px 22px;margin:16px 0;}
+.quiz-q{font-size:14.5px;color:var(--text);font-weight:500;margin-bottom:12px;line-height:1.55;}
+.quiz-q .qn{color:var(--gold);font-family:var(--font-mono);margin-right:8px;}
+.reveal-btn{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--gold-dim);border:1px dashed var(--gold-dim);padding:6px 12px;border-radius:2px;cursor:pointer;}
+.reveal-btn:hover{color:var(--gold);border-color:var(--gold);}
+.quiz-a{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:14px;line-height:1.65;color:var(--text-dim);}
+.quiz-a.show{display:block;}
+.quiz-a strong{color:var(--sage);}
+
+.axis-row{display:flex;align-items:flex-end;justify-content:space-between;padding:18px 10px 6px;border-bottom:2px solid var(--line);position:relative;}
+.axis-tick{display:flex;flex-direction:column;align-items:center;flex:1;}
+.axis-tick .dot{width:7px;height:7px;border-radius:50%;background:var(--steel);margin-bottom:8px;}
+.axis-tick.zero .dot{background:var(--gold);width:9px;height:9px;}
+.axis-tick .lbl{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.axis-tick.zero .lbl{color:var(--gold);}
+
+.bell-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.bell-name{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);width:118px;flex-shrink:0;}
+.bell-track{position:relative;height:22px;flex:1;border-left:1px solid var(--line);border-right:1px solid var(--line);}
+.bell-tick{position:absolute;top:0;width:2px;height:22px;background:var(--gold-dim);}
+.bell-tick.align{background:var(--gold);width:3px;}
+
+.hamburger{display:none;}
+@media(max-width:880px){
+  .sidebar{position:fixed;left:-300px;top:0;z-index:50;transition:left .2s ease;box-shadow:6px 0 24px rgba(0,0,0,.4);}
+  .sidebar.open{left:0;}
+  .hamburger{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;background:var(--sidebar-bg);border-bottom:1px solid var(--line);padding:14px 18px;font-family:var(--font-mono);font-size:12px;color:var(--gold);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;}
+  .content{padding:34px 22px 100px;}
+  .section-title{font-size:28px;}
+  .two-col{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-eyebrow">CSE 219 · Signals &amp; Linear Systems</div>
+      <div class="sb-title">Lecture 05</div>
+      <div class="sb-subtitle">Fourier Series — Let's Look Inside</div>
+      <div class="sb-meta">ANIK SAHA · DEPT. OF CSE, BUET</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Core Theory</div>
+      <div class="nav-item active" data-target="s00"><span class="nav-idx">00</span><span class="nav-label">The Big Idea</span></div>
+      <div class="nav-item" data-target="s01"><span class="nav-idx">01</span><span class="nav-label">Harmonics &amp; Frequency</span></div>
+      <div class="nav-item" data-target="s02"><span class="nav-idx">02</span><span class="nav-label">Complex Exponentials</span></div>
+      <div class="nav-item" data-target="s03"><span class="nav-idx">03</span><span class="nav-label">Finding the Coefficients</span></div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Worked Problems</div>
+      <div class="nav-item" data-target="s04"><span class="nav-idx">04</span><span class="nav-label">Read by Inspection</span></div>
+      <div class="nav-item" data-target="s05"><span class="nav-idx">05</span><span class="nav-label">Square Wave</span></div>
+      <div class="nav-item" data-target="s06"><span class="nav-idx">06</span><span class="nav-label">Triangular Ramp</span></div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Beyond The Slides</div>
+      <div class="nav-item" data-target="s07"><span class="nav-idx">07</span><span class="nav-label">The Vector-Space Analogy</span></div>
+      <div class="nav-item" data-target="s08"><span class="nav-idx">08</span><span class="nav-label">Convergence &amp; Gibbs</span></div>
+      <div class="nav-item" data-target="s09"><span class="nav-idx">09</span><span class="nav-label">Symmetry &amp; Parseval</span></div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Review</div>
+      <div class="nav-item" data-target="s10"><span class="nav-idx">10</span><span class="nav-label">Exam Corner</span></div>
+      <div class="nav-item" data-target="s11"><span class="nav-idx">11</span><span class="nav-label">Self-Check Quiz</span></div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-footer-text">Follows Lecture 5 slides exactly, plus enrichment marked "Beyond the Slides." Built for exam-level mastery.</div>
+    </div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="hamburger" id="hamburger">☰ &nbsp;Lecture Menu</div>
+    <div class="content">
+
+      <!-- 00 ================================================= -->
+      <section class="section active" id="s00">
+        <div class="section-header">
+          <div class="spec-label">§ 00 — Motivation</div>
+          <h1 class="section-title">The Big Idea</h1>
+          <p class="section-sub">Every periodic signal, however jagged or strange, is secretly a sum of plain sine and cosine waves. That single fact is the entire engine of this course from here on.</p>
+        </div>
+
+        <h3 class="h">Can we break a signal into simple waves?</h3>
+        <p>Yes — always. Take any periodic signal <code>x(t)</code> with period <code>T</code>. No matter how complicated it looks, it can be rebuilt exactly as a sum of a constant plus sines and cosines at multiples of one base frequency:</p>
+
+        <div class="viz-box">
+          <canvas id="cv-intro" width="760" height="220"></canvas>
+          <div class="viz-caption">A "complicated" periodic signal (top) is literally the sum of three simple sinusoids at increasing frequency (below).</div>
+        </div>
+
+        <p>That's it. That is Fourier's claim, and it is one of the most consequential ideas in all of engineering: <strong>complicated periodic signal = sum of simple periodic waves.</strong></p>
+
+        <h3 class="h">Why should you care?</h3>
+        <p>Three reasons, straight from the lecture:</p>
+        <ol>
+          <li><strong>Simple waves are easy to analyze.</strong> A single sine-shaped vibration, or a single sine-shaped temperature pattern, has an easy, well-understood answer.</li>
+          <li><strong>Real shapes are rarely simple.</strong> A guitar string plucked into a triangular kink, or a metal rod with a random initial heat pattern — these are not nice sinusoids to begin with.</li>
+          <li><strong>Fourier series is the bridge.</strong> Break the messy real shape into simple waves, solve the easy problem for each wave separately, then add the individual answers back together.</li>
+        </ol>
+
+        <div class="two-col">
+          <div class="plate">
+            <div class="plate-label">Example — Plucked String</div>
+            <p style="margin-bottom:0;">A string released from rest in some initial shape <code>f(x)</code>. We want to predict its full future shape <code>u(x,t)</code> — position at every point, at every time.</p>
+          </div>
+          <div class="plate">
+            <div class="plate-label">Example — Heat Diffusion</div>
+            <p style="margin-bottom:0;">A rod starts with an arbitrary hot/cold pattern <code>f(x)</code>. A single sinusoidal heat pattern is trivial to predict as it decays; a random pattern becomes manageable once split into sinusoids.</p>
+          </div>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout-label">Beyond the slides — the general strategy</span>
+          <p>This "solve-the-easy-case, then add" trick reappears constantly in engineering and physics: (1) break the input into simple pieces, (2) let each piece evolve on its own — this only works because the underlying system is <strong>linear</strong>, (3) add the individually-evolved pieces back together (superposition). You already met the linear half of this idea in Lecture 3 with LTI systems and convolution — Fourier series is what makes that machinery sing for periodic signals.</p>
+        </div>
+
+        <h3 class="h">The repeated strategy</h3>
+        <div class="formula-plate" style="border-left-color:var(--steel);">
+          <p style="margin:0;font-family:var(--font-mono);font-size:13.5px;line-height:2;color:var(--text-dim);">
+            1&nbsp;&nbsp;Break the initial shape into simple waves &nbsp;&rarr;&nbsp; f(x) = wave₁ + wave₂ + wave₃ + ⋯<br>
+            2&nbsp;&nbsp;Let each simple wave evolve completely on its own<br>
+            3&nbsp;&nbsp;Add the evolved waves back together
+          </p>
+        </div>
+        <p class="dim">The complicated future behavior comes entirely from adding many simple future behaviors. Keep this picture in your head — it is the intuition behind every formula in this lecture.</p>
+      </section>
+
+      <!-- 01 ================================================= -->
+      <section class="section" id="s01">
+        <div class="section-header">
+          <div class="spec-label">§ 01 — Building Blocks</div>
+          <h1 class="section-title">Harmonics &amp; Frequency</h1>
+          <p class="section-sub">Before we can add up "simple waves," we need to know exactly which frequencies are allowed. The answer comes from a surprisingly playful bell analogy.</p>
+        </div>
+
+        <h3 class="h">Bell, bell, bell — who's there?</h3>
+        <p>Three bells: <strong>A</strong> rings every 2 minutes, <strong>B</strong> every 3 minutes, <strong>C</strong> every 5 minutes. When does the whole pattern first repeat?</p>
+
+        <div class="viz-box">
+          <div class="bell-row"><span class="bell-name">Bell A · 2 min</span><div class="bell-track" id="bell-a"></div></div>
+          <div class="bell-row"><span class="bell-name">Bell B · 3 min</span><div class="bell-track" id="bell-b"></div></div>
+          <div class="bell-row"><span class="bell-name">Bell C · 5 min</span><div class="bell-track" id="bell-c"></div></div>
+          <div class="viz-caption">Gold ticks mark realignment — the combined pattern repeats after 30 minutes.</div>
+        </div>
+
+        <div class="formula-plate">
+          $$T_{combined} = \text{lcm}(2,3,5) = 30 \text{ minutes}$$
+          <div class="formula-caption">The combined period is the least common multiple of the individual periods.</div>
+        </div>
+
+        <h3 class="h">The same story, viewed through frequency</h3>
+        <p>Flip periods into frequencies (rings per hour): 30, 20, and 12 times/hour. The combined pattern's fundamental frequency is <code>f₀ = 2</code> times/hour, and — this is the key observation — <strong>every individual frequency is a whole-number multiple of f₀</strong>:</p>
+        <div class="formula-plate">
+          $$30 = 15f_0, \qquad 20 = 10f_0, \qquad 12 = 6f_0$$
+        </div>
+
+        <h3 class="h">From bells to signals: the fundamental frequency</h3>
+        <p>For any periodic signal <code>x(t)</code> with period <code>T</code>, the same logic applies. Define the <strong>fundamental frequency</strong>:</p>
+        <div class="formula-plate">
+          $$\omega_0 = \frac{2\pi}{T}$$
+          <div class="formula-caption">radians per second — this is the "one ring of the smallest bell" for your signal.</div>
+        </div>
+
+        <h3 class="h">Therefore, the allowed building blocks are kω₀</h3>
+        <p>Just like the bell frequencies had to be whole multiples of <code>f₀</code>, every frequency component of a period-<code>T</code> signal must be a whole-number multiple of <code>ω₀</code>. This includes <strong>negative</strong> multiples too — they aren't "unphysical," they simply rotate the opposite way around the complex plane (more on this in the next section).</p>
+
+        <div class="viz-box">
+          <div class="axis-row" id="freq-axis"></div>
+          <div class="viz-caption">Allowed harmonics: …, −2ω₀, −ω₀, 0, ω₀, 2ω₀, … — negative harmonics rotate backward, positive harmonics rotate forward, k = 0 is the constant (DC) part.</div>
+        </div>
+
+        <div class="formula-plate">
+          $$\text{frequencies used: } k\omega_0, \quad k \in \mathbb{Z} = \{\dots,-2,-1,0,1,2,\dots\}$$
+        </div>
+
+        <div class="callout callout--trap">
+          <span class="callout-label">⚠ Exam Trap</span>
+          <p>Students often think only positive frequencies "exist" and treat negative <code>k</code> as a bookkeeping trick to throw away. Don't. Both <code>+kω₀</code> and <code>−kω₀</code> carry real information — together they combine into a real-valued sinusoid. Dropping the negative side silently loses half your signal.</p>
+        </div>
+      </section>
+
+      <!-- 02 ================================================= -->
+      <section class="section" id="s02">
+        <div class="section-header">
+          <div class="spec-label">§ 02 — Notation</div>
+          <h1 class="section-title">Complex Exponentials</h1>
+          <p class="section-sub">Instead of juggling separate sine and cosine terms, we package both into one compact object: the complex exponential.</p>
+        </div>
+
+        <h3 class="h">Euler's formula packages sine and cosine together</h3>
+        <div class="formula-plate">
+          $$e^{j\omega_0 t} = \cos(\omega_0 t) + j\sin(\omega_0 t)$$
+          <div class="formula-caption">One rotating object carries both the cosine (real part) and the sine (imaginary part).</div>
+        </div>
+        <p>Geometrically, <code>e^{jω₀t}</code> is a unit vector spinning counter-clockwise around the origin of the complex plane at angular speed <code>ω₀</code>. Its horizontal shadow traces out <code>cos(ω₀t)</code>; its vertical shadow traces out <code>sin(ω₀t)</code>.</p>
+
+        <h3 class="h">So the Fourier series will look like this</h3>
+        <div class="formula-plate">
+          $$x(t) = \sum_{k=-\infty}^{\infty} a_k\, e^{jk\omega_0 t}$$
+          <div class="formula-caption"><code>e^{jkω₀t}</code> is the k-th simple wave (spinning at speed kω₀); <code>a_k</code> says how much of that wave is present.</div>
+        </div>
+        <p>This is called the <strong>complex exponential Fourier series</strong> — the synthesis equation. It rebuilds <code>x(t)</code> once you know every coefficient <code>a_k</code>.</p>
+
+        <div class="viz-box">
+          <div class="axis-row" id="freq-axis-2"></div>
+          <div class="viz-caption"><code>a_k = 0</code> means that frequency is absent; <code>a_k ≠ 0</code> means it's present, with strength |a_k| and phase ∠a_k.</div>
+        </div>
+
+        <h3 class="h">Worked micro-example — a plain cosine already contains two complex waves</h3>
+        <p>Using Euler's formula in reverse:</p>
+        <div class="formula-plate">
+          $$\cos(\omega_0 t) = \frac{1}{2}e^{j\omega_0 t} + \frac{1}{2}e^{-j\omega_0 t}$$
+        </div>
+        <div class="viz-box">
+          <canvas id="cv-cosine-spectrum" width="500" height="180"></canvas>
+          <div class="viz-caption">Only the +ω₀ and −ω₀ components are present, each with strength ½.</div>
+        </div>
+        <p>This is the pattern to internalize: <strong>any real sinusoid splits into a symmetric pair of complex exponentials</strong>, one spinning forward and one spinning backward, each carrying half the amplitude. You'll use this constantly.</p>
+
+        <div class="callout callout--tip">
+          <span class="callout-label">✓ Shortcut</span>
+          <p>Memorize both Euler pairings — you will use them in nearly every problem this course:</p>
+          <p style="margin-top:8px;">$$\cos\theta = \frac{e^{j\theta}+e^{-j\theta}}{2} \qquad\qquad \sin\theta = \frac{e^{j\theta}-e^{-j\theta}}{2j}$$</p>
+        </div>
+      </section>
+
+      <!-- 03 ================================================= -->
+      <section class="section" id="s03">
+        <div class="section-header">
+          <div class="spec-label">§ 03 — Derivation</div>
+          <h1 class="section-title">Finding the Coefficients</h1>
+          <p class="section-sub">We know the synthesis formula. Now: given x(t), how do we actually extract each a_k? This is the single most exam-tested derivation in the chapter.</p>
+        </div>
+
+        <h3 class="h">A small detour — averaging a rotating exponential</h3>
+        <p>Here is the one trick the whole derivation rests on. Average <code>e^{jkω₀t}</code> over one full period:</p>
+        <div class="formula-plate">
+          $$\frac{1}{T}\int_T e^{jk\omega_0 t}\,dt = \begin{cases}1, & k=0 \\ 0, & k\neq 0\end{cases}$$
+        </div>
+
+        <div class="viz-box">
+          <div class="controls-row" style="margin-bottom:8px;">
+            <span style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);">watch the average of each phasor as it spins:</span>
+          </div>
+          <div style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center;">
+            <div style="text-align:center;">
+              <canvas id="cv-phasor-k0" width="220" height="220"></canvas>
+              <div class="viz-caption">k = 0 — does not rotate.<br>average remains 1.</div>
+            </div>
+            <div style="text-align:center;">
+              <canvas id="cv-phasor-k1" width="220" height="220"></canvas>
+              <div class="viz-caption">k ≠ 0 — rotates uniformly.<br>average cancels to 0.</div>
+            </div>
+          </div>
+        </div>
+        <p class="dim">Why does it cancel? A phasor spinning at constant speed sweeps through every angle equally often over a full period, and the contributions on opposite sides of the circle exactly cancel. Only the non-rotating (k = 0) term survives averaging.</p>
+
+        <h3 class="h">Step 1 — finding a₀ is easy: just average x(t)</h3>
+        <p>Write out the synthesis sum. Every term with <code>k ≠ 0</code> is a rotating phasor scaled by <code>a_k</code>, so it averages to zero. Only the <code>a₀</code> term survives:</p>
+        <div class="formula-plate">
+          $$a_0 = \frac{1}{T}\int_T x(t)\,dt$$
+          <div class="formula-caption"><code>a₀</code> is nothing more than the average (DC) value of x(t) over one period.</div>
+        </div>
+
+        <h3 class="h">Step 2 — finding a₁: make the a₁ term stop rotating</h3>
+        <p>Multiply the whole equation by <code>e^{-jω₀t}</code>. Every term's rotation speed shifts down by <code>ω₀</code> — in particular, the <code>a₁</code> term becomes non-rotating, while every other term still rotates (just at a different speed):</p>
+        <div class="formula-plate">
+          $$x(t)e^{-j\omega_0 t} = \cdots + a_{-1}e^{-j2\omega_0 t} + a_0 e^{-j\omega_0 t} + a_1 + a_2 e^{j\omega_0 t} + \cdots$$
+        </div>
+        <p>Average both sides over one period — everything rotating vanishes, leaving only <code>a₁</code>:</p>
+        <div class="formula-plate">
+          $$a_1 = \frac{1}{T}\int_T x(t)e^{-j\omega_0 t}\,dt$$
+        </div>
+
+        <h3 class="h">The general pattern — shift a_k to zero frequency, then average</h3>
+        <div class="viz-box">
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+            <div><canvas id="cv-shift-before" width="300" height="140"></canvas><div class="viz-caption">before — a_k sits at kω₀</div></div>
+            <div style="font-family:var(--font-mono);color:var(--gold);font-size:20px;">→</div>
+            <div><canvas id="cv-shift-after" width="300" height="140"></canvas><div class="viz-caption">after — multiply by e^{−jkω₀t}, a_k now sits at 0</div></div>
+          </div>
+        </div>
+
+        <h3 class="h">The full derivation, done rigorously</h3>
+        <p>Start from the synthesis equation with a dummy index <code>m</code>, multiply by <code>e^{-jkω₀t}</code>, and integrate over one period:</p>
+        <div class="formula-plate">
+          $$\frac{1}{T}\int_T x(t)e^{-jk\omega_0 t}\,dt = \sum_{m=-\infty}^{\infty} a_m \left[\frac{1}{T}\int_T e^{j(m-k)\omega_0 t}\,dt\right]$$
+        </div>
+        <p>By the orthogonality result above, the bracketed term is <code>1</code> only when <code>m = k</code>, and <code>0</code> for every other <code>m</code>. The entire infinite sum collapses to a single surviving term:</p>
+        <div class="formula-plate">
+          $$\boxed{a_k = \frac{1}{T}\int_T x(t)e^{-jk\omega_0 t}\,dt}$$
+          <div class="formula-caption">The <strong>analysis equation</strong>. The integral can be taken over any single full period, ω₀ = 2π/T, k = 0, ±1, ±2, …</div>
+        </div>
+
+        <div class="callout callout--trap">
+          <span class="callout-label">⚠ Exam Trap</span>
+          <p>The sign in the exponent flips between the two equations: synthesis uses <code>+jkω₀t</code>, analysis uses <code>−jkω₀t</code>. Mixing these up is the single most common algebra slip on this topic — it silently conjugates every coefficient you compute.</p>
+        </div>
+      </section>
+
+      <!-- 04 ================================================= -->
+      <section class="section" id="s04">
+        <div class="section-header">
+          <div class="spec-label">§ 04 — Worked Problem</div>
+          <h1 class="section-title">Read by Inspection</h1>
+          <p class="section-sub">A trig polynomial like this one never needs the integral formula. If x(t) is already a finite sum of sinusoids, its Fourier coefficients can be read straight off.</p>
+        </div>
+
+        <div class="plate">
+          <div class="plate-label">Problem</div>
+          <p style="margin:0;">$$x(t) = 1 + \sin(\omega_0 t) + 2\cos(\omega_0 t) + \cos\!\left(2\omega_0 t + \frac{\pi}{4}\right), \qquad T_0 = \frac{2\pi}{\omega_0}$$</p>
+        </div>
+        <p>Do we really need to compute <code>a_k = (1/T₀) ∫ x(t) e^{-jkω₀t} dt</code> for every k? <strong>No.</strong> Every term is already a complex-exponential pair in disguise — we just have to unpack each one with Euler's formula.</p>
+
+        <h3 class="h">Step 1 — expand the ω₀ terms</h3>
+        <div class="formula-plate">
+          $$\sin(\omega_0 t) + 2\cos(\omega_0 t) = \frac{1}{2j}\left(e^{j\omega_0 t}-e^{-j\omega_0 t}\right) + \left(e^{j\omega_0 t}+e^{-j\omega_0 t}\right) = \left(1+\tfrac{1}{2j}\right)e^{j\omega_0 t} + \left(1-\tfrac{1}{2j}\right)e^{-j\omega_0 t}$$
+          <div class="formula-caption">Since 1/(2j) = −j/2, this simplifies to (1 − j/2)e^{jω₀t} + (1 + j/2)e^{−jω₀t}.</div>
+        </div>
+
+        <h3 class="h">Step 2 — expand the phase-shifted 2ω₀ term</h3>
+        <div class="formula-plate">
+          $$\cos\!\left(2\omega_0 t+\tfrac{\pi}{4}\right) = \tfrac{1}{2}e^{j(2\omega_0 t+\pi/4)} + \tfrac{1}{2}e^{-j(2\omega_0 t+\pi/4)} = \left(\tfrac{1}{2}e^{j\pi/4}\right)e^{j2\omega_0 t} + \left(\tfrac{1}{2}e^{-j\pi/4}\right)e^{-j2\omega_0 t}$$
+        </div>
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Don't forget the constant</span>
+          <p>The lone "1" in x(t) is itself a Fourier term: <code>1 = 1·e^{j0·ω₀t}</code>, so it contributes directly to <code>a₀ = 1</code>.</p>
+        </div>
+
+        <h3 class="h">Step 3 — collect terms spinning at the same frequency</h3>
+        <p>Group every coefficient by which <code>e^{jkω₀t}</code> it multiplies:</p>
+        <table class="spec">
+          <tr><th>k</th><td>−2</td><td>−1</td><td>0</td><td>1</td><td>2</td></tr>
+          <tr><th>a_k</th><td>√2⁄4 (1−j)</td><td>1 + j⁄2</td><td>1</td><td>1 − j⁄2</td><td>√2⁄4 (1+j)</td></tr>
+        </table>
+        <p class="dim">Notice <code>a₋ₖ = a_k*</code> (complex conjugates) for every pair — this is not a coincidence, it's a general property of real signals you'll meet formally in §09.</p>
+
+        <h3 class="h">Magnitude &amp; phase spectrum</h3>
+        <div class="two-col">
+          <div class="viz-box" style="margin:0;"><canvas id="cv-mag-spectrum" width="330" height="220"></canvas><div class="viz-caption">|a_k|</div></div>
+          <div class="viz-box" style="margin:0;"><canvas id="cv-phase-spectrum" width="330" height="220"></canvas><div class="viz-caption">∠a_k</div></div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout-label">✓ Exam pattern to recognize</span>
+          <p>"Given a finite sum of sines/cosines, find the Fourier series coefficients" is one of the most common exam questions precisely because it tests whether you understand the Euler-pair structure — not whether you can grind an integral. Always check whether x(t) is already a trig polynomial before reaching for the integral.</p>
+        </div>
+      </section>
+
+      <!-- 05 ================================================= -->
+      <section class="section" id="s05">
+        <div class="section-header">
+          <div class="spec-label">§ 05 — Worked Problem</div>
+          <h1 class="section-title">The Square Wave</h1>
+          <p class="section-sub">The single most-tested Fourier series example in the entire course. Master this derivation cold.</p>
+        </div>
+
+        <div class="plate">
+          <div class="plate-label">Problem</div>
+          <p style="margin:0;">$$x(t)=\begin{cases}1,&|t|<T_1\\0,&T_1<|t|<T/2\end{cases}\qquad x(t+T)=x(t),\qquad \omega_0=\frac{2\pi}{T}$$</p>
+        </div>
+
+        <h3 class="h">Step 1 — pick a convenient period, and note where the signal is zero</h3>
+        <p>Choose the interval <code>−T/2 &lt; t &lt; T/2</code>. Outside <code>−T₁ &lt; t &lt; T₁</code> the signal is exactly zero, so the integral collapses to a short window:</p>
+        <div class="formula-plate">
+          $$a_k = \frac{1}{T}\int_{-T/2}^{T/2} x(t)e^{-jk\omega_0 t}\,dt = \frac{1}{T}\int_{-T_1}^{T_1} e^{-jk\omega_0 t}\,dt$$
+        </div>
+
+        <h3 class="h">Step 2 — evaluate for k ≠ 0</h3>
+        <div class="formula-plate">
+          $$a_k = \frac{1}{T}\left[\frac{e^{-jk\omega_0 t}}{-jk\omega_0}\right]_{-T_1}^{T_1} = \frac{2\sin(k\omega_0 T_1)}{Tk\omega_0} = \frac{\sin(k\omega_0 T_1)}{k\pi}$$
+        </div>
+
+        <h3 class="h">Step 3 — handle k = 0 separately (it's just the average)</h3>
+        <div class="formula-plate">
+          $$a_0 = \frac{1}{T}\int_{-T_1}^{T_1}1\,dt = \frac{2T_1}{T} = \frac{\text{time spent at height 1}}{\text{total period}}$$
+        </div>
+
+        <div class="callout callout--trap">
+          <span class="callout-label">⚠ Exam Trap</span>
+          <p>The formula <code>sin(kω₀T₁)/(kπ)</code> has a 0/0 at k = 0 — it is only valid for <code>k ≠ 0</code>. Always state <code>a₀</code> separately as the average value; don't try to plug k = 0 into the sinc formula.</p>
+        </div>
+
+        <h3 class="h">Interactive: the specific case T₁ = T/4</h3>
+        <p>With <code>T₁ = T/4</code>: <code>a₀ = 1/2</code> and <code>a_k = sin(kπ/2)/(kπ)</code> for <code>k ≠ 0</code>. Notice every even k gives <code>sin(kπ/2) = 0</code> — the even harmonics vanish entirely for this particular pulse width, leaving only odd k with alternating sign.</p>
+
+        <div class="viz-box">
+          <canvas id="cv-square-spectrum" width="700" height="220"></canvas>
+          <div class="viz-caption">a_k for the square wave, T₁ = T/4, k = −7 … 7. The envelope decays like 1/k — a fingerprint of the jump discontinuity (see §08–§09).</div>
+        </div>
+
+        <p>Now watch the coefficients rebuild the actual waveform. Slide the number of harmonics and see how the square edges sharpen — and notice the ringing that refuses to disappear near the jump:</p>
+        <div id="synth-square-slot"></div>
+      </section>
+
+      <!-- 06 ================================================= -->
+      <section class="section" id="s06">
+        <div class="section-header">
+          <div class="spec-label">§ 06 — Worked Problem</div>
+          <h1 class="section-title">The Triangular Ramp</h1>
+          <p class="section-sub">A harder integral — piecewise, and this time a_k comes out genuinely complex. Excellent practice for exam-style algebra.</p>
+        </div>
+
+        <div class="plate">
+          <div class="plate-label">Problem</div>
+          <p style="margin:0;">$$x(t)=\begin{cases}t, & 0\le t<1\\ \dfrac{3-t}{2}, & 1\le t<3\end{cases}\qquad x(t+3)=x(t)\quad(T=3)$$</p>
+        </div>
+
+        <h3 class="h">Step 1 — find a₀: the average height over a period</h3>
+        <div class="formula-plate">
+          $$a_0=\frac{1}{3}\left[\int_0^1 t\,dt+\int_1^3\frac{3-t}{2}\,dt\right]=\frac{1}{3}\left[\frac12+1\right]=\frac12$$
+        </div>
+        <div class="callout callout--tip">
+          <span class="callout-label">✓ Shortcut — do it geometrically</span>
+          <p>The signal traces a triangle of base 3 and height 1 over one period. Area = ½·3·1 = 3/2. Then <code>a₀ = area ÷ period = (3/2)/3 = 1/2</code> — same answer, zero integration.</p>
+        </div>
+
+        <h3 class="h">Step 2 — set up the coefficient integral for k ≠ 0</h3>
+        <div class="formula-plate">
+          $$a_k=\frac13\left[\int_0^1 t\,e^{-jk\omega_0 t}dt+\int_1^3\frac{3-t}{2}\,e^{-jk\omega_0 t}dt\right],\qquad \omega_0=\frac{2\pi}{3}$$
+        </div>
+
+        <h3 class="h">Step 3 — evaluate each piece (integration by parts)</h3>
+        <div class="formula-plate">
+          $$\int_0^1 t\,e^{-jk\omega_0 t}dt = -\frac{e^{-jk\omega_0}}{jk\omega_0}+\frac{1-e^{-jk\omega_0}}{(jk\omega_0)^2}$$
+          $$\int_1^3\frac{3-t}{2}\,e^{-jk\omega_0 t}dt = \frac{e^{-jk\omega_0}}{jk\omega_0}+\frac{e^{-jk\omega_0}-e^{-j3k\omega_0}}{2(jk\omega_0)^2}$$
+          <div class="formula-caption">Since ω₀ = 2π/3, note e^{−j3kω₀} = e^{−j2πk} = 1 — this kills the last term's second piece.</div>
+        </div>
+
+        <h3 class="h">Step 4 — the ± 1/(jkω₀) terms cancel, leaving</h3>
+        <div class="formula-plate">
+          $$a_k=\frac13\cdot\frac{1-e^{-jk\omega_0}}{2(jk\omega_0)^2}=\frac{e^{-jk\omega_0}-1}{6k^2\omega_0^2}\qquad\left[(jk\omega_0)^2=-k^2\omega_0^2\right]$$
+        </div>
+
+        <div class="formula-plate" style="border-left-color:var(--sage);">
+          $$\boxed{a_0=\frac12,\qquad a_k=\frac{e^{-jk\omega_0}-1}{6k^2\omega_0^2},\ k\neq0,\ \ \omega_0=\frac{2\pi}{3}}$$
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Beyond the slides — worth noticing</span>
+          <p>Unlike the square wave, these a_k are genuinely complex (not purely real) — because this triangular ramp is neither an even nor an odd function of t. Also notice the envelope decays like <code>1/k²</code> here, versus <code>1/k</code> for the square wave. That difference is not an accident — see §08 and §09 for why.</p>
+        </div>
+
+        <p>See it rebuilt live — and notice how much smoother this reconstruction converges compared to the square wave, even with very few harmonics:</p>
+        <div id="synth-triangle-slot"></div>
+      </section>
+
+      <!-- 07 ================================================= -->
+      <section class="section" id="s07">
+        <div class="section-header">
+          <div class="spec-label">§ 07 — Bonus Intuition</div>
+          <h1 class="section-title">The Vector-Space Analogy</h1>
+          <p class="section-sub">A beautiful (optional, but genuinely clarifying) reframing: Fourier coefficients are just coordinates in a very unusual coordinate system.</p>
+        </div>
+
+        <h3 class="h">A coordinate system turns a point into numbers</h3>
+        <div class="two-col">
+          <div class="viz-box" style="margin:0;"><canvas id="cv-point" width="280" height="220"></canvas></div>
+          <div style="display:flex;flex-direction:column;justify-content:center;">
+            <p>The point (3, 2) means: 3 steps along the x-axis, 2 steps along the y-axis. The "coordinates" are just: how much of each basis direction do we need?</p>
+          </div>
+        </div>
+
+        <h3 class="h">Functions can be given coordinates too</h3>
+        <p>Take all functions of the form <code>f(t) = a + bt</code>. Choose <code>1</code> and <code>t</code> as "basis functions" — then any such <code>f(t)</code> has coordinates <code>(a, b)</code>:</p>
+        <div class="formula-plate">
+          $$f(t) = a\cdot 1 + b\cdot t \quad\Longleftrightarrow\quad (a,b) \qquad\qquad 3+2t \ \Longleftrightarrow\ (3,2)$$
+        </div>
+
+        <h3 class="h">More axes describe more complicated functions</h3>
+        <div class="formula-plate">
+          $$f(t)=a_0+a_1t+a_2t^2+a_3t^3+\cdots \ \Longleftrightarrow\ \text{axes } 1,t,t^2,t^3,\dots\ \Longleftrightarrow\ (a_0,a_1,a_2,\dots)$$
+        </div>
+        <p class="dim">Even <code>e^t = 1 + t + t^2/2! + t^3/3! + \cdots</code> has coordinates <code>(1, 1, 1/2!, 1/3!, \dots)</code> in this polynomial coordinate system — that's the Taylor series, a distant cousin of what we're about to do.</p>
+
+        <h3 class="h">Fourier series simply picks a different coordinate system</h3>
+        <div class="two-col">
+          <div class="plate">
+            <div class="plate-label">Polynomial Axes</div>
+            <p style="margin:0;">$$1,\ t,\ t^2,\ t^3,\dots$$$$f(t)=a_0+a_1t+a_2t^2+\cdots$$</p>
+          </div>
+          <div class="plate">
+            <div class="plate-label">Fourier Axes</div>
+            <p style="margin:0;">$$\dots,e^{-j\omega_0t},1,e^{j\omega_0t},e^{j2\omega_0t},\dots$$$$x(t)=\sum_{k=-\infty}^{\infty}a_ke^{jk\omega_0t}$$</p>
+          </div>
+        </div>
+
+        <p>In this picture, <code>cos(ω₀t)</code> has Fourier-coordinates <code>(…, 0, 0, ½, 0, ½, 0, 0, …)</code> — only <code>k = −1</code> and <code>k = 1</code> are nonzero. Every other coordinate is exactly zero.</p>
+
+        <h3 class="h">Coefficients as projections</h3>
+        <div class="two-col">
+          <div class="plate">
+            <div class="plate-label">Vectors</div>
+            <p style="margin:0;">coordinate along <code>u</code> = <code>v·u</code></p>
+            <div class="viz-box" style="margin-top:10px;"><canvas id="cv-projection" width="260" height="160"></canvas></div>
+          </div>
+          <div class="plate">
+            <div class="plate-label">Signals</div>
+            <p>coordinate along <code>e^{jkω₀t}</code> = <code>⟨x(t), e^{jkω₀t}⟩</code></p>
+            <p style="margin:0;color:var(--gold);">projection ⟹ Fourier coefficient a_k</p>
+          </div>
+        </div>
+
+        <p>For signals, the "dot product" becomes an average over one period, and the k-th Fourier axis is <code>z(t) = e^{jkω₀t}</code>, so <code>z*(t) = e^{−jkω₀t}</code>:</p>
+        <div class="formula-plate">
+          $$\langle x(t),z(t)\rangle = \frac{1}{T}\int_T x(t)z^*(t)\,dt \quad\Longrightarrow\quad a_k=\frac{1}{T}\int_T x(t)e^{-jk\omega_0 t}\,dt$$
+          <div class="formula-caption">Exactly the analysis equation from §03 — now you can see <em>why</em> it has that shape: it's a projection formula in disguise.</div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout-label">✓ Why this matters for exams</span>
+          <p>This reframing explains, in one shot, why orthogonality (§03's averaging trick) is the entire mechanism behind the coefficient formula — orthogonal basis vectors are exactly what makes a projection formula give you a clean, single coordinate instead of a tangled mess.</p>
+        </div>
+      </section>
+
+      <!-- 08 ================================================= -->
+      <section class="section" id="s08">
+        <div class="section-header">
+          <div class="spec-label">§ 08 — Beyond The Slides</div>
+          <h1 class="section-title">Convergence &amp; Gibbs Phenomenon</h1>
+          <p class="section-sub">Not on the original slide deck, but essential for any exam that asks "does the Fourier series actually converge to x(t)?" — and it explains that stubborn ringing you saw in §05.</p>
+        </div>
+
+        <h3 class="h">When does the sum actually equal x(t)?</h3>
+        <p>The synthesis equation writes <code>x(t)</code> as an infinite sum. A fair question: does that infinite sum actually converge back to <code>x(t)</code>? The <strong>Dirichlet conditions</strong> give sufficient conditions:</p>
+        <div class="plate">
+          <div class="plate-label">Dirichlet Conditions (sufficient, not strictly necessary)</div>
+          <ol style="margin-bottom:0;">
+            <li><code>x(t)</code> is absolutely integrable over one period: <code>∫_T |x(t)| dt &lt; ∞</code></li>
+            <li><code>x(t)</code> has a finite number of maxima and minima in any one period (bounded variation)</li>
+            <li><code>x(t)</code> has a finite number of discontinuities in any one period, each of finite size</li>
+          </ol>
+        </div>
+        <p>Virtually every signal you'll meet in this course (including both worked examples above) satisfies all three. Where the conditions hold, the series converges to <code>x(t)</code> at every point of continuity — and at a jump, it converges to the <strong>average of the left- and right-hand limits</strong>:</p>
+        <div class="formula-plate">
+          $$x_N(t_0) \xrightarrow{N\to\infty} \frac{x(t_0^-)+x(t_0^+)}{2} \quad \text{at a jump discontinuity } t_0$$
+        </div>
+
+        <h3 class="h">Gibbs phenomenon — the ringing that never fully disappears</h3>
+        <p>Look again at the square wave reconstruction from §05. Near the jump, the partial sum always <em>overshoots</em> above the top value and <em>undershoots</em> below the bottom value — no matter how many harmonics you add. This is the <strong>Gibbs phenomenon</strong>.</p>
+
+        <div class="callout callout--trap">
+          <span class="callout-label">⚠ The counterintuitive part</span>
+          <p>Adding more harmonics does <strong>not</strong> shrink the overshoot's height. The overshoot locks in at roughly <strong>8.9%</strong> of the jump size and stays there forever as N → ∞. What <em>does</em> shrink is the <em>width</em> of the ringing region — it squeezes closer and closer to the discontinuity, but the peak height stays put.</p>
+        </div>
+
+        <div class="viz-box">
+          <div class="controls-row">
+            <div class="btn active" data-gibbs="square">Square Wave (has a jump)</div>
+            <div class="btn" data-gibbs="triangle">Triangular Ramp (no jump)</div>
+          </div>
+          <canvas id="cv-gibbs" width="700" height="240"></canvas>
+          <div class="controls-row" style="margin-top:14px;margin-bottom:0;">
+            <div class="slider-wrap">
+              <label>Harmonics N</label>
+              <input type="range" id="gibbs-n" min="1" max="60" value="5">
+              <span class="readout" id="gibbs-n-val">5</span>
+            </div>
+          </div>
+          <div class="stat-row" id="gibbs-stats"></div>
+        </div>
+
+        <p>Compare the two curves as you raise N: the square wave's overshoot height barely budges past a certain point (it's stuck near 8.9%), while the triangular ramp — which has <strong>no jump discontinuity</strong>, only a corner — converges smoothly with no overshoot at all.</p>
+
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Why the difference?</span>
+          <p>Gibbs phenomenon is a signature of <strong>jump discontinuities</strong> specifically. The square wave has one (at t = ±T₁); the triangular ramp from §06 is continuous everywhere — it only has corners (discontinuous slope) — so it never rings. This connects directly to the coefficient decay rates you'll formalize in §09.</p>
+        </div>
+      </section>
+
+      <!-- 09 ================================================= -->
+      <section class="section" id="s09">
+        <div class="section-header">
+          <div class="spec-label">§ 09 — Beyond The Slides</div>
+          <h1 class="section-title">Symmetry &amp; Parseval's Theorem</h1>
+          <p class="section-sub">Two more tools not in the original deck, but both are exam favorites: symmetry shortcuts that halve your work, and a theorem connecting energy in time to energy in frequency.</p>
+        </div>
+
+        <h3 class="h">Symmetry properties of a_k</h3>
+        <p>These follow directly from the analysis equation and are extremely useful shortcuts — check them before grinding an integral.</p>
+        <table class="spec">
+          <tr><th>If x(t) is…</th><th>Then a_k satisfies…</th></tr>
+          <tr><td>real (always true for physical signals)</td><td>a₋ₖ = a_k* &nbsp;(conjugate symmetry)</td></tr>
+          <tr><td>real &amp; even</td><td>a_k is real, and a₋ₖ = a_k</td></tr>
+          <tr><td>real &amp; odd</td><td>a_k is purely imaginary, and a₋ₖ = −a_k</td></tr>
+          <tr><td>half-wave symmetric: x(t+T/2) = −x(t)</td><td>a_k = 0 for every even k</td></tr>
+        </table>
+
+        <div class="callout callout--tip">
+          <span class="callout-label">✓ Check against our own worked examples</span>
+          <p>The square wave in §05 is real and even (symmetric about t = 0) — and indeed we found every <code>a_k</code> came out purely real. The triangular ramp in §06 is neither even nor odd — and indeed its <code>a_k</code> came out genuinely complex. That's not a coincidence; it's this table in action.</p>
+        </div>
+
+        <h3 class="h">Parseval's theorem — power in time equals power in frequency</h3>
+        <div class="formula-plate">
+          $$\frac{1}{T}\int_T |x(t)|^2\,dt = \sum_{k=-\infty}^{\infty}|a_k|^2$$
+          <div class="formula-caption">The average power of x(t), computed directly in time, exactly equals the sum of the squared magnitudes of every harmonic.</div>
+        </div>
+        <p>This is powerful because it means <strong>no information (and no energy) is lost</strong> by switching to the frequency-domain description — the Fourier series is a lossless repackaging of the signal, just viewed through a different coordinate system (recall §07). It also gives you a fast way to sanity-check a computed set of coefficients: plug them into the right-hand side and see if it matches the obviously-computable left-hand side.</p>
+
+        <h3 class="h">The time–bandwidth tradeoff</h3>
+        <p>Look back at the square wave envelope in §05: as the pulse width <code>T₁</code> shrinks (a narrower spike in time), the coefficients <code>a_k = sin(kω₀T₁)/(kπ)</code> spread out over <em>more</em> harmonics before decaying — you need higher and higher k to represent a sharper edge. Conversely, a smooth, gently-varying signal needs only a few low-order harmonics.</p>
+        <div class="formula-plate" style="border-left-color:var(--steel);">
+          <p style="margin:0;font-size:14px;color:var(--text-dim);">narrow in time &nbsp;⟺&nbsp; spread out across many harmonics (wide "bandwidth")<br>spread out in time &nbsp;⟺&nbsp; concentrated in a few low harmonics (narrow "bandwidth")</p>
+        </div>
+        <p>This is a distant cousin of the Heisenberg uncertainty principle: a signal cannot be made arbitrarily concentrated in <em>both</em> time and frequency at once.</p>
+
+        <h3 class="h">Coefficient decay rate reveals smoothness</h3>
+        <p>Compare the two worked examples directly:</p>
+        <table class="spec">
+          <tr><th>Signal</th><th>Smoothness</th><th>|a_k| decays like</th></tr>
+          <tr><td>Square wave (§05)</td><td>Jump discontinuity</td><td>1/k</td></tr>
+          <tr><td>Triangular ramp (§06)</td><td>Continuous, corner only</td><td>1/k²</td></tr>
+        </table>
+        <p class="dim">General rule: the smoother a periodic signal is (the more continuous derivatives it has), the faster its Fourier coefficients decay — and the fewer harmonics you need for a good approximation. A jump costs you a full order of decay compared to a mere corner.</p>
+      </section>
+
+      <!-- 10 ================================================= -->
+      <section class="section" id="s10">
+        <div class="section-header">
+          <div class="spec-label">§ 10 — Review</div>
+          <h1 class="section-title">Exam Corner</h1>
+          <p class="section-sub">A quick-reference sheet, plus the mistakes that cost students the most marks on this topic.</p>
+        </div>
+
+        <h3 class="h">Formula quick-reference</h3>
+        <table class="spec">
+          <tr><th>Quantity</th><th>Formula</th></tr>
+          <tr><td>Fundamental frequency</td><td>ω₀ = 2π/T</td></tr>
+          <tr><td>Synthesis (build x(t) from a_k)</td><td>x(t) = Σ a_k e^{jkω₀t}</td></tr>
+          <tr><td>Analysis (find a_k from x(t))</td><td>a_k = (1/T)∫_T x(t) e^{−jkω₀t} dt</td></tr>
+          <tr><td>a₀ (always)</td><td>average value of x(t) over one period</td></tr>
+          <tr><td>Real x(t)</td><td>a₋ₖ = a_k*</td></tr>
+          <tr><td>Parseval</td><td>(1/T)∫_T |x(t)|² dt = Σ |a_k|²</td></tr>
+        </table>
+
+        <h3 class="h">Common pitfalls</h3>
+        <div class="callout callout--trap"><span class="callout-label">⚠ Sign of the exponent</span><p>Synthesis uses <code>+j</code>, analysis uses <code>−j</code>. Swapping them conjugates every coefficient.</p></div>
+        <div class="callout callout--trap"><span class="callout-label">⚠ Forgetting the 1/T normalization</span><p>The analysis integral is an <em>average</em>, not a raw integral — always divide by T (or by the length of whatever period you integrated over).</p></div>
+        <div class="callout callout--trap"><span class="callout-label">⚠ a₀ from the sinc formula</span><p>Formulas like <code>sin(kω₀T₁)/(kπ)</code> are undefined (0/0) at k = 0. Always compute a₀ separately as a plain average.</p></div>
+        <div class="callout callout--trap"><span class="callout-label">⚠ Picking an awkward integration interval</span><p>You may integrate over <em>any</em> full period — choose the one that makes the algebra easiest (e.g. centering on where a pulse is nonzero, as in §05), not necessarily the interval the problem was originally written on.</p></div>
+        <div class="callout callout--trap"><span class="callout-label">⚠ Ignoring negative harmonics</span><p>Negative k is not a redundant mirror to discard — both ±k terms are needed to reconstruct a real signal (§01, §09).</p></div>
+        <div class="callout callout--trap"><span class="callout-label">⚠ Forgetting ω₀ changes with T</span><p>If a problem redefines the period, ω₀ = 2π/T must be recomputed — don't reuse a value of ω₀ from an earlier part of the problem.</p></div>
+
+        <h3 class="h">Connections you'll want at your fingertips</h3>
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Ties back to Lecture 2</span>
+          <p>Finding fundamental periods here uses the exact same LCM logic you practiced in Lecture 2 when computing the fundamental period of a sum of discrete-time sinusoids. The bell analogy in §01 is that same idea in a friendlier costume.</p>
+        </div>
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Ties forward to Lecture 6</span>
+          <p>Lecture 6 builds a full toolbox of Fourier series <em>properties</em> (linearity, time-shifting, differentiation, and more) that let you find new coefficients from known ones without ever touching an integral again. Everything in §03–§09 here is the foundation that makes those shortcuts legal.</p>
+        </div>
+        <div class="callout callout--note">
+          <span class="callout-label">ℹ Ties back to Lecture 3</span>
+          <p>The "break it into simple pieces, solve each, add the answers" strategy from §00 is exactly superposition for LTI systems. Fourier series is what makes that strategy concrete for periodic inputs: each e^{jkω₀t} passes through an LTI system scaled only by a complex number (its frequency response) — a fact you'll lean on heavily once frequency response is introduced.</p>
+        </div>
+
+        <h3 class="h">A favorite exam-style trap to practice</h3>
+        <div class="plate">
+          <div class="plate-label">Try this yourself</div>
+          <p>Find the Fourier coefficients of <code>x(t) = cos(3ω₀t)·sin(ω₀t)</code>. Hint: don't integrate — use a product-to-sum identity first (the same style of identity you used back in Lecture 2 for fundamental-period problems) to turn this into a sum of plain sinusoids, then read the coefficients off exactly as in §04.</p>
+        </div>
+      </section>
+
+      <!-- 11 ================================================= -->
+      <section class="section" id="s11">
+        <div class="section-header">
+          <div class="spec-label">§ 11 — Self-Check</div>
+          <h1 class="section-title">Quiz</h1>
+          <p class="section-sub">Six questions spanning the whole lecture. Try each one honestly before revealing the answer.</p>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q1</span>What does a₀ represent physically, for any periodic signal?</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer:</strong> The average (DC) value of x(t) over one period — the height the signal would sit at if perfectly flattened out. This holds for every signal, with no exceptions.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q2</span>For <code>x(t) = 3 + 4cos(ω₀t) − 2sin(2ω₀t)</code>, find a₂ without integrating.</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer:</strong> Write −2sin(2ω₀t) = −2·(e^{j2ω₀t}−e^{−j2ω₀t})/(2j) = (j)e^{j2ω₀t} + (−j)e^{−j2ω₀t}. So <strong>a₂ = j</strong> (and a₋₂ = −j). Check: a₋₂ = a₂* ✓ since a₂ = j is purely imaginary and x(t) is real & odd about its non-constant part.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q3</span>If you shrink the pulse width T₁ of a square wave while keeping T fixed, does the spectrum |a_k| get narrower or wider across k?</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer: Wider.</strong> A narrower pulse in time needs more harmonics to reconstruct its sharp edges — this is the time–bandwidth tradeoff from §09.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q4</span>x(t) is real and even. What can you immediately say about every a_k?</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer:</strong> Every a_k is purely real, and a₋ₖ = a_k (even in k too). You saw this confirmed directly by the square wave in §05.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q5</span>Why doesn't Gibbs overshoot shrink even with 1000 harmonics?</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer:</strong> The Fourier series does not converge uniformly near a jump discontinuity. The overshoot's <em>height</em> locks in at about 8.9% of the jump and stays there for any N; only the <em>width</em> of the ringing region shrinks toward zero as N grows.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q"><span class="qn">Q6</span>State the synthesis equation and the analysis equation from memory.</div>
+          <button class="reveal-btn">Reveal Answer</button>
+          <div class="quiz-a"><strong>Answer:</strong> Synthesis: x(t) = Σ_{k=−∞}^{∞} a_k e^{jkω₀t}. Analysis: a_k = (1/T)∫_T x(t) e^{−jkω₀t} dt, with ω₀ = 2π/T. If you can write both cold, with the correct sign on each exponent, you're in good shape for this topic.</div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="dim" style="text-align:center;font-size:13px;">End of Lecture 5. Next up: Lecture 6 — Properties of Fourier Series.</p>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   NAVIGATION
+============================================================ */
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('.section');
+navItems.forEach(item=>{
+  item.addEventListener('click',()=>{
+    const target = item.getAttribute('data-target');
+    navItems.forEach(n=>n.classList.remove('active'));
+    item.classList.add('active');
+    sections.forEach(s=>s.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    document.querySelector('.main').scrollTo({top:0,behavior:'instant'});
+    window.scrollTo({top:0,behavior:'instant'});
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+document.getElementById('hamburger').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ============================================================
+   HELPERS: canvas setup
+============================================================ */
+function setupCanvas(canvas){
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.width, h = canvas.height;
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  canvas.width = w*dpr;
+  canvas.height = h*dpr;
+  ctx.scale(dpr,dpr);
+  return {ctx,w,h};
+}
+const COLORS = {
+  gold:'#c9a24c', goldDim:'#8d7638', rust:'#b5654a', sage:'#8ba888',
+  steel:'#6c8fa0', text:'#e8e5de', dim:'#9aa1a6', faint:'#686f74', line:'#33393d'
+};
+
+/* ============================================================
+   00 — INTRO: complicated signal = sum of simple waves
+============================================================ */
+(function(){
+  const canvas = document.getElementById('cv-intro');
+  const {ctx,w,h} = setupCanvas(canvas);
+  const rowH = h/4;
+  function wave(fn,row,color,label){
+    const yMid = row*rowH + rowH/2;
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.beginPath();
+    for(let x=0;x<=w;x++){
+      const t = (x/w)*4*Math.PI;
+      const y = yMid - fn(t)*(rowH*0.32);
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = color; ctx.font = '11px IBM Plex Mono'; ctx.fillText(label, 6, row*rowH+14);
+  }
+  ctx.clearRect(0,0,w,h);
+  // top: sum
+  wave(t=>Math.sin(t)+0.5*Math.sin(2*t)+0.33*Math.cos(3*t), 0, COLORS.gold, 'x(t) — complicated periodic signal');
+  wave(t=>Math.sin(t), 1, COLORS.steel, 'sin(ω₀t)');
+  wave(t=>0.5*Math.sin(2*t), 2, COLORS.steel, 'sin(2ω₀t) · ½');
+  wave(t=>0.33*Math.cos(3*t), 3, COLORS.steel, 'cos(3ω₀t) · ⅓');
+})();
+
+/* ============================================================
+   01 — BELL TIMELINE
+============================================================ */
+function renderBellTrack(id, period, total){
+  const track = document.getElementById(id);
+  track.innerHTML='';
+  for(let t=0;t<=total;t+=period){
+    const tick = document.createElement('div');
+    tick.className = 'bell-tick'+(t===0||t===total?' align':'');
+    tick.style.left = (t/total*100)+'%';
+    track.appendChild(tick);
+  }
+}
+renderBellTrack('bell-a',2,30);
+renderBellTrack('bell-b',3,30);
+renderBellTrack('bell-c',5,30);
+
+/* ============================================================
+   01/02 — FREQUENCY AXIS
+============================================================ */
+function renderFreqAxis(id){
+  const row = document.getElementById(id);
+  if(!row) return;
+  row.innerHTML='';
+  const labels = ['-4ω₀','-3ω₀','-2ω₀','-ω₀','0','ω₀','2ω₀','3ω₀','4ω₀'];
+  labels.forEach(l=>{
+    const tick = document.createElement('div');
+    tick.className = 'axis-tick'+(l==='0'?' zero':'');
+    tick.innerHTML = '<div class="dot"></div><div class="lbl">'+l+'</div>';
+    row.appendChild(tick);
+  });
+}
+renderFreqAxis('freq-axis');
+renderFreqAxis('freq-axis-2');
+
+/* ============================================================
+   02 — cosine spectrum (two stems at ±ω0)
+============================================================ */
+function drawStems(canvas, points, opts){
+  opts = opts||{};
+  const {ctx,w,h} = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const marginL=40, marginR=20, marginT=18, marginB=34;
+  const plotW = w-marginL-marginR, plotH = h-marginT-marginB;
+  const vals = points.map(p=>p.v);
+  const maxAbs = opts.yMax !== undefined ? opts.yMax : Math.max(0.001, ...vals.map(Math.abs));
+  const yZero = marginT + plotH*(opts.allowNeg?0.5:1);
+  const yScale = opts.allowNeg ? (plotH/2)/maxAbs : plotH/maxAbs;
+  const n = points.length;
+  const xStep = plotW/(n+1);
+  // axis
+  ctx.strokeStyle = COLORS.line; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(marginL,yZero); ctx.lineTo(w-marginR,yZero); ctx.stroke();
+  ctx.font='10px IBM Plex Mono'; ctx.fillStyle=COLORS.faint; ctx.textAlign='center';
+  points.forEach((p,i)=>{
+    const x = marginL + xStep*(i+1);
+    const y = yZero - p.v*yScale;
+    ctx.strokeStyle = COLORS.gold; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x,yZero); ctx.lineTo(x,y); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x,y,3.3,0,7); ctx.fillStyle=COLORS.gold; ctx.fill();
+    ctx.fillStyle = COLORS.dim; ctx.fillText(p.k, x, yZero+16);
+    if(opts.showVal){
+      ctx.fillStyle = COLORS.text; ctx.font='9.5px IBM Plex Mono';
+      ctx.fillText(p.label||p.v.toFixed(2), x, y - (p.v>=0?8:-14));
+      ctx.font='10px IBM Plex Mono';
+    }
+  });
+  ctx.textAlign='left';
+}
+drawStems(document.getElementById('cv-cosine-spectrum'), [
+  {k:'-ω₀',v:0.5,label:'½'},{k:'0',v:0,label:''},{k:'ω₀',v:0.5,label:'½'}
+], {allowNeg:false, showVal:true});
+
+/* ============================================================
+   03 — PHASOR AVERAGING ANIMATION
+============================================================ */
+function initPhasor(id, k){
+  const canvas = document.getElementById(id);
+  const {ctx,w,h} = setupCanvas(canvas);
+  const cx=w/2, cy=h/2, R=Math.min(w,h)*0.32;
+  let trail=[]; let running=true;
+  const section03 = document.getElementById('s03');
+  function frame(t){
+    if(!running) return;
+    if(section03.classList.contains('active')){
+      const theta = k*t*0.0016;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle=COLORS.line; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-R-14,cy); ctx.lineTo(cx+R+14,cy); ctx.moveTo(cx,cy-R-14); ctx.lineTo(cx,cy+R+14); ctx.stroke();
+      const px = cx+R*Math.cos(theta), py = cy-R*Math.sin(theta);
+      trail.push({x:px,y:py});
+      if(trail.length>140) trail.shift();
+      ctx.strokeStyle = COLORS.goldDim; ctx.lineWidth=1.3;
+      ctx.beginPath();
+      trail.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);});
+      ctx.stroke();
+      ctx.strokeStyle=COLORS.gold; ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+      ctx.beginPath(); ctx.arc(px,py,4,0,7); ctx.fillStyle=COLORS.gold; ctx.fill();
+      // running average marker
+      let avgx=0, avgy=0;
+      trail.forEach(p=>{avgx+=p.x;avgy+=p.y;});
+      avgx/=trail.length; avgy/=trail.length;
+      ctx.beginPath(); ctx.arc(avgx,avgy,3.2,0,7); ctx.fillStyle=COLORS.sage; ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+initPhasor('cv-phasor-k0',0);
+initPhasor('cv-phasor-k1',1);
+
+// shift-before/after mini spectra
+drawStems(document.getElementById('cv-shift-before'), [
+  {k:'',v:0},{k:'',v:0},{k:'k',v:1,label:'aₖ'},{k:'',v:0},{k:'',v:0}
+], {allowNeg:false, showVal:true});
+drawStems(document.getElementById('cv-shift-after'), [
+  {k:'',v:0},{k:'',v:0},{k:'0',v:1,label:'aₖ'},{k:'',v:0},{k:'',v:0}
+], {allowNeg:false, showVal:true});
+
+/* ============================================================
+   04 — magnitude / phase spectrum of the read-off example
+============================================================ */
+(function(){
+  const sqrt5over2 = Math.sqrt(5)/2;
+  const magPts = [
+    {k:'-2',v:0.5,label:'½'},{k:'-1',v:sqrt5over2,label:'√5⁄2'},{k:'0',v:1,label:'1'},
+    {k:'1',v:sqrt5over2,label:'√5⁄2'},{k:'2',v:0.5,label:'½'}
+  ];
+  drawStems(document.getElementById('cv-mag-spectrum'), magPts, {allowNeg:false, showVal:true});
+  const atan5 = Math.atan(0.5);
+  const phasePts = [
+    {k:'-2',v:-Math.PI/4,label:'-π/4'},{k:'-1',v:atan5,label:'tan⁻¹½'},{k:'0',v:0,label:'0'},
+    {k:'1',v:-atan5,label:'-tan⁻¹½'},{k:'2',v:Math.PI/4,label:'π/4'}
+  ];
+  drawStems(document.getElementById('cv-phase-spectrum'), phasePts, {allowNeg:true, showVal:true});
+})();
+
+/* ============================================================
+   05 — SQUARE WAVE SPECTRUM (T1 = T/4)
+============================================================ */
+(function(){
+  const pts=[];
+  for(let k=-7;k<=7;k++){
+    if(k===0) continue;
+    const v = Math.sin(k*Math.PI/2)/(k*Math.PI);
+    pts.push({k:k.toString(), v: v, label: Math.abs(v)<1e-6? '0': v.toFixed(3)});
+  }
+  drawStems(document.getElementById('cv-square-spectrum'), pts, {allowNeg:true, showVal:true});
+})();
+
+/* ============================================================
+   07 — point (3,2) and vector projection diagrams
+============================================================ */
+(function(){
+  const canvas = document.getElementById('cv-point');
+  const {ctx,w,h} = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const ox=40, oy=h-30, sx=(w-70)/4, sy=(h-60)/3;
+  ctx.strokeStyle=COLORS.line; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+4*sx+16,oy); ctx.moveTo(ox,oy); ctx.lineTo(ox,oy-3*sy-16); ctx.stroke();
+  ctx.fillStyle=COLORS.dim; ctx.font='10px IBM Plex Mono';
+  ctx.fillText('x',ox+4*sx+18,oy+4); ctx.fillText('y',ox-4,oy-3*sy-20);
+  const px=ox+3*sx, py=oy-2*sy;
+  ctx.strokeStyle=COLORS.goldDim; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(ox,py); ctx.lineTo(px,py); ctx.lineTo(px,oy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle=COLORS.gold; ctx.lineWidth=2.4;
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(px,py); ctx.stroke();
+  ctx.beginPath(); ctx.arc(px,py,4,0,7); ctx.fillStyle=COLORS.gold; ctx.fill();
+  ctx.fillStyle=COLORS.text; ctx.font='11px IBM Plex Mono'; ctx.fillText('(3, 2)', px+8, py-6);
+})();
+(function(){
+  const canvas = document.getElementById('cv-projection');
+  const {ctx,w,h} = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const ox=30, oy=h-24;
+  ctx.strokeStyle=COLORS.steel; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+200,oy-4); ctx.stroke();
+  ctx.fillStyle=COLORS.steel; ctx.font='11px IBM Plex Mono'; ctx.fillText('u', ox+204, oy-2);
+  ctx.strokeStyle=COLORS.gold; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+150,oy-110); ctx.stroke();
+  ctx.fillStyle=COLORS.gold; ctx.fillText('v', ox+150, oy-116);
+  ctx.strokeStyle=COLORS.goldDim; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox+150,oy-110); ctx.lineTo(ox+150*0.98,oy-4); ctx.stroke();
+  ctx.setLineDash([]);
+})();
+
+/* ============================================================
+   FOURIER COEFFICIENT FUNCTIONS (shared, exact from lecture)
+============================================================ */
+const SQ = { T:1, T1:0.25, w0: 2*Math.PI/1, a0: 2*0.25/1,
+  ak:function(k){ const v = Math.sin(k*this.w0*this.T1)/(k*Math.PI); return {re:v, im:0}; } };
+const TRI = { T:3, w0: 2*Math.PI/3, a0: 0.5,
+  ak:function(k){ const kw0=k*this.w0; const denom=6*k*k*this.w0*this.w0;
+    return { re:(Math.cos(kw0)-1)/denom, im: -Math.sin(kw0)/denom }; } };
+function targetSquare(t){
+  const T=SQ.T, T1=SQ.T1; let tm = ((t % T)+T)%T; if(tm>T/2) tm-=T;
+  return Math.abs(tm)<T1 ? 1 : 0;
+}
+function targetTriangle(t){
+  const T=TRI.T; let tm=((t%T)+T)%T;
+  return tm<1 ? tm : (3-tm)/2;
+}
+function reconstruct(t, N, sig){
+  let sum = sig.a0;
+  for(let k=1;k<=N;k++){
+    const ak = sig.ak(k);
+    const kw0t = k*sig.w0*t;
+    sum += 2*(ak.re*Math.cos(kw0t) - ak.im*Math.sin(kw0t));
+  }
+  return sum;
+}
+
+/* ============================================================
+   05/06 — SYNTHESIZER WIDGET (reusable factory)
+============================================================ */
+function buildSynth(slotId, sig, targetFn, opts){
+  const slot = document.getElementById(slotId);
+  const uid = slotId;
+  slot.innerHTML = `
+    <div class="viz-box">
+      <div class="controls-row">
+        <div class="slider-wrap">
+          <label>Harmonics N</label>
+          <input type="range" id="${uid}-n" min="1" max="${opts.maxN}" value="3">
+          <span class="readout" id="${uid}-n-val">3</span>
+        </div>
+        <div class="btn" id="${uid}-play">▶ Animate</div>
+      </div>
+      <canvas id="${uid}-canvas" width="760" height="230"></canvas>
+      <div class="stat-row" id="${uid}-stats"></div>
+    </div>`;
+  const canvas = document.getElementById(uid+'-canvas');
+  const slider = document.getElementById(uid+'-n');
+  const nval = document.getElementById(uid+'-n-val');
+  const playBtn = document.getElementById(uid+'-play');
+  const statsEl = document.getElementById(uid+'-stats');
+  let playing=false, playTimer=null;
+
+  function draw(){
+    const N = parseInt(slider.value);
+    nval.textContent = N;
+    const {ctx,w,h} = setupCanvas(canvas);
+    ctx.clearRect(0,0,w,h);
+    const tMin=opts.tMin, tMax=opts.tMax, yMin=opts.yMin, yMax=opts.yMax;
+    const marginL=40, marginR=16, marginT=14, marginB=26;
+    const plotW=w-marginL-marginR, plotH=h-marginT-marginB;
+    function X(t){ return marginL + (t-tMin)/(tMax-tMin)*plotW; }
+    function Y(y){ return marginT + (1-(y-yMin)/(yMax-yMin))*plotH; }
+    // axes
+    ctx.strokeStyle=COLORS.line; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(marginL,Y(0)); ctx.lineTo(w-marginR,Y(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(marginL,marginT); ctx.lineTo(marginL,h-marginB); ctx.stroke();
+    ctx.fillStyle=COLORS.faint; ctx.font='10px IBM Plex Mono';
+    ctx.fillText('0', marginL-14, Y(0)+3);
+    ctx.fillText('1', marginL-14, Y(1)+3);
+    // target (dashed)
+    ctx.strokeStyle=COLORS.steel; ctx.setLineDash([3,3]); ctx.lineWidth=1.3;
+    ctx.beginPath();
+    for(let x=0;x<=plotW;x++){
+      const t = tMin + (x/plotW)*(tMax-tMin);
+      const y = targetFn(t);
+      const cx=marginL+x, cy=Y(y);
+      if(x===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+    // reconstruction (solid)
+    ctx.strokeStyle=COLORS.gold; ctx.lineWidth=2;
+    ctx.beginPath();
+    let maxNearJump=-Infinity;
+    for(let x=0;x<=plotW;x++){
+      const t = tMin + (x/plotW)*(tMax-tMin);
+      const y = reconstruct(t,N,sig);
+      const cx=marginL+x, cy=Y(Math.max(yMin,Math.min(yMax,y)));
+      if(x===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+      if(opts.jumpCheck && Math.abs(t-opts.jumpCheck)<0.05 && t<opts.jumpCheck) maxNearJump=Math.max(maxNearJump,y);
+    }
+    ctx.stroke();
+
+    let statHTML = `<span>N = <b>${N}</b></span>`;
+    if(opts.jumpCheck){
+      const overshoot = ((maxNearJump-1)*100);
+      statHTML += `<span>Overshoot near edge: <b>${overshoot>0?overshoot.toFixed(1):'0.0'}%</b> (theory → ~8.9% as N grows)</span>`;
+    }
+    statsEl.innerHTML = statHTML;
+  }
+  slider.addEventListener('input', draw);
+  playBtn.addEventListener('click', ()=>{
+    if(playing){ clearInterval(playTimer); playing=false; playBtn.textContent='▶ Animate'; return; }
+    playing=true; playBtn.textContent='■ Stop';
+    let n=1; slider.value=1;
+    playTimer=setInterval(()=>{
+      n++; if(n>opts.maxN){ clearInterval(playTimer); playing=false; playBtn.textContent='▶ Animate'; return; }
+      slider.value=n; draw();
+    },90);
+  });
+  draw();
+}
+buildSynth('synth-square-slot', SQ, targetSquare, {maxN:41, tMin:-0.6, tMax:1.6, yMin:-0.4, yMax:1.4, jumpCheck:0.25});
+buildSynth('synth-triangle-slot', TRI, targetTriangle, {maxN:31, tMin:-1, tMax:5, yMin:-0.2, yMax:1.2});
+
+/* ============================================================
+   08 — GIBBS COMPARISON WIDGET
+============================================================ */
+(function(){
+  const canvas = document.getElementById('cv-gibbs');
+  const slider = document.getElementById('gibbs-n');
+  const nval = document.getElementById('gibbs-n-val');
+  const statsEl = document.getElementById('gibbs-stats');
+  const btns = document.querySelectorAll('[data-gibbs]');
+  let mode='square';
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+    mode = b.getAttribute('data-gibbs'); draw();
+  }));
+  function draw(){
+    const N = parseInt(slider.value);
+    nval.textContent = N;
+    const sig = mode==='square'?SQ:TRI;
+    const targetFn = mode==='square'?targetSquare:targetTriangle;
+    const tMin = mode==='square'?-0.6:-1, tMax = mode==='square'?1.6:5;
+    const yMin=-0.4, yMax=1.4;
+    const {ctx,w,h} = setupCanvas(canvas);
+    ctx.clearRect(0,0,w,h);
+    const marginL=40, marginR=16, marginT=14, marginB=26;
+    const plotW=w-marginL-marginR, plotH=h-marginT-marginB;
+    function X(t){ return marginL+(t-tMin)/(tMax-tMin)*plotW; }
+    function Y(y){ return marginT+(1-(y-yMin)/(yMax-yMin))*plotH; }
+    ctx.strokeStyle=COLORS.line; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(marginL,Y(0)); ctx.lineTo(w-marginR,Y(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(marginL,Y(1)); ctx.lineTo(w-marginR,Y(1)); ctx.stroke();
+    ctx.strokeStyle=COLORS.steel; ctx.setLineDash([3,3]); ctx.lineWidth=1.2;
+    ctx.beginPath();
+    for(let x=0;x<=plotW;x++){ const t=tMin+(x/plotW)*(tMax-tMin); const y=targetFn(t);
+      const cx=marginL+x, cy=Y(y); if(x===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy); }
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=mode==='square'?COLORS.gold:COLORS.sage; ctx.lineWidth=2;
+    ctx.beginPath();
+    let maxNearJump=-Infinity;
+    for(let x=0;x<=plotW;x++){
+      const t=tMin+(x/plotW)*(tMax-tMin); const y=reconstruct(t,N,sig);
+      const cx=marginL+x, cy=Y(Math.max(yMin,Math.min(yMax,y)));
+      if(x===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+      if(mode==='square' && t<0.25 && t>0.15) maxNearJump=Math.max(maxNearJump,y);
+    }
+    ctx.stroke();
+    if(mode==='square'){
+      const overshoot=((maxNearJump-1)*100);
+      statsEl.innerHTML = `<span>Signal: <b>Square Wave</b></span><span>Overshoot: <b>${overshoot>0?overshoot.toFixed(1):'0.0'}%</b></span><span>Gibbs limit → <b>~8.9%</b></span>`;
+    } else {
+      statsEl.innerHTML = `<span>Signal: <b>Triangular Ramp</b></span><span>No jump discontinuity → <b>no Gibbs overshoot</b></span>`;
+    }
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+
+/* ============================================================
+   QUIZ REVEAL
+============================================================ */
+document.querySelectorAll('.reveal-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const ans = btn.nextElementSibling;
+    ans.classList.toggle('show');
+    btn.textContent = ans.classList.contains('show') ? 'Hide Answer' : 'Reveal Answer';
+  });
+});
+
+/* ============================================================
+   KATEX RENDER
+============================================================ */
+document.addEventListener('DOMContentLoaded', function(){
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left:"$$", right:"$$", display:true},
+      {left:"\\(", right:"\\)", display:false}
+    ],
+    throwOnError:false
+  });
+});
+if(document.readyState !== 'loading'){
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left:"$$", right:"$$", display:true},
+      {left:"\\(", right:"\\)", display:false}
+    ],
+    throwOnError:false
+  });
+}
+</script>
+</body>
+</html>

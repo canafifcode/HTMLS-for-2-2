@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 219 · DTFT and DFT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --chassis:#1b1d21;
+  --chassis-2:#232529;
+  --chassis-2b:#2a2c31;
+  --rivet:#3a3d43;
+  --brass:#b8934a;
+  --brass-bright:#d4af6a;
+  --brass-deep:#8a6a2f;
+  --white:#fbf9f4;
+  --paper:#f4f1ea;
+  --paper-2:#ece7db;
+  --paper-line:#ddd6c4;
+  --ink:#2a2620;
+  --ink-soft:#6b6457;
+  --steel-text:#d8d4c9;
+  --steel-text-dim:#9b9686;
+  --teal:#2f6f6a;
+  --rust:#a4432b;
+  --rust-bright:#c65a3d;
+  --shadow:0 8px 30px rgba(0,0,0,.25);
+  --font-display:'Oswald', sans-serif;
+  --font-body:'IBM Plex Sans','Segoe UI', sans-serif;
+  --font-mono:'IBM Plex Mono','Consolas', monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--chassis);
+  font-family:var(--font-body);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--brass); color:var(--white); }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:var(--chassis-2); }
+::-webkit-scrollbar-thumb{ background:var(--rivet); border-radius:0; border:2px solid var(--chassis-2); }
+::-webkit-scrollbar-thumb:hover{ background:var(--brass-deep); }
+
+.app{ display:flex; min-height:100vh; width:100%; }
+
+/* ----------------------------- SIDEBAR ----------------------------- */
+.sidebar{
+  width:284px; flex:0 0 284px;
+  background:linear-gradient(180deg, var(--chassis-2) 0%, var(--chassis) 100%);
+  border-right:1px solid #000;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.03);
+  position:sticky; top:0; height:100vh;
+  overflow-y:auto; overflow-x:hidden;
+  z-index:40; display:flex; flex-direction:column;
+}
+.sidebar-head{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--rivet);
+  background:repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
+  position:relative;
+}
+.plate-tag{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.15em;
+  color:var(--brass-bright); text-transform:uppercase;
+  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+}
+.plate-tag .dot{ width:6px;height:6px;border-radius:50%;background:var(--brass-bright); box-shadow:0 0 6px var(--brass-bright); }
+.sidebar-head h1{
+  font-family:var(--font-display); font-weight:600; font-size:19px; letter-spacing:.02em;
+  color:var(--white); margin:0 0 4px; line-height:1.2; text-transform:uppercase;
+}
+.sidebar-head p{ font-size:11.5px; color:var(--steel-text-dim); margin:0; font-family:var(--font-mono); letter-spacing:.02em; }
+.sidebar-head .instructor{
+  margin-top:10px; font-size:11px; color:var(--steel-text-dim);
+  border-top:1px dashed var(--rivet); padding-top:9px;
+}
+.sidebar-head .instructor b{ color:var(--steel-text); font-weight:600; }
+
+.navlist{ list-style:none; margin:0; padding:10px 0 20px; flex:1; }
+.navlist li{ margin:0; }
+.navlink{
+  display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
+  background:none; border:none; cursor:pointer;
+  padding:9px 20px 9px 18px; font-family:var(--font-body); font-size:13px;
+  color:var(--steel-text-dim); border-left:3px solid transparent;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.navlink:hover{ background:rgba(255,255,255,0.03); color:var(--steel-text); }
+.navlink .num{ font-family:var(--font-mono); font-size:11px; color:var(--brass-deep); flex:0 0 auto; min-width:20px; }
+.navlink.active{ background:rgba(184,147,74,0.11); color:var(--white); border-left-color:var(--brass-bright); font-weight:500; }
+.navlink.active .num{ color:var(--brass-bright); }
+.nav-group-label{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--steel-text-dim); opacity:.6; padding:16px 20px 6px;
+}
+
+.sidebar-foot{ padding:14px 20px; border-top:1px solid var(--rivet); font-family:var(--font-mono); font-size:10px; color:var(--steel-text-dim); }
+
+.sidebar-toggle{
+  display:none; position:fixed; top:14px; left:14px; z-index:60;
+  width:38px; height:38px; background:var(--chassis-2); color:var(--brass-bright);
+  border:1px solid var(--rivet); font-size:16px; align-items:center; justify-content:center; cursor:pointer;
+}
+
+/* ----------------------------- CONTENT ----------------------------- */
+.content{ flex:1; min-width:0; background:var(--paper); }
+.panel{ display:none; padding:52px 64px 90px; max-width:920px; margin:0 auto; }
+.panel.active{ display:block; }
+
+.titleblock{ margin-bottom:8px; }
+.titleblock .eyebrow{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; color:var(--brass-deep);
+  text-transform:uppercase; margin-bottom:8px;
+}
+.titleblock h2{
+  font-family:var(--font-display); font-size:34px; font-weight:600; letter-spacing:.01em;
+  color:var(--ink); margin:0 0 6px; line-height:1.15;
+}
+.titleblock .sub{ font-size:15.5px; color:var(--ink-soft); margin:0 0 28px; max-width:640px; line-height:1.55; }
+
+.panel h3{
+  font-family:var(--font-display); font-size:20px; font-weight:600; color:var(--ink);
+  margin:34px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--paper-line);
+}
+.panel h4{ font-family:var(--font-display); font-size:15.5px; font-weight:600; color:var(--brass-deep); margin:22px 0 10px; text-transform:uppercase; letter-spacing:.03em; }
+.panel p{ line-height:1.72; font-size:15.5px; color:var(--ink); margin:0 0 15px; }
+.panel ul, .panel ol{ line-height:1.72; font-size:15.5px; color:var(--ink); padding-left:22px; margin:0 0 16px; }
+.panel li{ margin-bottom:7px; }
+.panel strong{ color:var(--brass-deep); font-weight:600; }
+.panel a{ color:var(--teal); }
+
+/* corner-bracket "spec plate" card */
+.plate{ position:relative; background:var(--white); border:1px solid var(--paper-line); padding:26px 28px; margin:24px 0; }
+.plate::before, .plate::after, .plate .bl, .plate .br{
+  content:""; position:absolute; width:14px; height:14px; border-color:var(--brass); border-style:solid; border-width:0;
+}
+.plate::before{ top:-1px; left:-1px; border-top-width:2px; border-left-width:2px; }
+.plate::after{ top:-1px; right:-1px; border-top-width:2px; border-right-width:2px; }
+.plate .bl{ bottom:-1px; left:-1px; border-bottom-width:2px; border-left-width:2px; }
+.plate .br{ bottom:-1px; right:-1px; border-bottom-width:2px; border-right-width:2px; }
+.plate-label{
+  position:absolute; top:-11px; left:20px; background:var(--white); padding:0 10px;
+  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--brass-deep); font-weight:600;
+}
+.eq{ text-align:center; margin:18px 0; overflow-x:auto; font-size:16px; }
+.eq-row{ display:flex; align-items:center; justify-content:center; gap:26px; flex-wrap:wrap; margin:16px 0; }
+.eq-small{ font-size:14px; color:var(--ink-soft); text-align:center; margin-top:6px; }
+
+/* callouts */
+.callout{ display:flex; gap:14px; padding:16px 18px; margin:20px 0; border:1px solid; background:var(--white); }
+.callout .ic{ font-family:var(--font-mono); font-weight:700; font-size:12px; flex:0 0 auto; padding-top:2px; white-space:nowrap; }
+.callout .cbody b{ display:block; font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:.05em; margin-bottom:4px; }
+.callout .cbody p, .callout .cbody div, .callout .cbody li{ margin:0; font-size:14.5px; line-height:1.62; }
+.callout.tip{ border-color:var(--teal); } .callout.tip .ic{ color:var(--teal); } .callout.tip .cbody b{ color:var(--teal); }
+.callout.warn{ border-color:var(--rust); } .callout.warn .ic{ color:var(--rust); } .callout.warn .cbody b{ color:var(--rust-bright); }
+.callout.link{ border-color:var(--brass); } .callout.link .ic{ color:var(--brass-deep); } .callout.link .cbody b{ color:var(--brass-deep); }
+.callout.think{ border-color:#6b5b95; } .callout.think .ic{ color:#6b5b95; } .callout.think .cbody b{ color:#6b5b95; }
+
+/* worked example */
+.worked{ background:var(--chassis-2b); color:var(--steel-text); padding:22px 26px; margin:24px 0; position:relative; border-left:4px solid var(--brass-bright); }
+.worked .wtitle{ font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass-bright); margin-bottom:12px; }
+.worked p, .worked li{ color:var(--steel-text); font-size:14.5px; line-height:1.68; }
+.worked .katex{ color:var(--steel-text); }
+.worked strong{ color:var(--brass-bright); }
+.worked .plate{ color:var(--ink); }
+.worked .plate p, .worked .plate .eq, .worked .plate li, .worked .plate .katex{ color:var(--ink); }
+.worked .plate .plate-label{ color:var(--brass-deep); }
+.reveal-btn{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  background:var(--brass-deep); color:var(--white); border:none; padding:8px 16px; cursor:pointer; margin:10px 0;
+}
+.reveal-btn:hover{ background:var(--brass); }
+.reveal-block{ display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--rivet); }
+.reveal-block.shown{ display:block; }
+
+/* generic widget frame */
+.widget{ background:var(--white); border:1px solid var(--paper-line); padding:18px 20px; margin:22px 0; }
+.widget-title{ font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--brass-deep); margin-bottom:10px; }
+.widget-controls{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px dashed var(--paper-line); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); }
+.widget-controls label{ display:flex; align-items:center; gap:8px; }
+.widget-controls input[type=range]{ width:150px; accent-color:var(--brass); }
+.widget-controls .val{ color:var(--brass-deep); font-weight:600; min-width:26px; display:inline-block; }
+.btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip-btn{ font-family:var(--font-mono); font-size:11px; padding:6px 13px; background:var(--paper-2); border:1px solid var(--paper-line); cursor:pointer; color:var(--ink); }
+.chip-btn.active{ background:var(--brass); color:var(--white); border-color:var(--brass-deep); }
+.widget-readout{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink); background:var(--paper-2); padding:8px 12px; margin-top:10px; }
+
+/* spec table */
+.spec-table{ width:100%; border-collapse:collapse; margin:20px 0; background:var(--white); font-size:14px; }
+.spec-table th{ font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; background:var(--ink); color:var(--white); text-align:left; padding:10px 14px; }
+.spec-table td{ padding:11px 14px; border-bottom:1px solid var(--paper-line); vertical-align:top; }
+.spec-table tr:hover td{ background:var(--paper-2); }
+.spec-table .pname{ font-family:var(--font-display); text-transform:uppercase; font-weight:500; color:var(--brass-deep); white-space:nowrap; }
+.spec-table .pnote{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+.spec-table td .katex{ font-size:1em; }
+
+/* the "square" 2x2 grid used repeatedly */
+.square-grid{ display:grid; grid-template-columns:110px 1fr 1fr; grid-template-rows:auto 1fr 1fr; gap:1px; background:var(--paper-line); border:1px solid var(--paper-line); margin:22px 0; }
+.square-grid > div{ background:var(--white); padding:14px 16px; }
+.square-grid .corner{ background:var(--ink); }
+.square-grid .colhead{ background:var(--ink); color:var(--white); font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; text-align:center; display:flex; align-items:center; justify-content:center; }
+.square-grid .rowhead{ background:var(--ink); color:var(--white); font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; justify-content:center; text-align:center; writing-mode:vertical-rl; transform:rotate(180deg); }
+.square-grid .cell{ min-height:100px; display:flex; flex-direction:column; justify-content:center; }
+.square-grid .cell .cname{ font-family:var(--font-display); font-weight:600; font-size:14px; color:var(--brass-deep); margin-bottom:6px; text-transform:uppercase; letter-spacing:.02em; }
+.square-grid .cell.known{ background:var(--paper-2); }
+.square-grid .cell.today{ background:#fbf3e3; border:2px solid var(--brass); }
+.square-grid .cell.today .cname{ color:var(--rust-bright); }
+.square-grid .cell .ceq{ font-size:12.5px; }
+
+/* nav prev/next */
+.pn-row{ display:flex; justify-content:space-between; margin-top:46px; padding-top:22px; border-top:1px solid var(--paper-line); gap:16px; }
+.pn-btn{ display:flex; flex-direction:column; gap:2px; background:none; border:none; cursor:pointer; font-family:var(--font-body); text-align:left; padding:8px 0; max-width:45%; }
+.pn-btn .lbl{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+.pn-btn .ttl{ font-size:14.5px; color:var(--brass-deep); font-weight:600; }
+.pn-btn:hover .ttl{ color:var(--rust-bright); }
+.pn-btn.right{ text-align:right; align-items:flex-end; }
+.pn-btn.empty{ visibility:hidden; }
+
+/* quiz */
+.quiz-q{ background:var(--white); border:1px solid var(--paper-line); padding:22px 24px; margin:20px 0; }
+.quiz-q .qtext{ font-size:15.5px; font-weight:500; margin-bottom:14px; color:var(--ink); }
+.quiz-opt{ display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--paper-line); padding:10px 14px; margin-bottom:8px; cursor:pointer; font-family:var(--font-body); font-size:14px; color:var(--ink); }
+.quiz-opt:hover{ background:var(--paper-2); }
+.quiz-opt.correct{ background:#e4efe0; border-color:var(--teal); color:#1e4d47; font-weight:600; }
+.quiz-opt.wrong{ background:#f4e2dc; border-color:var(--rust); color:var(--rust-bright); font-weight:600; }
+.quiz-opt[disabled]{ cursor:default; }
+.quiz-fb{ display:none; margin-top:10px; padding:10px 14px; font-size:13.5px; background:var(--paper-2); border-left:3px solid var(--brass); }
+.quiz-fb.shown{ display:block; }
+.quiz-score{ font-family:var(--font-mono); background:var(--ink); color:var(--white); padding:16px 20px; margin:24px 0; font-size:14px; text-align:center; letter-spacing:.03em; }
+
+@media (max-width: 880px){
+  .sidebar{ position:fixed; left:-300px; transition:left .25s ease; box-shadow:var(--shadow); }
+  .sidebar.open{ left:0; }
+  .sidebar-toggle{ display:flex; }
+  .sidebar-head{ padding-top:58px; }
+  .content{ width:100%; }
+  .panel{ padding:80px 20px 70px; }
+  .square-grid{ grid-template-columns:70px 1fr 1fr; font-size:12px; }
+}
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">&#9776;</button>
+
+<div class="app">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="plate-tag"><span class="dot"></span>CSE 219 &middot; SIGNALS &amp; LINEAR SYSTEMS</div>
+      <h1>DTFT &amp; DFT</h1>
+      <p>Sampling, spectra, and the four-transform square</p>
+      <div class="instructor">Instructor: <b>Ashrafur Rahman</b> &middot; Lecturer, Dept. of CSE, BUET</div>
+    </div>
+    <ul class="navlist" id="navlist">
+      <li><button class="navlink active" data-target="p00"><span class="num">00</span><span>Orientation &mdash; One Square</span></button></li>
+      <li class="nav-group-label">Part I &mdash; Series to DFT</li>
+      <li><button class="navlink" data-target="p01"><span class="num">01</span><span>Sampling a Periodic Signal</span></button></li>
+      <li><button class="navlink" data-target="p02"><span class="num">02</span><span>Integral &rarr; Sum: Deriving c&#8342;</span></button></li>
+      <li><button class="navlink" data-target="p03"><span class="num">03</span><span>Periodicity &amp; Reading Bins</span></button></li>
+      <li><button class="navlink" data-target="p04"><span class="num">04</span><span>Orthogonality &rarr; the DFS</span></button></li>
+      <li><button class="navlink" data-target="p05"><span class="num">05</span><span>The DFT &amp; Three Bridges</span></button></li>
+      <li class="nav-group-label">Part II &mdash; The DTFT</li>
+      <li><button class="navlink" data-target="p06"><span class="num">06</span><span>Sampling an Aperiodic Signal</span></button></li>
+      <li><button class="navlink" data-target="p07"><span class="num">07</span><span>2&pi;-Periodicity &amp; Inverse DTFT</span></button></li>
+      <li class="nav-group-label">Part III &mdash; DFT via DTFT</li>
+      <li><button class="navlink" data-target="p08"><span class="num">08</span><span>DFT = N Samples of the DTFT</span></button></li>
+      <li><button class="navlink" data-target="p09"><span class="num">09</span><span>Zero-Padding</span></button></li>
+      <li><button class="navlink" data-target="p10"><span class="num">10</span><span>Worked Example (N=4)</span></button></li>
+      <li><button class="navlink" data-target="p11"><span class="num">11</span><span>Bins &rarr; &Omega; &rarr; Hertz</span></button></li>
+      <li class="nav-group-label">Wrap-Up</li>
+      <li><button class="navlink" data-target="p12"><span class="num">12</span><span>The Big Picture &amp; Exam Prep</span></button></li>
+      <li><button class="navlink" data-target="p13"><span class="num">13</span><span>Self-Check Lab</span></button></li>
+    </ul>
+    <div class="sidebar-foot">Source: Lecture &mdash; DTFT and DFT<br>BUET &middot; CSE 219</div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============================= PANEL 00 ============================= -->
+    <section class="panel active" id="p00">
+      <div class="titleblock">
+        <div class="eyebrow">Orientation</div>
+        <h2>Four Transforms, One Square</h2>
+        <p class="sub">Last class ended on a promise: one structural rule generates every Fourier-type transform. You already own the left column. Today we build the right one.</p>
+      </div>
+
+      <p>Good morning. Before we touch a single new formula, I want you to hold one picture in your head, because everything for the next two lectures is really just this picture, filled in a little more at a time.</p>
+
+      <p>Every signal you will ever transform lives at one of four addresses. The address has two coordinates: is <strong>time</strong> continuous or discrete, and is the signal <strong>periodic</strong> or aperiodic. That is it &mdash; two yes/no questions, four boxes.</p>
+
+      <div class="square-grid">
+        <div class="corner"></div>
+        <div class="colhead">Time Continuous</div>
+        <div class="colhead">Time Discrete</div>
+        <div class="rowhead">Periodic</div>
+        <div class="cell known"><div class="cname">CTFS</div><div class="ceq">Continuous-Time Fourier Series &mdash; you know this.</div></div>
+        <div class="cell today"><div class="cname">DFS / DFT</div><div class="ceq">Today, Part I &amp; III.</div></div>
+        <div class="rowhead">Aperiodic</div>
+        <div class="cell known"><div class="cname">CTFT</div><div class="ceq">Continuous-Time Fourier Transform &mdash; you know this too.</div></div>
+        <div class="cell today"><div class="cname">DTFT</div><div class="ceq">Today, Part II.</div></div>
+      </div>
+
+      <p>You spent the last several lectures earning the top row and the left column: the CTFS turns a continuous periodic signal into a discrete line spectrum, and the CTFT turns a continuous aperiodic signal into a continuous spectrum. Both are proven, both are yours.</p>
+
+      <p>Today's entire job is to answer one question, twice: <strong>what happens to Fourier's idea when time itself arrives in samples instead of a continuum?</strong> Ask it of a periodic signal and you land on the <strong>DFS</strong> and its computational twin, the <strong>DFT</strong>. Ask it of an aperiodic signal and you land on the <strong>DTFT</strong>.</p>
+
+      <div class="callout tip">
+        <div class="ic">WHY IT MATTERS</div>
+        <div class="cbody"><b>This is not four separate topics</b><p>It is one derivation technique &mdash; sample the time axis, watch the integral become a sum, watch the frequency axis become periodic &mdash; applied twice. If you understand the mechanism once, you get both new transforms almost for free. Resist the urge to memorize four unrelated formula boxes; instead learn the <em>move</em>.</p></div>
+      </div>
+
+      <h3>The Route We'll Take</h3>
+      <ul>
+        <li><strong>Part I.</strong> Start from a continuous periodic <span>&#402;</span>(t). Sample it. Watch the CTFS integral collapse into a finite sum. Discover that the new frequency-domain object is itself periodic. Name it the DFS, then repackage it &mdash; with a change of scale &mdash; as the DFT.</li>
+        <li><strong>Part II.</strong> Start from a continuous aperiodic x(t) instead. Sample it. Watch the CTFT integral become an infinite sum over a <em>periodic</em> frequency variable. Name that the DTFT.</li>
+        <li><strong>Part III.</strong> Realize the DFT was hiding inside the DTFT the whole time &mdash; it is just N evenly spaced samples of it. That single observation explains zero-padding, bin spacing, and the whole business of turning a bin index k into a real frequency in Hz.</li>
+      </ul>
+
+      <div class="callout think">
+        <div class="ic">BRAINSTORM</div>
+        <div class="cbody"><b>Before we derive anything &mdash; a guess</b><p>Sampling a continuous <em>time</em> signal is about to make its <em>frequency</em> representation periodic. Does that surprise you, or does it rhyme with something you already know? (Hint: think about what periodicity in time did to the frequency representation, back when you first met the CTFS. There is a duality lurking here that will resurface all lecture.)</p></div>
+      </div>
+
+      <p>By the end of today the square above will be completely filled in &mdash; four transform pairs, three simple bridges connecting them, and a lot of exam mileage. Let's begin with the box you already half-know: what happens when we sample a periodic signal.</p>
+
+      <div class="pn-row">
+        <button class="pn-btn empty">&nbsp;</button>
+        <button class="pn-btn right" data-nav="p01"><span class="lbl">Next</span><span class="ttl">01 &middot; Sampling a Periodic Signal &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 01 ============================= -->
+    <section class="panel" id="p01">
+      <div class="titleblock">
+        <div class="eyebrow">Part I &middot; Series to DFT</div>
+        <h2>Sampling a Periodic Signal</h2>
+        <p class="sub">We sample the time axis and immediately meet the object every later formula is built from: the impulse train.</p>
+      </div>
+
+      <h3>Recap: the CTFS</h3>
+      <p>Start where we left off. A continuous-time periodic signal x(t) with period T&#8320; satisfies x(t + T&#8320;) = x(t), and with &omega;&#8320; &#8801; 2&pi;/T&#8320; it has the familiar pair:</p>
+      <div class="plate">
+        <div class="plate-label">CTFS Pair</div>
+        <div class="eq">$$x(t) = \sum_{k=-\infty}^{\infty} c_k e^{jk\omega_0 t}, \qquad c_k = \frac{1}{T_0}\int_{T_0} x(t)\,e^{-jk\omega_0 t}\,dt$$</div>
+      </div>
+
+      <h3>Uniform Sampling</h3>
+      <p>Now sample x(t) uniformly with sampling period T<sub>s</sub>, and suppose the period T&#8320; is captured by exactly N samples: T&#8320; = N T<sub>s</sub>, with N a positive integer. That assumption is doing real work &mdash; we are choosing a sampling rate that lines up evenly with the signal's own period, so nothing is left over at the boundary.</p>
+      <p>The resulting discrete sequence is defined simply as x[n] &#8801; x(nT<sub>s</sub>), for every integer n. Because x(t) repeats every T&#8320; = NT<sub>s</sub>, the sequence x[n] inherits periodicity too, but now in the discrete index: x[n + N] = x[n].</p>
+
+      <div class="widget" id="w-sample">
+        <div class="widget-title">Interactive &middot; sample a periodic signal</div>
+        <div id="w-sample-canvas"></div>
+        <div class="widget-controls">
+          <label>Samples per period N: <input type="range" id="w-sample-N" min="4" max="20" step="1" value="8"><span class="val" id="w-sample-Nval">8</span></label>
+        </div>
+        <div class="widget-readout" id="w-sample-readout"></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE</div>
+        <div class="cbody"><b>N must be an integer</b><p>If the sampling rate does <em>not</em> divide T&#8320; evenly, x[n] is not exactly N-periodic for any N &mdash; you get a sequence that never quite closes on itself. Every derivation from here on quietly assumes T&#8320; = NT<sub>s</sub> for an integer N. Watch for exam questions that give you a T&#8320; and T<sub>s</sub> whose ratio is <em>not</em> a whole number &mdash; that's usually a trick, or a cue to redefine T<sub>s</sub>.</p></div>
+      </div>
+
+      <h3>Sampling as an Impulse Train</h3>
+      <p>To carry this sampling operation into an integral (which is the language the CTFS speaks), we represent it multiplicatively. Let p(t) be an impulse train &mdash; a Dirac comb &mdash; with spikes spaced T<sub>s</sub> apart:</p>
+      <div class="eq">$$p(t) = \sum_{n=-\infty}^{\infty}\delta(t-nT_s)$$</div>
+      <p>Multiplying the continuous x(t) by this comb produces the <strong>sampled signal</strong> x<sub>p</sub>(t), an impulse train whose n-th spike is weighted by exactly the sample value x[n]:</p>
+      <div class="eq">$$x_p(t) = x(t)\,p(t) = \sum_{n=-\infty}^{\infty} x(nT_s)\,\delta(t-nT_s) = \sum_{n=-\infty}^{\infty} x[n]\,\delta(t-nT_s)$$</div>
+
+      <div class="callout tip">
+        <div class="ic">WHY THIS TRICK</div>
+        <div class="cbody"><b>x<sub>p</sub>(t) is still a continuous-time signal</b><p>That is the whole point. By writing sampling as multiplication-by-a-comb, x<sub>p</sub>(t) remains something the CTFS machinery can act on &mdash; it's continuous-time and still T&#8320;-periodic. We haven't left the world of integrals yet; we've just made the integral <em>secretly discrete</em>, because the Dirac deltas will sift it down to a sum. That collapse is exactly next lecture's&#8230; sorry, next <em>section's</em> derivation.</p></div>
+      </div>
+
+      <div class="callout think">
+        <div class="ic">BRAINSTORM</div>
+        <div class="cbody"><b>Why an impulse train, and not just "list the samples"?</b><p>We could have jumped straight to treating x[n] as a sequence and defined a discrete sum from scratch. Why bother routing through xp(t) at all? Consider: it lets us reuse a formula you already trust (the CTFS analysis integral) without inventing new machinery, and it makes the connection ck = (1/T&#8320;)X[k] &mdash; which we'll meet in Section 05 &mdash; almost automatic instead of a coincidence.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p00"><span class="lbl">Back</span><span class="ttl">&larr; 00 &middot; Orientation</span></button>
+        <button class="pn-btn right" data-nav="p02"><span class="lbl">Next</span><span class="ttl">02 &middot; Integral &rarr; Sum &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 02 ============================= -->
+    <section class="panel" id="p02">
+      <div class="titleblock">
+        <div class="eyebrow">Part I &middot; Series to DFT</div>
+        <h2>The Integral Becomes a Sum</h2>
+        <p class="sub">The impulses in x&#8342;(t) sift the CTFS integral down to something a computer can actually evaluate: a finite sum over N numbers.</p>
+      </div>
+
+      <p>The sampled signal x<sub>p</sub>(t) is still T&#8320;-periodic, so &mdash; being an honest continuous-time periodic signal &mdash; it has a CTFS of its own. Call its coefficients c<sub>k</sub>:</p>
+      <div class="eq">$$c_k = \frac{1}{T_0}\int_{T_0} x_p(t)\,e^{-jk\omega_0 t}\,dt$$</div>
+
+      <div class="worked">
+        <div class="wtitle">Derivation, step by step</div>
+        <p><strong>Step 1 &mdash; substitute.</strong> Replace x<sub>p</sub>(t) with the impulse-weighted sum from the last section:</p>
+        <div class="eq">$$c_k = \frac{1}{T_0}\int_{t_0}^{t_0+T_0}\left(\sum_{n=-\infty}^{\infty} x[n]\,\delta(t-nT_s)\right) e^{-jk\omega_0 t}\,dt$$</div>
+        <button class="reveal-btn" data-reveal="rv-step2">Reveal Step 2 &mdash; the sifting property fires</button>
+        <div class="reveal-block" id="rv-step2">
+          <p>Each &delta;(t &minus; nT<sub>s</sub>) sifts the integral, picking out the integrand at t = nT<sub>s</sub>. Choosing the integration window to be exactly one period (t&#8320; = &minus;T<sub>s</sub>/2 to t&#8320; + T&#8320;) keeps precisely N impulses inside it, for n = 0, 1, &hellip;, N&minus;1:</p>
+          <div class="eq">$$c_k = \frac{1}{T_0}\sum_{n=0}^{N-1} x[n]\int_{t_0}^{t_0+T_0}\delta(t-nT_s)\,e^{-jk\omega_0 t}\,dt = \frac{1}{T_0}\sum_{n=0}^{N-1} x[n]\,e^{-jk\omega_0 nT_s}$$</div>
+          <button class="reveal-btn" data-reveal="rv-step3">Reveal Step 3 &mdash; simplify the exponent</button>
+        </div>
+        <div class="reveal-block" id="rv-step3">
+          <p>Since &omega;&#8320;T<sub>s</sub> = (2&pi;/T&#8320;)T<sub>s</sub> = 2&pi;/N (using T&#8320; = NT<sub>s</sub>), the exponent collapses to a clean discrete-frequency form:</p>
+          <div class="plate" style="margin-top:14px;"><div class="plate-label">Result</div><div class="eq">$$c_k = \frac{1}{T_0}\sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}kn}$$</div></div>
+          <p style="color:var(--steel-text);">A continuous integral over one period has become a <strong>finite sum of N terms</strong>. This is the single most important algebraic move in the whole lecture &mdash; everything that follows is bookkeeping around this collapse.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE</div>
+        <div class="cbody"><b>Why t&#8320; = &minus;T<sub>s</sub>/2?</b><p>The choice of integration window matters only in <em>which</em> N impulses fall inside it &mdash; the value of c<sub>k</sub> does not depend on this choice, because x<sub>p</sub>(t) is periodic and the CTFS integral over any full period gives the same answer. Taking t&#8320; = &minus;T<sub>s</sub>/2 is just a convenient bookkeeping choice that makes the impulses land exactly at n = 0, 1, &hellip;, N&minus;1 rather than some other consecutive block of N integers.</p></div>
+      </div>
+
+      <div class="callout tip">
+        <div class="ic">EXAM ALERT</div>
+        <div class="cbody"><b>The most commonly tested step</b><p>Examiners love asking you to reproduce exactly this collapse &mdash; substitute the impulse train, apply sifting, simplify &omega;&#8320;T<sub>s</sub> to 2&pi;/N. Practice writing all three lines without looking. The one place students lose marks: forgetting the 1/T&#8320; scale factor sitting outside the sum, since it came from the CTFS analysis formula and doesn't disappear.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p01"><span class="lbl">Back</span><span class="ttl">&larr; 01 &middot; Sampling</span></button>
+        <button class="pn-btn right" data-nav="p03"><span class="lbl">Next</span><span class="ttl">03 &middot; Periodicity &amp; Bins &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 03 ============================= -->
+    <section class="panel" id="p03">
+      <div class="titleblock">
+        <div class="eyebrow">Part I &middot; Series to DFT</div>
+        <h2>Periodicity of c&#8342; &mdash; Reading the Bins</h2>
+        <p class="sub">Sampling in time made the spectrum periodic. This single fact reshapes how we index, store, and read every discrete spectrum from here forward.</p>
+      </div>
+
+      <h3>Only N Distinct Coefficients</h3>
+      <p>Look at what happens if we push the index from k to k + N in the formula we just derived:</p>
+      <div class="eq">$$c_{k+N} = \frac{1}{T_0}\sum_{n=0}^{N-1} x[n]\,e^{-j\frac{2\pi}{N}(k+N)n} = c_k \underbrace{e^{-j2\pi n}}_{=\,1} = c_k$$</div>
+      <p>The extra factor e<sup>&minus;j2&pi;n</sup> equals 1 for every integer n, so it vanishes and c<sub>k+N</sub> = c<sub>k</sub>. <strong>The frequency coefficients are N-periodic.</strong> Sampling in time made the spectrum periodic in frequency &mdash; this is exactly the duality your brainstorm in Section 00 was fishing for.</p>
+
+      <p>Since the sequence of coefficients just repeats forever with period N, there are really only N <em>unique</em> numbers to keep track of. By convention we keep the window k = 0, 1, &hellip;, N&minus;1.</p>
+
+      <div class="widget" id="w-period">
+        <div class="widget-title">Interactive &middot; c&#8342; repeats with period N</div>
+        <div id="w-period-canvas"></div>
+        <div class="widget-controls">
+          <label>N: <input type="range" id="w-period-N" min="4" max="10" step="1" value="6"><span class="val" id="w-period-Nval">6</span></label>
+        </div>
+        <div class="widget-readout">Shaded bars: the window we conventionally keep, k = 0 &hellip; N&minus;1. Everything outside is the same N numbers, repeating.</div>
+      </div>
+
+      <h3>Reading the Bins: Where the Negative Frequencies Went</h3>
+      <p>The natural, physical spectrum is centered at k = 0: low frequencies sit in the middle, negative k trails off to the left, positive k rises to the right. But once we insist on keeping only the window 0, &hellip;, N&minus;1, periodicity folds every negative coefficient into the upper half of that window:</p>
+      <div class="eq">$$c_{-k} = c_{N-k}$$</div>
+      <p>Nothing is lost &mdash; the negative-frequency information is simply relabeled. Bin N&minus;1 <em>is</em> bin &minus;1, bin N&minus;2 <em>is</em> bin &minus;2, and so on.</p>
+
+      <div class="widget" id="w-fold">
+        <div class="widget-title">Interactive &middot; centered view vs. the DFT window</div>
+        <div id="w-fold-canvas"></div>
+        <div class="widget-controls">
+          <div class="btn-row">
+            <button class="chip-btn active" data-fold="centered">Centered (&minus;N/2 &hellip; N/2)</button>
+            <button class="chip-btn" data-fold="window">DFT Window (0 &hellip; N&minus;1)</button>
+          </div>
+        </div>
+        <div class="widget-readout" id="w-fold-readout"></div>
+      </div>
+
+      <div class="plate">
+        <div class="plate-label">How to Read N Bins &mdash; Memorize This</div>
+        <ul style="margin-bottom:0;">
+          <li><strong>Bins 0 &rarr; N/2:</strong> positive frequencies, climbing low to high.</li>
+          <li><strong>Bins N/2 &rarr; N:</strong> negative frequencies, folded in, falling from high back toward dc.</li>
+          <li>A real-valued, lowpass-ish signal therefore <strong>peaks near k = 0 and near k = N</strong>, and <strong>dips near k = N/2</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">COMMON MISTAKE</div>
+        <div class="cbody"><b>Plotting bins 0&hellip;N&minus;1 and calling the right half "high frequency noise"</b><p>Students who forget the fold often look at a DFT magnitude plot, see two humps, and describe the second hump (near k = N) as some separate high-frequency artifact. It is not &mdash; it's the mirror image of the negative frequencies your signal already has, simply relabeled into positive-looking bin indices. For a real signal, |X[k]| is always symmetric about k = N/2.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p02"><span class="lbl">Back</span><span class="ttl">&larr; 02 &middot; Integral to Sum</span></button>
+        <button class="pn-btn right" data-nav="p04"><span class="lbl">Next</span><span class="ttl">04 &middot; Orthogonality &amp; the DFS &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 04 ============================= -->
+    <section class="panel" id="p04">
+      <div class="titleblock">
+        <div class="eyebrow">Part I &middot; Series to DFT</div>
+        <h2>The Orthogonality Trick &rarr; the DFS</h2>
+        <p class="sub">We have an analysis formula (time &rarr; frequency). We still need its inverse. The CTFS synthesis formula won't give it to us &mdash; so we build one from scratch.</p>
+      </div>
+
+      <h3>Can CTFS Synthesis Give Us Back x[n]? No.</h3>
+      <p>It's tempting to just reuse the CTFS synthesis equation:</p>
+      <div class="eq">$$\sum_{k=-\infty}^{\infty} c_k e^{jk\omega_0 t} = x_p(t)$$</div>
+      <p>But look at what it actually reconstructs: the continuous-time impulse train x<sub>p</sub>(t), not the sequence x[n] we want &mdash; and it spends infinitely many terms endlessly repeating the same N coefficient values. We need a genuinely discrete synthesis formula, built from only the N unique numbers.</p>
+
+      <div class="callout tip">
+        <div class="ic">THE PATTERN TO FOLLOW</div>
+        <div class="cbody"><b>Analysis uses e<sup>&minus;j&middot;&middot;&middot;</sup>, synthesis uses e<sup>+j&middot;&middot;&middot;</sup></b><p>That sign flip is the one reliable landmark across every Fourier-type pair you'll ever meet: CTFS, CTFT, DFS, DFT, DTFT &mdash; all of them. Use it to sanity-check any formula you write from memory under exam pressure.</p></div>
+      </div>
+
+      <h3>The Orthogonality Trick</h3>
+      <p>Write the N unique coefficients (clearing the 1/T&#8320; scaling by defining T&#8320;c<sub>k</sub>) as:</p>
+      <div class="eq">$$T_0 c_k = \sum_{m=0}^{N-1} x[m]\, e^{-j\frac{2\pi}{N}km}, \qquad k = 0,1,\dots,N-1.$$</div>
+      <p>Multiply both sides by e<sup>+j(2&pi;/N)kn</sup> and sum over all N unique values of k:</p>
+      <div class="eq">$$\sum_{k=0}^{N-1}(T_0 c_k)\, e^{j\frac{2\pi}{N}kn} = \sum_{m=0}^{N-1} x[m] \left(\sum_{k=0}^{N-1} e^{j\frac{2\pi}{N}k(n-m)}\right)$$</div>
+
+      <div class="worked">
+        <div class="wtitle">The key lemma &mdash; evaluate the inner sum</div>
+        <p>This is a finite geometric series in k. For n &ne; m, the sum telescopes to exactly zero (it's a full revolution around the unit circle divided into N equal steps, summing to nothing). For n = m, every term is e<sup>0</sup> = 1, and the sum is simply N. In one line:</p>
+        <div class="eq">$$\sum_{k=0}^{N-1} e^{j\frac{2\pi}{N}(n-m)k} = \begin{cases} N & n=m \\ 0 & n\neq m\end{cases}$$</div>
+        <p>This is <strong>orthogonality</strong>: the complex exponentials e<sup>j(2&pi;/N)kn</sup>, for different k, are mutually orthogonal over one period of n. It is the discrete cousin of the same orthogonality you used to derive CTFS coefficients originally.</p>
+      </div>
+
+      <p>Because the inner sum is a spike at m = n and zero everywhere else, the outer sum over m collapses to a single surviving term, and we get an exact, finite inverse:</p>
+      <div class="plate">
+        <div class="plate-label">The Discrete Inverse</div>
+        <div class="eq">$$x[n] = \frac{1}{N}\sum_{k=0}^{N-1} (T_0 c_k)\, e^{j\frac{2\pi}{N}kn}$$</div>
+        <p class="eq-small">A finite sum recovers the samples exactly &mdash; no impulses, no infinite series.</p>
+      </div>
+
+      <div class="callout think">
+        <div class="ic">BRAINSTORM</div>
+        <div class="cbody"><b>Notice what both directions only ever touch</b><p>Analysis and synthesis both operate purely on the N numbers T&#8320;c<sub>k</sub> &mdash; never on c<sub>k</sub> alone, never on anything from the continuous world. That combination is asking to be named as its own self-contained object. What would you call it?</p></div>
+      </div>
+
+      <h3>The Discrete Fourier Series (DFS)</h3>
+      <p>Forget the continuous ancestor entirely. Let &#771;x[n] be <em>any</em> N-periodic sequence &mdash; it doesn't need to have come from sampling anything. The same finite sums, renamed a<sub>k</sub> &#8801; c<sub>k</sub>, form a complete, self-contained series representation:</p>
+      <div class="plate">
+        <div class="plate-label">Discrete Fourier Series (DFS) Pair</div>
+        <div class="eq">$$a_k = \frac{1}{N}\sum_{n=0}^{N-1} \tilde{x}[n]\, e^{-j\frac{2\pi}{N}kn} \quad\text{(analysis)}$$</div>
+        <div class="eq">$$\tilde{x}[n] = \sum_{k=0}^{N-1} a_k\, e^{j\frac{2\pi}{N}kn} \quad\text{(synthesis)}$$</div>
+      </div>
+
+      <table class="spec-table">
+        <tr><th></th><th>CTFS (period T&#8320;)</th><th>DFS (period N)</th></tr>
+        <tr><td class="pname">Analysis</td><td>$$c_k=\tfrac{1}{T_0}\int_{T_0} x(t)e^{-jk\frac{2\pi}{T_0}t}dt$$</td><td>$$a_k=\tfrac{1}{N}\sum_{n=0}^{N-1}\tilde x[n]e^{-jk\frac{2\pi}{N}n}$$</td></tr>
+        <tr><td class="pname">Synthesis</td><td>$$x(t)=\sum_{k=-\infty}^{\infty}c_k e^{jk\frac{2\pi}{T_0}t}$$</td><td>$$\tilde x[n]=\sum_{k=0}^{N-1}a_k e^{jk\frac{2\pi}{N}n}$$</td></tr>
+        <tr><td class="pname">Coefficients</td><td>infinitely many</td><td>N unique (a<sub>k+N</sub> = a<sub>k</sub>)</td></tr>
+      </table>
+
+      <h3>Seeing the DFS: Winding the N Samples</h3>
+      <p>Just like winding a continuous curve gave you the CTFS coefficient as a centroid, winding the N <em>samples</em> gives you the DFS coefficient the same way. Place sample n at radius x[n], angle &minus;(2&pi;/N)kn; their center of mass is exactly a<sub>k</sub>. It's a plain average &mdash; which is precisely why the integral became a sum.</p>
+
+      <div class="widget" id="w-wind">
+        <div class="widget-title">Interactive &middot; wind the N samples at rate k</div>
+        <div id="w-wind-canvas"></div>
+        <div class="widget-controls">
+          <label>Harmonic k: <input type="range" id="w-wind-k" min="0" max="7" step="1" value="1"><span class="val" id="w-wind-kval">1</span></label>
+        </div>
+        <div class="widget-readout" id="w-wind-readout"></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE</div>
+        <div class="cbody"><b>a<sub>0</sub> is always the average</b><p>Set k = 0 in the widget above: every phase term becomes 1, so winding does nothing and the centroid is just the plain arithmetic mean of the N samples. This is the discrete-time analogue of "c&#8320; is the average value/dc component," and it's a fast sanity check on any DFS/DFT computation &mdash; compute the mean of your samples by eye, and it should match |a&#8320;| (or X[0]/N for the DFT).</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p03"><span class="lbl">Back</span><span class="ttl">&larr; 03 &middot; Periodicity &amp; Bins</span></button>
+        <button class="pn-btn right" data-nav="p05"><span class="lbl">Next</span><span class="ttl">05 &middot; The DFT &amp; Three Bridges &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 05 ============================= -->
+    <section class="panel" id="p05">
+      <div class="titleblock">
+        <div class="eyebrow">Part I &middot; Series to DFT</div>
+        <h2>The DFT &mdash; Definition &amp; Three Bridges</h2>
+        <p class="sub">Drop the 1/N and give the exponential a name: the DFT is the DFS, rescaled for convenience.</p>
+      </div>
+
+      <h3>The Twiddle Factor</h3>
+      <p>For a length-N sequence, define <strong>W<sub>N</sub></strong> &#8801; e<sup>&minus;j2&pi;/N</sup>, an N-th root of unity: W<sub>N</sub><sup>N</sup> = 1, and powers of W<sub>N</sub> cycle with period N. Every DFT formula you'll write from here on is most naturally expressed using W<sub>N</sub>.</p>
+
+      <div class="plate">
+        <div class="plate-label">DFT / IDFT Pair</div>
+        <div class="eq">$$X[k] \triangleq \sum_{n=0}^{N-1} x[n]\, W_N^{kn} = \sum_{n=0}^{N-1} x[n]\, e^{-j\frac{2\pi}{N}kn}, \qquad k=0,\dots,N-1$$</div>
+        <div class="eq">$$x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, W_N^{-kn} = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, e^{j\frac{2\pi}{N}kn}, \qquad n=0,\dots,N-1$$</div>
+      </div>
+
+      <p>Notice the only difference from the DFS: the DFT is just the bare analysis sum, with <strong>no 1/N scale factor</strong>. All the 1/N bookkeeping is pushed entirely onto the inverse. This is purely a convention &mdash; but it is the convention every textbook, every version of MATLAB/numpy's <code>fft</code>, and every exam in this course will use, so it's worth internalizing exactly where the 1/N lives.</p>
+
+      <div class="callout warn">
+        <div class="ic">COMMON MISTAKE</div>
+        <div class="cbody"><b>Putting the 1/N in the wrong place</b><p>The single most common DFT slip: writing X[k] with a 1/N in front (that's a<sub>k</sub>, the DFS coefficient, not X[k]) or forgetting the 1/N entirely on the inverse. Anchor yourself with the bridge X[k] = N&middot;a<sub>k</sub> below whenever you're unsure.</p></div>
+      </div>
+
+      <h3>Three Bridges</h3>
+      <p>We now have three closely related objects that came from the same derivation, and it pays to know exactly how they relate:</p>
+
+      <table class="spec-table">
+        <tr><th>Bridge</th><th>Relation</th><th>Meaning</th></tr>
+        <tr><td class="pname">1</td><td>$$c_k = \tfrac{1}{T_0}X[k]$$</td><td>The CTFS coefficients of the sampled continuous signal x<sub>p</sub>(t) are the DFT values, scaled by 1/T&#8320;.</td></tr>
+        <tr><td class="pname">2</td><td>$$X[k] = N\,a_k$$</td><td>The DFT is the DFS, rescaled &mdash; drop the 1/N from analysis, and it reappears on synthesis.</td></tr>
+        <tr><td class="pname">3</td><td>$$X[k] = X(e^{j\omega})\big|_{\omega=\frac{2\pi}{N}k}$$</td><td>The DFT samples the DTFT at N evenly spaced points &mdash; we prove this properly in Part III.</td></tr>
+      </table>
+
+      <h3>We Never Needed the Continuous Signal</h3>
+      <p>Look at the DFT formula one more time: it consumes only the N numbers x[0], &hellip;, x[N&minus;1]. Nothing in it remembers T<sub>s</sub> or x(t). The whole sampling story &mdash; the impulse train, the sifting, the CTFS ancestor &mdash; was scaffolding. Its only job was to show <em>why</em> the Fourier integral becomes a sum once the signal lives on samples.</p>
+
+      <div class="callout tip">
+        <div class="ic">WHY IT MATTERS</div>
+        <div class="cbody"><b>Any length-N list of numbers has a DFT</b><p>An audio buffer, a row of pixels, a sensor log &mdash; none of these ever had a continuous ancestor x(t), and none of them need one. DFS: a Fourier series whose integral collapsed to a sum. DFT: the DFS, rescaled. That's genuinely all they are &mdash; everything else is application.</p></div>
+      </div>
+
+      <h3>Part I in One Picture</h3>
+      <p>We started with continuous-time periodic x(t); sampling gave a periodic sequence x[n] of period N; its frequency representation is uniquely captured by exactly N contiguous coefficients; the DFT/IDFT pair converts perfectly, both directions, between those N time points and those N frequency points. Nothing is approximate here &mdash; the DFT is an <em>exact</em>, invertible transform of a finite list of numbers.</p>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p04"><span class="lbl">Back</span><span class="ttl">&larr; 04 &middot; Orthogonality &amp; DFS</span></button>
+        <button class="pn-btn right" data-nav="p06"><span class="lbl">Next</span><span class="ttl">06 &middot; The DTFT &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 06 ============================= -->
+    <section class="panel" id="p06">
+      <div class="titleblock">
+        <div class="eyebrow">Part II &middot; The DTFT</div>
+        <h2>Sampling an Aperiodic Signal</h2>
+        <p class="sub">Same move as Part I &mdash; sample the time axis &mdash; but now the ancestor signal is aperiodic, and a different transform falls out.</p>
+      </div>
+
+      <p>Part I's whole machinery leaned on periodicity: T&#8320; = NT<sub>s</sub>, N impulses per period, a finite sum. What if the signal simply isn't periodic? Consider x(t) restricted to a finite interval of duration T&#8320; (or, more generally, any aperiodic signal). Uniformly sampling it yields a finite-length (or, in general, infinite but non-repeating) sequence x[n].</p>
+
+      <p>Using exactly the same impulse-train representation as before:</p>
+      <div class="eq">$$x_p(t) = x(t)\,p(t) = \sum_{n=-\infty}^{\infty} x[n]\,\delta(t-nT_s)$$</div>
+      <p>&mdash; for a finite-duration capture this reduces to a sum over n = 0, &hellip;, N&minus;1, but the derivation works for any aperiodic x[n], finite or not.</p>
+
+      <h3>CTFT of the Samples: The DTFT</h3>
+      <p>An aperiodic signal calls for the Fourier <em>transform</em>, not the series. So take the CTFT of the sampled impulse train:</p>
+      <div class="eq">$$X_p(j\omega) = \sum_{n=-\infty}^{\infty} x[n]\,e^{-j\omega n T_s}$$</div>
+      <p>Now compress the frequency axis by the sampling period &mdash; apply the relabeling &omega;T<sub>s</sub> &#8614; &omega;. Under that single substitution, the same spectrum becomes the <strong>Discrete-Time Fourier Transform</strong>:</p>
+
+      <div class="plate">
+        <div class="plate-label">Discrete-Time Fourier Transform (DTFT)</div>
+        <div class="eq">$$X(e^{j\omega}) \triangleq X_p(j\omega)\Big|_{\omega T_s \mapsto \omega} = \sum_{n=-\infty}^{\infty} x[n]\, e^{-j\omega n}$$</div>
+      </div>
+
+      <p>So the DTFT is nothing but the Fourier transform of the sampled signal, viewed through a compressed axis. The new &omega; is <strong>digital frequency</strong>: radians per <em>sample</em>, not radians per second. For a finite length-N capture, the sum is finite:</p>
+      <div class="eq">$$X(e^{j\omega}) = \sum_{n=0}^{N-1} x[n]\, e^{-j\omega n}$$</div>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE &mdash; NOTATION</div>
+        <div class="cbody"><b>X(e<sup>j&omega;</sup>), not X(j&omega;)</b><p>The DTFT is conventionally written as a function of e<sup>j&omega;</sup>, not of &omega; directly &mdash; a small but deliberate notational choice that keeps reminding you the spectrum lives on the unit circle in the z-plane and repeats every 2&pi;. Writing X(&omega;) instead of X(e<sup>j&omega;</sup>) is a common style slip that graders do dock marks for.</p></div>
+      </div>
+
+      <h3>Winding a Continuous Segment, at Any Rate</h3>
+      <p>Take a finite segment of a signal &mdash; nothing repeats outside it, so the winding runs over the entire segment, and its centroid times duration is the CTFT. No rate &omega; is special anymore (unlike the CTFS, where only harmonics of &omega;&#8320; produced a closed loop): <em>every</em> &omega; gets its own value, which is exactly why the CTFT &mdash; and its discrete cousin the DTFT &mdash; is a <strong>continuous</strong> function of frequency, in contrast to the line spectrum of a periodic signal.</p>
+
+      <div class="widget" id="w-dtft-wind">
+        <div class="widget-title">Interactive &middot; wind the sampled segment at digital frequency &omega;</div>
+        <div id="w-dtft-wind-canvas"></div>
+        <div class="widget-controls">
+          <label>&omega; (rad/sample): <input type="range" id="w-dtft-wind-w" min="0" max="628" step="1" value="105"><span class="val" id="w-dtft-wind-wval">1.05</span></label>
+        </div>
+        <div class="widget-readout" id="w-dtft-wind-readout"></div>
+      </div>
+
+      <div class="callout think">
+        <div class="ic">CONNECT THE DOTS</div>
+        <div class="cbody"><b>Back to Lecture 7 (CTFT)</b><p>Recall the rectangle &harr; sinc pair from the CTFT. A finite rectangular window of samples has exactly the same story here: its DTFT magnitude is a <em>periodic</em> version of that sinc shape, often called a <strong>Dirichlet kernel</strong>. Same underlying physics &mdash; a hard cutoff in time smears energy across frequency &mdash; just now the frequency axis wraps around every 2&pi;. Keep that picture ready; it reappears in Section 08 and again once we reach filter design.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p05"><span class="lbl">Back</span><span class="ttl">&larr; 05 &middot; The DFT &amp; Bridges</span></button>
+        <button class="pn-btn right" data-nav="p07"><span class="lbl">Next</span><span class="ttl">07 &middot; 2&pi;-Periodicity &amp; Inverse &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 07 ============================= -->
+    <section class="panel" id="p07">
+      <div class="titleblock">
+        <div class="eyebrow">Part II &middot; The DTFT</div>
+        <h2>2&pi;-Periodicity &amp; the Inverse DTFT</h2>
+        <p class="sub">Sampling in time makes the DTFT spectrum periodic in &omega; &mdash; the exact discrete-time echo of what made the DFS periodic in k.</p>
+      </div>
+
+      <h3>Only N Points to Wind: Digital Frequency</h3>
+      <p>Sample the continuous segment, x[n] = x(nT<sub>s</sub>). The winding picture places the points x[n]e<sup>&minus;j&omega;n</sup> on the same curve as before, and with no periodicity to exploit, <em>every</em> sample counts:</p>
+      <div class="eq">$$X(e^{j\omega}) = \sum_n x[n]\,e^{-j\omega n} = N\cdot(\text{centroid of the wound points})$$</div>
+      <p>Consecutive points are turned by the same angle &omega; each step &mdash; the digital frequency, in radians per sample, equal to &omega;<sub>phys</sub>T<sub>s</sub>. Turning by &omega; + 2&pi; per sample places the identical set of points (a full extra revolution changes nothing), so X(e<sup>j&omega;</sup>) must repeat every 2&pi;.</p>
+
+      <div class="plate">
+        <div class="plate-label">Period of the DTFT</div>
+        <div class="eq">$$X\!\left(e^{j(\omega+2\pi)}\right) = X\!\left(e^{j\omega}\right)$$</div>
+      </div>
+
+      <div class="widget" id="w-dtft-periodic">
+        <div class="widget-title">Interactive &middot; the DTFT is 2&pi;-periodic</div>
+        <div id="w-dtft-periodic-canvas"></div>
+        <div class="widget-controls" style="margin-top:6px;">
+          <div class="btn-row">
+            <button class="chip-btn active" data-band="-1">Highlight [&minus;&pi;, &pi;]</button>
+            <button class="chip-btn" data-band="0">Highlight [0, 2&pi;]</button>
+            <button class="chip-btn" data-band="1">Highlight [&pi;, 3&pi;]</button>
+          </div>
+        </div>
+        <div class="widget-readout" id="w-dtft-periodic-readout">Any 2&pi;-wide window holds one full period &mdash; try the buttons above and watch the shaded band slide, always framing an identical copy of the curve.</div>
+      </div>
+
+      <div class="plate">
+        <div class="plate-label">How to Read One Period</div>
+        <ul style="margin-bottom:0;">
+          <li>Any 2&pi;-wide window holds one full period.</li>
+          <li>The common choice is the principal interval [&minus;&pi;, &pi;].</li>
+          <li>[&pi;, 2&pi;) is the folded copy of [&minus;&pi;, 0) &mdash; same content, relabeled, exactly like the DFT bin fold.</li>
+        </ul>
+      </div>
+
+      <h3>The Inverse DTFT</h3>
+      <p>Same synthesis pattern as always: e<sup>+j&omega;n</sup>. But now the spectrum is a continuous function of &omega;, so instead of summing over N unique bins we <em>integrate</em> over one 2&pi; period:</p>
+      <div class="eq">$$\hat{x}[n] \triangleq \frac{1}{2\pi}\int_{2\pi} X(e^{j\omega})\, e^{j\omega n}\, d\omega$$</div>
+
+      <div class="worked">
+        <div class="wtitle">Derivation &mdash; orthogonality over a continuous period</div>
+        <p>Substitute the analysis sum and swap the order of summation and integration:</p>
+        <div class="eq">$$\hat{x}[n] = \sum_{m=-\infty}^{\infty} x[m] \cdot \frac{1}{2\pi}\int_{2\pi} e^{j\omega(n-m)}\, d\omega$$</div>
+        <button class="reveal-btn" data-reveal="rv-dtft-orth">Reveal the orthogonality integral</button>
+        <div class="reveal-block" id="rv-dtft-orth">
+          <p>For an integer r = n &minus; m, a complete cycle integrates to zero unless r = 0:</p>
+          <div class="eq">$$\frac{1}{2\pi}\int_{-\pi}^{\pi} e^{j\omega r}\, d\omega = \begin{cases}1 & r=0\\0 & r\neq 0\end{cases} \implies \hat{x}[n]=x[n]$$</div>
+          <p>Exactly the continuous-frequency analogue of the discrete orthogonality trick from Section 04 &mdash; a sum over N bins there, an integral over one 2&pi; period here.</p>
+        </div>
+      </div>
+
+      <div class="plate">
+        <div class="plate-label">DTFT Pair</div>
+        <div class="eq">$$X(e^{j\omega}) = \sum_{n=-\infty}^{\infty} x[n]\, e^{-j\omega n}$$</div>
+        <div class="eq">$$x[n] = \frac{1}{2\pi}\int_{2\pi} X(e^{j\omega})\, e^{j\omega n}\, d\omega$$</div>
+      </div>
+
+      <p>Notice the shape of x[n] now: it's a <em>continuum</em> superposition of e<sup>j&omega;n</sup> over one period &mdash; versus the DFS, a <em>finite sum</em> of N of them. That distinction &mdash; sum vs. integral on synthesis &mdash; is the fingerprint that tells you whether you're looking at a periodic or aperiodic discrete signal.</p>
+
+      <table class="spec-table">
+        <tr><th></th><th>continuous t</th><th>discrete n</th></tr>
+        <tr><td class="pname">periodic</td><td>CTFS &mdash; known</td><td>DFS/DFT &mdash; done (Part I)</td></tr>
+        <tr><td class="pname">aperiodic</td><td>CTFT &mdash; known</td><td>DTFT &mdash; just finished</td></tr>
+      </table>
+
+      <div class="callout tip">
+        <div class="ic">EXAM ALERT</div>
+        <div class="cbody"><b>Sum vs. integral is a favorite short-answer question</b><p>"Is the DTFT synthesis formula a sum or an integral, and why?" tests whether you actually understand aperiodicity &rarr; continuous spectrum, not just whether you memorized the box. Be ready to explain it in one sentence: aperiodic time means the spectrum doesn't repeat, so there's no finite window of unique frequencies to sum over &mdash; every &omega; in one period is genuinely distinct information.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p06"><span class="lbl">Back</span><span class="ttl">&larr; 06 &middot; Sampling Aperiodic Signals</span></button>
+        <button class="pn-btn right" data-nav="p08"><span class="lbl">Next</span><span class="ttl">08 &middot; DFT = N Samples of DTFT &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 08 ============================= -->
+    <section class="panel" id="p08">
+      <div class="titleblock">
+        <div class="eyebrow">Part III &middot; DFT via DTFT</div>
+        <h2>The DFT = N Samples of the DTFT</h2>
+        <p class="sub">Nothing new to derive here &mdash; just look at the definitions side by side, and the third bridge falls out for free.</p>
+      </div>
+
+      <p>Compare the DFT formula from Section 05 with the DTFT formula from Section 06. They are the <em>same sum</em>, evaluated at different points:</p>
+      <div class="eq">$$X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-j\frac{2\pi}{N}kn} = X(e^{j\omega})\Big|_{\omega = \frac{2\pi}{N}k}$$</div>
+
+      <p>So the N-point DFT is exactly N evenly spaced samples, taken over one full 2&pi; period of the DTFT, at spacing &Delta;&omega; = 2&pi;/N.</p>
+
+      <div class="plate">
+        <div class="plate-label">One Transform, Two Views</div>
+        <p style="margin-bottom:0;"><strong>Periodic view:</strong> the DFT bins are Fourier-series coefficients of a periodic sequence (Part I). &nbsp;<strong>Aperiodic view:</strong> the DFT bins are N samples of the continuous DTFT curve of a finite-length sequence (Part III). Same N numbers, two completely different stories about where they came from &mdash; both valid, depending on whether you think of x[n] as one period of something periodic, or as a finite, standalone burst.</p>
+      </div>
+
+      <div class="widget" id="w-dft-samples">
+        <div class="widget-title">Interactive &middot; the DFT samples the DTFT curve</div>
+        <div id="w-dft-samples-canvas"></div>
+        <div class="widget-controls">
+          <label>N: <input type="range" id="w-dft-samples-N" min="4" max="24" step="1" value="8"><span class="val" id="w-dft-samples-Nval">8</span></label>
+        </div>
+        <div class="widget-readout">Bins 0 &rarr; N/2 climb from dc to the highest positive frequency (&pi;); the rest hold the folded negatives. Drag N and watch the same underlying curve get sampled more or less densely &mdash; the curve itself never changes.</div>
+      </div>
+
+      <h3>Reading DFT Bins, Once More &mdash; Now in &omega;</h3>
+      <p>Bin k sits at &omega;<sub>k</sub> = (2&pi;/N)k. For N = 8, for example:</p>
+      <table class="spec-table">
+        <tr><th>k</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+        <tr><th>&omega;<sub>k</sub></th><td>0</td><td>&pi;/4</td><td>&pi;/2</td><td>3&pi;/4</td><td>&pi;</td><td>&minus;3&pi;/4</td><td>&minus;&pi;/2</td><td>&minus;&pi;/4</td></tr>
+      </table>
+      <p>Notice the pattern: dc &rarr; rising positive &rarr; the highest frequency at k = N/2 (&omega; = &pi;) &rarr; then negative frequencies, falling back toward dc. This is precisely the "bins 0&rarr;N/2 positive, N/2&rarr;N negative" rule from Section 03, just re-derived from the DTFT's own periodicity instead of from the DFS's.</p>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE</div>
+        <div class="cbody"><b>What if N is odd?</b><p>The slide's convention (bin N/2 is the "highest frequency," exactly at &omega; = &pi;) assumes N is even, so N/2 is an integer bin. For odd N there is no bin sitting exactly at &omega; = &pi; &mdash; the fold point falls between bins (N&minus;1)/2 and (N+1)/2. Watch for this if a problem hands you an odd-length sequence and asks you to "identify the Nyquist bin."</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p07"><span class="lbl">Back</span><span class="ttl">&larr; 07 &middot; DTFT Periodicity</span></button>
+        <button class="pn-btn right" data-nav="p09"><span class="lbl">Next</span><span class="ttl">09 &middot; Zero-Padding &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 09 ============================= -->
+    <section class="panel" id="p09">
+      <div class="titleblock">
+        <div class="eyebrow">Part III &middot; DFT via DTFT</div>
+        <h2>Zero-Padding: Same Spectrum, Finer Samples</h2>
+        <p class="sub">A direct, practical consequence of "the DFT samples the DTFT" &mdash; and a genuinely popular exam and lab topic.</p>
+      </div>
+
+      <p>For a length-N sequence x[n], <strong>zero-padding</strong> means artificially appending zeros to reach some total length M &ge; N. What happens to the spectrum?</p>
+
+      <div class="eq">$$X_M[k] = \sum_{n=0}^{M-1} x[n]\, e^{-j\frac{2\pi}{M}kn} = X(e^{j\omega})\Big|_{\omega=\frac{2\pi}{M}k}$$</div>
+
+      <p>The appended zeros contribute nothing to the DTFT sum &mdash; multiplying by zero and adding changes nothing &mdash; so the underlying continuous DTFT curve X(e<sup>j&omega;</sup>) is <strong>completely unchanged</strong>. What changes is only the spacing at which the M-point DFT samples that same curve: 2&pi;/M instead of 2&pi;/N. A bigger M means a finer grid of samples over the identical curve.</p>
+
+      <div class="widget" id="w-zeropad">
+        <div class="widget-title">Interactive &middot; zero-pad to M and watch the sampling get finer</div>
+        <div id="w-zeropad-canvas"></div>
+        <div class="widget-controls">
+          <div class="btn-row">
+            <button class="chip-btn active" data-pad="1">M = N</button>
+            <button class="chip-btn" data-pad="2">M = 2N</button>
+            <button class="chip-btn" data-pad="4">M = 4N</button>
+            <button class="chip-btn" data-pad="8">M = 8N</button>
+          </div>
+        </div>
+        <div class="widget-readout" id="w-zeropad-readout"></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">MORE PIXELS, NOT MORE INFORMATION</div>
+        <div class="cbody"><b>Zero-padding cannot resolve what N real samples never captured</b><p>This is the single most tested conceptual point about zero-padding, and the most commonly misunderstood. Zero-padding interpolates a finer <em>picture</em> of the exact same DTFT &mdash; it never adds new information about the signal, and it can never separate two closely spaced frequency components that the original N samples genuinely couldn't distinguish. It is a display/interpolation tool, not a resolution-improving tool. True frequency resolution comes only from capturing more real samples (a longer observation window), never from padding.</p></div>
+      </div>
+
+      <div class="callout think">
+        <div class="ic">BRAINSTORM</div>
+        <div class="cbody"><b>Then why ever zero-pad at all?</b><p>If it adds no information, what is it actually good for? Think about: making an FFT length a power of two for speed, getting a smoother-looking plot for a report or a peak-picking algorithm, or lining up two different-length signals to the same frequency grid before comparing their spectra.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p08"><span class="lbl">Back</span><span class="ttl">&larr; 08 &middot; DFT Samples DTFT</span></button>
+        <button class="pn-btn right" data-nav="p10"><span class="lbl">Next</span><span class="ttl">10 &middot; Worked Example (N=4) &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 10 ============================= -->
+    <section class="panel" id="p10">
+      <div class="titleblock">
+        <div class="eyebrow">Part III &middot; DFT via DTFT</div>
+        <h2>A Complete Numeric Example (N = 4)</h2>
+        <p class="sub">The exact hand-computation you should be able to reproduce cold on an exam, in under three minutes.</p>
+      </div>
+
+      <p>Let x[n] = {1, 2, 3, 4}, so N = 4. First, the twiddle factor: W<sub>4</sub> = e<sup>&minus;j2&pi;/4</sup> = &minus;j, so W<sub>4</sub><sup>kn</sup> = (&minus;j)<sup>kn</sup> cycles through only four possible values: 1, &minus;j, &minus;1, j.</p>
+
+      <div class="widget" id="w-n4">
+        <div class="widget-title">Interactive &middot; build the twiddle-factor table, then reveal each X[k]</div>
+        <div id="w-n4-table"></div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="chip-btn n4-reveal" data-k="0">Reveal X[0]</button>
+          <button class="chip-btn n4-reveal" data-k="1">Reveal X[1]</button>
+          <button class="chip-btn n4-reveal" data-k="2">Reveal X[2]</button>
+          <button class="chip-btn n4-reveal" data-k="3">Reveal X[3]</button>
+        </div>
+        <div id="w-n4-steps" style="margin-top:14px;"></div>
+        <div id="w-n4-chart" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="plate">
+        <div class="plate-label">Negative-Frequency Partners</div>
+        <p style="margin-bottom:0;">Check: &omega;<sub>3</sub> = 2&pi;&middot;3/4 = 3&pi;/2 &equiv; &minus;&pi;/2, and indeed X[3] = X*[1] &mdash; bin 3 is bin 1's negative-frequency partner. For any <strong>real</strong> input signal, |X[k]| is always symmetric about N/2. This is a fast self-check: compute half the bins, get the rest for free by conjugate symmetry. (Full symmetry properties are next lecture's topic.)</p>
+      </div>
+
+      <div class="callout tip">
+        <div class="ic">EXAM ALERT</div>
+        <div class="cbody"><b>The fastest way to lose easy marks here</b><p>Sign errors in W<sub>N</sub><sup>kn</sup> are extremely common under time pressure. Before computing anything, write out the full table of powers of W<sub>N</sub> you'll need (as the widget above does) &mdash; it takes twenty seconds and eliminates almost every arithmetic slip in the rest of the problem.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p09"><span class="lbl">Back</span><span class="ttl">&larr; 09 &middot; Zero-Padding</span></button>
+        <button class="pn-btn right" data-nav="p11"><span class="lbl">Next</span><span class="ttl">11 &middot; Bins &rarr; &Omega; &rarr; Hertz &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 11 ============================= -->
+    <section class="panel" id="p11">
+      <div class="titleblock">
+        <div class="eyebrow">Part III &middot; DFT via DTFT</div>
+        <h2>Back to Physical Frequency: Bins &rarr; &Omega; &rarr; Hertz</h2>
+        <p class="sub">Undo the normalization from Section 06 and put real, physical units under every bin index.</p>
+      </div>
+
+      <p>Recall from Section 06 that the DTFT axis was normalized: &omega; = &Omega;T<sub>s</sub>, where &Omega; is physical frequency in rad/s and &omega;<sub>s</sub> &#8801; 2&pi;/T<sub>s</sub> is the sampling rate in rad/s. Undo that relabeling for bin k:</p>
+      <div class="eq">$$\omega_k = \frac{2\pi}{N}k \;\longmapsto\; \Omega_k = \frac{\omega_k}{T_s} = k\,\frac{\omega_s}{N}$$</div>
+      <p>The fold carries over exactly, just in physical units: bins 0 &rarr; N/2 span 0 &rarr; &omega;<sub>s</sub>/2, and bins N/2 &rarr; N span &minus;&omega;<sub>s</sub>/2 &rarr; 0.</p>
+
+      <div class="callout tip">
+        <div class="ic">WHY IT MATTERS</div>
+        <div class="cbody"><b>&omega; = &pi; means half the sampling rate</b><p>&omega; = &pi; &harr; &Omega; = &omega;<sub>s</sub>/2. One full 2&pi; period of the DTFT corresponds to exactly one full &omega;<sub>s</sub> of physical frequency &mdash; the window [&minus;&omega;<sub>s</sub>/2, &omega;<sub>s</sub>/2]. If that ratio (half the sampling rate) sounds familiar, it should: it's the Nyquist frequency, and you'll meet it formally when we reach Sampling.</p></div>
+      </div>
+
+      <h3>From Bins to Hertz</h3>
+      <p>Relabel once more, into Hz: with sampling rate f<sub>s</sub> = 1/T<sub>s</sub>, we get f = &Omega;/2&pi;, so &omega;<sub>s</sub>/2 &#8614; f<sub>s</sub>/2, and the bin spacing becomes:</p>
+      <div class="eq">$$\Delta f = \frac{f_s}{N} = \frac{1}{NT_s} = \frac{1}{T_0}$$</div>
+      <p>Bin k then corresponds to a physical frequency:</p>
+      <div class="eq">$$f_k = \begin{cases} k\dfrac{f_s}{N} & 0 \le k \le N/2 \\[6pt] (k-N)\dfrac{f_s}{N} & N/2 < k \le N-1 \end{cases}$$</div>
+      <p>This is exactly the ordering that <code>numpy.fft.fftfreq</code> reports, and exactly why every spectrum-analysis tool you'll ever use shows a range from 0 to f<sub>s</sub>/2 by default.</p>
+
+      <div class="widget" id="w-hz">
+        <div class="widget-title">Interactive &middot; bin &rarr; Hz calculator</div>
+        <div class="widget-controls" style="border-top:none; padding-top:0; margin-top:0;">
+          <label>N: <input type="range" id="w-hz-N" min="4" max="16" step="1" value="8"><span class="val" id="w-hz-Nval">8</span></label>
+          <label>f<sub>s</sub> (kHz): <input type="range" id="w-hz-fs" min="1" max="16" step="1" value="8"><span class="val" id="w-hz-fsval">8</span></label>
+        </div>
+        <div id="w-hz-table" style="margin-top:14px;"></div>
+        <div class="widget-readout" id="w-hz-readout"></div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">EDGE CASE</div>
+        <div class="cbody"><b>&Delta;f = 1/T&#8320; ties bin spacing to your <em>observation window</em>, not your sample count alone</b><p>Doubling N while holding f<sub>s</sub> fixed doubles your observation duration T&#8320; = NT<sub>s</sub>, which is what actually shrinks &Delta;f. Doubling N by zero-padding (Section 09) instead &mdash; without capturing more real samples &mdash; changes nothing about the true frequency resolution, even though the bin spacing on your plot gets finer. Keep "more real samples" and "more padded bins" mentally separate; exams love conflating them.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p10"><span class="lbl">Back</span><span class="ttl">&larr; 10 &middot; Worked Example</span></button>
+        <button class="pn-btn right" data-nav="p12"><span class="lbl">Next</span><span class="ttl">12 &middot; The Big Picture &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 12 ============================= -->
+    <section class="panel" id="p12">
+      <div class="titleblock">
+        <div class="eyebrow">Wrap-Up</div>
+        <h2>The Big Picture &amp; Exam Prep</h2>
+        <p class="sub">The square from Section 00, now fully derived &mdash; proven, not promised.</p>
+      </div>
+
+      <div class="square-grid">
+        <div class="corner"></div>
+        <div class="colhead">Time Continuous</div>
+        <div class="colhead">Time Discrete</div>
+        <div class="rowhead">Periodic</div>
+        <div class="cell known"><div class="cname">CTFS</div><div class="ceq">$$c_k=\tfrac{1}{T_0}\!\int_{T_0}\! x(t)e^{-jk\omega_0 t}dt$$</div></div>
+        <div class="cell today"><div class="cname">DFS / DFT</div><div class="ceq">$$X[k]=\sum_{n=0}^{N-1} x[n]W_N^{kn}$$</div></div>
+        <div class="rowhead">Aperiodic</div>
+        <div class="cell known"><div class="cname">CTFT</div><div class="ceq">$$X(j\omega)=\int_{-\infty}^{\infty} x(t)e^{-j\omega t}dt$$</div></div>
+        <div class="cell today"><div class="cname">DTFT</div><div class="ceq">$$X(e^{j\omega})=\sum_{n=-\infty}^{\infty} x[n]e^{-j\omega n}$$</div></div>
+      </div>
+
+      <p style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-soft);">sample in t &rarr; &int; becomes &sum; &nbsp;&middot;&nbsp; sample in t &rarr; spectrum becomes 2&pi;-periodic &nbsp;&middot;&nbsp; sample in &omega; (keep N bins) &rarr; time becomes N-periodic</p>
+
+      <div class="plate">
+        <div class="plate-label">Discrete in One Domain &hArr; Periodic in the Other</div>
+        <p style="margin-bottom:0;">Sampling <strong>time</strong> made the spectrum <strong>2&pi;-periodic</strong> (Part II). Sampling <strong>frequency</strong> &mdash; keeping only N bins &mdash; made <strong>time N-periodic</strong> (Part I). This duality, proven twice over today, is the single deepest idea in the whole lecture. Every time you sample one domain, you force periodicity onto the other.</p>
+      </div>
+
+      <h3>The Three Bridges, Once More</h3>
+      <table class="spec-table">
+        <tr><th>Bridge</th><th>Statement</th></tr>
+        <tr><td class="pname">1</td><td>$$c_k = \tfrac{1}{T_0}X[k]$$ &mdash; sampled continuous periodic signal</td></tr>
+        <tr><td class="pname">2</td><td>$$X[k] = N\,a_k$$ &mdash; DFT = DFS, rescaled</td></tr>
+        <tr><td class="pname">3</td><td>$$X[k] = X(e^{j\omega})\big|_{\omega=\frac{2\pi}{N}k}$$ &mdash; DFT samples the DTFT</td></tr>
+      </table>
+
+      <h3>All Three Pairs, Side by Side</h3>
+      <table class="spec-table">
+        <tr><th>Transform</th><th>Analysis</th><th>Synthesis</th></tr>
+        <tr><td class="pname">DFS</td><td>$$a_k=\tfrac1N\sum_{n=0}^{N-1}\tilde x[n]W_N^{kn}$$</td><td>$$\tilde x[n]=\sum_{k=0}^{N-1}a_k W_N^{-kn}$$</td></tr>
+        <tr><td class="pname">DFT / IDFT</td><td>$$X[k]=\sum_{n=0}^{N-1}x[n]W_N^{kn}$$</td><td>$$x[n]=\tfrac1N\sum_{k=0}^{N-1}X[k]W_N^{-kn}$$</td></tr>
+        <tr><td class="pname">DTFT</td><td>$$X(e^{j\omega})=\sum_{n=-\infty}^{\infty}x[n]e^{-j\omega n}$$</td><td>$$x[n]=\tfrac{1}{2\pi}\int_{2\pi}X(e^{j\omega})e^{j\omega n}d\omega$$</td></tr>
+      </table>
+
+      <h3>Reading the Bins &mdash; One Last Time</h3>
+      <p>Bins 0 &rarr; N/2: positive frequencies, low &rarr; high. Bins N/2 &rarr; N: negative frequencies, high &rarr; low, folded in by periodicity. Say this out loud until it's automatic &mdash; it is the single fact you'll reach for most often in every lab, assignment, and exam question involving a computed spectrum.</p>
+
+      <h3>Common Pitfalls &mdash; Ranked</h3>
+      <table class="spec-table">
+        <tr><th>#</th><th>Pitfall</th><th>Fix</th></tr>
+        <tr><td class="pname">1</td><td>Misplacing the 1/N (DFS vs. DFT convention)</td><td>DFT analysis has <em>no</em> 1/N; it's entirely on the inverse. Anchor with X[k] = N&middot;a<sub>k</sub>.</td></tr>
+        <tr><td class="pname">2</td><td>Reading bins N/2&rarr;N as "extra high frequencies"</td><td>They're folded negative frequencies. |X[k]| is symmetric about N/2 for real signals.</td></tr>
+        <tr><td class="pname">3</td><td>Thinking zero-padding improves resolution</td><td>It only interpolates the same DTFT curve. Resolution needs more real samples (longer T&#8320;), not more padding.</td></tr>
+        <tr><td class="pname">4</td><td>Sign errors in W<sub>N</sub><sup>kn</sup> under time pressure</td><td>Write the full twiddle-factor table first, before computing any X[k].</td></tr>
+        <tr><td class="pname">5</td><td>Confusing digital &omega; (rad/sample) with physical &Omega; (rad/s)</td><td>&omega; = &Omega;T<sub>s</sub>. Always check which axis a plot or formula is using.</td></tr>
+        <tr><td class="pname">6</td><td>Assuming T&#8320; = NT<sub>s</sub> lines up exactly</td><td>If the sampling rate doesn't divide T&#8320; evenly, x[n] is not cleanly N-periodic &mdash; check this before invoking Part I's formulas.</td></tr>
+      </table>
+
+      <div class="callout link">
+        <div class="ic">READING &amp; NEXT CLASS</div>
+        <div class="cbody"><b>From the slides</b><p>Oppenheim, Willsky &amp; Nawab &sect;5.1 (the DTFT, from the discrete Fourier series) and Tan &amp; Jiang &sect;4.1 (the DFT, from Fourier-series coefficients of periodic digital signals). Try computing the 4-point DFT of x[n] = {1, 0, &minus;1, 0} by hand, and compare <code>fft(x)</code> with and without zero-padding in numpy. Next class: <strong>Properties of the DFT</strong> &mdash; linearity, time/frequency shifts, conjugate symmetry, Parseval's relation, the convolution theorem &mdash; and then why the DFT's N&sup2; cost is a scandal, and the 1805 fix: the FFT.</p></div>
+      </div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p11"><span class="lbl">Back</span><span class="ttl">&larr; 11 &middot; Bins to Hertz</span></button>
+        <button class="pn-btn right" data-nav="p13"><span class="lbl">Next</span><span class="ttl">13 &middot; Self-Check Lab &rarr;</span></button>
+      </div>
+    </section>
+
+    <!-- ============================= PANEL 13 ============================= -->
+    <section class="panel" id="p13">
+      <div class="titleblock">
+        <div class="eyebrow">Wrap-Up</div>
+        <h2>Self-Check Lab</h2>
+        <p class="sub">Eight questions spanning both parts of the lecture. Click an option to see immediate feedback.</p>
+      </div>
+
+      <div class="quiz-q" data-q="1">
+        <div class="qtext">1. Sampling a continuous periodic signal x(t) in time causes its frequency coefficients c<sub>k</sub> to&hellip;</div>
+        <button class="quiz-opt" data-correct="false">become zero for all k &ge; 1</button>
+        <button class="quiz-opt" data-correct="true">become periodic in k, with period N</button>
+        <button class="quiz-opt" data-correct="false">turn into a continuous function of k</button>
+        <button class="quiz-opt" data-correct="false">stay exactly as they were before sampling</button>
+        <div class="quiz-fb">Correct idea: c<sub>k+N</sub> = c<sub>k</sub> &mdash; the extra factor e<sup>&minus;j2&pi;n</sup> equals 1 for integer n, so shifting k by N changes nothing. This is the core duality of Part I: sample time, and frequency becomes periodic.</div>
+      </div>
+
+      <div class="quiz-q" data-q="2">
+        <div class="qtext">2. In the DFT/IDFT convention used in this lecture (X[k] = &Sigma; x[n]W<sub>N</sub><sup>kn</sup>), where does the 1/N scale factor live?</div>
+        <button class="quiz-opt" data-correct="false">On the analysis (DFT) formula only</button>
+        <button class="quiz-opt" data-correct="false">Split as 1/&radic;N on both formulas</button>
+        <button class="quiz-opt" data-correct="true">Entirely on the inverse (IDFT) formula</button>
+        <button class="quiz-opt" data-correct="false">Nowhere &mdash; the DFT has no scale factor at all</button>
+        <div class="quiz-fb">The DFT is the bare analysis sum, no 1/N. All the scaling is pushed onto the inverse: x[n] = (1/N)&Sigma;X[k]W<sub>N</sub><sup>&minus;kn</sup>. Compare with the DFS, where the 1/N sits on analysis (a<sub>k</sub>) instead &mdash; and X[k] = N&middot;a<sub>k</sub> is exactly that rescaling.</div>
+      </div>
+
+      <div class="quiz-q" data-q="3">
+        <div class="qtext">3. For a real-valued length-8 signal, DFT bin 6 is the negative-frequency partner of which bin?</div>
+        <button class="quiz-opt" data-correct="false">Bin 0</button>
+        <button class="quiz-opt" data-correct="true">Bin 2</button>
+        <button class="quiz-opt" data-correct="false">Bin 4</button>
+        <button class="quiz-opt" data-correct="false">Bin 8</button>
+        <div class="quiz-fb">The fold rule is c<sub>&minus;k</sub> = c<sub>N&minus;k</sub>, so bin N&minus;k pairs with bin k. Here N = 8, so bin 6 = bin (8&minus;2) pairs with bin 2. In general, for real signals, |X[k]| is symmetric about N/2 = 4.</div>
+      </div>
+
+      <div class="quiz-q" data-q="4">
+        <div class="qtext">4. Zero-padding a length-N sequence out to length M = 4N&hellip;</div>
+        <button class="quiz-opt" data-correct="false">Sharpens the true frequency resolution by a factor of 4</button>
+        <button class="quiz-opt" data-correct="false">Changes the underlying DTFT curve of the signal</button>
+        <button class="quiz-opt" data-correct="true">Samples the same, unchanged DTFT curve four times as densely</button>
+        <button class="quiz-opt" data-correct="false">Has no effect on the DFT output whatsoever</button>
+        <div class="quiz-fb">Appended zeros add nothing to the DTFT sum, so the curve X(e<sup>j&omega;</sup>) is unchanged. Only the sampling spacing shrinks, from 2&pi;/N to 2&pi;/M &mdash; a finer picture of the same information, not new information. True resolution needs a longer real observation window T&#8320;.</div>
+      </div>
+
+      <div class="quiz-q" data-q="5">
+        <div class="qtext">5. The DTFT X(e<sup>j&omega;</sup>) of a discrete sequence is periodic in &omega; with period&hellip;</div>
+        <button class="quiz-opt" data-correct="false">N</button>
+        <button class="quiz-opt" data-correct="true">2&pi;</button>
+        <button class="quiz-opt" data-correct="false">2&pi;/N</button>
+        <button class="quiz-opt" data-correct="false">T&#8320;</button>
+        <div class="quiz-fb">X(e<sup>j(&omega;+2&pi;)</sup>) = X(e<sup>j&omega;</sup>) always, for any discrete sequence &mdash; because e<sup>&minus;j2&pi;n</sup> = 1 for every integer n. This periodicity is unconditional; it has nothing to do with whether the underlying signal is finite-length or not.</div>
+      </div>
+
+      <div class="quiz-q" data-q="6">
+        <div class="qtext">6. The twiddle factor W<sub>N</sub> is defined as&hellip;</div>
+        <button class="quiz-opt" data-correct="true">e<sup>&minus;j2&pi;/N</sup></button>
+        <button class="quiz-opt" data-correct="false">e<sup>+j2&pi;/N</sup></button>
+        <button class="quiz-opt" data-correct="false">e<sup>&minus;j&pi;/N</sup></button>
+        <button class="quiz-opt" data-correct="false">1/N</button>
+        <div class="quiz-fb">W<sub>N</sub> &#8801; e<sup>&minus;j2&pi;/N</sup>, an N-th root of unity (W<sub>N</sub><sup>N</sup> = 1). It packages the analysis exponential e<sup>&minus;j(2&pi;/N)kn</sup> as W<sub>N</sub><sup>kn</sup>, and the synthesis exponential as W<sub>N</sub><sup>&minus;kn</sup>.</div>
+      </div>
+
+      <div class="quiz-q" data-q="7">
+        <div class="qtext">7. N = 8 samples are captured at f<sub>s</sub> = 8 kHz. What is the DFT's bin spacing &Delta;f?</div>
+        <button class="quiz-opt" data-correct="false">8 kHz</button>
+        <button class="quiz-opt" data-correct="false">0.5 kHz</button>
+        <button class="quiz-opt" data-correct="true">1 kHz</button>
+        <button class="quiz-opt" data-correct="false">64 kHz</button>
+        <div class="quiz-fb">&Delta;f = f<sub>s</sub>/N = 8 kHz / 8 = 1 kHz per bin. Equivalently, &Delta;f = 1/T&#8320;, where T&#8320; = NT<sub>s</sub> is the total observation duration.</div>
+      </div>
+
+      <div class="quiz-q" data-q="8">
+        <div class="qtext">8. Which statement correctly relates the DFT to the DTFT?</div>
+        <button class="quiz-opt" data-correct="false">They are unrelated transforms that happen to share notation</button>
+        <button class="quiz-opt" data-correct="false">X[k] is the derivative of X(e<sup>j&omega;</sup>) with respect to &omega;</button>
+        <button class="quiz-opt" data-correct="true">X[k] equals X(e<sup>j&omega;</sup>) evaluated at &omega; = (2&pi;/N)k</button>
+        <button class="quiz-opt" data-correct="false">X[k] equals X(e<sup>j&omega;</sup>) integrated over one period</button>
+        <div class="quiz-fb">The DFT is literally N evenly spaced samples of the DTFT, taken over one full 2&pi; period at spacing 2&pi;/N. This is Bridge 3 from Section 05/08 &mdash; and the entire conceptual basis for zero-padding.</div>
+      </div>
+
+      <button class="reveal-btn" id="quiz-score-btn" style="margin-top:10px;">Show My Score</button>
+      <div class="quiz-score" id="quiz-score" style="display:none;"></div>
+
+      <div class="pn-row">
+        <button class="pn-btn" data-nav="p12"><span class="lbl">Back</span><span class="ttl">&larr; 12 &middot; The Big Picture</span></button>
+        <button class="pn-btn empty">&nbsp;</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================= NAV ============================= */
+var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+var navlinks = Array.prototype.slice.call(document.querySelectorAll('.navlink'));
+
+function showPanel(id){
+  panels.forEach(function(p){ p.classList.toggle('active', p.id === id); });
+  navlinks.forEach(function(n){ n.classList.toggle('active', n.getAttribute('data-target') === id); });
+  document.querySelector('.content').scrollTop = 0;
+  window.scrollTo(0,0);
+  var sb = document.getElementById('sidebar');
+  if(sb.classList.contains('open')) sb.classList.remove('open');
+}
+
+navlinks.forEach(function(n){
+  n.addEventListener('click', function(){ showPanel(n.getAttribute('data-target')); });
+});
+Array.prototype.slice.call(document.querySelectorAll('[data-nav]')).forEach(function(btn){
+  btn.addEventListener('click', function(){ showPanel(btn.getAttribute('data-nav')); });
+});
+document.getElementById('sidebarToggle').addEventListener('click', function(){
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ============================= REVEAL BUTTONS (generic) ============================= */
+Array.prototype.slice.call(document.querySelectorAll('.reveal-btn[data-reveal]')).forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var target = document.getElementById(btn.getAttribute('data-reveal'));
+    if(target){ target.classList.add('shown'); }
+    btn.textContent = 'Revealed \u2713';
+    btn.disabled = true;
+  });
+});
+
+/* ============================= SMALL HELPERS ============================= */
+function fmt(n, d){ d = (d===undefined)?2:d; return Number(n).toFixed(d); }
+function fmtComplex(re, im, d){
+  d = (d===undefined)?2:d;
+  var r = fmt(re, d), i = fmt(Math.abs(im), d);
+  return r + (im < 0 ? ' \u2212 ' : ' + ') + i + 'j';
+}
+function svgOpen(w,h){ return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="'+h+'" xmlns="http://www.w3.org/2000/svg">'; }
+
+/* generic bar chart: bars = [{v, color}], labels = [str] */
+function barsSVG(bars, labels, opts){
+  opts = opts || {};
+  var W = opts.width || 640, H = opts.height || 220, pad = opts.pad || 34;
+  var maxV = opts.maxV || Math.max.apply(null, bars.map(function(b){return Math.abs(b.v);})) || 1;
+  var n = bars.length;
+  var bw = (W - 2*pad) / n;
+  var baseY = H - pad;
+  var s = '';
+  s += svgOpen(W,H);
+  s += '<line x1="'+pad+'" y1="'+baseY+'" x2="'+(W-pad)+'" y2="'+baseY+'" stroke="var(--paper-line)" stroke-width="1"/>';
+  bars.forEach(function(b, idx){
+    var bh = (Math.abs(b.v)/maxV) * (H - 2*pad - 20);
+    var x = pad + idx*bw + bw*0.18;
+    var bwid = bw*0.64;
+    var y = baseY - bh;
+    s += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bwid.toFixed(1)+'" height="'+bh.toFixed(1)+'" fill="'+b.color+'" stroke="var(--ink)" stroke-width="0.5"/>';
+    if(labels && labels[idx] !== undefined){
+      s += '<text x="'+(x+bwid/2).toFixed(1)+'" y="'+(baseY+16)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-soft)">'+labels[idx]+'</text>';
+    }
+  });
+  s += '</svg>';
+  return s;
+}
+
+/* ============================= WIDGET: SAMPLING (panel 01) ============================= */
+(function(){
+  var canvas = document.getElementById('w-sample-canvas');
+  var slider = document.getElementById('w-sample-N');
+  var valEl = document.getElementById('w-sample-Nval');
+  var readout = document.getElementById('w-sample-readout');
+  if(!canvas) return;
+
+  function f(tau){ return 1 + 0.8*Math.cos(2*Math.PI*tau) + 0.5*Math.cos(4*Math.PI*tau); }
+
+  function draw(N){
+    var W=640, H=250, pad=42;
+    var yMax=2.4, yMin=-0.5;
+    var xOf = function(tau){ return pad + tau*(W-2*pad); };
+    var yOf = function(v){ return H-pad - (v-yMin)/(yMax-yMin)*(H-2*pad); };
+    var path = '';
+    var pts = 220;
+    for(var i=0;i<=pts;i++){
+      var tau = i/pts;
+      var x = xOf(tau), y = yOf(f(tau));
+      path += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+    }
+    var baseline = yOf(0);
+    var stems='', dots='';
+    for(var n=0;n<N;n++){
+      var tau = n/N;
+      var x = xOf(tau);
+      var val = f(tau);
+      var y = yOf(val);
+      stems += '<line x1="'+x.toFixed(1)+'" y1="'+baseline.toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--brass-deep)" stroke-width="2"/>';
+      dots += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.2" fill="var(--brass-bright)" stroke="var(--ink)" stroke-width="1"/>';
+    }
+    var s = svgOpen(W,H);
+    s += '<line x1="'+pad+'" y1="'+baseline.toFixed(1)+'" x2="'+(W-pad)+'" y2="'+baseline.toFixed(1)+'" stroke="var(--paper-line)" stroke-width="1"/>';
+    s += '<path d="'+path+'" fill="none" stroke="var(--ink-soft)" stroke-width="1.4" stroke-dasharray="4 3"/>';
+    s += stems + dots;
+    s += '<text x="'+pad+'" y="'+(H-12)+'" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">t = 0</text>';
+    s += '<text x="'+(W-pad-64)+'" y="'+(H-12)+'" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">t = T\u2080</text>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+    readout.innerHTML = 'T\u2080 = N\u00b7T<sub>s</sub>, so with N = ' + N + ' samples per period, T<sub>s</sub> = T\u2080 / ' + N + '. x[n] repeats with period N = ' + N + '.';
+  }
+
+  slider.addEventListener('input', function(){
+    valEl.textContent = slider.value;
+    draw(parseInt(slider.value,10));
+  });
+  draw(parseInt(slider.value,10));
+})();
+
+/* ============================= WIDGET: PERIODICITY OF ck (panel 03) ============================= */
+(function(){
+  var canvas = document.getElementById('w-period-canvas');
+  var slider = document.getElementById('w-period-N');
+  var valEl = document.getElementById('w-period-Nval');
+  if(!canvas) return;
+
+  function shape(m, N){
+    var d = Math.min(m, N-m);
+    return 0.15 + 0.85*Math.exp(-(d*d)/(2*Math.pow(N/5.2,2)));
+  }
+
+  function draw(N){
+    var kmin = -N, kmax = 2*N-1;
+    var bars = [], labels = [];
+    for(var k=kmin;k<=kmax;k++){
+      var m = ((k % N) + N) % N;
+      var inWindow = (k>=0 && k<=N-1);
+      bars.push({v: shape(m,N), color: inWindow ? 'var(--brass-bright)' : 'var(--paper-line)'});
+      labels.push(((k%3===0)||N<=6) ? k : '');
+    }
+    canvas.innerHTML = barsSVG(bars, labels, {width:680,height:190,pad:30});
+  }
+  slider.addEventListener('input', function(){ valEl.textContent = slider.value; draw(parseInt(slider.value,10)); });
+  draw(parseInt(slider.value,10));
+})();
+
+/* ============================= WIDGET: FOLD (panel 03) ============================= */
+(function(){
+  var canvas = document.getElementById('w-fold-canvas');
+  var readout = document.getElementById('w-fold-readout');
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.chip-btn[data-fold]'));
+  if(!canvas) return;
+  var N = 8;
+
+  function shapeCentered(k){
+    return 0.15 + 0.85*Math.exp(-(k*k)/(2*Math.pow(N/3.0,2)));
+  }
+
+  function draw(mode){
+    var bars = [], labels = [];
+    if(mode === 'centered'){
+      for(var k=-N/2; k<=N/2; k++){
+        bars.push({v: shapeCentered(k), color: k<0 ? 'var(--rust)' : 'var(--brass-bright)'});
+        labels.push(k);
+      }
+      readout.innerHTML = '<strong>Natural, centered view.</strong> Low frequencies in the middle (k=0), negative frequencies (rust) trail off to the left, positive (brass) rise to the right.';
+    } else {
+      for(var kk=0; kk<=N-1; kk++){
+        var trueFreq = (kk <= N/2) ? kk : (kk - N);
+        bars.push({v: shapeCentered(trueFreq), color: trueFreq<0 ? 'var(--rust)' : 'var(--brass-bright)'});
+        labels.push(kk);
+      }
+      readout.innerHTML = '<strong>DFT window, 0 &hellip; N&minus;1.</strong> Same bars, same colors &mdash; just relabeled. The rust bars (negative frequencies) have folded into the upper half of the window.';
+    }
+    canvas.innerHTML = barsSVG(bars, labels, {width:520,height:190,pad:30});
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      buttons.forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      draw(b.getAttribute('data-fold'));
+    });
+  });
+  draw('centered');
+})();
+
+/* ============================= WIDGET: DFS WINDING (panel 04) ============================= */
+(function(){
+  var canvas = document.getElementById('w-wind-canvas');
+  var slider = document.getElementById('w-wind-k');
+  var valEl = document.getElementById('w-wind-kval');
+  var readout = document.getElementById('w-wind-readout');
+  if(!canvas) return;
+  var N = 8;
+  var xs = [];
+  for(var n=0;n<N;n++){ xs.push(1 + 0.8*Math.cos(2*Math.PI*n/N) + 0.5*Math.cos(4*Math.PI*n/N)); }
+
+  function draw(k){
+    var W=560, H=320, cx=W/2, cy=H/2-6, scale=76;
+    var pts = [];
+    for(var n=0;n<N;n++){
+      var ang = -2*Math.PI*k*n/N;
+      var re = xs[n]*Math.cos(ang), im = xs[n]*Math.sin(ang);
+      pts.push([re,im]);
+    }
+    var csum = [0,0];
+    pts.forEach(function(p){ csum[0]+=p[0]; csum[1]+=p[1]; });
+    csum[0]/=N; csum[1]/=N;
+
+    var toX = function(re){ return cx + re*scale; };
+    var toY = function(im){ return cy - im*scale; };
+
+    var s = svgOpen(W,H);
+    s += '<line x1="'+(cx-2.4*scale)+'" y1="'+cy+'" x2="'+(cx+2.4*scale)+'" y2="'+cy+'" stroke="var(--paper-line)" stroke-width="1"/>';
+    s += '<line x1="'+cx+'" y1="'+(cy-2.4*scale)+'" x2="'+cx+'" y2="'+(cy+2.4*scale)+'" stroke="var(--paper-line)" stroke-width="1"/>';
+    var poly = pts.map(function(p){ return toX(p[0]).toFixed(1)+','+toY(p[1]).toFixed(1); }).join(' ');
+    s += '<polyline points="'+poly+'" fill="none" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>';
+    pts.forEach(function(p, idx){
+      s += '<circle cx="'+toX(p[0]).toFixed(1)+'" cy="'+toY(p[1]).toFixed(1)+'" r="5" fill="var(--brass-bright)" stroke="var(--ink)" stroke-width="1"/>';
+      if(idx===0 || idx===1){
+        s += '<text x="'+(toX(p[0])+8).toFixed(1)+'" y="'+(toY(p[1])-6).toFixed(1)+'" font-family="var(--font-mono)" font-size="10" fill="var(--ink-soft)">n='+idx+'</text>';
+      }
+    });
+    s += '<circle cx="'+toX(csum[0]).toFixed(1)+'" cy="'+toY(csum[1]).toFixed(1)+'" r="7" fill="var(--rust-bright)" stroke="var(--ink)" stroke-width="1.4"/>';
+    s += '<text x="'+(toX(csum[0])+11).toFixed(1)+'" y="'+(toY(csum[1])+4).toFixed(1)+'" font-family="var(--font-mono)" font-size="11.5" fill="var(--rust-bright)" font-weight="600">a\u2096</text>';
+    s += '<text x="12" y="20" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">Re</text>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+    readout.innerHTML = 'k = ' + k + ' &middot; centroid a<sub>k</sub> = ' + fmtComplex(csum[0], csum[1], 3) + (k===0 ? '  <em>(k=0: plain average of the 8 samples)</em>' : '');
+  }
+
+  slider.addEventListener('input', function(){ valEl.textContent = slider.value; draw(parseInt(slider.value,10)); });
+  draw(parseInt(slider.value,10));
+})();
+
+/* ============================= WIDGET: APERIODIC WINDING (panel 06) ============================= */
+(function(){
+  var canvas = document.getElementById('w-dtft-wind-canvas');
+  var slider = document.getElementById('w-dtft-wind-w');
+  var valEl = document.getElementById('w-dtft-wind-wval');
+  var readout = document.getElementById('w-dtft-wind-readout');
+  if(!canvas) return;
+  var Nseg = 36;
+  var xs = [];
+  for(var n=0;n<Nseg;n++){ var t = n/24; xs.push(1 + Math.cos(6*Math.PI*t)); }
+
+  function draw(omega){
+    var W=560, H=320, cx=W/2, cy=H/2-6, scale=64;
+    var pts = [];
+    for(var n=0;n<Nseg;n++){
+      var ang = -omega*n;
+      var re = xs[n]*Math.cos(ang), im = xs[n]*Math.sin(ang);
+      pts.push([re,im]);
+    }
+    var csum=[0,0];
+    pts.forEach(function(p){ csum[0]+=p[0]; csum[1]+=p[1]; });
+    csum[0]/=Nseg; csum[1]/=Nseg;
+    var toX = function(re){ return cx + re*scale; };
+    var toY = function(im){ return cy - im*scale; };
+    var s = svgOpen(W,H);
+    s += '<line x1="'+(cx-3*scale)+'" y1="'+cy+'" x2="'+(cx+3*scale)+'" y2="'+cy+'" stroke="var(--paper-line)" stroke-width="1"/>';
+    s += '<line x1="'+cx+'" y1="'+(cy-3*scale)+'" x2="'+cx+'" y2="'+(cy+3*scale)+'" stroke="var(--paper-line)" stroke-width="1"/>';
+    var poly = pts.map(function(p){ return toX(p[0]).toFixed(1)+','+toY(p[1]).toFixed(1); }).join(' ');
+    s += '<polyline points="'+poly+'" fill="none" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>';
+    pts.forEach(function(p){
+      s += '<circle cx="'+toX(p[0]).toFixed(1)+'" cy="'+toY(p[1]).toFixed(1)+'" r="3.4" fill="var(--brass-bright)" stroke="var(--ink)" stroke-width="0.6"/>';
+    });
+    s += '<circle cx="'+toX(csum[0]).toFixed(1)+'" cy="'+toY(csum[1]).toFixed(1)+'" r="7" fill="var(--rust-bright)" stroke="var(--ink)" stroke-width="1.4"/>';
+    s += '<text x="'+(toX(csum[0])+11).toFixed(1)+'" y="'+(toY(csum[1])+4).toFixed(1)+'" font-family="var(--font-mono)" font-size="11.5" fill="var(--rust-bright)" font-weight="600">centroid</text>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+    var Xre = csum[0]*Nseg, Xim = csum[1]*Nseg;
+    readout.innerHTML = '&omega; = ' + fmt(omega,2) + ' rad/sample &middot; centroid = ' + fmtComplex(csum[0],csum[1],3) + ' &middot; X(e<sup>j&omega;</sup>) = N&middot;centroid \u2248 ' + fmtComplex(Xre,Xim,2);
+  }
+  slider.addEventListener('input', function(){
+    var w = parseInt(slider.value,10)/100;
+    valEl.textContent = fmt(w,2);
+    draw(w);
+  });
+  draw(parseInt(slider.value,10)/100);
+})();
+
+/* ============================= WIDGET: DTFT 2pi-PERIODICITY (panel 07) ============================= */
+(function(){
+  var canvas = document.getElementById('w-dtft-periodic-canvas');
+  if(!canvas) return;
+  var M = 6; // "rectangular pulse length" shaping the Dirichlet kernel
+  function dk(w){
+    var num = Math.sin(M*w/2), den = Math.sin(w/2);
+    if(Math.abs(den) < 1e-6) return M;
+    return Math.abs(num/den);
+  }
+  function draw(bandIdx){
+    var W=680, H=210, pad=30;
+    var wmin=-2*Math.PI, wmax=3*Math.PI;
+    var xOf = function(w){ return pad + (w-wmin)/(wmax-wmin)*(W-2*pad); };
+    var maxV = M;
+    var yOf = function(v){ return H-pad - (v/maxV)*(H-2*pad-16); };
+    var s = svgOpen(W,H);
+    // shaded band, one full 2pi period, slides via bandIdx in {-1,0,1}
+    var lo = (bandIdx===-1) ? -Math.PI : (bandIdx===0 ? 0 : Math.PI);
+    var hi = lo + 2*Math.PI;
+    var x0 = xOf(lo), x1 = xOf(hi);
+    s += '<rect x="'+x0.toFixed(1)+'" y="'+(pad-4)+'" width="'+(x1-x0).toFixed(1)+'" height="'+(H-2*pad+8)+'" fill="var(--brass)" opacity="0.10"/>';
+    var path='';
+    var pts=400;
+    for(var i=0;i<=pts;i++){
+      var w = wmin + (wmax-wmin)*i/pts;
+      var v = dk(w);
+      var x=xOf(w), y=yOf(v);
+      path += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' ';
+    }
+    s += '<path d="'+path+'" fill="none" stroke="var(--brass-deep)" stroke-width="1.8"/>';
+    [-2*Math.PI,-Math.PI,0,Math.PI,2*Math.PI,3*Math.PI].forEach(function(w){
+      var x = xOf(w);
+      s += '<line x1="'+x.toFixed(1)+'" y1="'+pad+'" x2="'+x.toFixed(1)+'" y2="'+(H-pad)+'" stroke="var(--paper-line)" stroke-width="1" stroke-dasharray="3 3"/>';
+    });
+    var lbl = [['-2\u03c0',-2*Math.PI],['-\u03c0',-Math.PI],['0',0],['\u03c0',Math.PI],['2\u03c0',2*Math.PI],['3\u03c0',3*Math.PI]];
+    lbl.forEach(function(L){
+      s += '<text x="'+xOf(L[1]).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">'+L[0]+'</text>';
+    });
+    s += '<text x="'+((x0+x1)/2).toFixed(1)+'" y="'+(pad+10)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--brass-deep)">one 2\u03c0 period</text>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+  }
+  var bandBtns = Array.prototype.slice.call(document.querySelectorAll('.chip-btn[data-band]'));
+  bandBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      bandBtns.forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      draw(parseInt(b.getAttribute('data-band'),10));
+    });
+  });
+  draw(-1);
+})();
+
+/* ============================= WIDGET: DFT SAMPLES THE DTFT (panel 08) ============================= */
+(function(){
+  var canvas = document.getElementById('w-dft-samples-canvas');
+  var slider = document.getElementById('w-dft-samples-N');
+  var valEl = document.getElementById('w-dft-samples-Nval');
+  if(!canvas) return;
+  var M = 5;
+  function dk(w){
+    var num = Math.sin(M*w/2), den = Math.sin(w/2);
+    if(Math.abs(den) < 1e-6) return M;
+    return Math.abs(num/den);
+  }
+  function draw(N){
+    var W=680, H=220, pad=32;
+    var wmin=0, wmax=2*Math.PI;
+    var xOf = function(w){ return pad + (w-wmin)/(wmax-wmin)*(W-2*pad); };
+    var maxV = M;
+    var yOf = function(v){ return H-pad - (v/maxV)*(H-2*pad-16); };
+    var s = svgOpen(W,H);
+    var path='';
+    var pts=400;
+    for(var i=0;i<=pts;i++){
+      var w = wmin + (wmax-wmin)*i/pts;
+      var v = dk(w);
+      var x=xOf(w), y=yOf(v);
+      path += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' ';
+    }
+    s += '<path d="'+path+'" fill="none" stroke="var(--paper-line)" stroke-width="2"/>';
+    for(var k=0;k<N;k++){
+      var w = 2*Math.PI*k/N;
+      var v = dk(w);
+      var x = xOf(w), y = yOf(v);
+      var positive = (k <= N/2);
+      s += '<line x1="'+x.toFixed(1)+'" y1="'+(H-pad)+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="'+(positive?'var(--brass-deep)':'var(--rust)')+'" stroke-width="1.2" opacity="0.55"/>';
+      s += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.4" fill="'+(positive?'var(--brass-bright)':'var(--rust-bright)')+'" stroke="var(--ink)" stroke-width="1"/>';
+    }
+    s += '<line x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'" stroke="var(--ink-soft)" stroke-width="1"/>';
+    s += '<text x="'+xOf(0)+'" y="'+(H-10)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">0</text>';
+    s += '<text x="'+xOf(Math.PI)+'" y="'+(H-10)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">\u03c0</text>';
+    s += '<text x="'+xOf(2*Math.PI)+'" y="'+(H-10)+'" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--ink-soft)">2\u03c0</text>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+  }
+  slider.addEventListener('input', function(){ valEl.textContent = slider.value; draw(parseInt(slider.value,10)); });
+  draw(parseInt(slider.value,10));
+})();
+
+/* ============================= WIDGET: ZERO-PADDING (panel 09) ============================= */
+(function(){
+  var canvas = document.getElementById('w-zeropad-canvas');
+  var readout = document.getElementById('w-zeropad-readout');
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.chip-btn[data-pad]'));
+  if(!canvas) return;
+  var N0 = 8, M0 = 5;
+  function dk(w){
+    var num = Math.sin(M0*w/2), den = Math.sin(w/2);
+    if(Math.abs(den) < 1e-6) return M0;
+    return Math.abs(num/den);
+  }
+  function draw(padFactor){
+    var W=680, H=220, pad=32;
+    var wmin=0, wmax=2*Math.PI;
+    var xOf = function(w){ return pad + (w-wmin)/(wmax-wmin)*(W-2*pad); };
+    var maxV = M0;
+    var yOf = function(v){ return H-pad - (v/maxV)*(H-2*pad-16); };
+    var s = svgOpen(W,H);
+    var path='';
+    var pts=400;
+    for(var i=0;i<=pts;i++){
+      var w = wmin + (wmax-wmin)*i/pts;
+      var v = dk(w);
+      var x=xOf(w), y=yOf(v);
+      path += (i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)+' ';
+    }
+    s += '<path d="'+path+'" fill="none" stroke="var(--paper-line)" stroke-width="2"/>';
+    var Mtot = N0*padFactor;
+    for(var k=0;k<Mtot;k++){
+      var w = 2*Math.PI*k/Mtot;
+      var v = dk(w);
+      var x = xOf(w), y = yOf(v);
+      s += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(Mtot>40?2.4:4.2)+'" fill="var(--brass-bright)" stroke="var(--ink)" stroke-width="0.7"/>';
+    }
+    s += '<line x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'" stroke="var(--ink-soft)" stroke-width="1"/>';
+    s += '</svg>';
+    canvas.innerHTML = s;
+    readout.innerHTML = 'N = ' + N0 + ' real samples, zero-padded to M = ' + Mtot + '. Bin spacing: 2\u03c0/' + Mtot + ' \u2248 ' + fmt(2*Math.PI/Mtot,3) + ' rad. Same curve underneath &mdash; only the sampling grid changes.';
+  }
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      buttons.forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      draw(parseInt(b.getAttribute('data-pad'),10));
+    });
+  });
+  draw(1);
+})();
+
+/* ============================= WIDGET: N=4 WORKED EXAMPLE (panel 10) ============================= */
+(function(){
+  var tableEl = document.getElementById('w-n4-table');
+  var stepsEl = document.getElementById('w-n4-steps');
+  var chartEl = document.getElementById('w-n4-chart');
+  var revealBtns = Array.prototype.slice.call(document.querySelectorAll('.n4-reveal'));
+  if(!tableEl) return;
+
+  var xn = [1,2,3,4];
+  var N = 4;
+  // powers of W4 = e^{-j2pi/4} = -j : cycle 1, -j, -1, j
+  var W4pow = [ [1,0], [0,-1], [-1,0], [0,1] ];
+  function wpow(exp){ return W4pow[((exp%4)+4)%4]; }
+
+  var results = [null,null,null,null];
+
+  function buildTable(){
+    var html = '<table class="spec-table"><tr><th>W\u2084<sup>kn</sup></th>';
+    for(var n=0;n<N;n++) html += '<th>n='+n+'</th>';
+    html += '</tr>';
+    for(var k=0;k<N;k++){
+      html += '<tr><td class="pname">k='+k+'</td>';
+      for(var n2=0;n2<N;n2++){
+        var p = wpow(k*n2);
+        var lbl = (p[0]===1)?'1':(p[0]===-1)?'\u22121':(p[1]===1)?'j':'\u2212j';
+        html += '<td>'+lbl+'</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</table>';
+    tableEl.innerHTML = html;
+  }
+
+  function computeX(k){
+    var re=0, im=0, terms=[];
+    for(var n=0;n<N;n++){
+      var p = wpow(k*n);
+      var tre = xn[n]*p[0], tim = xn[n]*p[1];
+      re += tre; im += tim;
+      var plbl = (p[0]===1)?'1':(p[0]===-1)?'\u22121':(p[1]===1)?'j':'\u2212j';
+      terms.push(xn[n] + '\u00b7(' + plbl + ')');
+    }
+    return {re:re, im:im, terms:terms};
+  }
+
+  function renderChart(){
+    var bars = [], labels = [];
+    for(var k=0;k<N;k++){
+      if(results[k]){
+        var mag = Math.sqrt(results[k].re*results[k].re + results[k].im*results[k].im);
+        bars.push({v: mag, color:'var(--brass-bright)'});
+      } else {
+        bars.push({v: 0.02, color:'var(--paper-line)'});
+      }
+      labels.push('k='+k);
+    }
+    chartEl.innerHTML = '<div class="widget-title">|X[k]|</div>' + barsSVG(bars, labels, {width:420, height:170, pad:30, maxV:10});
+  }
+
+  revealBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var k = parseInt(btn.getAttribute('data-k'),10);
+      var r = computeX(k);
+      results[k] = r;
+      var block = document.createElement('div');
+      block.className = 'worked';
+      block.style.marginTop = '10px';
+      block.innerHTML = '<div class="wtitle">X['+k+']</div>' +
+        '<p>X['+k+'] = ' + r.terms.join(' + ') + '</p>' +
+        '<p><strong>X['+k+'] = ' + fmtComplex(r.re, r.im, 0) + '</strong>, &nbsp; |X['+k+']| = ' + fmt(Math.sqrt(r.re*r.re+r.im*r.im),3) + '</p>';
+      stepsEl.appendChild(block);
+      btn.disabled = true;
+      btn.classList.add('active');
+      renderChart();
+    });
+  });
+
+  buildTable();
+  renderChart();
+})();
+
+/* ============================= WIDGET: BINS TO HZ (panel 11) ============================= */
+(function(){
+  var tableEl = document.getElementById('w-hz-table');
+  var readout = document.getElementById('w-hz-readout');
+  var Nslider = document.getElementById('w-hz-N');
+  var fsSlider = document.getElementById('w-hz-fs');
+  var Nval = document.getElementById('w-hz-Nval');
+  var fsVal = document.getElementById('w-hz-fsval');
+  if(!tableEl) return;
+
+  function draw(){
+    var N = parseInt(Nslider.value,10);
+    var fs = parseInt(fsSlider.value,10); // kHz
+    Nval.textContent = N;
+    fsVal.textContent = fs;
+    var df = fs / N;
+    var html = '<table class="spec-table"><tr><th>k</th>';
+    for(var k=0;k<N;k++) html += '<th>'+k+'</th>';
+    html += '</tr><tr><td class="pname">f<sub>k</sub> (kHz)</td>';
+    for(var k2=0;k2<N;k2++){
+      var fk = (k2 <= N/2) ? k2*df : (k2-N)*df;
+      html += '<td>'+fmt(fk,2)+'</td>';
+    }
+    html += '</tr></table>';
+    tableEl.innerHTML = html;
+    readout.innerHTML = '\u0394f = f<sub>s</sub>/N = ' + fs + ' kHz / ' + N + ' = <strong>' + fmt(df,3) + ' kHz per bin</strong>.';
+  }
+  Nslider.addEventListener('input', draw);
+  fsSlider.addEventListener('input', draw);
+  draw();
+})();
+
+/* ============================= QUIZ (panel 13) ============================= */
+(function(){
+  var qs = Array.prototype.slice.call(document.querySelectorAll('.quiz-q'));
+  var scoreBtn = document.getElementById('quiz-score-btn');
+  var scoreEl = document.getElementById('quiz-score');
+  if(!qs.length) return;
+
+  qs.forEach(function(q){
+    var opts = Array.prototype.slice.call(q.querySelectorAll('.quiz-opt'));
+    var fb = q.querySelector('.quiz-fb');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        if(q.getAttribute('data-answered')) return;
+        q.setAttribute('data-answered', '1');
+        var correct = opt.getAttribute('data-correct') === 'true';
+        opts.forEach(function(o){
+          o.disabled = true;
+          if(o.getAttribute('data-correct') === 'true'){ o.classList.add('correct'); }
+        });
+        if(!correct){ opt.classList.add('wrong'); }
+        if(fb){ fb.classList.add('shown'); }
+        q.setAttribute('data-correct', correct ? '1' : '0');
+      });
+    });
+  });
+
+  scoreBtn.addEventListener('click', function(){
+    var total = qs.length, answered = 0, correct = 0;
+    qs.forEach(function(q){
+      if(q.getAttribute('data-answered')){ answered++; }
+      if(q.getAttribute('data-correct') === '1'){ correct++; }
+    });
+    var msg;
+    if(answered < total){
+      msg = 'Answered ' + answered + ' of ' + total + ' so far. Keep going, then check again.';
+    } else {
+      var pct = Math.round(100*correct/total);
+      var verdict = pct >= 87 ? 'Excellent \u2014 exam ready.' : pct >= 62 ? 'Solid \u2014 revisit the missed ones.' : 'Worth another pass through Parts I\u2013III.';
+      msg = 'Score: ' + correct + ' / ' + total + ' (' + pct + '%). ' + verdict;
+    }
+    scoreEl.textContent = msg;
+    scoreEl.style.display = 'block';
+  });
+})();
+
+/* ============================= KATEX RENDER ============================= */
+window.addEventListener('load', function(){
+  if(window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "\\(", right: "\\)", display: false}
+      ],
+      throwOnError: false
+    });
+  }
+});
+
+})();
+</script>
+</body>
+</html>

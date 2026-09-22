@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE213 · Additional Collaboration Diagrams (Lec 10)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F2E7; --paper-dark:#EFE7D4; --paper-line:#DED2B6;
+  --ink:#241F17; --ink-soft:#5B5342;
+  --blue:#152840; --blue-line:#7FA8D9; --blue-line-soft:rgba(127,168,217,.16);
+  --accent:#8B4A2B; --accent-soft:#F0E0CE;
+  --teal:#0F8A7D; --teal-bg:#E3F5F1; --teal-bd:#AEE0D5;
+  --amber:#B5780A; --amber-bg:#FBF0DC; --amber-bd:#EBCE8E;
+  --rose:#C23B5B; --rose-bg:#FBE7EC; --rose-bd:#EFC0CC;
+  --sky:#1C74B8; --sky-bg:#E6F2FB; --sky-bd:#B9DCF3;
+  --code-bg:#1B2032; --code-ink:#D6DCF0;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Source Serif 4', Georgia, serif; line-height:1.62;
+  display:flex; min-height:100vh;
+}
+::selection{background:#D9C79B;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  width:272px; flex-shrink:0; background:var(--blue); color:#EAF2FB;
+  position:sticky; top:0; height:100vh; overflow-y:auto; padding:22px 0 18px;
+}
+.sidebar::-webkit-scrollbar{width:7px;}
+.sidebar::-webkit-scrollbar-thumb{background:#2A4364; border-radius:4px;}
+.brand{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.95rem;
+  padding:0 22px 18px; border-bottom:1px solid #29405f; margin-bottom:12px; letter-spacing:.01em;
+}
+.brand small{display:block; font-weight:400; color:#8FB1DA; font-size:.72rem; margin-top:5px; letter-spacing:.06em; text-transform:uppercase;}
+.sidebar ul{list-style:none; margin:0; padding:0;}
+.sidebar a{
+  display:flex; align-items:baseline; gap:10px; color:#C7D9EF; text-decoration:none;
+  padding:9px 22px; font-size:.86rem; font-family:'JetBrains Mono',monospace; letter-spacing:.01em;
+  border-left:3px solid transparent; transition:background .15s, color .15s, border-color .15s;
+}
+.sidebar a:hover{background:#1D3355; color:#fff;}
+.sidebar a.active{background:#1D3355; color:#fff; border-left-color:var(--blue-line);}
+.sidebar .num{color:#5E85B4; font-size:.76rem;}
+.sidebar-foot{
+  padding:16px 22px 0; margin-top:10px; font-size:.72rem; color:#6F91BA;
+  font-family:'JetBrains Mono',monospace; line-height:1.55; border-top:1px solid #29405f;
+}
+
+/* ---------- main ---------- */
+main{flex:1; min-width:0; padding:48px 56px 120px; max-width:980px;}
+.hero{margin-bottom:44px;}
+.hero .kicker{
+  font-family:'JetBrains Mono',monospace; font-size:.78rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); font-weight:700; margin-bottom:10px;
+}
+.hero h1{font-size:2.35rem; margin:0 0 12px; line-height:1.18; color:#1a1610;}
+.hero .lead{font-size:1.14rem; color:var(--ink-soft); max-width:70ch;}
+
+section.topic{padding-top:26px; margin-top:8px; border-top:1px dashed var(--paper-line);}
+section.topic:first-of-type{border-top:none;}
+.topic-head{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+.topic-head .tnum{
+  font-family:'JetBrains Mono',monospace; font-size:1.6rem; font-weight:700; color:var(--paper-line);
+}
+.topic-head h2{font-size:1.55rem; margin:0; color:#1a1610;}
+.topic .subhead{color:var(--ink-soft); font-size:.98rem; margin-bottom:18px; max-width:66ch;}
+
+h3.h3{font-size:1.12rem; color:var(--blue); margin:26px 0 10px; font-family:'Source Serif 4',serif; font-weight:700;}
+p{margin:.75em 0; max-width:70ch;}
+ul.plain, ol.plain{max-width:70ch; padding-left:1.25em;}
+ul.plain li, ol.plain li{margin-bottom:6px;}
+strong{color:#141824;}
+code.inline{
+  background:var(--paper-dark); border:1px solid var(--paper-line); padding:1px 6px; border-radius:5px;
+  font-family:'JetBrains Mono',monospace; font-size:.85em; color:#6b3b12;
+}
+
+/* ---------- callouts ---------- */
+.callout{border-radius:10px; padding:16px 18px; margin:16px 0; max-width:70ch; border:1px solid; font-size:.94rem;}
+.callout .callout-label{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.72rem; letter-spacing:.08em;
+  text-transform:uppercase; display:flex; align-items:center; gap:7px; margin-bottom:6px;
+}
+.callout p{margin:.4em 0;}
+.callout.professor{background:var(--teal-bg); border-color:var(--teal-bd); color:#0B4741;}
+.callout.professor .callout-label{color:var(--teal);}
+.callout.examtip{background:var(--amber-bg); border-color:var(--amber-bd); color:#6B3403;}
+.callout.examtip .callout-label{color:var(--amber);}
+.callout.edgecase{background:var(--rose-bg); border-color:var(--rose-bd); color:#7A0E2C;}
+.callout.edgecase .callout-label{color:var(--rose);}
+.callout.brainstorm{background:var(--sky-bg); border-color:var(--sky-bd); color:#03426B;}
+.callout.brainstorm .callout-label{color:var(--sky);}
+
+/* ---------- blueprint diagram frame ---------- */
+.blueprint{
+  background:
+    linear-gradient(var(--blue-line-soft) 1px, transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg, var(--blue-line-soft) 1px, transparent 1px) 0 0/26px 26px,
+    var(--blue);
+  border-radius:12px; padding:20px; margin:18px 0 8px; overflow-x:auto;
+  box-shadow:inset 0 0 0 1px rgba(127,168,217,.25);
+}
+.blueprint .cap{
+  font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--blue-line); letter-spacing:.05em;
+  margin-bottom:8px; text-transform:uppercase; opacity:.9;
+}
+.blueprint svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+.uml-title{fill:#EAF2FB; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;}
+.uml-label{fill:#EAF2FB; font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+.uml-label-dim{fill:#9FC0E6; font-family:'JetBrains Mono',monospace; font-size:10.5px;}
+.uml-msg{fill:#FFE7B8; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;}
+.uml-msg-alt{fill:#BFE9DE; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;}
+.link-line{stroke:#7FA8D9; stroke-width:1.4; fill:none;}
+.link-line-soft{stroke:#4E7099; stroke-width:1.2; fill:none; stroke-dasharray:2 3;}
+.icon-stroke{stroke:#EAF2FB; stroke-width:1.6; fill:none;}
+.icon-fill{fill:#1C3A5E; stroke:#7FA8D9; stroke-width:1.4;}
+
+/* ---------- comparison / grid ---------- */
+table.cmp{border-collapse:collapse; width:100%; max-width:74ch; margin:14px 0; font-size:.92rem;}
+table.cmp th, table.cmp td{border:1px solid var(--paper-line); padding:9px 12px; text-align:left; vertical-align:top;}
+table.cmp th{background:var(--paper-dark); font-family:'JetBrains Mono',monospace; font-size:.76rem; letter-spacing:.04em; text-transform:uppercase; color:var(--blue);}
+table.cmp tr:nth-child(even) td{background:#FBF7EC;}
+
+.outline{
+  background:#FBF7EC; border:1px solid var(--paper-line); border-radius:10px; padding:16px 20px;
+  font-family:'JetBrains Mono',monospace; font-size:.86rem; max-width:70ch; margin:16px 0; line-height:1.85;
+}
+.outline .d1{padding-left:0;}
+.outline .d2{padding-left:22px; color:#3d4a63;}
+.outline .d3{padding-left:44px; color:#5c3d1f;}
+.outline .d4{padding-left:66px; color:#7A0E2C;}
+.outline .num{color:var(--accent); font-weight:700;}
+.outline .star{color:var(--sky); font-weight:700;}
+
+.icon-legend{display:flex; gap:26px; flex-wrap:wrap; margin:18px 0;}
+.icon-legend .item{display:flex; align-items:center; gap:12px; max-width:280px;}
+.icon-legend .item svg{flex-shrink:0;}
+.icon-legend .item .lbl{font-size:.88rem;}
+.icon-legend .item .lbl b{display:block; font-family:'JetBrains Mono',monospace; font-size:.82rem; color:var(--blue); margin-bottom:2px;}
+
+/* ---------- quiz ---------- */
+.quiz-q{background:#fff; border:1px solid var(--paper-line); border-radius:12px; padding:18px 20px; margin:16px 0; max-width:74ch;}
+.quiz-q .qtext{font-weight:700; margin-bottom:12px; color:#1a1610;}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{
+  text-align:left; padding:10px 14px; border-radius:8px; border:1px solid var(--paper-line); background:var(--paper);
+  cursor:pointer; font-family:'Source Serif 4',serif; font-size:.96rem; color:var(--ink); transition:all .12s;
+}
+.quiz-opt:hover{border-color:var(--accent);}
+.quiz-opt.correct{background:var(--teal-bg); border-color:var(--teal); color:#0B4741; font-weight:700;}
+.quiz-opt.wrong{background:var(--rose-bg); border-color:var(--rose); color:#7A0E2C;}
+.quiz-opt.dim{opacity:.5;}
+.quiz-fb{margin-top:12px; padding:12px 14px; border-radius:8px; font-size:.9rem; display:none;}
+.quiz-fb.show{display:block;}
+.quiz-fb.ok{background:var(--teal-bg); color:#0B4741;}
+.quiz-fb.no{background:var(--rose-bg); color:#7A0E2C;}
+.quiz-score{
+  font-family:'JetBrains Mono',monospace; background:var(--blue); color:#EAF2FB; border-radius:10px;
+  padding:14px 18px; max-width:74ch; margin-top:10px; font-size:.9rem;
+}
+
+footer.foot{margin-top:60px; padding-top:20px; border-top:1px solid var(--paper-line); font-size:.82rem; color:var(--ink-soft); font-family:'JetBrains Mono',monospace;}
+
+@media (max-width:880px){
+  body{flex-direction:column;}
+  .sidebar{position:relative; width:100%; height:auto;}
+  main{padding:32px 22px 90px;}
+}
+</style>
+</head>
+<body>
+
+<!-- shared icon sprite sheet: referenced with <use> across every diagram below -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <symbol id="icoActor" viewBox="-16 -30 32 56">
+    <circle cx="0" cy="-22" r="6" class="icon-stroke"/>
+    <line x1="0" y1="-16" x2="0" y2="8" class="icon-stroke"/>
+    <line x1="-10" y1="-6" x2="10" y2="-6" class="icon-stroke"/>
+    <line x1="0" y1="8" x2="-9" y2="24" class="icon-stroke"/>
+    <line x1="0" y1="8" x2="9" y2="24" class="icon-stroke"/>
+  </symbol>
+  <symbol id="icoBoundary" viewBox="-20 -16 40 32">
+    <circle cx="4" cy="0" r="13" class="icon-fill"/>
+    <line x1="-16" y1="-11" x2="-16" y2="11" class="icon-stroke"/>
+    <line x1="-16" y1="0" x2="-9" y2="0" class="icon-stroke"/>
+  </symbol>
+  <symbol id="icoControl" viewBox="-16 -18 32 34">
+    <circle cx="0" cy="2" r="13" class="icon-fill"/>
+    <path d="M -6 -13 A 10 10 0 1 1 -13 -3" class="icon-stroke" marker-end="url(#arrowSmall)"/>
+  </symbol>
+  <symbol id="icoEntity" viewBox="-14 -14 28 28">
+    <circle cx="0" cy="0" r="12" class="icon-fill"/>
+  </symbol>
+  <marker id="arrowSmall" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 z" fill="#EAF2FB"/>
+  </marker>
+  <marker id="arrowBlue" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+    <path d="M0,0 L8,4 L0,8 z" fill="#7FA8D9"/>
+  </marker>
+  <marker id="arrowGold" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+    <path d="M0,0 L8,4 L0,8 z" fill="#FFE7B8"/>
+  </marker>
+  <marker id="arrowTeal" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+    <path d="M0,0 L8,4 L0,8 z" fill="#BFE9DE"/>
+  </marker>
+  <marker id="arrowHollow" markerWidth="11" markerHeight="9" refX="9" refY="4" orient="auto">
+    <path d="M0,0 L9,4 L0,8" fill="none" stroke="#EAF2FB" stroke-width="1.3"/>
+  </marker>
+</defs>
+</svg>
+
+<nav class="sidebar">
+  <div class="brand">CSE213 · Additional Collaboration Diagrams<small>Lecture 10 companion</small></div>
+  <ul>
+    <li><a href="#scene"><span class="num">01</span>Setting the Scene</a></li>
+    <li><a href="#icons"><span class="num">02</span>Boundary / Control / Entity</a></li>
+    <li><a href="#numbering"><span class="num">03</span>The Numbering Scheme</a></li>
+    <li><a href="#ex1"><span class="num">04</span>Ex 1 — Add a New Campaign</a></li>
+    <li><a href="#ex2"><span class="num">05</span>Ex 2 — Assign Staff Contact</a></li>
+    <li><a href="#ex3"><span class="num">06</span>Ex 3 — Check Campaign Budget</a></li>
+    <li><a href="#ex4"><span class="num">07</span>Ex 4 — Record Completion</a></li>
+    <li><a href="#ex5"><span class="num">08</span>Ex 5 — Add an Advert (Iteration)</a></li>
+    <li><a href="#translate"><span class="num">09</span>Translation Guide</a></li>
+    <li><a href="#pitfalls"><span class="num">10</span>Exam Pitfalls</a></li>
+    <li><a href="#quiz"><span class="num">11</span>Practice Quiz</a></li>
+  </ul>
+  <div class="sidebar-foot">Follows Lec 10 slides (Ch. 9, Bennett).<br>Builds on: Sequence &amp; Collaboration Diagrams (Lec 7–8).</div>
+</nav>
+
+<main>
+<div class="hero">
+  <div class="kicker">CSE213 · Software Engineering &nbsp;/&nbsp; Lecture 10</div>
+  <h1>Additional Collaboration Diagrams</h1>
+  <p class="lead">Five fully worked collaboration diagrams from a marketing <em>Campaign Management</em> case study — a new domain on purpose, so you're forced to prove you understand the <strong>pattern</strong> behind these diagrams, not just one memorized scenario. We'll also formalize two things Lec 7–8 only touched lightly: the <strong>boundary / control / entity</strong> icon vocabulary, and the exact rules for <strong>nested decimal numbering</strong>.</p>
+</div>
+
+<section class="topic" id="scene">
+  <div class="topic-head"><span class="tnum">01</span><h2>Setting the Scene</h2></div>
+  <p class="subhead">A quick orientation before the diagrams start — who's in this world, and why the domain changed.</p>
+
+  <p>Lecture 10 stays inside <strong>Chapter 9 (Bennett)</strong> — still collaboration diagrams — but swaps out the Course Registration case study from Lec 7–8 for a <strong>marketing agency's Campaign Management system</strong>. The cast of domain objects:</p>
+  <ul class="plain">
+    <li><strong>Campaign Manager</strong> — the human actor who runs the show.</li>
+    <li><strong>Client</strong> — a company the agency runs campaigns for.</li>
+    <li><strong>Campaign</strong> — a marketing campaign belonging to a client, with a budget.</li>
+    <li><strong>Advert</strong> — an individual advert that's part of a campaign, and has a cost.</li>
+    <li><strong>StaffMember</strong> — an agency employee who can be assigned as a client's point of contact.</li>
+  </ul>
+  <p>Five use cases get the full worked-diagram treatment: <em>add a campaign</em>, <em>assign a staff contact</em>, <em>check a campaign's budget</em>, <em>record a campaign's completion</em>, and <em>add an advert to a campaign</em>. The last one comes with <strong>both</strong> a collaboration diagram <em>and</em> its equivalent sequence diagram, side by side — that pairing is the single most exam-relevant page in this lecture.</p>
+
+  <div class="callout professor">
+    <div class="callout-label">🎓 Professor's Note</div>
+    <p>Notice the domain swap is deliberate pedagogy, not laziness. If you can only reproduce the Course Registration diagrams from memory but freeze when handed Campaign/Client/Advert, you've memorized a picture, not learned a technique. The exam <em>will</em> hand you an unfamiliar domain. Your job in this lecture is to internalize the <strong>shape</strong>: actor → boundary → controller → (query loop, then act on entities) — a shape that's identical across all five examples here, just wearing different class names.</p>
+  </div>
+
+  <div class="callout brainstorm">
+    <div class="callout-label">💡 Brainstorm</div>
+    <p>Before you scroll further: given only the use-case name "Check campaign budget," sketch for yourself which entity classes you'd expect to be involved, and guess which one actually does the arithmetic (adds up advert costs). Compare your guess against Example 3 below — there's a real design principle hiding in the answer.</p>
+  </div>
+</section>
+
+<section class="topic" id="icons">
+  <div class="topic-head"><span class="tnum">02</span><h2>Boundary / Control / Entity — the Three Icons</h2></div>
+  <p class="subhead">Every non-actor object in every diagram this lecture is one of exactly three analysis-class stereotypes. Learn the icons cold — you'll be reading them nonstop.</p>
+
+  <p>These come from Jacobson's <strong>robustness analysis</strong> convention (the same idea behind ICONIX-style analysis), and every collaboration diagram in this lecture uses all three:</p>
+
+  <div class="icon-legend">
+    <div class="item">
+      <svg width="60" height="46" viewBox="-16 -18 32 34"><use href="#icoBoundary" x="16" y="18"/></svg>
+      <div class="lbl"><b>«boundary»</b>A screen, form, or external interface (printer, gateway). One boundary object per UI screen the user touches. Circle with a small perpendicular bar — think "plug into the outside world."</div>
+    </div>
+    <div class="item">
+      <svg width="60" height="46" viewBox="-16 -18 32 34"><use href="#icoControl" x="16" y="18"/></svg>
+      <div class="lbl"><b>«control»</b>Coordinates one use case's logic. Exactly <em>one</em> control object per use case realization; it lives only for that interaction. Circle with a curved arrow on top.</div>
+    </div>
+    <div class="item">
+      <svg width="60" height="46" viewBox="-14 -14 28 28"><use href="#icoEntity" x="14" y="14"/></svg>
+      <div class="lbl"><b>«entity»</b>A persistent, business/domain object — Client, Campaign, Advert, StaffMember. These map almost directly onto your class diagram. Plain circle.</div>
+    </div>
+  </div>
+
+  <h3 class="h3">The rule of thumb for identifying them</h3>
+  <ul class="plain">
+    <li><strong>One boundary object per screen or external interface</strong> the interaction touches — including non-UI interfaces like a printer (you'll see <code class="inline">:CompleteCampaignPI</code> — a "printer interface" boundary — in Example 4).</li>
+    <li><strong>Exactly one control object per use case.</strong> If you see two "curved-arrow" circles doing the coordinating in one diagram, something's wrong — split the use case, or you've mis-tagged an entity as a controller.</li>
+    <li><strong>One entity object per persistent domain noun</strong> that the use case reads or writes: Client, Campaign, Advert, StaffMember here.</li>
+  </ul>
+
+  <div class="callout edgecase">
+    <div class="callout-label">⚠️ Edge Case</div>
+    <p>The curved arrow sitting on top of the control icon is <strong>part of the class symbol itself</strong> — it is fixed decoration on <em>every</em> instance of a control class, drawn identically whether or not that object ever sends itself a message. Don't confuse it with an actual self-message loop-back arrow (which would be a separate numbered arrow drawn from an object back to itself, representing a real message in the interaction). One is iconography; the other is a message.</p>
+  </div>
+
+  <div class="callout examtip">
+    <div class="callout-label">📌 Exam Tip</div>
+    <p>A very common CSE213 question format: "Given this use case description, list the candidate boundary, control, and entity classes." Walk the description sentence by sentence — every screen/form/report → boundary; the use case itself → one control class named after the use case (e.g. <code class="inline">AddNewCampaign</code>); every business noun the actor or system needs to remember → entity. If a "thing" doesn't outlive the use case and doesn't touch the outside world, it's probably not a class at all — just a local variable or parameter.</p>
+  </div>
+</section>
+
+<section class="topic" id="numbering">
+  <div class="topic-head"><span class="tnum">03</span><h2>The Numbering Scheme</h2></div>
+  <p class="subhead">Collaboration diagrams have no time axis — the numbers on the arrows are the <em>only</em> thing telling you what happens when. Get this rule wrong and every diagram you draw is illegible.</p>
+
+  <ol class="plain">
+    <li><strong>Top-level messages</strong> — the ones sent directly as part of the root interaction — are numbered <code class="inline">1, 2, 3, 4 …</code> in the order they occur.</li>
+    <li>If handling message <code class="inline">N</code> causes its receiver to send further messages, those <strong>nested</strong> messages are numbered <code class="inline">N.1, N.2, N.3 …</code></li>
+    <li>If one of those (say <code class="inline">N.2</code>) itself triggers more messages, they get <code class="inline">N.2.1, N.2.2 …</code> — and so on, arbitrarily deep.</li>
+    <li><strong>The number of dots = stack depth.</strong> A message numbered <code class="inline">4.1.1.1</code> is happening four call-frames deep inside the handling of top-level message 4. Read it exactly like a nested outline or a recursive call stack.</li>
+    <li>An asterisk <code class="inline">*</code> immediately before a message name means it's sent <strong>repeatedly</strong> — a loop. You'll often see an explicit guard alongside it, e.g. <code class="inline">1 *[For all clients]: getClient</code>. This is the collaboration-diagram equivalent of a sequence diagram's <code class="inline">loop</code> combined fragment (Section 09 makes the translation explicit).</li>
+    <li>Numbering <strong>restarts fresh</strong> for every separate collaboration diagram — each one models a single, self-contained use case (or use-case fragment), not a running total across the lecture.</li>
+  </ol>
+
+  <div class="outline">
+    <div class="d1"><span class="num">1.</span> control → EntityA : doSomething()</div>
+    <div class="d2"><span class="num">1.1</span> EntityA → EntityB : helperCall()</div>
+    <div class="d3"><span class="num">1.1.1</span> EntityB → EntityC : <span class="star">*</span>fetchDetail() &nbsp;<span style="color:#5c3d1f">// iterated — one call per item</span></div>
+    <div class="d1"><span class="num">2.</span> control → boundary : refreshView()</div>
+    <div class="d2"><span class="num">2.1</span> boundary → control : ??? &nbsp;<span style="color:#3d4a63">← what comes next?</span></div>
+  </div>
+
+  <div class="callout brainstorm">
+    <div class="callout-label">💡 Brainstorm</div>
+    <p>In the outline above, if <code class="inline">boundary → control</code> triggers one more message back down into an entity, what number does <em>that</em> message get? (Answer: <code class="inline">2.1.1</code> — one level deeper than its parent <code class="inline">2.1</code>, regardless of what numbers were used earlier in the diagram.) This "reset per branch, nest per depth" logic is exactly what trips people up on exams when a diagram has two or three sibling top-level messages each with their own nested sub-trees, as you'll see starting with Example 3.</p>
+  </div>
+
+  <div class="callout examtip">
+    <div class="callout-label">📌 Exam Tip</div>
+    <p>If you're asked to <em>draw</em> a collaboration diagram from a sequence diagram (or vice versa), number every message on the sequence diagram in the order its activation bar starts, top to bottom, then translate directly using the nesting rule above — a nested activation bar becomes a nested decimal number one level deeper than the activation bar that spawned it.</p>
+  </div>
+</section>
+
+<section class="topic" id="ex1">
+  <div class="topic-head"><span class="tnum">04</span><h2>Worked Example 1 — Add a New Campaign</h2></div>
+  <p class="subhead">The baseline shape. Every later example is a variation on this skeleton, so study it slowly.</p>
+
+  <div class="blueprint">
+    <div class="cap">sd Add a new campaign — collaboration diagram</div>
+    <svg viewBox="0 0 620 380" xmlns="http://www.w3.org/2000/svg">
+      <!-- links -->
+      <line x1="80" y1="84" x2="228" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="155" y="58" text-anchor="middle" class="uml-msg"><tspan x="155" dy="0">3 selectClient</tspan><tspan x="155" dy="14">6 createNewCampaign</tspan></text>
+
+      <line x1="272" y1="80" x2="442" y2="80" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="357" y="58" text-anchor="middle" class="uml-msg"><tspan x="357" dy="0">4 showClientCampaigns</tspan><tspan x="357" dy="14">7 createNewCampaign</tspan></text>
+      <line x1="442" y1="100" x2="272" y2="100" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="357" y="122" text-anchor="middle" class="uml-msg-alt">2 startInterface</text>
+
+      <line x1="446" y1="107" x2="304" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="425" y="185" text-anchor="middle" class="uml-msg"><tspan x="425" dy="0">1 *getClient</tspan><tspan x="425" dy="14">5 getClientCampaigns</tspan></text>
+
+      <line x1="470" y1="108" x2="516" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="535" y="195" text-anchor="middle" class="uml-msg">8 createCampaign</text>
+
+      <line x1="506" y1="300" x2="328" y2="300" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="417" y="317" text-anchor="middle" class="uml-msg-alt">9 addNewCampaign</text>
+
+      <!-- nodes -->
+      <use href="#icoActor" x="44" y="60" width="32" height="56"/>
+      <text x="60" y="134" text-anchor="middle" class="uml-label">Campaign</text>
+      <text x="60" y="147" text-anchor="middle" class="uml-label">Manager</text>
+
+      <use href="#icoBoundary" x="230" y="74" width="40" height="32"/>
+      <text x="250" y="128" text-anchor="middle" class="uml-label-dim">:AddNewCampaignUI</text>
+
+      <use href="#icoControl" x="444" y="72" width="32" height="34"/>
+      <text x="460" y="128" text-anchor="middle" class="uml-label-dim">:AddNewCampaign</text>
+
+      <use href="#icoEntity" x="286" y="286" width="28" height="28"/>
+      <text x="300" y="336" text-anchor="middle" class="uml-label-dim">:Client</text>
+
+      <use href="#icoEntity" x="506" y="286" width="28" height="28"/>
+      <text x="520" y="336" text-anchor="middle" class="uml-label-dim">:Campaign</text>
+    </svg>
+  </div>
+
+  <h3 class="h3">Reading it step by step</h3>
+  <ol class="plain">
+    <li><strong>1 *getClient</strong> — before the user sees anything, the control object asks <em>every</em> Client entity for its data (the <code class="inline">*</code> means "loop over all of them") so the UI can populate a client-picker list.</li>
+    <li><strong>2 startInterface</strong> — control tells the boundary to actually display itself now that it has data ready.</li>
+    <li><strong>3 selectClient</strong> — the Campaign Manager picks a client on screen.</li>
+    <li><strong>4 showClientCampaigns</strong> — the boundary forwards that selection into the control object.</li>
+    <li><strong>5 getClientCampaigns</strong> — control asks the chosen <code class="inline">:Client</code> for its existing campaigns, to display them.</li>
+    <li><strong>6 createNewCampaign</strong> — the actor clicks "new campaign" on the UI.</li>
+    <li><strong>7 createNewCampaign</strong> — boundary forwards that click to control.</li>
+    <li><strong>8 createCampaign</strong> — control asks the <code class="inline">Campaign</code> class to manufacture a brand-new Campaign instance.</li>
+    <li><strong>9 addNewCampaign</strong> — the new <code class="inline">:Campaign</code> registers itself with <code class="inline">:Client</code> — the domain objects link to each other directly, without going back through control.</li>
+  </ol>
+
+  <div class="callout professor">
+    <div class="callout-label">🎓 Professor's Note</div>
+    <p>Steps 1–2 happen <em>before</em> the actor does anything — that's the setup phase every one of these diagrams has: prime the boundary with data, <em>then</em> let the human act. And step 9 is the opposite pattern: once control has assembled the pieces, it lets two entities talk to each other directly rather than routing every last domino through itself. Control coordinates; it doesn't micromanage.</p>
+  </div>
+
+  <div class="callout edgecase">
+    <div class="callout-label">⚠️ Edge Case</div>
+    <p>Why is <code class="inline">8 createCampaign</code> drawn as control → <code class="inline">:Campaign</code> when no Campaign object exists yet to receive it? In UML this models a message to the <em>class</em> (a "class-scope"/static-style creation operation) rather than to a specific instance — you're allowed to draw a link to an anonymous or not-yet-existing object when the message's job is to create it. Some textbooks draw a dashed "create" arrow instead; Bennett's notation here just numbers it like any other message.</p>
+  </div>
+</section>
+
+<section class="topic" id="ex2">
+  <div class="topic-head"><span class="tnum">05</span><h2>Worked Example 2 — Assign Staff Contact</h2></div>
+  <p class="subhead">Same skeleton as Example 1. If you recognize the shape, this one should take you under two minutes to read.</p>
+
+  <div class="blueprint">
+    <div class="cap">sd Assign staff contact — collaboration diagram</div>
+    <svg viewBox="0 0 620 380" xmlns="http://www.w3.org/2000/svg">
+      <line x1="80" y1="84" x2="228" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="155" y="58" text-anchor="middle" class="uml-msg"><tspan x="155" dy="0">4 selectClient</tspan><tspan x="155" dy="14">5 assignStaffContact</tspan></text>
+
+      <line x1="272" y1="80" x2="442" y2="80" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="357" y="68" text-anchor="middle" class="uml-msg">6 assignStaffContact</text>
+      <line x1="442" y1="100" x2="272" y2="100" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="357" y="122" text-anchor="middle" class="uml-msg-alt">3 startInterface</text>
+
+      <line x1="446" y1="107" x2="304" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="415" y="195" text-anchor="middle" class="uml-msg">1 *getClient</text>
+
+      <line x1="470" y1="108" x2="516" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="540" y="185" text-anchor="middle" class="uml-msg"><tspan x="540" dy="0">2 *getStaffDetails</tspan><tspan x="540" dy="14">7 assignStaffContact</tspan></text>
+
+      <line x1="506" y1="300" x2="328" y2="300" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="417" y="317" text-anchor="middle" class="uml-msg-alt">8 assignStaffContact</text>
+
+      <use href="#icoActor" x="44" y="60" width="32" height="56"/>
+      <text x="60" y="134" text-anchor="middle" class="uml-label">Campaign</text>
+      <text x="60" y="147" text-anchor="middle" class="uml-label">Manager</text>
+
+      <use href="#icoBoundary" x="230" y="74" width="40" height="32"/>
+      <text x="250" y="128" text-anchor="middle" class="uml-label-dim">:AssignStaffContactUI</text>
+
+      <use href="#icoControl" x="444" y="72" width="32" height="34"/>
+      <text x="460" y="128" text-anchor="middle" class="uml-label-dim">:AssignStaffContact</text>
+
+      <use href="#icoEntity" x="286" y="286" width="28" height="28"/>
+      <text x="300" y="336" text-anchor="middle" class="uml-label-dim">:Client</text>
+
+      <use href="#icoEntity" x="506" y="286" width="28" height="28"/>
+      <text x="520" y="336" text-anchor="middle" class="uml-label-dim">:StaffMember</text>
+    </svg>
+  </div>
+
+  <table class="cmp">
+    <tr><th>Slot in the skeleton</th><th>Example 1 (Add Campaign)</th><th>Example 2 (Assign Staff)</th></tr>
+    <tr><td>Initial iterate(s) to populate the UI</td><td>one — <code class="inline">*getClient</code></td><td>two — <code class="inline">*getClient</code> <em>and</em> <code class="inline">*getStaffDetails</code>, because the screen needs both a client list and a staff list</td></tr>
+    <tr><td>Second entity</td><td><code class="inline">:Campaign</code> (created fresh)</td><td><code class="inline">:StaffMember</code> (already exists, just gets linked)</td></tr>
+    <tr><td>Final domain-to-domain message</td><td>Campaign → Client (<code class="inline">addNewCampaign</code>)</td><td>StaffMember → Client (<code class="inline">assignStaffContact</code>)</td></tr>
+  </table>
+
+  <div class="callout examtip">
+    <div class="callout-label">📌 Exam Tip</div>
+    <p>When a UI screen needs to populate <em>two</em> independent pickers (client list + staff list here), you'll see two separate iterate messages at the very start, both numbered before <code class="inline">startInterface</code> — never combined into one. Each entity type gets its own loop.</p>
+  </div>
+</section>
+
+<section class="topic" id="ex3">
+  <div class="topic-head"><span class="tnum">06</span><h2>Worked Example 3 — Check Campaign Budget</h2></div>
+  <p class="subhead">First diagram with real nested numbering — up to four dots deep. This is the one to slow down for.</p>
+
+  <div class="blueprint">
+    <div class="cap">sd Check campaign budget — collaboration diagram</div>
+    <svg viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg">
+      <line x1="66" y1="84" x2="208" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="140" y="58" text-anchor="middle" class="uml-msg"><tspan x="140" dy="0">3 selectClient</tspan><tspan x="140" dy="14">4 checkCampaignBudget</tspan></text>
+
+      <line x1="252" y1="80" x2="412" y2="80" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="330" y="58" text-anchor="middle" class="uml-msg"><tspan x="330" dy="0">3.1 showClientCampaigns</tspan><tspan x="330" dy="14">4.1 checkCampaignBudget</tspan></text>
+      <line x1="412" y1="100" x2="252" y2="100" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="330" y="122" text-anchor="middle" class="uml-msg-alt">2 startInterface</text>
+
+      <line x1="416" y1="107" x2="204" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="325" y="192" text-anchor="middle" class="uml-msg"><tspan x="325" dy="0">1 *getClient</tspan><tspan x="325" dy="14">3.1.1 getClientCampaigns</tspan></text>
+
+      <line x1="430" y1="108" x2="430" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="452" y="192" text-anchor="start" class="uml-msg"><tspan x="452" dy="0">3.1.2 *getCampaignDetails</tspan><tspan x="452" dy="14">4.1.1 checkCampaignBudget</tspan></text>
+
+      <line x1="446" y1="300" x2="614" y2="300" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="530" y="286" text-anchor="middle" class="uml-msg"><tspan x="530" dy="0">4.1.1.1 *getCost</tspan><tspan x="530" dy="14">4.1.1.2 getOverheads</tspan></text>
+
+      <use href="#icoActor" x="34" y="60" width="32" height="56"/>
+      <text x="50" y="134" text-anchor="middle" class="uml-label">Campaign</text>
+      <text x="50" y="147" text-anchor="middle" class="uml-label">Manager</text>
+
+      <use href="#icoBoundary" x="210" y="74" width="40" height="32"/>
+      <text x="230" y="128" text-anchor="middle" class="uml-label-dim">:CheckCampaignBudgetUI</text>
+
+      <use href="#icoControl" x="414" y="72" width="32" height="34"/>
+      <text x="430" y="128" text-anchor="middle" class="uml-label-dim">:CheckCampaignBudget</text>
+
+      <use href="#icoEntity" x="186" y="286" width="28" height="28"/>
+      <text x="200" y="336" text-anchor="middle" class="uml-label-dim">:Client</text>
+
+      <use href="#icoEntity" x="416" y="286" width="28" height="28"/>
+      <text x="430" y="336" text-anchor="middle" class="uml-label-dim">:Campaign</text>
+
+      <use href="#icoEntity" x="616" y="286" width="28" height="28"/>
+      <text x="630" y="336" text-anchor="middle" class="uml-label-dim">:Advert</text>
+    </svg>
+  </div>
+
+  <h3 class="h3">The same interaction, written as a nested call outline</h3>
+  <div class="outline">
+    <div class="d1"><span class="num">1</span> control → :Client &nbsp;<span class="star">*</span>getClient()</div>
+    <div class="d1"><span class="num">2</span> control → boundary : startInterface()</div>
+    <div class="d1"><span class="num">3</span> actor → boundary : selectClient()</div>
+    <div class="d2"><span class="num">3.1</span> boundary → control : showClientCampaigns()</div>
+    <div class="d3"><span class="num">3.1.1</span> control → :Client : getClientCampaigns()</div>
+    <div class="d3"><span class="num">3.1.2</span> control → :Campaign &nbsp;<span class="star">*</span>getCampaignDetails()</div>
+    <div class="d1"><span class="num">4</span> actor → boundary : checkCampaignBudget()</div>
+    <div class="d2"><span class="num">4.1</span> boundary → control : checkCampaignBudget()</div>
+    <div class="d3"><span class="num">4.1.1</span> control → :Campaign : checkCampaignBudget()</div>
+    <div class="d4"><span class="num">4.1.1.1</span> :Campaign → :Advert &nbsp;<span class="star">*</span>getCost()</div>
+    <div class="d4"><span class="num">4.1.1.2</span> :Campaign → :Advert : getOverheads()</div>
+  </div>
+
+  <div class="callout professor">
+    <div class="callout-label">🎓 Professor's Note</div>
+    <p>Look at who actually adds up the budget: <strong><code class="inline">:Campaign</code></strong>, not the control object. Control receives <code class="inline">checkCampaignBudget()</code> at depth 3, forwards it one level deeper to the <code class="inline">Campaign</code> entity, and <em>Campaign</em> is the one that loops over its adverts (<code class="inline">*getCost</code>) and sums them. This is the <strong>Information Expert</strong> principle you saw in the SOLID/GRASP material: the object holding the data (Campaign owns its list of Adverts) is the one that should compute over it — not the controller. That's the answer to the Section 01 brainstorm.</p>
+  </div>
+
+  <div class="callout examtip">
+    <div class="callout-label">📌 Exam Tip</div>
+    <p>Notice <code class="inline">4.1.1</code> reuses the exact same message name <code class="inline">checkCampaignBudget</code> as its parent <code class="inline">4.1</code> and grandparent <code class="inline">4</code>. That's normal and common — the same conceptual operation gets forwarded down the call chain, object to object, each hop getting a deeper number. Don't assume a repeated message name means a mistake; check the <em>numbering</em>, not just the name, to know which hop you're looking at.</p>
+  </div>
+</section>
+
+<section class="topic" id="ex4">
+  <div class="topic-head"><span class="tnum">07</span><h2>Worked Example 4 — Record Completion of a Campaign</h2></div>
+  <p class="subhead">Same core skeleton, plus a twist: control talks to <em>two different boundary objects</em> in one interaction — one for input, one for output.</p>
+
+  <div class="blueprint">
+    <div class="cap">sd Record completion of a campaign — collaboration diagram</div>
+    <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg">
+      <line x1="66" y1="84" x2="208" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="140" y="58" text-anchor="middle" class="uml-msg"><tspan x="140" dy="0">3 selectClient</tspan><tspan x="140" dy="14">4 completeCampaign</tspan></text>
+
+      <line x1="252" y1="80" x2="412" y2="80" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="330" y="58" text-anchor="middle" class="uml-msg"><tspan x="330" dy="0">3.1 showClientCampaigns</tspan><tspan x="330" dy="14">4.1 completeCampaign</tspan></text>
+      <line x1="412" y1="100" x2="252" y2="100" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="330" y="122" text-anchor="middle" class="uml-msg-alt">2 startInterface</text>
+
+      <line x1="446" y1="84" x2="630" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="538" y="70" text-anchor="middle" class="uml-msg">4.1.2 printCompletionForm</text>
+
+      <line x1="416" y1="107" x2="204" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="325" y="192" text-anchor="middle" class="uml-msg"><tspan x="325" dy="0">1 *getClient</tspan><tspan x="325" dy="14">3.1.1 getClientCampaigns</tspan></text>
+
+      <line x1="430" y1="108" x2="430" y2="284" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="452" y="192" text-anchor="start" class="uml-msg"><tspan x="452" dy="0">3.1.2 *getCampaignDetails</tspan><tspan x="452" dy="14">4.1.1 completeCampaign</tspan></text>
+
+      <use href="#icoActor" x="34" y="60" width="32" height="56"/>
+      <text x="50" y="134" text-anchor="middle" class="uml-label">Campaign</text>
+      <text x="50" y="147" text-anchor="middle" class="uml-label">Manager</text>
+
+      <use href="#icoBoundary" x="210" y="74" width="40" height="32"/>
+      <text x="230" y="128" text-anchor="middle" class="uml-label-dim">:CompleteCampaignUI</text>
+
+      <use href="#icoControl" x="414" y="72" width="32" height="34"/>
+      <text x="430" y="128" text-anchor="middle" class="uml-label-dim">:CompleteCampaign</text>
+
+      <use href="#icoBoundary" x="630" y="74" width="40" height="32"/>
+      <text x="650" y="128" text-anchor="middle" class="uml-label-dim">:CompleteCampaignPI</text>
+
+      <use href="#icoEntity" x="186" y="286" width="28" height="28"/>
+      <text x="200" y="336" text-anchor="middle" class="uml-label-dim">:Client</text>
+
+      <use href="#icoEntity" x="416" y="286" width="28" height="28"/>
+      <text x="430" y="336" text-anchor="middle" class="uml-label-dim">:Campaign</text>
+    </svg>
+  </div>
+
+  <p>Steps 1 through 3.1.2 are identical in shape to Example 3 (populate the client list, let the manager pick a client, show that client's campaigns). The new material starts at step 4:</p>
+  <ol class="plain">
+    <li><strong>4 → 4.1 → 4.1.1 completeCampaign</strong> — the manager's "mark complete" click cascades from actor → boundary → control → the <code class="inline">:Campaign</code> entity, exactly like the budget check cascaded in Example 3.</li>
+    <li><strong>4.1.2 printCompletionForm</strong> — <em>after</em> the entity update, control sends one more message — but this time not down into an entity, out to <strong>a second boundary object</strong>, <code class="inline">:CompleteCampaignPI</code> ("PI" = printer interface). Note the number: it's a sibling of <code class="inline">4.1.1</code>, not nested inside it — both are direct children of <code class="inline">4.1</code>, happening one after the other as part of handling the same top-level click.</li>
+  </ol>
+
+  <div class="callout edgecase">
+    <div class="callout-label">⚠️ Edge Case</div>
+    <p>Boundary objects are <strong>not only</strong> input forms. Anything that talks to the world outside the software — a printer, an email gateway, a payment terminal, another system's API — is modeled as a boundary object too. A single use case can perfectly legally involve two, three, or more boundary objects: one per distinct outside-world touchpoint, input <em>and</em> output alike.</p>
+  </div>
+
+  <div class="callout examtip">
+    <div class="callout-label">📌 Exam Tip</div>
+    <p>If an exam scenario says something like "…and the system prints a receipt," that sentence alone is enough to justify a second boundary class in your candidate-class list — don't fold printing into the control object just because it feels like "system logic." Printing touches the outside world, so it's boundary work.</p>
+  </div>
+</section>
+
+<section class="topic" id="ex5">
+  <div class="topic-head"><span class="tnum">08</span><h2>Worked Example 5 — Add a New Advert</h2></div>
+  <p class="subhead">The keystone example: the <em>same</em> use case, drawn twice — once as a collaboration diagram, once as a sequence diagram — so you can see the translation happen in front of you.</p>
+
+  <p>This use case has a three-step drill-down: pick a client, pick one of their campaigns, then create a new advert inside it. Each drill-down step re-populates a list, and re-populating a list means <strong>iterating</strong> — which is exactly the mechanic this example exists to teach.</p>
+
+  <div class="blueprint">
+    <div class="cap">sd Add a new advert to a campaign — collaboration diagram</div>
+    <svg viewBox="0 0 820 500" xmlns="http://www.w3.org/2000/svg">
+      <line x1="66" y1="84" x2="208" y2="84" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="140" y="42" text-anchor="middle" class="uml-msg"><tspan x="140" dy="0">3 selectClient</tspan><tspan x="140" dy="14">4 selectCampaign</tspan><tspan x="140" dy="14">5 createNewAdvert</tspan></text>
+
+      <line x1="252" y1="80" x2="412" y2="80" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="330" y="42" text-anchor="middle" class="uml-msg"><tspan x="330" dy="0">3.1 showClientCampaigns</tspan><tspan x="330" dy="14">4.1 showCampaignAdverts</tspan><tspan x="330" dy="14">5.1 addNewAdvert</tspan></text>
+      <line x1="412" y1="102" x2="252" y2="102" class="link-line" marker-end="url(#arrowTeal)"/>
+      <text x="330" y="122" text-anchor="middle" class="uml-msg-alt">2 startInterface</text>
+
+      <line x1="416" y1="106" x2="176" y2="316" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="260" y="205" text-anchor="middle" class="uml-msg"><tspan x="260" dy="0">1 *[For all clients]: getClient</tspan><tspan x="260" dy="14">3.1.1 listCampaigns</tspan></text>
+
+      <line x1="430" y1="108" x2="430" y2="316" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="452" y="185" text-anchor="start" class="uml-msg"><tspan x="452" dy="0">3.1.2 *[…client's campaigns]:</tspan><tspan x="452" dy="14">getCampaignDetails</tspan><tspan x="452" dy="18">4.1.1 listAdverts</tspan><tspan x="452" dy="14">5.1.1 addNewAdvert</tspan></text>
+
+      <line x1="444" y1="106" x2="644" y2="316" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="600" y="205" text-anchor="middle" class="uml-msg"><tspan x="600" dy="0">4.1.2 *[…campaign's adverts]:</tspan><tspan x="600" dy="14">getAdvertDetails</tspan></text>
+
+      <line x1="430" y1="344" x2="430" y2="426" class="link-line-soft" marker-end="url(#arrowHollow)"/>
+      <text x="452" y="390" text-anchor="start" class="uml-msg-alt"><tspan x="452" dy="0">5.1.1.1 Advert</tspan><tspan x="452" dy="13" style="fill:#9FC0E6; font-weight:400;">(creates newAd)</tspan></text>
+
+      <use href="#icoActor" x="34" y="60" width="32" height="56"/>
+      <text x="50" y="134" text-anchor="middle" class="uml-label">Campaign</text>
+      <text x="50" y="147" text-anchor="middle" class="uml-label">Manager</text>
+
+      <use href="#icoBoundary" x="210" y="74" width="40" height="32"/>
+      <text x="230" y="128" text-anchor="middle" class="uml-label-dim">:AddAdvertUI</text>
+
+      <use href="#icoControl" x="414" y="72" width="32" height="34"/>
+      <text x="430" y="128" text-anchor="middle" class="uml-label-dim">:AddAdvert</text>
+
+      <use href="#icoEntity" x="146" y="316" width="28" height="28"/>
+      <text x="160" y="366" text-anchor="middle" class="uml-label-dim">:Client</text>
+
+      <use href="#icoEntity" x="416" y="316" width="28" height="28"/>
+      <text x="430" y="366" text-anchor="middle" class="uml-label-dim">:Campaign</text>
+
+      <use href="#icoEntity" x="636" y="316" width="28" height="28"/>
+      <text x="650" y="366" text-anchor="middle" class="uml-label-dim">:Advert</text>
+
+      <use href="#icoEntity" x="416" y="426" width="28" height="28"/>
+      <text x="430" y="470" text-anchor="middle" class="uml-label-dim">newAd:Advert</text>
+    </svg>
+  </div>
+
+  <div class="callout edgecase">
+    <div class="callout-label">⚠️ Edge Case</div>
+    <p>Two naming quirks worth flagging: the new instance is called <code class="inline">newAd:Advert</code> instead of just <code class="inline">:Advert</code> — use the <code class="inline">instanceName:ClassName</code> form whenever you need to refer back to a <em>specific</em> object later in the diagram; plain <code class="inline">:ClassName</code> stays anonymous. And this particular slide labels the actor <code class="inline">:CampaignManager</code> with a leading colon, even though it's an actor, not an object instance — a labeling inconsistency you'll sometimes meet in real slide decks; don't let it confuse you about what's an actor versus an entity.</p>
+  </div>
+
+  <div class="blueprint">
+    <div class="cap">sd Add a new advert to a campaign — equivalent sequence diagram</div>
+    <svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg">
+      <!-- object headers -->
+      <rect x="25" y="60" width="130" height="26" rx="4" class="icon-fill"/>
+      <text x="90" y="77" text-anchor="middle" class="uml-title">:CampaignManager</text>
+      <rect x="195" y="60" width="130" height="26" rx="4" class="icon-fill"/>
+      <text x="260" y="77" text-anchor="middle" class="uml-title">:Client</text>
+      <rect x="375" y="60" width="130" height="26" rx="4" class="icon-fill"/>
+      <text x="440" y="77" text-anchor="middle" class="uml-title">:Campaign</text>
+      <rect x="535" y="60" width="130" height="26" rx="4" class="icon-fill"/>
+      <text x="600" y="77" text-anchor="middle" class="uml-title">:Advert</text>
+
+      <!-- lifelines -->
+      <line x1="90" y1="86" x2="90" y2="410" class="link-line-soft"/>
+      <line x1="260" y1="86" x2="260" y2="410" class="link-line-soft"/>
+      <line x1="440" y1="86" x2="440" y2="410" class="link-line-soft"/>
+      <line x1="600" y1="86" x2="600" y2="330" class="link-line-soft"/>
+
+      <!-- manager long activation -->
+      <rect x="86" y="118" width="8" height="270" class="icon-fill"/>
+
+      <!-- msg 1 & 2 -->
+      <line x1="94" y1="140" x2="256" y2="140" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="175" y="134" text-anchor="middle" class="uml-msg">1 getName</text>
+      <rect x="256" y="134" width="8" height="46" class="icon-fill"/>
+      <line x1="94" y1="168" x2="256" y2="168" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="175" y="184" text-anchor="middle" class="uml-msg">2 listCampaigns</text>
+
+      <!-- loop 1 frame -->
+      <rect x="222" y="192" width="256" height="42" fill="none" class="link-line-soft"/>
+      <path d="M222,192 h34 v10 l-8,8 h-26 z" fill="#25406A"/>
+      <text x="228" y="205" class="uml-msg-alt" style="font-size:10px;">loop</text>
+      <text x="262" y="205" class="uml-label-dim">[For all client's campaigns]</text>
+      <line x1="264" y1="220" x2="436" y2="220" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="350" y="215" text-anchor="middle" class="uml-msg" style="font-size:10.5px;">2.1 getCampaignDetails</text>
+
+      <!-- msg 3 -->
+      <line x1="94" y1="255" x2="436" y2="255" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="270" y="249" text-anchor="middle" class="uml-msg">3 listAdverts</text>
+      <rect x="436" y="220" width="8" height="150" class="icon-fill"/>
+
+      <!-- loop 2 frame -->
+      <rect x="402" y="272" width="216" height="42" fill="none" class="link-line-soft"/>
+      <path d="M402,272 h34 v10 l-8,8 h-26 z" fill="#25406A"/>
+      <text x="408" y="285" class="uml-msg-alt" style="font-size:10px;">loop</text>
+      <text x="442" y="285" class="uml-label-dim">[For all campaign's adverts]</text>
+      <line x1="444" y1="300" x2="596" y2="300" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="520" y="295" text-anchor="middle" class="uml-msg" style="font-size:10.5px;">3.1 getAdvertDetails</text>
+      <rect x="596" y="294" width="8" height="16" class="icon-fill"/>
+
+      <!-- msg 4 addNewAdvert -->
+      <line x1="94" y1="345" x2="436" y2="345" class="link-line" marker-end="url(#arrowGold)"/>
+      <text x="270" y="339" text-anchor="middle" class="uml-msg">4 addNewAdvert</text>
+
+      <!-- object creation -->
+      <line x1="444" y1="372" x2="686" y2="372" class="link-line-soft" marker-end="url(#arrowHollow)"/>
+      <text x="560" y="366" text-anchor="middle" class="uml-msg-alt">«create» Advert</text>
+      <rect x="686" y="358" width="100" height="26" rx="4" class="icon-fill"/>
+      <text x="736" y="375" text-anchor="middle" class="uml-title" style="font-size:10.5px;">newAd:Advert</text>
+      <line x1="736" y1="384" x2="736" y2="410" class="link-line-soft"/>
+    </svg>
+  </div>
+
+  <h3 class="h3">The vocabulary this diagram introduces</h3>
+  <table class="cmp">
+    <tr><th>Term</th><th>What it is in the diagram above</th></tr>
+    <tr><td><strong>Lifeline</strong></td><td>The dashed vertical line under each object's header box — its personal timeline, running top to bottom.</td></tr>
+    <tr><td><strong>Activation / Execution</strong></td><td>The thin filled rectangle on a lifeline while that object is actively doing work (e.g. <code class="inline">:Client</code>'s bar while it handles <code class="inline">getName</code>/<code class="inline">listCampaigns</code>).</td></tr>
+    <tr><td><strong>Combined Fragment</strong></td><td>The bordered box wrapping one or more messages — here, both <code class="inline">loop</code> boxes.</td></tr>
+    <tr><td><strong>Interaction Operator</strong></td><td>The keyword in the small tab at the frame's top-left corner — <code class="inline">loop</code>, in both cases here (others you'll meet: <code class="inline">alt</code>, <code class="inline">opt</code>, <code class="inline">par</code>).</td></tr>
+    <tr><td><strong>Interaction Constraint</strong></td><td>The bracketed guard condition next to the operator — <code class="inline">[For all client's campaigns]</code> and <code class="inline">[For all campaign's adverts]</code>. It's the sequence-diagram cousin of collaboration diagram's <code class="inline">*[…]</code> notation.</td></tr>
+    <tr><td><strong>Object Creation</strong></td><td>A dashed arrow (open arrowhead) pointing at a box that appears partway down the page — <code class="inline">newAd:Advert</code>, which didn't exist before the <code class="inline">addNewAdvert</code> call.</td></tr>
+  </table>
+
+  <div class="callout professor">
+    <div class="callout-label">🎓 Professor's Note</div>
+    <p>Line the two diagrams up side by side and match them piece by piece: every <code class="inline">*[condition]: message</code> on the collaboration diagram is one <code class="inline">loop [condition]</code> combined fragment on the sequence diagram, wrapped around exactly the one message it iterates. And <code class="inline">5.1.1.1 Advert</code> creating <code class="inline">newAd:Advert</code> on the collaboration side is the same event as the dashed creation arrow spawning <code class="inline">newAd:Advert</code> on the sequence side — same moment, same actor, two notations. This equivalence is Section 09's whole topic, formalized as a translation table.</p>
+  </div>
+</section>
+
+<section class="topic" id="translate">
+  <div class="topic-head"><span class="tnum">09</span><h2>Translation Guide — Collaboration ⇄ Sequence</h2></div>
+  <p class="subhead">They model the exact same interaction. Here's the dictionary between the two notations, extended from Lec 7–8 with this lecture's iteration mechanics.</p>
+
+  <table class="cmp">
+    <tr><th>Collaboration diagram</th><th>Sequence diagram</th></tr>
+    <tr><td>Objects free-floating, connected by association links</td><td>Objects laid out left-to-right as headers, each with a vertical lifeline</td></tr>
+    <tr><td>Explicit numbered order on every arrow (<code class="inline">1</code>, <code class="inline">2</code>, <code class="inline">3.1</code>…)</td><td>Implicit order = top-to-bottom position; no numbers needed</td></tr>
+    <tr><td>Nested calls shown by a <strong>deeper decimal number</strong> (<code class="inline">3.1.1</code>)</td><td>Nested calls shown by a <strong>nested activation bar</strong>, drawn further right / lower on the same lifeline</td></tr>
+    <tr><td><code class="inline">*message</code> — asterisk before the name</td><td><code class="inline">loop</code> combined fragment wrapped around the message</td></tr>
+    <tr><td><code class="inline">*[condition]: message</code> — bracketed guard after the asterisk</td><td><code class="inline">loop [condition]</code> — the same condition, written as the fragment's interaction constraint</td></tr>
+    <tr><td>Object creation shown as a normal numbered message to the class</td><td>Object creation shown as a dashed arrow (often <code class="inline">«create»</code>-labeled) to a box appearing partway down the page</td></tr>
+    <tr><td>No explicit return arrows — assumed implicit</td><td>Dashed return arrows optional, drawn back along the same path</td></tr>
+    <tr><td>Great for showing <strong>structure</strong> — which objects talk to which</td><td>Great for showing <strong>timing</strong> — exact order, concurrency, nesting depth at a glance</td></tr>
+  </table>
+
+  <h3 class="h3">A mechanical translation algorithm</h3>
+  <ol class="plain">
+    <li>List every message on the sequence diagram in top-to-bottom order.</li>
+    <li>For each message, count how many activation bars deep it is — that's its nesting depth.</li>
+    <li>Assign decimal numbers by depth: depth 1 → next top-level integer; depth 2 → parent number + <code class="inline">.1</code>, <code class="inline">.2</code>… in order among siblings; deeper levels keep appending.</li>
+    <li>Any message inside a <code class="inline">loop</code> fragment gets a leading <code class="inline">*</code>; carry the fragment's bracketed condition along as the guard.</li>
+    <li>Redraw the objects as free nodes and connect them with links carrying their numbered messages — multiple messages can share one link if they connect the same pair of objects.</li>
+  </ol>
+
+  <div class="callout brainstorm">
+    <div class="callout-label">💡 Brainstorm</div>
+    <p>Try the algorithm in reverse on Example 3's <code class="inline">checkCampaignBudget</code> collaboration diagram: redraw it as a sequence diagram from scratch, using the numbering to decide where each activation bar nests. If you get four levels of nested activation bars by the time you reach <code class="inline">4.1.1.1</code>, you've done it correctly.</p>
+  </div>
+</section>
+
+<section class="topic" id="pitfalls">
+  <div class="topic-head"><span class="tnum">10</span><h2>Exam Pitfalls</h2></div>
+  <p class="subhead">Where marks get lost on this material, specifically.</p>
+
+  <table class="cmp">
+    <tr><th>Pitfall</th><th>Why it costs marks</th><th>Fix</th></tr>
+    <tr><td>Drawing two "controller" objects for one use case</td><td>Breaks the one-control-per-use-case rule; usually means an entity got mistagged</td><td>If a class needs its own coordinating logic across multiple use cases, it's probably an entity with a method — not a second controller</td></tr>
+    <tr><td>Forgetting the leading <code class="inline">*</code> when a message is clearly a loop (e.g. "for each advert…")</td><td>Without it, the diagram claims the message fires exactly once</td><td>Any phrase like "for all," "for each," "every" in the use case text ⇒ asterisk the corresponding message</td></tr>
+    <tr><td>Restarting message numbering mid-diagram, or reusing a number</td><td>Makes the diagram ambiguous / unreadable — the numbers are the <em>only</em> ordering signal</td><td>Number strictly in the order messages are sent; nested messages always get a longer decimal than their parent, never a fresh top-level integer</td></tr>
+    <tr><td>Putting business logic (e.g. summing costs) directly in the control object</td><td>Violates Information Expert — control should coordinate, not compute over data it doesn't own</td><td>Delegate the computation to the entity that owns the data (Example 3: <code class="inline">:Campaign</code> sums its own adverts' costs)</td></tr>
+    <tr><td>Treating the control icon's curved arrow as a self-message</td><td>Confuses class iconography with an actual message in the interaction</td><td>The curved arrow is fixed to every control-stereotype object; a self-message would instead be a separate numbered arrow looping from an object back to itself</td></tr>
+    <tr><td>Missing a second boundary object for output (printing, email, etc.)</td><td>Undercounts candidate classes on an "identify boundary/control/entity classes" question</td><td>Any distinct touchpoint with the outside world — input <em>or</em> output — gets its own boundary object</td></tr>
+  </table>
+</section>
+
+<section class="topic" id="quiz">
+  <div class="topic-head"><span class="tnum">11</span><h2>Practice Quiz</h2></div>
+  <p class="subhead">Eight questions, instant feedback. Click an option to see whether you're right — and why.</p>
+
+  <div id="quizRoot"></div>
+  <div class="quiz-score" id="quizScore">Answered 0 / 8 · Correct 0</div>
+</section>
+
+<footer class="foot">CSE213 · Additional Collaboration Diagrams (Lecture 10) · Chapter 9, Bennett · Built to complement the Lec 7–8 Sequence &amp; Collaboration Diagrams companion.</footer>
+</main>
+
+<script>
+// ---------- scrollspy ----------
+(function(){
+  const links = document.querySelectorAll('.sidebar a');
+  const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    let idx = 0;
+    const y = window.scrollY + 140;
+    sections.forEach((s,i) => { if(s && s.offsetTop <= y) idx = i; });
+    links.forEach((a,i) => a.classList.toggle('active', i === idx));
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+
+// ---------- quiz ----------
+const QUIZ = [
+  {
+    q: "What does the curved arrow sitting on top of a circle icon represent in these diagrams?",
+    opts: [
+      "A self-message loop",
+      "The «control» stereotype icon, fixed to the class symbol",
+      "An asynchronous message",
+      "A deletion marker"
+    ],
+    correct: 1,
+    why: "It's iconography baked into every control-stereotype class symbol, not an actual numbered message in the interaction."
+  },
+  {
+    q: "In a collaboration diagram, what does an asterisk (*) before a message name mean?",
+    opts: [
+      "The message is optional",
+      "The message is sent repeatedly — a loop",
+      "The message is asynchronous",
+      "The message creates a new object"
+    ],
+    correct: 1,
+    why: "The asterisk is the collaboration-diagram equivalent of a sequence diagram's loop combined fragment."
+  },
+  {
+    q: "Message 4.1 triggers a further message during its own handling. What number does that new message get?",
+    opts: ["5", "4.2", "4.1.1", "4.1a"],
+    correct: 2,
+    why: "Nesting adds one more decimal level to the parent's number — 4.1.1, not a fresh top-level integer or a sibling number."
+  },
+  {
+    q: "Which sequence-diagram element is the direct equivalent of collaboration diagram's \"*[condition]: message\" notation?",
+    opts: [
+      "An alt combined fragment",
+      "A loop combined fragment with a matching interaction constraint",
+      "A nested activation bar alone",
+      "A dashed return arrow"
+    ],
+    correct: 1,
+    why: "loop [condition] wraps exactly the message that the asterisk-plus-bracket notation marks as iterated."
+  },
+  {
+    q: "In Example 3 (Check Campaign Budget), which object actually sums the advert costs?",
+    opts: [
+      "The control object :CheckCampaignBudget",
+      "The boundary object :CheckCampaignBudgetUI",
+      "The :Campaign entity",
+      "The actor"
+    ],
+    correct: 2,
+    why: "Information Expert: Campaign owns the list of Adverts, so Campaign is the one that loops over them (*getCost) and totals the budget."
+  },
+  {
+    q: "A use case description says the system \"prints a completion form.\" What class should this suggest adding?",
+    opts: [
+      "Another entity class",
+      "A second control object",
+      "A boundary class representing the printer interface",
+      "Nothing — printing isn't modeled in UML"
+    ],
+    correct: 2,
+    why: "Anything touching the outside world — including output devices like a printer — is a boundary object, just like an input UI screen."
+  },
+  {
+    q: "Roughly how many control (coordinator) objects should one correctly-scoped use case have?",
+    opts: [
+      "As many as there are entity classes",
+      "Exactly one",
+      "One per boundary object",
+      "Zero — control logic belongs in the entities"
+    ],
+    correct: 1,
+    why: "One control object per use-case realization is the standard robustness-analysis rule; it lives only for that interaction."
+  },
+  {
+    q: "On a sequence diagram, what visually signals that a brand-new object has just been instantiated partway through the interaction?",
+    opts: [
+      "Its lifeline starts at the very top like everyone else's",
+      "A solid arrow with a filled arrowhead pointing at an existing object",
+      "A dashed arrow (often «create»-labeled) pointing to a box appearing partway down the page",
+      "An X drawn on its lifeline"
+    ],
+    correct: 2,
+    why: "An X marks destruction, not creation. Creation is a dashed arrow to a box that appears at that point in time, with its lifeline starting there rather than at the top."
+  }
+];
+
+(function(){
+  const root = document.getElementById('quizRoot');
+  const scoreEl = document.getElementById('quizScore');
+  let answered = 0, correctCount = 0;
+  const state = new Array(QUIZ.length).fill(false);
+
+  QUIZ.forEach((item, qi) => {
+    const box = document.createElement('div');
+    box.className = 'quiz-q';
+    const qt = document.createElement('div');
+    qt.className = 'qtext';
+    qt.textContent = (qi+1) + '. ' + item.q;
+    box.appendChild(qt);
+
+    const optsWrap = document.createElement('div');
+    optsWrap.className = 'quiz-opts';
+    const fb = document.createElement('div');
+    fb.className = 'quiz-fb';
+
+    item.opts.forEach((optText, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-opt';
+      btn.textContent = optText;
+      btn.addEventListener('click', () => {
+        if(state[qi]) return; // already answered
+        state[qi] = true;
+        answered++;
+        const isCorrect = oi === item.correct;
+        if(isCorrect) correctCount++;
+        Array.from(optsWrap.children).forEach((b,bi) => {
+          if(bi === item.correct) b.classList.add('correct');
+          else if(bi === oi) b.classList.add('wrong');
+          else b.classList.add('dim');
+        });
+        fb.classList.add('show', isCorrect ? 'ok' : 'no');
+        fb.textContent = (isCorrect ? '✓ Correct — ' : '✗ Not quite — ') + item.why;
+        scoreEl.textContent = 'Answered ' + answered + ' / ' + QUIZ.length + ' · Correct ' + correctCount;
+      });
+      optsWrap.appendChild(btn);
+    });
+
+    box.appendChild(optsWrap);
+    box.appendChild(fb);
+    root.appendChild(box);
+  });
+})();
+</script>
+</body>
+</html>

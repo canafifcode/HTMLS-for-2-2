@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CSE213 · UML Class Diagrams — Interactive Lecture</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #F6F5EF; }
+  button { font-family: inherit; }
+  .topnav::-webkit-scrollbar { height: 6px; }
+  .topnav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+
+/* ============================================================
+   CSE213 — Lecture: UML Class Diagrams
+   Style: drafting-table / blueprint. Ink on paper, mono for
+   notation, every diagram drawn in real UML notation.
+   ============================================================ */
+
+const C = {
+  paper: "#F6F5EF",
+  panel: "#FFFFFF",
+  ink: "#182338",
+  inkSoft: "#4A5568",
+  line: "#D8D4C8",
+  blue: "#2456A6",
+  blueSoft: "#E8EEF9",
+  gold: "#9A6A0B",
+  goldSoft: "#FBF3DF",
+  red: "#A2402C",
+  redSoft: "#F9EAE5",
+  green: "#2F6B44",
+  greenSoft: "#E7F2EA",
+  purple: "#5B4B8A",
+  purpleSoft: "#EEEAF7",
+  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  serif: "Georgia, 'Times New Roman', serif",
+  sans: "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+};
+
+/* ---------------- small building blocks ---------------- */
+
+const calloutStyles = {
+  prof:  { bg: C.blueSoft,  bd: C.blue,   icon: "🎓", label: "Professor's note" },
+  edge:  { bg: C.redSoft,   bd: C.red,    icon: "⚠️", label: "Edge case" },
+  exam:  { bg: C.goldSoft,  bd: C.gold,   icon: "📝", label: "Exam tip" },
+  brain: { bg: C.purpleSoft,bd: C.purple, icon: "💭", label: "Brainstorm" },
+  key:   { bg: C.greenSoft, bd: C.green,  icon: "🔑", label: "Key idea" },
+};
+
+function Callout({ type = "prof", title, children }) {
+  const s = calloutStyles[type];
+  return (
+    <div style={{ background: s.bg, borderLeft: `4px solid ${s.bd}`, borderRadius: "0 6px 6px 0", padding: "12px 16px", margin: "16px 0" }}>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: s.bd, marginBottom: 6, fontFamily: C.sans }}>
+        {s.icon} {title || s.label}
+      </div>
+      <div style={{ fontSize: 14.5, lineHeight: 1.65, color: C.ink }}>{children}</div>
+    </div>
+  );
+}
+
+function Mono({ children, u }) {
+  return <code style={{ fontFamily: C.mono, fontSize: "0.92em", background: "#EFEDE4", padding: "1px 5px", borderRadius: 3, textDecoration: u ? "underline" : "none", whiteSpace: "nowrap" }}>{children}</code>;
+}
+
+function CodeBlock({ lines, caption }) {
+  return (
+    <div style={{ margin: "14px 0" }}>
+      <pre style={{ background: "#1D2433", color: "#E6EDF7", borderRadius: 8, padding: "14px 18px", overflowX: "auto", fontFamily: C.mono, fontSize: 13, lineHeight: 1.65, margin: 0 }}>
+        {lines.join("\n")}
+      </pre>
+      {caption && <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 5, fontStyle: "italic" }}>{caption}</div>}
+    </div>
+  );
+}
+
+/* A UML class box drawn with real notation */
+function ClassBox({ name, stereo, abstract, attrs = [], ops = [], w = 260, hl }) {
+  const row = (m, i) => (
+    <div key={i} style={{ fontFamily: C.mono, fontSize: 12.5, padding: "2px 10px", textDecoration: m.static ? "underline" : "none", color: m.hl ? C.blue : C.ink, fontWeight: m.hl ? 700 : 400, fontStyle: m.abstract ? "italic" : "normal" }}>
+      {m.text}
+    </div>
+  );
+  return (
+    <div style={{ width: w, border: `2px solid ${hl ? C.blue : C.ink}`, background: "#FFFEFA", boxShadow: "3px 3px 0 rgba(24,35,56,0.12)", display: "inline-block", verticalAlign: "top" }}>
+      <div style={{ borderBottom: `2px solid ${C.ink}`, textAlign: "center", padding: "6px 10px" }}>
+        {stereo && <div style={{ fontFamily: C.mono, fontSize: 11.5, color: C.inkSoft }}>«{stereo}»</div>}
+        <div style={{ fontWeight: 700, fontSize: 14.5, fontStyle: abstract ? "italic" : "normal", fontFamily: C.sans }}>{name}</div>
+      </div>
+      <div style={{ borderBottom: ops.length ? `1.5px solid ${C.ink}` : "none", padding: "4px 0", minHeight: 12 }}>
+        {attrs.map(row)}
+      </div>
+      {ops.length > 0 && <div style={{ padding: "4px 0" }}>{ops.map(row)}</div>}
+    </div>
+  );
+}
+
+/* SVG arrow/line samples for relationship notation */
+function LineSample({ kind, w = 190 }) {
+  const y = 16;
+  const dash = kind === "interface" || kind === "dependency" ? "7,5" : "none";
+  const head = () => {
+    if (kind === "classGen") return <polygon points={`${w - 4},${y} ${w - 22},${y - 8} ${w - 22},${y + 8}`} fill={C.ink} />;
+    if (kind === "interface" || kind === "abstractGen") return <polygon points={`${w - 4},${y} ${w - 22},${y - 8} ${w - 22},${y + 8}`} fill="#fff" stroke={C.ink} strokeWidth="2" />;
+    if (kind === "dependency") return <g><line x1={w - 4} y1={y} x2={w - 16} y2={y - 7} stroke={C.ink} strokeWidth="2" /><line x1={w - 4} y1={y} x2={w - 16} y2={y + 7} stroke={C.ink} strokeWidth="2" /></g>;
+    if (kind === "aggregation") return <polygon points={`${w - 4},${y} ${w - 16},${y - 7} ${w - 28},${y} ${w - 16},${y + 7}`} fill="#fff" stroke={C.ink} strokeWidth="2" />;
+    if (kind === "composition") return <polygon points={`${w - 4},${y} ${w - 16},${y - 7} ${w - 28},${y} ${w - 16},${y + 7}`} fill={C.ink} />;
+    if (kind === "nav") return <g><line x1={w - 4} y1={y} x2={w - 16} y2={y - 7} stroke={C.ink} strokeWidth="2" /><line x1={w - 4} y1={y} x2={w - 16} y2={y + 7} stroke={C.ink} strokeWidth="2" /></g>;
+    return null;
+  };
+  const lineEnd = ["aggregation", "composition"].includes(kind) ? w - 26 : w - 20;
+  return (
+    <svg width={w} height="32" style={{ verticalAlign: "middle" }}>
+      <line x1="4" y1={y} x2={lineEnd} y2={y} stroke={C.ink} strokeWidth="2" strokeDasharray={dash} />
+      {head()}
+    </svg>
+  );
+}
+
+/* Two boxes joined by a labelled relationship — used for mini diagrams */
+function Pair({ left, right, kind, leftMult, rightMult, label }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap", margin: "14px 0" }}>
+      <ClassBox {...left} w={left.w || 150} />
+      <div style={{ textAlign: "center", padding: "0 2px" }}>
+        <div style={{ fontFamily: C.mono, fontSize: 11.5, color: C.inkSoft, display: "flex", justifyContent: "space-between", padding: "0 8px" }}>
+          <span>{leftMult}</span><span style={{ color: C.blue, fontWeight: 700 }}>{label}</span><span>{rightMult}</span>
+        </div>
+        <LineSample kind={kind} w={200} />
+      </div>
+      <ClassBox {...right} w={right.w || 150} />
+    </div>
+  );
+}
+
+function VisTable() {
+  const rows = [
+    ["+", "public", "Anyone can see and use it", "+ name: String"],
+    ["#", "protected", "This class and its subclasses", "# dawgID: int"],
+    ["−", "private", "Only this class itself", "- DOB: String"],
+    ["~", "package (default)", "Classes in the same package", "~ courses[100]: Course"],
+    ["/", "derived", "Computed from other attributes — not stored", "/ age: int"],
+  ];
+  return (
+    <table style={{ borderCollapse: "collapse", width: "100%", margin: "14px 0", fontSize: 14 }}>
+      <thead>
+        <tr style={{ background: C.ink, color: "#fff", fontFamily: C.sans }}>
+          {["Symbol", "Meaning", "Who can access it", "Slide example"].map((h) => (
+            <th key={h} style={{ padding: "8px 12px", textAlign: "left", fontSize: 12.5, letterSpacing: "0.04em" }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={i} style={{ background: i % 2 ? "#FBFAF5" : "#fff", borderBottom: `1px solid ${C.line}` }}>
+            <td style={{ padding: "8px 12px", fontFamily: C.mono, fontWeight: 700, fontSize: 16, color: C.blue }}>{r[0]}</td>
+            <td style={{ padding: "8px 12px", fontWeight: 600 }}>{r[1]}</td>
+            <td style={{ padding: "8px 12px", color: C.inkSoft }}>{r[2]}</td>
+            <td style={{ padding: "8px 12px", fontFamily: C.mono, fontSize: 12.5 }}>{r[3]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/* ---------------- quiz ---------------- */
+
+const QUIZ = [
+  {
+    q: "You see this member in a class box: an underlined \u201CtotalStudents: int\u201D. What two facts do you know?",
+    opts: [
+      "It is private and derived",
+      "It is static and belongs to the class, not to any one object",
+      "It is abstract and must be overridden",
+      "It is read-only (final)",
+    ],
+    a: 1,
+    why: "Underlining = static. One copy shared by the whole class (think: a counter of all Students), not one per object. Visibility is a separate, independent marker.",
+  },
+  {
+    q: "A class box shows \u201C/ area: double\u201D in Rectangle. What does the slash mean?",
+    opts: [
+      "The attribute is deprecated",
+      "The attribute is package-private",
+      "The attribute is derived — computed from width \u00D7 height, not stored independently",
+      "The attribute is a pointer",
+    ],
+    a: 2,
+    why: "\u201C/\u201D marks a derived attribute. Its value can always be recomputed from other fields, so storing it is redundant. Classic exam trap: it is NOT a visibility symbol.",
+  },
+  {
+    q: "A solid line with a hollow (white) triangle points from OnlineExam up to Exam, where Exam's name is written in italics. The relationship is\u2026",
+    opts: [
+      "Interface implementation",
+      "Composition",
+      "Generalization: OnlineExam extends the abstract class Exam",
+      "Dependency",
+    ],
+    a: 2,
+    why: "Solid line + white triangle + italic parent name = inheritance from an abstract class (slide 7's convention). A dashed line would mean interface implementation instead.",
+  },
+  {
+    q: "A University has Departments. If the University closes, the Departments cease to exist. Which connector belongs at the University end?",
+    opts: [
+      "A hollow white diamond (aggregation)",
+      "A filled black diamond (composition)",
+      "A dashed arrow (dependency)",
+      "A plain line with multiplicity 1..*",
+    ],
+    a: 1,
+    why: "\u201CParts live and die with the whole\u201D is the composition test. Departments have no independent life — black diamond on the whole (University) side.",
+  },
+  {
+    q: "A Team has Players, but a Player can be transferred and keep existing without the Team. Best model?",
+    opts: [
+      "Composition — Team owns Players",
+      "Aggregation — white diamond at Team: \u201Cis part of\u201D, but parts survive the whole",
+      "Generalization — Player extends Team",
+      "Association class",
+    ],
+    a: 1,
+    why: "Shared, detachable parts = aggregation. Ask the destruction question: \u201Cif I delete the whole, do the parts die?\u201D No \u2192 white diamond, not black.",
+  },
+  {
+    q: "class Lottery { int draw() { Random r = new Random(); \u2026 } } — Random is created inside one method and never stored. In UML, Lottery \u2192 Random is\u2026",
+    opts: [
+      "Aggregation, because Lottery holds a Random",
+      "Composition, because Lottery creates it",
+      "Dependency — a dotted arrow: \u201Cuses temporarily\u201D, an implementation detail",
+      "Generalization",
+    ],
+    a: 2,
+    why: "This is the slide's own Lottery/Random example. No field stores it, so it is not part of the object's state \u2192 dotted dependency arrow, the weakest relationship.",
+  },
+  {
+    q: "Each Book has many Pages; each Page belongs to exactly one Book. Reading the diagram Page \u2014\u2014 Book, the correct multiplicity pair is\u2026",
+    opts: [
+      "1 at Page, * at Book",
+      "* at Page, 1 at Book",
+      "1..* at both ends",
+      "0..1 at Page, * at Book",
+    ],
+    a: 1,
+    why: "Multiplicity is written at the END that answers \u201Chow many of THESE per one of the other?\u201D Many Pages per Book \u2192 * sits at the Page end; one Book per Page \u2192 1 sits at the Book end. Students reverse this constantly.",
+  },
+  {
+    q: "Company (employer, *) \u2014\u2014 Person (employee, 1..*), and we must record salary and dateHired for each specific pairing. Correct modelling?",
+    opts: [
+      "Add salary to Person",
+      "Add salary to Company",
+      "An association class Job attached to the association line by a dashed line",
+      "Two associations: Company\u2013Job and Job\u2013Person",
+    ],
+    a: 2,
+    why: "salary belongs to neither party alone — it is a property of the RELATIONSHIP. The slide explicitly warns that Company\u2013Job + Job\u2013Person fails to tie one Job to one specific (Company, Person) pair.",
+  },
+  {
+    q: "In an interface's class box, which members may be omitted?",
+    opts: [
+      "Trivial getters/setters, like in any class",
+      "None of its methods — every interface method must be shown; only classes may omit trivial ones",
+      "All static members",
+      "The «interface» stereotype",
+    ],
+    a: 1,
+    why: "Slide 3, easy to miss: classes MAY omit trivial get/set methods, but an interface IS its method list — omit nothing from it.",
+  },
+  {
+    q: "Why is a constructor written as \u201C+ Student(n:String, dob:String)\u201D with no colon-return-type at the end?",
+    opts: [
+      "Constructors are always void",
+      "Return types are omitted for constructors (and for void methods) by convention",
+      "It's a syntax error on the slide",
+      "Because constructors are static",
+    ],
+    a: 1,
+    why: "Convention from slide 5: omit the return type on constructors and when the return type is void. (Conceptually a constructor isn't 'void' — it yields the new object — which is why the notation simply drops the type.)",
+  },
+];
+
+function Quiz() {
+  const [picked, setPicked] = useState({});
+  const score = QUIZ.reduce((s, q, i) => s + (picked[i] === q.a ? 1 : 0), 0);
+  const answered = Object.keys(picked).length;
+  return (
+    <div>
+      {QUIZ.map((item, qi) => (
+        <div key={qi} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, padding: "16px 18px", margin: "14px 0" }}>
+          <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 14.5 }}>
+            <span style={{ color: C.blue, fontFamily: C.mono, marginRight: 8 }}>Q{qi + 1}</span>{item.q}
+          </div>
+          {item.opts.map((o, oi) => {
+            const chosen = picked[qi] === oi;
+            const done = picked[qi] !== undefined;
+            let bg = "#FBFAF5", bd = C.line;
+            if (done && oi === item.a) { bg = C.greenSoft; bd = C.green; }
+            else if (chosen && oi !== item.a) { bg = C.redSoft; bd = C.red; }
+            return (
+              <button key={oi} onClick={() => !done && setPicked({ ...picked, [qi]: oi })}
+                style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 13px", margin: "6px 0", borderRadius: 7, border: `1.5px solid ${bd}`, background: bg, cursor: done ? "default" : "pointer", fontSize: 13.5, fontFamily: C.sans, color: C.ink, lineHeight: 1.5 }}>
+                <span style={{ fontFamily: C.mono, fontWeight: 700, marginRight: 8, color: C.inkSoft }}>{String.fromCharCode(65 + oi)}</span>{o}
+                {done && oi === item.a && <span style={{ float: "right" }}>✅</span>}
+                {done && chosen && oi !== item.a && <span style={{ float: "right" }}>❌</span>}
+              </button>
+            );
+          })}
+          {picked[qi] !== undefined && (
+            <div style={{ marginTop: 10, padding: "10px 14px", background: C.blueSoft, borderRadius: 7, fontSize: 13.5, lineHeight: 1.6 }}>
+              <b style={{ color: C.blue }}>Why:</b> {item.why}
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{ textAlign: "center", padding: 18, background: C.ink, color: "#fff", borderRadius: 10, fontFamily: C.sans }}>
+        <div style={{ fontSize: 13, opacity: 0.8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Score</div>
+        <div style={{ fontSize: 34, fontWeight: 800, fontFamily: C.mono }}>{score} / {QUIZ.length}</div>
+        {answered === QUIZ.length && (
+          <div style={{ fontSize: 14, marginTop: 6 }}>
+            {score === QUIZ.length ? "Perfect — you read UML like a native speaker. 🏆" : score >= 7 ? "Strong. Re-read the explanations you missed — they are the exact exam traps." : "Good first pass — revisit sections 5–7, that's where the marks hide."}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- sections ---------------- */
+
+function H({ children }) { return <h3 style={{ fontFamily: C.serif, fontSize: 19, margin: "26px 0 8px", color: C.ink }}>{children}</h3>; }
+function P({ children }) { return <p style={{ fontSize: 14.5, lineHeight: 1.75, color: C.ink, margin: "8px 0" }}>{children}</p>; }
+
+const SECTIONS = [
+  {
+    id: "orientation",
+    title: "What a Class Diagram Is (and Isn't)",
+    tag: "Slides 1–2",
+    body: () => (
+      <>
+        <P>A UML class diagram is a <b>structural photograph</b> of an object-oriented system: the classes, their <b>fields and methods</b>, and the <b>connections</b> between classes that interact or inherit from each other. It answers <i>"what exists and how is it wired together?"</i></P>
+        <Callout type="key">
+          Equally important is what a class diagram deliberately does <b>not</b> show: <b>how</b> classes interact at runtime (that's a sequence diagram's job) and <b>algorithmic detail</b> — how any behavior is implemented. A class diagram shows that <Mono>calculateGPA(crs: Course[]): float</Mono> exists; it says nothing about the loop inside it.
+        </Callout>
+        <H>Why bother? (Slide 2, in plain words)</H>
+        <P>Five benefits the slide lists, each of which is a ready-made 1-mark answer: it (1) illustrates data models even for very complex systems, (2) gives an <b>overview of structure before reading code — reducing maintenance time</b>, (3) builds understanding of the application's general schematics, (4) lets you draw detailed charts highlighting the code that needs to be written, and (5) communicates to developers <i>and</i> non-programmer stakeholders alike.</P>
+        <Callout type="exam">
+          A favorite short question: <i>"State two things a class diagram does not represent."</i> Answer verbatim: interaction details between classes, and algorithmic/implementation details of behaviors. Easy marks — many students only memorize what it <i>does</i> show.
+        </Callout>
+        <Callout type="brain">
+          Connect this to our design-patterns work: every pattern you've studied (Singleton, Factory Method, Builder…) was <i>defined</i> for you by its class diagram. That's why examiners love UML — it's the shared language of the whole course.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "anatomy",
+    title: "Anatomy of a Single Class",
+    tag: "Slide 3",
+    body: () => (
+      <>
+        <P>A class is a rectangle with up to <b>three compartments</b>, top to bottom: <b>name</b>, <b>attributes</b> (optional), <b>operations</b> (optional).</P>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", margin: "16px 0" }}>
+          <ClassBox name="Rectangle" w={240}
+            attrs={[{ text: "- width: int" }, { text: "- height: int" }, { text: "/ area: double", hl: true }]}
+            ops={[{ text: "# Rectangle(w:int, h:int)" }, { text: "+ distance(r:Rectangle):double" }]} />
+          <ClassBox name="Shape" stereo="interface" w={220}
+            ops={[{ text: "+ calculateArea():double" }]} />
+          <ClassBox name="RentalItem" abstract w={200}
+            attrs={[]} ops={[]} />
+        </div>
+        <P>Three name-compartment rules from the slide, all heavily examined:</P>
+        <P>• Write <Mono>«interface»</Mono> above an interface's name (those angle-quotes are called <i>guillemets</i>; the whole marker is a <i>stereotype</i>).<br />
+        • Write an <b>abstract class name in italics</b> — notice <i>RentalItem</i> above. In hand-drawn exams, italics are hard, so writing <Mono>{"{abstract}"}</Mono> after the name is an accepted alternative.<br />
+        • You <b>may omit trivial get/set methods</b> from a class… <b>but never omit any method from an interface</b>, and don't show inherited methods (unless the subclass overrides them — see Section 8).</P>
+        <Callout type="edge">
+          The interface exception is a beloved trap. A class's box is a <i>summary</i>, so trivial accessors can go. An interface <i>is nothing but its contract</i> — hide one method and you've changed what the interface means.
+        </Callout>
+        <Callout type="prof">
+          Attributes and operations compartments are optional — a bare named rectangle (like the DVD/VHS/Game boxes we'll meet in the video store example) is a perfectly legal class. Diagrams show the level of detail the discussion needs, no more.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "attributes",
+    title: "Attributes — the Full Syntax",
+    tag: "Slide 4",
+    body: () => (
+      <>
+        <P>The complete grammar of one attribute line:</P>
+        <div style={{ fontFamily: C.mono, fontSize: 15, background: "#1D2433", color: "#E6EDF7", borderRadius: 8, padding: "14px 18px", overflowX: "auto" }}>
+          <span style={{ color: "#7FB3FF" }}>visibility</span> <span style={{ color: "#FFD479" }}>name</span> : <span style={{ color: "#8FE3B4" }}>type</span> <span style={{ color: "#C9A7F5" }}>[count]</span> = <span style={{ color: "#F5A7A7" }}>default_value</span>
+        </div>
+        <P>Only <b>name</b> is truly mandatory in practice; everything else is added as needed. Example with a count: <Mono>~ courses[100]: Course</Mono> — a package-visible array of 100 Course references.</P>
+        <VisTable />
+        <Callout type="edge">
+          <b>Underlining means static.</b> An underlined <Mono u>totalStudents: int</Mono> belongs to the <i>class</i> — one shared copy — not to each object. And note that <b>/ (derived)</b> lives in the visibility column on the slide but is really a different kind of marker: it says "computable from other fields" (<Mono>/age</Mono> from <Mono>DOB</Mono>, <Mono>/area</Mono> from width × height). Two independent axes: a member can be static <i>and</i> private <i>and</i> derived.
+        </Callout>
+        <Callout type="exam">
+          Given code → diagram translation questions, the graders check exactly three things per attribute: correct visibility symbol, <Mono>name: Type</Mono> order (Java declares <Mono>int width</Mono>; UML writes <Mono>width: int</Mono> — reversed!), and underlining of statics. Drill that reversal until it's automatic.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "operations",
+    title: "Operations / Methods",
+    tag: "Slide 5",
+    body: () => (
+      <>
+        <P>Same visibility symbols, same underline-for-static rule. The grammar:</P>
+        <div style={{ fontFamily: C.mono, fontSize: 15, background: "#1D2433", color: "#E6EDF7", borderRadius: 8, padding: "14px 18px", overflowX: "auto" }}>
+          <span style={{ color: "#7FB3FF" }}>visibility</span> <span style={{ color: "#FFD479" }}>name</span>(<span style={{ color: "#8FE3B4" }}>param: type, …</span>) : <span style={{ color: "#C9A7F5" }}>return_type</span>
+        </div>
+        <P>Parameters are listed <Mono>name:type</Mono>. Two omission rules: drop the return type on <b>constructors</b> and on <b>void</b> methods.</P>
+        <div style={{ margin: "16px 0" }}>
+          <ClassBox name="Student" w={330}
+            attrs={[
+              { text: "+ name: String" }, { text: "+ email: String" }, { text: "- DOB: String" },
+              { text: "/ age: int" }, { text: "# dawgID: int" }, { text: "~ courses[100]: Course" },
+            ]}
+            ops={[
+              { text: "+ Student(n:String, dob:String)", hl: true },
+              { text: "+ getTotalCredits(): Course" },
+              { text: "# calculateTuition(): double" },
+              { text: "+ calculateGPA(crs: Course[]): float" },
+            ]} />
+        </div>
+        <P>Round-trip practice — the highlighted constructor and one method, back into Java:</P>
+        <CodeBlock lines={[
+          "public class Student {",
+          "    public String name;",
+          "    private String DOB;",
+          "    protected int dawgID;",
+          "",
+          "    public Student(String n, String dob) { ... }   // no return type in UML",
+          "    protected double calculateTuition() { ... }    // '#' \u2192 protected",
+          "}",
+        ]} caption="Translating diagram \u2194 code in both directions is the single most common exam task for this chapter." />
+        <Callout type="edge">
+          Why no return type on constructors? Not because they're void — conceptually a constructor <i>yields the new object</i>. The notation drops the type because it's always implied: a <Mono>Student(...)</Mono> constructor can only ever produce a Student. Writing <Mono>: void</Mono> or <Mono>: Student</Mono> after it costs marks in strict grading.
+        </Callout>
+        <Callout type="brain">
+          Spot the smell: <Mono>+ name: String</Mono> and <Mono>+ email: String</Mono> are <b>public fields</b>. Our SOLID work says fields should usually be private behind accessors (encapsulation). Slides sometimes show public fields to keep diagrams short — a nice critique to offer in a design-justification answer.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "generalization",
+    title: "Generalization — Inheritance Arrows",
+    tag: "Slides 6–7",
+    body: () => (
+      <>
+        <P>Relationships split into two families (slide 6): <b>Generalization</b> (inheritance between classes, or interface implementation) and <b>Association</b> (usage: dependency, aggregation, composition). This section covers the first family.</P>
+        <P>Hierarchies are drawn <b>top-down</b>, and the arrow always <b>points up to the parent</b> — the child declares "I am a kind of that." The line and arrowhead style tells you what the parent is:</P>
+        <table style={{ borderCollapse: "collapse", width: "100%", margin: "14px 0", fontSize: 14 }}>
+          <tbody>
+            {[
+              ["classGen", "Parent is a (concrete) class", "solid line, black arrow"],
+              ["abstractGen", "Parent is an abstract class", "solid line, white arrow"],
+              ["interface", "Parent is an interface (implementation)", "dashed line, white arrow"],
+            ].map((r, i) => (
+              <tr key={i} style={{ borderBottom: `1px solid ${C.line}` }}>
+                <td style={{ padding: "6px 12px" }}><LineSample kind={r[0]} /></td>
+                <td style={{ padding: "6px 12px", fontWeight: 600 }}>{r[1]}</td>
+                <td style={{ padding: "6px 12px", color: C.inkSoft, fontFamily: C.mono, fontSize: 12.5 }}>{r[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <P>The slide's running example, as one chain: <Mono>Rectangle</Mono> ⟶ (solid, white arrow) <Mono>RectangularShape</Mono> ⟶ (dashed, white arrow) <Mono>«interface» Shape</Mono>. RectangularShape implements <Mono>calculateArea()</Mono> from the interface and adds <Mono>contains(x,y)</Mono>; Rectangle inherits all of it.</P>
+        <Callout type="edge">
+          <b>Standard-UML footnote (for your general knowledge):</b> official UML draws <i>every</i> generalization with a hollow triangle; the parent being abstract is shown only by its italic name, and "solid vs dashed" is the real distinction (extends vs implements). Our course slides additionally use the black arrow for concrete-class parents — <b>on the CSE213 exam, follow the slide convention</b>. Knowing both makes you bulletproof when reading diagrams from other sources (the Security example on slide 13 uses hollow arrows with a concrete parent Stock!).
+        </Callout>
+        <Callout type="exam">
+          Fast recognition drill: <b>dashed always means "less substantial"</b> — dashed+triangle = implements, dashed+open arrow = mere dependency. Solid+triangle = extends. If you can classify the line style in 2 seconds, scenario questions become vocabulary questions.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "association",
+    title: "Association & Multiplicity",
+    tag: "Slides 8–9",
+    body: () => (
+      <>
+        <P>An association is a <b>usage relationship</b>: a plain line between classes, decorated with up to three things — a <b>name</b> (what the relationship means, e.g. <i>contains</i>), <b>navigability</b> (an open arrow showing which side knows about the other), and <b>multiplicity</b> at each end.</P>
+        <H>Multiplicity vocabulary</H>
+        <table style={{ borderCollapse: "collapse", width: "100%", margin: "10px 0", fontSize: 14 }}>
+          <tbody>
+            {[
+              ["*", "zero or more"],
+              ["1", "exactly one"],
+              ["2..4", "between 2 and 4, inclusive"],
+              ["3..*", "3 or more (the * may be omitted: \u201C3..\u201D)"],
+              ["0..1", "optional: none or one (seen in the video-store example)"],
+            ].map((r, i) => (
+              <tr key={i} style={{ background: i % 2 ? "#FBFAF5" : "#fff", borderBottom: `1px solid ${C.line}` }}>
+                <td style={{ padding: "7px 14px", fontFamily: C.mono, fontWeight: 700, color: C.blue, width: 90 }}>{r[0]}</td>
+                <td style={{ padding: "7px 14px" }}>{r[1]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <H>Reading direction — the #1 source of lost marks</H>
+        <Pair
+          left={{ name: "Page" }} right={{ name: "Book" }}
+          kind="nav" leftMult="*" rightMult="1" label="belongs to ▸" />
+        <P>Rule: the number at an end says <b>how many instances of THAT end's class pair with ONE instance of the other class</b>. One Book ↔ many Pages, so the <Mono>*</Mono> sits at the <b>Page</b> end and the <Mono>1</Mono> sits at the <b>Book</b> end. Car–Engine is 1-to-1: a <Mono>1</Mono> at both ends.</P>
+        <Callout type="edge">
+          Students instinctively write the number next to the "many" side's <i>owner</i>. Force yourself to read every association out loud both ways: <i>"each Book has * Pages; each Page has 1 Book."</i> If both sentences sound right, your numbers are on the correct ends.
+        </Callout>
+        <Callout type="brain">
+          Design question worth pondering: what would <Mono>0..1</Mono> on the Book end mean? A page that may exist outside any book — say, a draft page. Multiplicities are <i>business rules</i> drawn as numbers; changing one changes what the system permits.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "assoctypes",
+    title: "Aggregation, Composition, Dependency",
+    tag: "Slide 10",
+    body: () => (
+      <>
+        <P>Three strengths of "uses", from strongest to weakest. The diamond always sits at the <b>whole</b> (owner) end.</P>
+        <H>Composition — "is entirely made of"</H>
+        <Pair left={{ name: "Page" }} right={{ name: "Book" }} kind="composition" leftMult="*" rightMult="1" label="" />
+        <P>Filled black diamond at Book. The strongest form: <b>the parts live and die with the whole</b>. Shred the Book and its Pages are gone — a Page has no independent existence.</P>
+        <H>Aggregation — "is part of"</H>
+        <Pair left={{ name: "Engine" }} right={{ name: "Car" }} kind="aggregation" leftMult="1" rightMult="1" label="" />
+        <P>Hollow white diamond at Car. The Engine is part of the Car, but it <i>could</i> outlive it — swapped into another car, sold as a spare. Ownership without a shared fate.</P>
+        <H>Dependency — "uses temporarily"</H>
+        <Pair left={{ name: "Lottery" }} right={{ name: "Random" }} kind="dependency" leftMult="" rightMult="" label="" />
+        <P>Dotted arrow. <Mono>Lottery</Mono> creates a <Mono>Random</Mono> inside a method, uses it, discards it. It's <b>an implementation detail, not part of the object's state</b> — no field stores it.</P>
+        <Callout type="key">
+          <b>The two-question test</b> that resolves nearly every exam scenario:<br />
+          1. Is the used object stored as a field (part of state)? <b>No →</b> dependency. <b>Yes →</b> ask:<br />
+          2. If the whole is destroyed, do the parts die too? <b>Yes →</b> composition (black). <b>No →</b> aggregation (white).
+        </Callout>
+        <Callout type="edge">
+          Context changes the answer — and examiners exploit this. Car–Engine is aggregation <i>in this domain</i>; in a junkyard-crusher system where engines are never removed, composition would be defensible. In a scenario answer, <b>state the lifecycle assumption</b> ("assuming rooms cannot exist without the house…") — that justification is where the marks are, exactly like our FoodFlow assignment.
+        </Callout>
+        <Callout type="exam">
+          Mnemonic: <b>black diamond = bound forever</b> (filled = "filled with its parts, inseparable"); white diamond = loosely holds. Dotted = barely touches.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "assocclass",
+    title: "Association Class",
+    tag: "Slide 11",
+    body: () => (
+      <>
+        <P>Sometimes the <b>relationship itself</b> has data. Company employs Person — where do <Mono>salary</Mono>, <Mono>dateHired</Mono>, <Mono>description</Mono> live? Not in Person (they'd be wrong for a person with two jobs), not in Company (it has thousands of hires). They belong to <b>one specific pairing</b> of Company and Person.</P>
+        <div style={{ textAlign: "center", margin: "18px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
+            <ClassBox name="Company" w={140} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontFamily: C.mono, fontSize: 11.5, color: C.inkSoft, display: "flex", justifyContent: "space-between", padding: "0 6px" }}>
+                <span>*</span><span>1..*</span>
+              </div>
+              <svg width="180" height="20"><line x1="4" y1="10" x2="176" y2="10" stroke={C.ink} strokeWidth="2" /></svg>
+              <div style={{ fontFamily: C.mono, fontSize: 11, color: C.inkSoft, display: "flex", justifyContent: "space-between", padding: "0 6px", marginTop: -4 }}>
+                <span>employer</span><span>employee</span>
+              </div>
+              <svg width="180" height="34"><line x1="90" y1="0" x2="90" y2="34" stroke={C.ink} strokeWidth="2" strokeDasharray="6,4" /></svg>
+              <div><ClassBox name="Job" w={160} attrs={[{ text: "description" }, { text: "dateHired" }, { text: "salary" }]} /></div>
+            </div>
+            <ClassBox name="Person" w={140} />
+          </div>
+        </div>
+        <P>The <b>association class</b> <Mono>Job</Mono> hangs from the association line by a <b>dashed line</b>. Each Job instance is welded to exactly one (Company, Person) link.</P>
+        <Callout type="edge">
+          The slide's explicit warning: modelling it as Company—Job plus Job—Person <b>is wrong</b>, because nothing then ties a specific Job to a specific <i>pairing</i> — a Job could float between employees. The dashed attachment is what encodes "one Job per link."
+        </Callout>
+        <Callout type="exam">
+          Trigger phrases for "association class": attributes that <i>describe the relationship</i> — salary, enrollment grade, rental date, membership since. Student–Course with a <b>grade</b> is the classic: grade belongs to <Mono>Enrollment</Mono>, the association class. Expect exactly this shape as a "model this scenario" question.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "reading",
+    title: "Reading Real Diagrams",
+    tag: "Slides 12–16",
+    body: () => (
+      <>
+        <H>Slide 12 — Video rental store, annotated tour</H>
+        <P>One small diagram, every concept at once — this is your revision map:</P>
+        <P>• <Mono>Customer</Mono> ⟶ <b>white diamond</b> ⟶ <Mono>Rental Invoice</Mono>: aggregation — an invoice groups a customer's rentals, but customers exist without invoices.<br />
+        • <Mono>Rental Invoice</Mono> ⟶ <b>black diamond</b>, <Mono>1..*</Mono> <Mono>Rental Item</Mono>s: composition — line items die with their invoice.<br />
+        • <i>Rental Item</i> in italics: <b>abstract class</b>; <Mono>DVD</Mono>, <Mono>VHS</Mono>, <Mono>Game</Mono> hang below it via <b>generalization</b> triangles.<br />
+        • <Mono>Rental Invoice</Mono> — <Mono>0..1</Mono> — <Mono>Checkout Screen</Mono>: plain association; the 0..1 says an invoice may exist with no screen currently showing it.</P>
+        <H>Slide 13 — Security hierarchy: overriding shown explicitly</H>
+        <P><i>Security</i> (abstract) declares <i>presentValue()</i> in italics (abstract operation) plus concrete <Mono>history()</Mono>. CashAccount, Stock, Bond, Property each list <Mono>presentValue()</Mono> again — repeating an inherited method in a subclass box is precisely how UML says <b>"overridden here."</b> SmallCapStock and LargeCapStock don't list it: they inherit Stock's version unchanged. That's the "don't show inherited methods" rule and its exception in one picture.</P>
+        <H>Slide 14 — Multiple inheritance</H>
+        <P><Mono>BankAccount</Mono> inherits from <i>both</i> <Mono>InterestBearingItem</Mono> and <Mono>InsurableItem</Mono>; <Mono>RealEstate</Mono> from <Mono>InsurableItem</Mono> and <Mono>Asset</Mono>. UML happily draws this — it is language-neutral.</P>
+        <Callout type="edge">
+          But Java <b>forbids</b> multiple class inheritance — recall our <b>diamond problem</b> session: if both parents defined the same method, which one would the child get? Java's resolution: extend at most one class, implement many interfaces. So a Java translation of slide 14 must model InterestBearingItem / InsurableItem as <b>interfaces</b> (dashed arrows). A perfect 5-mark discussion question, and you already own the answer.
+        </Callout>
+        <H>Slides 15–16 — Hospital diagrams: four pieces of advanced notation</H>
+        <P>• <Mono>{"name: String {id}"}</Mono> — a <b>constraint</b> in braces: this attribute uniquely identifies the object.<br />
+        • <Mono>^gender</Mono>, <Mono>^name</Mono> in Patient — the caret marks an <b>inherited</b> attribute re-listed for readability.<br />
+        • <Mono>/age: Integer</Mono> — our old friend, derived (from birthDate).<br />
+        • <Mono>«enumeration» Gender</Mono> — a stereotyped box listing allowed values; and the dashed note box <Mono>{"{ward.patientsGender = patient.gender}"}</Mono> attaches a cross-class business rule to the diagram.<br />
+        • Also spot: <Mono>String[*]</Mono> (multi-valued attribute), association names with a solid ▸ showing reading direction (<i>treats ▸</i>), and role labels like <i>team leader</i> at line ends.</P>
+        <Callout type="prof">
+          You will not be asked to <i>draw</i> the hospital diagram, but reading questions ("what does the caret on ^gender mean?") are cheap marks for the prepared. Skim these two slides the night before with exactly this checklist.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "exam",
+    title: "Exam Room — Triggers & Quiz",
+    tag: "Practice",
+    body: () => (
+      <>
+        <H>Trigger-phrase table (our usual format)</H>
+        <table style={{ borderCollapse: "collapse", width: "100%", margin: "12px 0", fontSize: 13.5 }}>
+          <thead>
+            <tr style={{ background: C.ink, color: "#fff" }}>
+              <th style={{ padding: "8px 12px", textAlign: "left" }}>When the scenario says…</th>
+              <th style={{ padding: "8px 12px", textAlign: "left" }}>Draw…</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["\u201Cis a kind of\u201D, \u201Cextends\u201D", "Generalization: solid line, triangle up to parent"],
+              ["\u201Ccan do / behaves as\u201D, \u201Cimplements a contract\u201D", "Dashed line, white triangle to «interface»"],
+              ["\u201Cparts destroyed with the whole\u201D, \u201Cmade entirely of\u201D", "Composition: black diamond at the whole"],
+              ["\u201Chas / is part of, but parts can be shared or survive\u201D", "Aggregation: white diamond at the whole"],
+              ["\u201Cuses briefly inside a method\u201D, \u201Ccreates temporarily\u201D", "Dependency: dotted open arrow"],
+              ["\u201Cdata about the relationship itself\u201D (salary, grade, date)", "Association class on a dashed drop-line"],
+              ["\u201Cshared by all objects\u201D, \u201Ccount of all instances\u201D", "Underlined (static) member"],
+              ["\u201Ccomputable from other fields\u201D (age, area, total)", "/ derived attribute"],
+            ].map((r, i) => (
+              <tr key={i} style={{ background: i % 2 ? "#FBFAF5" : "#fff", borderBottom: `1px solid ${C.line}` }}>
+                <td style={{ padding: "7px 12px", fontStyle: "italic" }}>{r[0]}</td>
+                <td style={{ padding: "7px 12px", fontWeight: 600 }}>{r[1]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Callout type="exam">
+          For "draw a class diagram for this scenario" questions, budget your time like this: nouns → candidate classes (2 min), verbs/has-phrases → associations with the two-question lifecycle test (3 min), numbers in the text → multiplicities (1 min), then attributes/operations with correct symbols. Justify any aggregation-vs-composition call in one sentence — design justification over mechanics, as always in this course.
+        </Callout>
+        <H>Scenario quiz — pattern-recognition style, instant feedback</H>
+        <Quiz />
+      </>
+    ),
+  },
+];
+
+/* ---------------- shell ---------------- */
+
+function App() {
+  const [idx, setIdx] = useState(0);
+  const S = SECTIONS[idx];
+  const go = (i) => { setIdx(i); window.scrollTo(0, 0); };
+  return (
+    <div style={{ minHeight: "100vh", background: C.paper, fontFamily: C.sans, color: C.ink }}>
+      {/* top contents bar */}
+      <div style={{ position: "sticky", top: 0, zIndex: 50, background: C.ink, color: "#E7EBF4", boxShadow: "0 2px 10px rgba(24,35,56,0.35)" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", padding: "12px 20px 8px" }}>
+          <span style={{ fontFamily: C.mono, fontSize: 11, letterSpacing: "0.12em", color: "#8FA8D6" }}>CSE213 · SOFTWARE ENGINEERING</span>
+          <span style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700 }}>UML Class Diagrams</span>
+          <span style={{ fontSize: 12, color: "#AAB6CC" }}>Lecture walkthrough · slides 1–16</span>
+        </div>
+        <div className="topnav" style={{ display: "flex", overflowX: "auto", padding: "0 12px", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
+          {SECTIONS.map((s, i) => (
+            <button key={s.id} onClick={() => go(i)} title={s.title}
+              style={{ flex: "0 0 auto", background: i === idx ? "rgba(255,255,255,0.12)" : "transparent", border: "none", borderBottom: i === idx ? "3px solid #7FB3FF" : "3px solid transparent", color: i === idx ? "#fff" : "#B9C3D6", padding: "10px 14px", cursor: "pointer", fontSize: 12.5, fontFamily: C.sans, whiteSpace: "nowrap" }}>
+              <span style={{ fontFamily: C.mono, fontSize: 11, color: "#7FB3FF", marginRight: 7 }}>{String(i + 1).padStart(2, "0")}</span>
+              {s.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* main */}
+      <div style={{ padding: "30px clamp(18px, 6vw, 72px) 80px", maxWidth: 940, margin: "0 auto" }}>
+        <div style={{ fontFamily: C.mono, fontSize: 12, color: C.blue, letterSpacing: "0.1em" }}>
+          SECTION {String(idx + 1).padStart(2, "0")} / {String(SECTIONS.length).padStart(2, "0")} · {S.tag.toUpperCase()}
+        </div>
+        <h1 style={{ fontFamily: C.serif, fontSize: 30, margin: "6px 0 4px", borderBottom: `3px solid ${C.ink}`, paddingBottom: 10 }}>{S.title}</h1>
+        {S.body()}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 44, borderTop: `1px solid ${C.line}`, paddingTop: 18, gap: 12, flexWrap: "wrap" }}>
+          <button disabled={idx === 0} onClick={() => go(idx - 1)}
+            style={{ padding: "10px 18px", borderRadius: 8, border: `1.5px solid ${C.ink}`, background: "#fff", cursor: idx === 0 ? "default" : "pointer", opacity: idx === 0 ? 0.35 : 1, fontWeight: 600, fontSize: 13.5 }}>
+            ← {idx > 0 ? SECTIONS[idx - 1].title : "Start"}
+          </button>
+          <button disabled={idx === SECTIONS.length - 1} onClick={() => go(idx + 1)}
+            style={{ padding: "10px 18px", borderRadius: 8, border: "none", background: C.blue, color: "#fff", cursor: idx === SECTIONS.length - 1 ? "default" : "pointer", opacity: idx === SECTIONS.length - 1 ? 0.35 : 1, fontWeight: 700, fontSize: 13.5 }}>
+            {idx < SECTIONS.length - 1 ? SECTIONS[idx + 1].title : "End"} →
+          </button>
+        </div>
+        <div style={{ marginTop: 26, fontSize: 11.5, color: C.inkSoft, lineHeight: 1.6 }}>
+          🎓 Callouts: professor's notes, edge cases, exam tips, brainstorms — same legend as our previous lectures.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

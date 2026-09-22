@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE213 · Lecture 01 · Software Design Principles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B1220;
+    --bg-panel: #0E1729;
+    --grid-line: rgba(94,200,216,0.08);
+    --grid-line-strong: rgba(94,200,216,0.18);
+    --ink: #EDF2F7;
+    --ink-dim: #93A7BE;
+    --ink-faint: #5D7188;
+    --cyan: #5EC8D8;
+    --cyan-dim: rgba(94,200,216,0.14);
+    --amber: #E8A33D;
+    --amber-dim: rgba(232,163,61,0.14);
+    --red: #E2725B;
+    --red-dim: rgba(226,114,91,0.13);
+    --green: #6FCF97;
+    --green-dim: rgba(111,207,151,0.13);
+    --line: rgba(147,167,190,0.18);
+    --radius: 3px;
+    --sidebar-w: 300px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif; margin:0; letter-spacing:-0.01em;}
+  code, .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:var(--cyan);}
+  ::selection{background:var(--amber-dim); color:var(--ink);}
+
+  /* ---------- App shell ---------- */
+  .app{
+    display:grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    min-height:100vh;
+  }
+  @media (max-width: 880px){
+    .app{grid-template-columns: 1fr;}
+    .sidebar{position:fixed; z-index:50; height:100vh; transform:translateX(-104%); transition:transform .28s ease; box-shadow:20px 0 40px rgba(0,0,0,.5);}
+    .sidebar.open{transform:translateX(0);}
+    .menu-btn{display:flex !important;}
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    background:
+      linear-gradient(var(--bg-panel), var(--bg-panel)),
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 28px);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    width:var(--sidebar-w);
+    overflow-y:auto;
+  }
+  .sidebar-head{
+    padding:26px 22px 18px;
+    border-bottom:1px dashed var(--line);
+  }
+  .stamp{
+    display:inline-block;
+    border:1px solid var(--amber);
+    color:var(--amber);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    padding:2px 8px;
+    border-radius:2px;
+    margin-bottom:12px;
+  }
+  .sidebar-head h1{font-size:21px; color:var(--ink); font-weight:600;}
+  .sidebar-head .sub{color:var(--ink-dim); font-size:12.5px; margin-top:6px; font-family:'IBM Plex Mono',monospace;}
+
+  .nav{padding:10px 10px 24px; flex:1;}
+  .nav-group-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; color:var(--ink-faint);
+    letter-spacing:.14em; text-transform:uppercase;
+    padding:14px 10px 6px;
+  }
+  .nav-item{
+    display:flex; align-items:baseline; gap:10px;
+    padding:9px 10px; margin:1px 0;
+    border-radius:var(--radius);
+    cursor:pointer; color:var(--ink-dim);
+    border-left:2px solid transparent;
+    font-size:13.6px;
+    transition: all .15s ease;
+  }
+  .nav-item .n{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); min-width:20px;}
+  .nav-item:hover{background:rgba(94,200,216,0.06); color:var(--ink);}
+  .nav-item.active{
+    background:var(--cyan-dim);
+    color:var(--ink);
+    border-left:2px solid var(--cyan);
+  }
+  .nav-item.active .n{color:var(--cyan);}
+  .nav-item .done{margin-left:auto; color:var(--green); font-size:12px; opacity:0; }
+  .nav-item.visited .done{opacity:1;}
+
+  .sidebar-foot{
+    padding:14px 22px 20px; border-top:1px dashed var(--line);
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint);
+    display:flex; justify-content:space-between;
+  }
+
+  .menu-btn{
+    display:none; position:fixed; top:14px; left:14px; z-index:60;
+    background:var(--bg-panel); border:1px solid var(--line); color:var(--ink);
+    width:40px; height:40px; border-radius:6px; align-items:center; justify-content:center;
+    cursor:pointer; font-size:18px;
+  }
+
+  /* ---------- Main ---------- */
+  .main{
+    position:relative;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(94,200,216,0.06), transparent 60%),
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 40px);
+    padding:0 0 80px;
+  }
+  .sheet{display:none; max-width:900px; margin:0 auto; padding:38px 34px 10px;}
+  .sheet.active{display:block; animation:rise .35s ease;}
+  @keyframes rise{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  .title-block{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:2px solid var(--cyan); padding-bottom:14px; margin-bottom:26px;
+    flex-wrap:wrap; gap:10px;
+  }
+  .title-block .tb-left .eyebrow{
+    font-family:'IBM Plex Mono',monospace; color:var(--amber); font-size:11.5px;
+    letter-spacing:.16em; text-transform:uppercase; margin-bottom:6px;
+  }
+  .title-block h2{font-size:30px; color:var(--ink);}
+  .title-block .tb-right{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint);
+    text-align:right; line-height:1.9;
+  }
+  .title-block .tb-right b{color:var(--ink-dim);}
+
+  p{color:var(--ink-dim); margin:0 0 14px;}
+  strong{color:var(--ink);}
+  .lede{color:var(--ink); font-size:17px; line-height:1.7;}
+
+  h3.section-h{font-size:16px; color:var(--cyan); margin:30px 0 12px; display:flex; align-items:center; gap:10px;}
+  h3.section-h::after{content:""; flex:1; height:1px; background:var(--line);}
+
+  ul.clean{padding-left:20px; margin:0 0 14px;}
+  ul.clean li{margin-bottom:6px; color:var(--ink-dim);}
+  ul.clean li::marker{color:var(--cyan);}
+
+  /* ---------- Callout boxes ---------- */
+  .box{
+    border:1px solid var(--line); border-left:3px solid var(--ink-faint);
+    border-radius:var(--radius); padding:14px 16px; margin:16px 0;
+    background:rgba(255,255,255,0.015);
+  }
+  .box .box-label{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:7px;
+  }
+  .box p:last-child{margin-bottom:0;}
+  .box.prof{border-left-color:var(--cyan); background:var(--cyan-dim);}
+  .box.prof .box-label{color:var(--cyan);}
+  .box.edge{border-left-color:var(--amber); background:var(--amber-dim);}
+  .box.edge .box-label{color:var(--amber);}
+  .box.exam{border-left-color:#9B8CF2; background:rgba(155,140,242,0.10);}
+  .box.exam .box-label{color:#B4A8FF;}
+  .box.brain{border-left-color:var(--green); background:var(--green-dim);}
+  .box.brain .box-label{color:var(--green);}
+
+  /* ---------- Code blocks ---------- */
+  .code-wrap{border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:14px 0;}
+  .code-head{
+    display:flex; justify-content:space-between; align-items:center;
+    background:rgba(255,255,255,0.03); padding:7px 12px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint);
+    border-bottom:1px solid var(--line);
+  }
+  .code-head .tag{padding:1px 7px; border-radius:10px; font-size:10px;}
+  .code-head .tag.bad{background:var(--red-dim); color:var(--red);}
+  .code-head .tag.good{background:var(--green-dim); color:var(--green);}
+  pre{margin:0; padding:14px 16px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.6px; line-height:1.65; color:#CBD8E6; background:#0A121F;}
+  .kw{color:#79B8FF;} .fn{color:#E8A33D;} .str{color:#9DE59D;} .com{color:#5D7188; font-style:italic;} .ty{color:#5EC8D8;} .num{color:#F0A868;}
+
+  .before-after{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0;}
+  @media (max-width:700px){.before-after{grid-template-columns:1fr;}}
+
+  /* ---------- UML boxes / diagrams ---------- */
+  .diagram{
+    border:1px dashed var(--line); border-radius:6px; padding:24px;
+    margin:16px 0; display:flex; flex-wrap:wrap; gap:26px; align-items:flex-start; justify-content:center;
+    background:rgba(255,255,255,0.012);
+  }
+  .diagram .cap{width:100%; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); margin-top:6px;}
+  .uml{border:1px solid var(--cyan); border-radius:3px; min-width:170px; background:rgba(94,200,216,0.03);}
+  .uml .u-head{font-weight:600; text-align:center; padding:7px 10px; border-bottom:1px solid var(--cyan); font-size:13px; color:var(--ink);}
+  .uml.iface .u-head{color:var(--cyan);}
+  .uml .u-body{padding:6px 10px; border-bottom:1px solid var(--line); min-height:14px; font-family:'IBM Plex Mono',monospace; font-size:11.6px; color:var(--ink-dim);}
+  .uml .u-body div{white-space:nowrap;}
+  .uml .u-foot{padding:6px 10px; font-family:'IBM Plex Mono',monospace; font-size:11.6px; color:var(--ink-dim);}
+  .uml .u-foot div{white-space:nowrap;}
+  .arrow-col{display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:20px; align-self:center;}
+  .arrow-col span{font-family:'IBM Plex Mono',monospace; font-size:10px; margin-top:2px;}
+
+  /* ---------- Quiz ---------- */
+  .quiz-card{border:1px solid var(--line); border-radius:6px; padding:16px 18px; margin:16px 0; background:rgba(255,255,255,0.02);}
+  .quiz-card .q{color:var(--ink); font-weight:600; margin-bottom:10px;}
+  .opts{display:flex; flex-direction:column; gap:8px;}
+  .opt{
+    text-align:left; padding:9px 12px; border:1px solid var(--line); border-radius:5px;
+    background:transparent; color:var(--ink-dim); cursor:pointer; font-family:'IBM Plex Sans',sans-serif; font-size:13.6px;
+    transition: all .15s ease;
+  }
+  .opt:hover{border-color:var(--cyan); color:var(--ink);}
+  .opt.correct{border-color:var(--green); background:var(--green-dim); color:var(--ink);}
+  .opt.wrong{border-color:var(--red); background:var(--red-dim); color:var(--ink);}
+  .explain{display:none; margin-top:10px; font-size:13px; color:var(--ink-dim); border-top:1px dashed var(--line); padding-top:10px;}
+  .explain.show{display:block;}
+
+  /* ---------- Footer nav buttons ---------- */
+  .pager{display:flex; justify-content:space-between; margin-top:38px; padding-top:20px; border-top:1px dashed var(--line);}
+  .pbtn{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim);
+    border:1px solid var(--line); padding:9px 16px; border-radius:5px; cursor:pointer; background:transparent;
+  }
+  .pbtn:hover{border-color:var(--cyan); color:var(--ink);}
+  .pbtn:disabled{opacity:.3; cursor:default;}
+
+  .toggle-row{display:flex; gap:8px; margin:10px 0 16px;}
+  .toggle-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:6px 12px; border-radius:14px;
+    border:1px solid var(--line); background:transparent; color:var(--ink-dim); cursor:pointer;
+  }
+  .toggle-btn.on{background:var(--cyan-dim); border-color:var(--cyan); color:var(--ink);}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <span class="stamp">CH. 03 · DIVE INTO DESIGN PATTERNS</span>
+      <h1>CSE213</h1>
+      <div class="sub">Software Engineering — Lecture 01<br>Software Design Principles</div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group-label">Foundations</div>
+      <div class="nav-item" data-target="intro"><span class="n">00</span><span>Welcome & Roadmap</span></div>
+      <div class="nav-item" data-target="encapsulation"><span class="n">01</span><span>Encapsulation</span></div>
+      <div class="nav-item" data-target="interface"><span class="n">02</span><span>Interface &gt; Implementation</span></div>
+      <div class="nav-item" data-target="diamond"><span class="n">03</span><span>Diamond Problem</span></div>
+      <div class="nav-item" data-target="coupling"><span class="n">04</span><span>Coupling</span></div>
+
+      <div class="nav-group-label">SOLID Principles</div>
+      <div class="nav-item" data-target="solid-intro"><span class="n">05</span><span>SOLID: The Big Picture</span></div>
+      <div class="nav-item" data-target="srp"><span class="n">06</span><span>S — Single Responsibility</span></div>
+      <div class="nav-item" data-target="ocp"><span class="n">07</span><span>O — Open/Closed</span></div>
+      <div class="nav-item" data-target="lsp"><span class="n">08</span><span>L — Liskov Substitution</span></div>
+      <div class="nav-item" data-target="isp"><span class="n">09</span><span>I — Interface Segregation</span></div>
+      <div class="nav-item" data-target="dip"><span class="n">10</span><span>D — Dependency Inversion</span></div>
+
+      <div class="nav-group-label">Wrap-up</div>
+      <div class="nav-item" data-target="quiz"><span class="n">11</span><span>Self-Check Quiz</span></div>
+      <div class="nav-item" data-target="summary"><span class="n">12</span><span>Recap & Reference</span></div>
+    </nav>
+    <div class="sidebar-foot"><span>PROGRESS</span><span id="progressText">0 / 13</span></div>
+  </aside>
+
+  <main class="main" id="main">
+
+    <!-- 00 INTRO -->
+    <section class="sheet" data-id="intro">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 00 · Orientation</div><h2>Welcome to Software Design Principles</h2></div>
+        <div class="tb-right"><b>Scale:</b> Conceptual<br><b>Rev:</b> SOLID-1<br><b>Source:</b> Dive Into Design Patterns, Ch.3</div>
+      </div>
+
+      <p class="lede">Good morning, everyone. Before we touch a single design pattern this semester, we need to talk about the principles that make patterns necessary in the first place. Think of today as learning to read blueprints before we start building houses — patterns are the pre-fabricated house designs, but <strong>principles are the physics that decide whether any house stands up.</strong></p>
+
+      <h3 class="section-h">Why this lecture matters</h3>
+      <p>Every "clean code" habit you'll ever adopt — small classes, meaningful interfaces, avoiding god-objects — traces back to a small set of ideas: <strong>encapsulation, coupling/cohesion, and the five SOLID principles.</strong> We'll walk through the exact examples from your textbook slides (the tax-calculating <code>Order</code> class, the <code>Cat</code>/<code>Food</code> hierarchy, the shipping-cost example, the cloud-provider interfaces, and the light-switch DIP example), and I'll annotate each one with the traps students fall into during exams and interviews.</p>
+
+      <div class="box prof">
+        <div class="box-label">🎓 Professor's Note</div>
+        <p>None of these principles are laws of physics — they're heuristics. The slide deck itself says applying SOLID can make a program's architecture <em>more</em> complicated than it needs to be. The exam-worthy skill isn't reciting the rules; it's judging <strong>when a principle earns its complexity and when it doesn't.</strong></p>
+      </div>
+
+      <h3 class="section-h">Roadmap for today</h3>
+      <ul class="clean">
+        <li><strong>Encapsulation</strong> — hiding what varies, at the method and class level</li>
+        <li><strong>Interface vs. Implementation</strong> — programming to a contract, not a concrete type</li>
+        <li><strong>The Diamond Problem</strong> — why multiple inheritance is dangerous</li>
+        <li><strong>Coupling</strong> — the disease that principles are trying to cure</li>
+        <li><strong>SOLID</strong> — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion</li>
+      </ul>
+
+      <div class="box brain">
+        <div class="box-label">💡 Warm-up brainstorm</div>
+        <p>Before we start: think of a real app on your phone that got a bad update — something that used to work simply and now feels bloated or buggy after a "small feature" was added. Hold that example in your head. By the end of this lecture you'll be able to name <em>which</em> principle that team probably violated.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn" disabled>◀ Previous</button><button class="pbtn nextBtn">Next: Encapsulation ▶</button></div>
+    </section>
+
+    <!-- 01 ENCAPSULATION -->
+    <section class="sheet" data-id="encapsulation">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 01 · Foundations</div><h2>Encapsulation</h2></div>
+        <div class="tb-right"><b>Scale:</b> Method → Class<br><b>Rev:</b> ENC-1<br><b>Ref:</b> Slides 2–5</div>
+      </div>
+
+      <p class="lede">Encapsulation is usually taught as "hiding data with private fields and getters/setters." That's true but shallow. The deeper definition your textbook uses: <strong>identify the parts of your program that vary and separate them from the parts that stay the same.</strong> Encapsulation is drawing a wall around volatility.</p>
+
+      <h3 class="section-h">Encapsulation at the method level</h3>
+      <p>Here's the classic example: a method that computes an order's total, including tax.</p>
+
+      <div class="before-after">
+        <div class="code-wrap">
+          <div class="code-head"><span>getOrderTotal() — before</span><span class="tag bad">tangled</span></div>
+          <pre><span class="kw">method</span> <span class="fn">getOrderTotal</span>(order) <span class="kw">is</span>
+  total = <span class="num">0</span>
+  <span class="kw">foreach</span> item <span class="kw">in</span> order.lineItems
+    total += item.price * item.quantity
+
+  <span class="kw">if</span> (order.country == <span class="str">"US"</span>)
+    total += total * <span class="num">0.07</span> <span class="com">// US sales tax</span>
+  <span class="kw">else if</span> (order.country == <span class="str">"EU"</span>):
+    total += total * <span class="num">0.20</span> <span class="com">// European VAT</span>
+
+  <span class="kw">return</span> total</pre>
+        </div>
+        <div class="code-wrap">
+          <div class="code-head"><span>getOrderTotal() — after</span><span class="tag good">encapsulated</span></div>
+          <pre><span class="kw">method</span> <span class="fn">getOrderTotal</span>(order) <span class="kw">is</span>
+  total = <span class="num">0</span>
+  <span class="kw">foreach</span> item <span class="kw">in</span> order.lineItems
+    total += item.price * item.quantity
+  total += total * <span class="fn">getTaxRate</span>(order.country)
+  <span class="kw">return</span> total
+
+<span class="kw">method</span> <span class="fn">getTaxRate</span>(country) <span class="kw">is</span>
+  <span class="kw">if</span> (country == <span class="str">"US"</span>): <span class="kw">return</span> <span class="num">0.07</span>
+  <span class="kw">else if</span> (country == <span class="str">"EU"</span>): <span class="kw">return</span> <span class="num">0.20</span>
+  <span class="kw">else</span>: <span class="kw">return</span> <span class="num">0</span></pre>
+        </div>
+      </div>
+
+      <p>Nothing about the <em>behavior</em> changed — same inputs, same outputs. What changed is that "how tax is calculated" (the part that varies as new countries are added) is now walled off inside <code>getTaxRate</code>, behind a stable interface: a country in, a rate out.</p>
+
+      <h3 class="section-h">Encapsulation at the class level</h3>
+      <p>Zoom out one level. The <code>Order</code> class in the slides has 20+ fields (<code>lineItems</code>, <code>country</code>, <code>state</code>, <code>city</code>, ...) and grew a second responsibility: computing tax rates for the US, EU, and China.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Order</div>
+          <div class="u-body"><div>- lineItems</div><div>- country / state / city</div><div>- …20+ fields</div></div>
+          <div class="u-foot"><div>+ getOrderTotal()</div></div>
+        </div>
+        <div class="arrow-col">◇──▶<span>has-a</span></div>
+        <div class="uml">
+          <div class="u-head">TaxCalculator</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ getTaxRate(country, state, product)</div><div>- getUSTax(state)</div><div>- getEUTax(country)</div><div>- getChineseTax(product)</div></div>
+        </div>
+        <div class="cap">AFTER: tax logic is pulled into its own class — Order only asks a question, it doesn't know the answer's logic.</div>
+      </div>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case students miss</div>
+        <p>Encapsulation is <strong>not</strong> the same as "make every field private." A class with 40 private fields, all exposed through public getters/setters, is still poorly encapsulated if client code has to read three fields and combine them itself to get useful information — that's "feature envy," and it means the behavior lives in the wrong place.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"Given a class with a bloated method mixing multiple responsibilities, refactor it using method-level encapsulation." — Expect to be given something like <code>getOrderTotal()</code> and asked to extract the varying part into a helper method. Practice spotting <em>which branch of logic will grow over time</em> (that's always the part to extract).</p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>What would happen to the <code>TaxCalculator</code> design if a new requirement appeared: "tax rate also depends on the <em>product category</em> (digital goods vs. physical goods) inside the same country"? Where would you add that logic without touching <code>Order</code> at all?</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Interface &gt; Implementation ▶</button></div>
+    </section>
+
+    <!-- 02 INTERFACE -->
+    <section class="sheet" data-id="interface">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 02 · Foundations</div><h2>Program to an Interface, Not an Implementation</h2></div>
+        <div class="tb-right"><b>Scale:</b> Class Contract<br><b>Rev:</b> IFC-1<br><b>Ref:</b> Slide 6</div>
+      </div>
+
+      <p class="lede">The slide uses a wonderfully weird example: a <code>Cat</code> that eats <code>Sausage</code>. Let's see why that's fragile.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Cat</div>
+          <div class="u-body"><div>- energy</div></div>
+          <div class="u-foot"><div>+ eat(Sausage s)</div></div>
+        </div>
+        <div class="arrow-col">▽<span>depends on</span></div>
+        <div class="uml">
+          <div class="u-head">Sausage</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ getNutrition()</div><div>+ getColor()</div><div>+ getExpiration()</div></div>
+        </div>
+        <div class="cap">BEFORE: Cat is welded to the concrete Sausage class.</div>
+      </div>
+
+      <p>The instant your cat needs to eat <code>Fish</code> too, you either duplicate <code>eat()</code> or start littering it with <code>instanceof</code> checks. The fix: introduce a <code>Food</code> interface exposing only what <code>Cat</code> actually needs (<code>getNutrition()</code>), and have every edible thing implement it.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Cat</div>
+          <div class="u-body"><div>- energy</div></div>
+          <div class="u-foot"><div>+ eat(Food s)</div></div>
+        </div>
+        <div class="arrow-col">▽<span>depends on</span></div>
+        <div class="uml iface">
+          <div class="u-head">«interface» Food</div>
+          <div class="u-body"><div>&nbsp;</div></div>
+          <div class="u-foot"><div>+ getNutrition()</div></div>
+        </div>
+        <div class="arrow-col">△<span>implements</span></div>
+        <div class="uml">
+          <div class="u-head">Sausage</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ getNutrition()</div><div>+ getColor()</div><div>+ getExpiration()</div></div>
+        </div>
+        <div class="cap">AFTER: Cat only knows about the Food contract — any future food type just implements it.</div>
+      </div>
+
+      <div class="box prof">
+        <div class="box-label">🎓 Professor's Note — read this twice</div>
+        <p>Your slide is refreshingly honest here: <em>"After making this change, you won't probably feel any immediate benefit. On the contrary, the code has become more complicated than it was before."</em> This is the single most important sentence in the whole deck for exam essay-questions: <strong>abstraction has an up-front cost, and it only pays off if extension actually happens.</strong> Don't introduce an interface "just in case" for a class you're certain will never have a second implementation — that's speculative generality, a well-known anti-pattern.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"When is introducing an interface premature?" — Correct answer references YAGNI (You Aren't Gonna Need It): only extract an interface when you have concrete evidence of a second implementation, a plugin point, or a testing need (mock objects).</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Diamond Problem ▶</button></div>
+    </section>
+
+    <!-- 03 DIAMOND -->
+    <section class="sheet" data-id="diamond">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 03 · Foundations</div><h2>The Diamond Problem</h2></div>
+        <div class="tb-right"><b>Scale:</b> Inheritance Graph<br><b>Rev:</b> DIA-1<br><b>Ref:</b> Slide 7</div>
+      </div>
+
+      <p class="lede">Why doesn't Java, C#, or most modern OOP languages allow multiple <em>class</em> inheritance? This diagram is the reason.</p>
+
+      <div class="diagram">
+        <svg width="360" height="200" viewBox="0 0 360 200">
+          <g font-family="IBM Plex Mono" font-size="12" fill="#EDF2F7">
+            <rect x="140" y="10" width="80" height="34" rx="3" fill="rgba(94,200,216,0.1)" stroke="#5EC8D8"/>
+            <text x="180" y="31" text-anchor="middle">SuperClass</text>
+
+            <rect x="40" y="90" width="80" height="34" rx="3" fill="rgba(94,200,216,0.1)" stroke="#5EC8D8"/>
+            <text x="80" y="111" text-anchor="middle">ClassA</text>
+
+            <rect x="240" y="90" width="80" height="34" rx="3" fill="rgba(94,200,216,0.1)" stroke="#5EC8D8"/>
+            <text x="280" y="111" text-anchor="middle">ClassB</text>
+
+            <rect x="140" y="160" width="80" height="34" rx="3" fill="rgba(226,114,91,0.12)" stroke="#E2725B"/>
+            <text x="180" y="181" text-anchor="middle" fill="#E2725B">ClassC ?</text>
+
+            <line x1="150" y1="44" x2="90" y2="90" stroke="#5D7188"/>
+            <line x1="210" y1="44" x2="270" y2="90" stroke="#5D7188"/>
+            <line x1="90" y1="124" x2="160" y2="160" stroke="#E2725B"/>
+            <line x1="270" y1="124" x2="200" y2="160" stroke="#E2725B"/>
+          </g>
+        </svg>
+        <div class="cap">Both ClassA and ClassB implement doSomething(). Which one does ClassC inherit?</div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-head"><span>Illegal multiple inheritance (pseudocode)</span><span class="tag bad">won't compile</span></div>
+        <pre><span class="com">// this is just an assumption to explain the diamond problem</span>
+<span class="com">// this code won't compile</span>
+<span class="kw">public class</span> <span class="ty">ClassC</span> <span class="kw">extends</span> <span class="ty">ClassA</span>, <span class="ty">ClassB</span>{
+
+    <span class="kw">public void</span> <span class="fn">test</span>(){
+        <span class="com">// calling super class method — but which super?</span>
+        <span class="fn">doSomething</span>();
+    }
+}</pre>
+      </div>
+
+      <p>If <code>ClassA.doSomething()</code> and <code>ClassB.doSomething()</code> have different implementations, the compiler has no principled way to decide which one <code>ClassC</code> inherits. That ambiguity is the "diamond."</p>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case</div>
+        <p>Languages don't all solve this the same way. Java and C# forbid multiple <em>class</em> inheritance entirely but allow implementing multiple <em>interfaces</em> (which — pre-default-methods — had no bodies, so no ambiguity). C++ allows multiple inheritance but requires explicit disambiguation (<code>ClassA::doSomething()</code>) or virtual inheritance to collapse a shared base. Java 8+ default methods reopened a mini version of this problem for interfaces, resolved by requiring the implementing class to override the conflicting method explicitly.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"Why does Java disallow multiple inheritance of classes but allow multiple interface implementation?" Be ready to explain the diamond problem in your own words and name at least one language's resolution strategy.</p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>Composition ("has-a") is often suggested as the cure for diamond-shaped hierarchies — instead of inheriting behavior from two parents, a class holds two collaborator objects and delegates to them. Try mentally redesigning <code>ClassC</code> using composition instead of inheritance. What do you gain? What do you lose (hint: think about polymorphism)?</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Coupling ▶</button></div>
+    </section>
+
+    <!-- 04 COUPLING -->
+    <section class="sheet" data-id="coupling">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 04 · Foundations</div><h2>Coupling: The Disease Principles Cure</h2></div>
+        <div class="tb-right"><b>Scale:</b> System<br><b>Rev:</b> CPL-1<br><b>Ref:</b> Slides 8–9</div>
+      </div>
+
+      <p class="lede">If encapsulation is a wall, coupling is a measure of how many doors you cut into it. <strong>Tight coupling</strong> means a class knows too much about the concrete details of other classes; <strong>loose coupling</strong> means it only knows about abstractions.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Company</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ createSoftware()</div></div>
+        </div>
+        <div class="arrow-col">──▶</div>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="uml"><div class="u-head">Designer</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ designArchitecture()</div></div></div>
+          <div class="uml"><div class="u-head">Programmer</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ writeCode()</div></div></div>
+          <div class="uml"><div class="u-head">Tester</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ testSoftware()</div></div></div>
+        </div>
+        <div class="cap">BEFORE: Company directly instantiates new Designer(), new Programmer(), new Tester() — tight coupling.</div>
+      </div>
+
+      <p>Every time you add a new kind of employee (an Artist? a DevOps engineer?), you must open up <code>Company</code> and edit its internals. That violates the Open/Closed Principle we'll meet shortly — and it's a maintenance nightmare in any real codebase.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Company</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ getEmployees()</div><div>+ createSoftware()</div></div>
+        </div>
+        <div class="arrow-col">△<span>extends</span></div>
+        <div style="display:flex; gap:14px;">
+          <div class="uml"><div class="u-head">GameDevCompany</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ getEmployees()</div></div></div>
+          <div class="uml"><div class="u-head">OutsourcingCompany</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ getEmployees()</div></div></div>
+        </div>
+        <div class="arrow-col">──▶<span>returns</span></div>
+        <div class="uml iface">
+          <div class="u-head">«interface» Employee</div>
+          <div class="u-body"><div>&nbsp;</div></div>
+          <div class="u-foot"><div>+ doWork()</div></div>
+        </div>
+        <div class="cap">AFTER: Company only knows the Employee interface. Subclasses decide which concrete employees to create.</div>
+      </div>
+
+      <p>Now <code>Company.createSoftware()</code> just loops: <code>foreach (Employee e in getEmployees()) e.doWork()</code>. It never needs to change again, no matter how many new employee or company types are invented — new subclasses <em>extend</em> the system instead of <em>modifying</em> it.</p>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case: coupling vs. cohesion aren't opposites, but they trade off</div>
+        <p>Zero coupling is not the goal — a system where no class talks to any other class does nothing. The real target is <strong>high cohesion within a class, loose coupling between classes.</strong> A class should have a tightly focused job internally, but expose only a thin, stable surface to the outside world.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>Given a UML diagram with concrete-to-concrete dependency arrows, identify the tight coupling and redraw it using an interface/abstraction layer, exactly like the Company → Employee refactor. This pattern (concrete dependency ⟶ interface dependency) reappears in <em>every</em> SOLID principle below, so master it now.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: SOLID Overview ▶</button></div>
+    </section>
+
+    <!-- 05 SOLID INTRO -->
+    <section class="sheet" data-id="solid-intro">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 05 · SOLID</div><h2>SOLID: The Big Picture</h2></div>
+        <div class="tb-right"><b>Scale:</b> Program Architecture<br><b>Rev:</b> SOLID-0<br><b>Ref:</b> Slide 10</div>
+      </div>
+
+      <p class="lede">SOLID is a mnemonic — five principles, one letter each — meant to make object-oriented designs more understandable, flexible, and maintainable. You now already understand the seed idea behind all five: <strong>encapsulate what varies, and depend on abstractions instead of concretions.</strong> SOLID just gives that idea five specific faces.</p>
+
+      <div class="diagram" style="justify-content:flex-start;">
+        <div class="uml" style="min-width:220px;"><div class="u-head" style="color:#79B8FF;">S — Single Responsibility</div><div class="u-foot"><div>A class should have one reason to change.</div></div></div>
+        <div class="uml" style="min-width:220px;"><div class="u-head" style="color:#E8A33D;">O — Open/Closed</div><div class="u-foot"><div>Open for extension, closed for modification.</div></div></div>
+        <div class="uml" style="min-width:220px;"><div class="u-head" style="color:#9DE59D;">L — Liskov Substitution</div><div class="u-foot"><div>Subclasses must be safely substitutable for their base class.</div></div></div>
+        <div class="uml" style="min-width:220px;"><div class="u-head" style="color:#B4A8FF;">I — Interface Segregation</div><div class="u-foot"><div>Don't force clients to depend on methods they don't use.</div></div></div>
+        <div class="uml" style="min-width:220px;"><div class="u-head" style="color:#E2725B;">D — Dependency Inversion</div><div class="u-foot"><div>Depend on abstractions, not concrete implementations.</div></div></div>
+      </div>
+
+      <div class="box prof">
+        <div class="box-label">🎓 Professor's Note</div>
+        <p>Straight from your slide, in bold for a reason: <em>"The cost of applying these principles into a program's architecture might be making it more complicated than it should be."</em> This will show up as a discussion or short-answer question. SOLID is a tool for managing change in a codebase that will be maintained for years by a team — it is <strong>overkill for a one-off script or a throwaway prototype.</strong></p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>Notice that S and O are about a <em>single</em> class, L is about the relationship between a class and its <em>subclass</em>, and I and D are about the relationship between a class and <em>other classes it depends on</em>. Try grouping the five letters this way in your notes — it's a much easier way to memorize them than alphabetical order.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Single Responsibility ▶</button></div>
+    </section>
+
+    <!-- 06 SRP -->
+    <section class="sheet" data-id="srp">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 06 · SOLID · S</div><h2>Single Responsibility Principle</h2></div>
+        <div class="tb-right"><b>Rule:</b> One reason to change<br><b>Rev:</b> SRP-1<br><b>Ref:</b> Slide 11</div>
+      </div>
+
+      <p class="lede"><strong>"A class should have just one reason to change."</strong> Every class should have a single responsibility, entirely encapsulated by that class.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Employee</div>
+          <div class="u-body"><div>- name</div></div>
+          <div class="u-foot"><div>+ getName()</div><div>+ printTimeSheetReport()</div></div>
+        </div>
+        <div class="cap">BEFORE: Employee mixes "being an employee" with "formatting reports" — two different reasons to change.</div>
+      </div>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">TimeSheetReport</div>
+          <div class="u-body"><div>…</div></div>
+          <div class="u-foot"><div>+ print(employee)</div></div>
+        </div>
+        <div class="arrow-col">──▶</div>
+        <div class="uml">
+          <div class="u-head">Employee</div>
+          <div class="u-body"><div>- name</div></div>
+          <div class="u-foot"><div>+ getName()</div></div>
+        </div>
+        <div class="cap">AFTER: printing logic moves to its own class, free to grow (PDF export, CSV export…) without touching Employee.</div>
+      </div>
+
+      <h3 class="section-h">Why it matters</h3>
+      <ul class="clean">
+        <li><strong>Less fragile code</strong> — a bug fix in reporting can't accidentally break employee logic.</li>
+        <li><strong>Low coupling, high cohesion</strong> — direct payoff of what we discussed in Sheet 04.</li>
+        <li><strong>Changeability & maintainability</strong> — one team can own <code>Employee</code>, another can own reporting.</li>
+        <li><strong>Testability</strong> — you can unit-test report formatting without constructing a full employee record, and vice versa.</li>
+      </ul>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case: "responsibility" is not "method"</div>
+        <p>SRP does <em>not</em> mean "one method per class." A class can have many methods as long as they all serve one cohesive purpose and change for the same reason. The test isn't a method count — it's: <strong>"if I list every reason this class might need to change, is it always because of the same stakeholder / same concern?"</strong> If <code>Employee</code> changes both when HR policy changes <em>and</em> when the report's PDF layout changes, that's two reasons — two responsibilities.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"Identify the SRP violation in this class diagram and refactor it." Look for a class name that doesn't describe one coherent noun (e.g., <code>UserAndEmailSender</code>), or a class whose methods naturally split into two unrelated groups.</p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>Revisit your phone-app example from the intro. Was the "bad update" possibly a case where one class or module took on a second responsibility it shouldn't have (e.g., a messaging feature also started handling payments)?</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Open/Closed ▶</button></div>
+    </section>
+
+    <!-- 07 OCP -->
+    <section class="sheet" data-id="ocp">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 07 · SOLID · O</div><h2>Open/Closed Principle</h2></div>
+        <div class="tb-right"><b>Rule:</b> Open to extend, closed to modify<br><b>Rev:</b> OCP-1<br><b>Ref:</b> Slides 12–17</div>
+      </div>
+
+      <p class="lede"><strong>Classes should be open for extension but closed for modification.</strong> Once a class is finished and tested, you should be able to add new behavior <em>without editing its existing source code</em> — only by adding new code (usually a new subclass).</p>
+
+      <h3 class="section-h">The shipping-cost trap</h3>
+      <div class="code-wrap">
+        <div class="code-head"><span>Order.getShippingCost() — before</span><span class="tag bad">must edit for every new method</span></div>
+        <pre><span class="kw">if</span> (shipping == <span class="str">"ground"</span>) {
+  <span class="com">// Free ground delivery on big orders.</span>
+  <span class="kw">if</span> (<span class="fn">getTotal</span>() > <span class="num">100</span>) { <span class="kw">return</span> <span class="num">0</span> }
+  <span class="com">// $1.5 per kilogram, but $10 minimum.</span>
+  <span class="kw">return</span> <span class="fn">max</span>(<span class="num">10</span>, <span class="fn">getTotalWeight</span>() * <span class="num">1.5</span>)
+}
+<span class="kw">if</span> (shipping == <span class="str">"air"</span>) {
+  <span class="com">// $3 per kilogram, but $20 minimum.</span>
+  <span class="kw">return</span> <span class="fn">max</span>(<span class="num">20</span>, <span class="fn">getTotalWeight</span>() * <span class="num">3</span>)
+}</pre>
+        </div>
+      <p>Adding "Drone delivery" means opening <code>Order</code> and adding another <code>if</code>. Every edit risks breaking the branches that already work and were already tested.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Order</div>
+          <div class="u-body"><div>- lineItems</div><div>- shipping: Shipping</div></div>
+          <div class="u-foot"><div>+ getShippingCost()</div></div>
+        </div>
+        <div class="arrow-col">◇──▶</div>
+        <div class="uml iface">
+          <div class="u-head">«interface» Shipping</div>
+          <div class="u-body"><div>&nbsp;</div></div>
+          <div class="u-foot"><div>+ getCost(order)</div><div>+ getDate(order)</div></div>
+        </div>
+        <div class="arrow-col">△</div>
+        <div style="display:flex; gap:14px;">
+          <div class="uml"><div class="u-head">Ground</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ getCost(order)</div><div>+ getDate(order)</div></div></div>
+          <div class="uml"><div class="u-head">Air</div><div class="u-body"><div>…</div></div><div class="u-foot"><div>+ getCost(order)</div><div>+ getDate(order)</div></div></div>
+        </div>
+        <div class="cap">AFTER (Strategy pattern): Order.getShippingCost() simply calls shipping.getCost(this). Adding "Drone" = adding a new class, zero edits to Order.</div>
+      </div>
+
+      <h3 class="section-h">The shape-area classic (C#)</h3>
+      <p>This progression from your slides is one of the cleanest OCP demonstrations in the whole textbook. Toggle between the three stages:</p>
+
+      <div class="toggle-row">
+        <button class="toggle-btn on" data-ocp="v1">① Rectangle only</button>
+        <button class="toggle-btn" data-ocp="v2">② + Circle via instanceof</button>
+        <button class="toggle-btn" data-ocp="v3">③ Polymorphic (OCP-compliant)</button>
+      </div>
+
+      <div id="ocpV1" class="ocp-panel">
+        <div class="code-wrap"><div class="code-head"><span>Stage 1 — only rectangles exist, seems fine</span></div>
+        <pre><span class="kw">public class</span> <span class="ty">Rectangle</span>
+{
+    <span class="kw">public double</span> Width { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public double</span> Height { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="kw">public class</span> <span class="ty">AreaCalculator</span>
+{
+    <span class="kw">public double</span> <span class="fn">Area</span>(<span class="ty">Rectangle</span>[] shapes)
+    {
+        <span class="kw">double</span> area = <span class="num">0</span>;
+        <span class="kw">foreach</span> (<span class="kw">var</span> shape <span class="kw">in</span> shapes)
+            area += shape.Width * shape.Height;
+        <span class="kw">return</span> area;
+    }
+}</pre></div>
+      </div>
+      <div id="ocpV2" class="ocp-panel" style="display:none;">
+        <div class="code-wrap"><div class="code-head"><span>Stage 2 — Circle added the tempting way</span><span class="tag bad">violates OCP</span></div>
+        <pre><span class="kw">public double</span> <span class="fn">Area</span>(<span class="kw">object</span>[] shapes)
+{
+    <span class="kw">double</span> area = <span class="num">0</span>;
+    <span class="kw">foreach</span> (<span class="kw">var</span> shape <span class="kw">in</span> shapes)
+    {
+        <span class="kw">if</span> (shape <span class="kw">is</span> <span class="ty">Rectangle</span>)
+        {
+            <span class="ty">Rectangle</span> rectangle = (<span class="ty">Rectangle</span>) shape;
+            area += rectangle.Width * rectangle.Height;
+        }
+        <span class="kw">else</span>
+        {
+            <span class="ty">Circle</span> circle = (<span class="ty">Circle</span>)shape;
+            area += circle.Radius * circle.Radius * Math.PI;
+        }
+    }
+    <span class="kw">return</span> area;
+}</pre></div>
+        <p>To support <code>Circle</code>, we had to <em>modify</em> the already-working <code>Area()</code> method and give up compile-time type safety by casting from <code>object</code>. Adding Ellipse or Triangle means editing this method again — and again.</p>
+      </div>
+      <div id="ocpV3" class="ocp-panel" style="display:none;">
+        <div class="code-wrap"><div class="code-head"><span>Stage 3 — Shape abstraction, OCP restored</span><span class="tag good">extend without modifying</span></div>
+        <pre><span class="kw">public abstract class</span> <span class="ty">Shape</span>
+{
+    <span class="kw">public abstract double</span> <span class="fn">Area</span>();
+}
+
+<span class="kw">public class</span> <span class="ty">Rectangle</span> : <span class="ty">Shape</span>
+{
+    <span class="kw">public double</span> Width { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public double</span> Height { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public override double</span> <span class="fn">Area</span>() { <span class="kw">return</span> Width * Height; }
+}
+
+<span class="kw">public class</span> <span class="ty">Circle</span> : <span class="ty">Shape</span>
+{
+    <span class="kw">public double</span> Radius { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public override double</span> <span class="fn">Area</span>() { <span class="kw">return</span> Radius * Radius * Math.PI; }
+}
+
+<span class="kw">public class</span> <span class="ty">AreaCalculator</span>
+{
+    <span class="kw">public double</span> <span class="fn">Area</span>(<span class="ty">Shape</span>[] shapes)
+    {
+        <span class="kw">double</span> area = <span class="num">0</span>;
+        <span class="kw">foreach</span> (<span class="ty">Shape</span> shape <span class="kw">in</span> shapes)
+            area += shape.Area();
+        <span class="kw">return</span> area;
+    }
+}
+
+<span class="com">// Adding Ellipse needs zero edits above:</span>
+<span class="kw">public class</span> <span class="ty">Ellipse</span> : <span class="ty">Shape</span>
+{
+    <span class="kw">public double</span> majorRadius { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public double</span> minorRadius { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public override double</span> <span class="fn">Area</span>() { <span class="kw">return</span> majorRadius * minorRadius * Math.PI; }
+}</pre></div>
+        <p><code>AreaCalculator.Area()</code> is now <strong>closed</strong> — you will never edit it again — while the <code>Shape</code> hierarchy is <strong>open</strong> — you can add Ellipse, Triangle, Hexagon forever, each as a brand-new file.</p>
+      </div>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case</div>
+        <p>OCP is famously the hardest SOLID principle to apply perfectly in advance, because it requires predicting <em>which</em> axis of variation will need extension. Over-applying it (making everything abstract "just in case") causes needless indirection. The rule of thumb: apply OCP to the parts of the system that have <em>already</em> changed more than once, not to speculative future ones.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>You'll almost certainly be given the "Rectangle + <code>is</code>/cast" code and asked either to (a) point out which SOLID principle it violates and why, or (b) rewrite it using an abstract base class or interface. Practice writing the <code>Shape</code>/<code>Area()</code> refactor from memory.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Liskov Substitution ▶</button></div>
+    </section>
+
+    <!-- 08 LSP -->
+    <section class="sheet" data-id="lsp">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 08 · SOLID · L</div><h2>Liskov Substitution Principle</h2></div>
+        <div class="tb-right"><b>Rule:</b> Subtypes must honor the contract<br><b>Rev:</b> LSP-1<br><b>Ref:</b> Slides 18–20</div>
+      </div>
+
+      <p class="lede">When extending a class, you must be able to pass an object of the subclass anywhere the parent class was expected — <strong>without breaking the client code.</strong> A subclass should <em>extend</em> the base behavior, never quietly replace or weaken it.</p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Document</div>
+          <div class="u-body"><div>- data</div><div>- filename</div></div>
+          <div class="u-foot"><div>+ open()</div><div>+ save()</div></div>
+        </div>
+        <div class="arrow-col">△</div>
+        <div class="uml">
+          <div class="u-head">ReadOnlyDocument</div>
+          <div class="u-body">&nbsp;</div>
+          <div class="u-foot"><div style="color:var(--red);">+ save() ⇒ throws Exception</div></div>
+        </div>
+        <div class="cap">BEFORE: ReadOnlyDocument "implements" save() by throwing — this breaks any Project.saveAll() loop that assumes every Document can be saved.</div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-head"><span>Client code that now crashes</span><span class="tag bad">violates LSP</span></div>
+        <pre><span class="kw">foreach</span> (doc <span class="kw">in</span> documents) {
+  <span class="kw">if</span> (!doc <span class="kw">instanceof</span> ReadOnlyDocument)
+    doc.save()   <span class="com">// client must know about the subtype — a code smell</span>
+}</pre>
+      </div>
+
+      <p>Notice the client had to add an <code>instanceof</code> check to defend itself. That's the tell-tale sign of an LSP violation: <strong>if calling code needs to check the concrete type before calling a method the base class promised, the substitution has already failed.</strong></p>
+
+      <div class="diagram">
+        <div class="uml">
+          <div class="u-head">Document</div>
+          <div class="u-body"><div>- data</div><div>- filename</div></div>
+          <div class="u-foot"><div>+ open()</div></div>
+        </div>
+        <div class="arrow-col">△</div>
+        <div class="uml">
+          <div class="u-head">WritableDocument</div>
+          <div class="u-body">&nbsp;</div>
+          <div class="u-foot"><div>+ save()</div></div>
+        </div>
+        <div class="cap">AFTER: save() is moved down into WritableDocument. Project keeps two lists — allDocs (opened) and writableDocs (saved) — so no document is ever asked to do something it can't.</div>
+      </div>
+
+      <h3 class="section-h">The classic four checks (design-by-contract view)</h3>
+      <ul class="clean">
+        <li><strong>Preconditions cannot be strengthened</strong> in the subclass (don't demand more than the base method did).</li>
+        <li><strong>Postconditions cannot be weakened</strong> (don't promise less than the base method did).</li>
+        <li><strong>Invariants of the base class must be preserved.</strong></li>
+        <li><strong>No new exceptions</strong> that the client wasn't already prepared to catch (like <code>ReadOnlyDocument.save()</code> above).</li>
+      </ul>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case: the famous Square/Rectangle problem</div>
+        <p>This isn't in your slides but is the single most-quoted LSP example in the industry and very likely to appear as a bonus question: if <code>Square extends Rectangle</code>, and <code>Rectangle</code> has independent <code>setWidth()</code>/<code>setHeight()</code>, then a <code>Square</code> must keep both sides equal — meaning <code>setWidth()</code> silently also changes the height. Any client that does <code>setWidth(5); setHeight(10); assert area == 50</code> will fail for a <code>Square</code> but pass for a <code>Rectangle</code>. Mathematically a square <em>is</em> a rectangle, but behaviorally, forcing that inheritance breaks LSP.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"Explain why this subclass violates LSP" — usually shown as an overridden method that throws an unexpected exception, returns <code>null</code> where the base guaranteed a value, or narrows an accepted parameter type. State the fix: pull the incompatible behavior into a sibling subclass or restructure the hierarchy, exactly as the Document/WritableDocument example does.</p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>Think of a <code>Bird</code> base class with a <code>fly()</code> method, and a <code>Penguin</code> subclass. Where does LSP bite you here, and how would you restructure the hierarchy (hint: not every bird needs to fly — does every bird need to be in the same interface)?</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Interface Segregation ▶</button></div>
+    </section>
+
+    <!-- 09 ISP -->
+    <section class="sheet" data-id="isp">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 09 · SOLID · I</div><h2>Interface Segregation Principle</h2></div>
+        <div class="tb-right"><b>Rule:</b> No fat interfaces<br><b>Rev:</b> ISP-1<br><b>Ref:</b> Slides 21–22</div>
+      </div>
+
+      <p class="lede"><strong>Clients shouldn't be forced to depend on methods they do not use.</strong> Keep interfaces narrow enough that implementers never have to write "not implemented" stubs.</p>
+
+      <div class="diagram">
+        <div class="uml iface">
+          <div class="u-head">«interface» CloudProvider</div>
+          <div class="u-body">&nbsp;</div>
+          <div class="u-foot"><div>+ storeFile(name)</div><div>+ getFile(name)</div><div>+ createServer(region)</div><div>+ listServers(region)</div><div>+ getCDNAddress()</div></div>
+        </div>
+        <div class="arrow-col">△</div>
+        <div style="display:flex; gap:14px;">
+          <div class="uml"><div class="u-head">Amazon</div><div class="u-foot"><div>+ storeFile(name)</div><div>+ getFile(name)</div><div>+ createServer(region)</div><div>+ listServers(region)</div><div>+ getCDNAddress()</div></div></div>
+          <div class="uml"><div class="u-head">Dropbox</div><div class="u-foot"><div>+ storeFile(name)</div><div>+ getFile(name)</div><div style="color:var(--red);">+ createServer() — n/a</div><div style="color:var(--red);">+ listServers() — n/a</div><div style="color:var(--red);">+ getCDNAddress() — n/a</div></div></div>
+        </div>
+        <div class="cap">BEFORE: Dropbox only stores files — it has no servers or CDN — yet must "implement" three methods it cannot honor.</div>
+      </div>
+
+      <div class="diagram">
+        <div style="display:flex; gap:14px;">
+          <div class="uml iface"><div class="u-head">«interface» CloudHostingProvider</div><div class="u-foot"><div>+ createServer(region)</div><div>+ listServers(region)</div></div></div>
+          <div class="uml iface"><div class="u-head">«interface» CDNProvider</div><div class="u-foot"><div>+ getCDNAddress()</div></div></div>
+          <div class="uml iface"><div class="u-head">«interface» CloudStorageProvider</div><div class="u-foot"><div>+ storeFile(name)</div><div>+ getFile(name)</div></div></div>
+        </div>
+        <div class="cap">AFTER: one bloated interface split into three focused ones. Amazon implements all three; Dropbox implements only CloudStorageProvider — honestly.</div>
+      </div>
+
+      <div class="box edge">
+        <div class="box-label">⚠ Edge case: ISP and SRP look similar but aren't the same</div>
+        <p>SRP is about a <em>class</em> having one reason to change. ISP is about an <em>interface (contract)</em> not forcing unrelated capabilities onto every implementer. You can violate ISP even in a language with no interfaces at all, if you use an abstract base class with unrelated abstract methods that not every subclass can meaningfully implement.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>Given an interface where an implementing class throws <code>NotImplementedException</code> or returns a dummy value for one or more methods, that's the signature of an ISP violation. You'll be asked to split the interface by cohesive capability, exactly like <code>CloudProvider</code> → three role interfaces above.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Dependency Inversion ▶</button></div>
+    </section>
+
+    <!-- 10 DIP -->
+    <section class="sheet" data-id="dip">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 10 · SOLID · D</div><h2>Dependency Inversion Principle</h2></div>
+        <div class="tb-right"><b>Rule:</b> Depend on abstractions<br><b>Rev:</b> DIP-1<br><b>Ref:</b> Slides 23–31</div>
+      </div>
+
+      <p class="lede">Two clauses, and both matter: <strong>(1) High-level classes shouldn't depend on low-level classes — both should depend on abstractions. (2) Abstractions shouldn't depend on details — details should depend on abstractions.</strong> Memorize the closing line from the slide: <em>"Depend upon Abstractions. Do not depend upon concretions."</em></p>
+
+      <div class="diagram">
+        <div class="uml"><div class="u-head">BudgetReport <span style="font-size:9px;color:var(--ink-faint);">(high level)</span></div><div class="u-body"><div>- database</div></div><div class="u-foot"><div>+ open(date)</div><div>+ save()</div></div></div>
+        <div class="arrow-col">──▶</div>
+        <div class="uml"><div class="u-head">MySQLDatabase <span style="font-size:9px;color:var(--ink-faint);">(low level)</span></div><div class="u-foot"><div>+ insert()</div><div>+ update()</div><div>+ delete()</div></div></div>
+        <div class="cap">BEFORE: the high-level report logic is bolted directly to a specific database engine.</div>
+      </div>
+
+      <div class="diagram">
+        <div class="uml"><div class="u-head">BudgetReport</div><div class="u-body"><div>- database</div></div><div class="u-foot"><div>+ open(date)</div><div>+ save()</div></div></div>
+        <div class="arrow-col">──▶</div>
+        <div class="uml iface"><div class="u-head">«interface» Database</div><div class="u-foot"><div>+ insert()</div><div>+ update()</div><div>+ delete()</div></div></div>
+        <div class="arrow-col">△</div>
+        <div style="display:flex; gap:14px;">
+          <div class="uml"><div class="u-head">MySQL</div><div class="u-foot"><div>+ insert()/update()/delete()</div></div></div>
+          <div class="uml"><div class="u-head">MongoDB</div><div class="u-foot"><div>+ insert()/update()/delete()</div></div></div>
+        </div>
+        <div class="cap">AFTER: BudgetReport depends on a Database abstraction. MySQL and MongoDB depend on the same abstraction — the dependency arrow now points "up" toward the interface from both sides.</div>
+      </div>
+
+      <p>This is why it's called <em>inversion</em>: naively, you'd expect the low-level detail (database engine) to define the contract and the high-level policy to adapt to it. DIP flips that — the high-level module defines what it needs, as an interface, and low-level modules must conform to it.</p>
+
+      <h3 class="section-h">Worked example: the light switch (Java)</h3>
+      <p>This is the most detailed worked example in your slide deck, so let's trace it fully.</p>
+
+      <div class="before-after">
+        <div class="code-wrap">
+          <div class="code-head"><span>Without DIP</span><span class="tag bad">switch → bulb, hard-wired</span></div>
+          <pre><span class="kw">public class</span> <span class="ty">LightBulb</span> {
+  <span class="kw">public void</span> <span class="fn">turnOn</span>() { …"Bulb turned on"… }
+  <span class="kw">public void</span> <span class="fn">turnOff</span>() { …"Bulb turned off"… }
+}
+
+<span class="kw">public class</span> <span class="ty">ElectricPowerSwitch</span> {
+  <span class="kw">public</span> <span class="ty">LightBulb</span> lightBulb;
+  <span class="kw">public boolean</span> on;
+
+  <span class="kw">public</span> <span class="fn">ElectricPowerSwitch</span>(<span class="ty">LightBulb</span> lightBulb){
+    <span class="kw">this</span>.lightBulb = lightBulb;
+  }
+  <span class="kw">public void</span> <span class="fn">press</span>(){
+    <span class="kw">if</span> (isOn()) { lightBulb.turnOff(); on=<span class="kw">false</span>; }
+    <span class="kw">else</span>       { lightBulb.turnOn();  on=<span class="kw">true</span>;  }
+  }
+}</pre>
+        </div>
+        <div class="code-wrap">
+          <div class="code-head"><span>With DIP</span><span class="tag good">switch → any Switchable</span></div>
+          <pre><span class="kw">public interface</span> <span class="ty">Switchable</span> {
+  <span class="kw">void</span> <span class="fn">turnOn</span>();
+  <span class="kw">void</span> <span class="fn">turnOff</span>();
+}
+<span class="kw">public interface</span> <span class="ty">Switch</span> {
+  <span class="kw">boolean</span> <span class="fn">isOn</span>();
+  <span class="kw">void</span> <span class="fn">press</span>();
+}
+
+<span class="kw">public class</span> <span class="ty">ElectricPowerSwitch</span> <span class="kw">implements</span> <span class="ty">Switch</span> {
+  <span class="kw">public</span> <span class="ty">Switchable</span> client;
+  <span class="kw">public boolean</span> on;
+  <span class="kw">public</span> <span class="fn">ElectricPowerSwitch</span>(<span class="ty">Switchable</span> client){
+    <span class="kw">this</span>.client = client;
+  }
+  <span class="kw">public void</span> <span class="fn">press</span>(){
+    <span class="kw">if</span> (isOn()) { client.turnOff(); on=<span class="kw">false</span>; }
+    <span class="kw">else</span>       { client.turnOn();  on=<span class="kw">true</span>;  }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-head"><span>Fan.java & LightBulb.java both implement Switchable</span><span class="tag good">plug in anything</span></div>
+        <pre><span class="kw">public class</span> <span class="ty">Fan</span> <span class="kw">implements</span> <span class="ty">Switchable</span> {
+  <span class="kw">public void</span> <span class="fn">turnOn</span>()  { System.out.println(<span class="str">"Fan: Fan turned on..."</span>); }
+  <span class="kw">public void</span> <span class="fn">turnOff</span>() { System.out.println(<span class="str">"Fan: Fan turned off..."</span>); }
+}
+<span class="kw">public class</span> <span class="ty">LightBulb</span> <span class="kw">implements</span> <span class="ty">Switchable</span> {
+  <span class="kw">public void</span> <span class="fn">turnOn</span>()  { System.out.println(<span class="str">"LightBulb: Bulb turned on..."</span>); }
+  <span class="kw">public void</span> <span class="fn">turnOff</span>() { System.out.println(<span class="str">"LightBulb: Bulb turned off..."</span>); }
+}</pre>
+      </div>
+
+      <p>The same physical <code>ElectricPowerSwitch</code> object can now control a <code>Fan</code>, a <code>LightBulb</code>, or anything else that implements <code>Switchable</code> — a heater, a pump, a robot arm — with zero changes to the switch's code.</p>
+
+      <div class="box prof">
+        <div class="box-label">🎓 Professor's Note — the most confused principle</div>
+        <p>Students often conflate <strong>Dependency Inversion</strong> with <strong>Dependency Injection</strong>. They're related but not the same: Dependency Inversion is the design <em>principle</em> ("depend on abstractions"); Dependency Injection is one common <em>technique</em> for satisfying it (passing the concrete <code>Switchable</code> implementation into the constructor, as shown above, rather than the class instantiating it itself with <code>new</code>). You can have DI without full inversion, and you can achieve inversion without a DI framework — but in practice they're best friends.</p>
+      </div>
+
+      <div class="box exam">
+        <div class="box-label">📝 Likely exam question</div>
+        <p>"Refactor this class so it depends on an interface instead of a concrete class, and explain which SOLID principle you applied." Also be ready for: "Distinguish Dependency Inversion from Dependency Injection" — this is a favorite trick question.</p>
+      </div>
+
+      <div class="box brain">
+        <div class="box-label">💡 Brainstorm</div>
+        <p>The inverted-dependency diagram in the slides shows a High-level module depending on <em>three separate</em> abstract interfaces, each extended by different lower-level modules. Why three separate interfaces instead of one big one? (Hint: which principle did we just cover in Sheet 09?)</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Self-Check Quiz ▶</button></div>
+    </section>
+
+    <!-- 11 QUIZ -->
+    <section class="sheet" data-id="quiz">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 11 · Wrap-up</div><h2>Self-Check Quiz</h2></div>
+        <div class="tb-right"><b>Format:</b> MCQ, instant feedback<br><b>Rev:</b> QZ-1</div>
+      </div>
+      <p class="lede">Click an answer to check yourself. No grade is recorded — this is just to catch gaps before the real exam.</p>
+
+      <div class="quiz-card" data-answer="1">
+        <div class="q">Q1. A subclass overrides a method and throws a new exception the base class never declared, breaking code that used the base class. Which principle is violated?</div>
+        <div class="opts">
+          <button class="opt">Single Responsibility Principle</button>
+          <button class="opt">Liskov Substitution Principle</button>
+          <button class="opt">Interface Segregation Principle</button>
+        </div>
+        <div class="explain">Correct: <strong>Liskov Substitution Principle.</strong> Substitutability breaks exactly when a subclass surprises client code that trusted the base class's contract — new unexpected exceptions are a classic LSP violation, just like <code>ReadOnlyDocument.save()</code>.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="0">
+        <div class="q">Q2. A class implements a 6-method interface but can only meaningfully support 2 of them, stubbing the rest with "not implemented." Which principle addresses this?</div>
+        <div class="opts">
+          <button class="opt">Interface Segregation Principle</button>
+          <button class="opt">Open/Closed Principle</button>
+          <button class="opt">Dependency Inversion Principle</button>
+        </div>
+        <div class="explain">Correct: <strong>Interface Segregation Principle.</strong> Split the fat interface into smaller, role-specific ones, like <code>CloudProvider</code> → <code>CloudStorageProvider</code> / <code>CloudHostingProvider</code> / <code>CDNProvider</code>.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="2">
+        <div class="q">Q3. Every time a new shipping method is added, developers must edit and re-test the Order class's existing getShippingCost() method. Which principle is violated?</div>
+        <div class="opts">
+          <button class="opt">Single Responsibility Principle</button>
+          <button class="opt">Liskov Substitution Principle</button>
+          <button class="opt">Open/Closed Principle</button>
+        </div>
+        <div class="explain">Correct: <strong>Open/Closed Principle.</strong> The class is not "closed for modification" — every new shipping method forces an edit. The fix is the Strategy pattern with a <code>Shipping</code> interface.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="1">
+        <div class="q">Q4. A high-level BudgetReport class directly instantiates and calls MySQLDatabase. Switching to MongoDB later requires rewriting BudgetReport. Which principle fixes this?</div>
+        <div class="opts">
+          <button class="opt">Single Responsibility Principle</button>
+          <button class="opt">Dependency Inversion Principle</button>
+          <button class="opt">Interface Segregation Principle</button>
+        </div>
+        <div class="explain">Correct: <strong>Dependency Inversion Principle.</strong> Introduce a <code>Database</code> abstraction that both <code>BudgetReport</code> and every concrete engine depend on.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="0">
+        <div class="q">Q5. Why does Java forbid a class from extending two classes, but allow implementing many interfaces?</div>
+        <div class="opts">
+          <button class="opt">To avoid the diamond problem — ambiguity when two parents implement the same method differently</button>
+          <button class="opt">Because interfaces are always faster at runtime</button>
+          <button class="opt">Because classes can't have private fields</button>
+        </div>
+        <div class="explain">Correct: it's the <strong>diamond problem</strong>. Two parent classes could hold conflicting concrete implementations of the same method, and the compiler has no principled way to choose.</div>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn nextBtn">Next: Recap & Reference ▶</button></div>
+    </section>
+
+    <!-- 12 SUMMARY -->
+    <section class="sheet" data-id="summary">
+      <div class="title-block">
+        <div class="tb-left"><div class="eyebrow">Sheet 12 · Wrap-up</div><h2>Recap & Reference</h2></div>
+        <div class="tb-right"><b>Rev:</b> FIN-1</div>
+      </div>
+
+      <h3 class="section-h">One-line recap of everything</h3>
+      <ul class="clean">
+        <li><strong>Encapsulation</strong> — wall off what varies (method level and class level).</li>
+        <li><strong>Interface &gt; Implementation</strong> — program against a contract, not a concrete type; but only when a second implementation is real, not hypothetical.</li>
+        <li><strong>Diamond Problem</strong> — the reason languages restrict multiple class inheritance.</li>
+        <li><strong>Coupling</strong> — minimize how much a class knows about the concrete details of others.</li>
+        <li><strong>S</strong>ingle Responsibility — one class, one reason to change.</li>
+        <li><strong>O</strong>pen/Closed — extend via new code, don't modify tested code.</li>
+        <li><strong>L</strong>iskov Substitution — a subclass must never surprise code written for the base class.</li>
+        <li><strong>I</strong>nterface Segregation — no client should depend on methods it doesn't use.</li>
+        <li><strong>D</strong>ependency Inversion — depend on abstractions, not concretions, in both directions.</li>
+      </ul>
+
+      <div class="box prof">
+        <div class="box-label">🎓 Professor's closing note</div>
+        <p>If you remember nothing else from Lecture 1: <strong>every one of these principles is trying to keep the "cost of change" flat as software grows.</strong> The moment you're tempted to say "just add another if-statement" or "just cast it to the type I need," pause — that instinct is almost always the seam where one of these five letters wants to be applied.</p>
+      </div>
+
+      <h3 class="section-h">Reference</h3>
+      <p><em>Agile Software Development: Principles, Patterns, and Practices</em> — Robert C. Martin (with contributions by James W. Newkirk and Robert S. Koss). Also drawn from <em>Dive Into Design Patterns</em>, Chapter 3.</p>
+
+      <div class="box brain">
+        <div class="box-label">💡 Before next class</div>
+        <p>Come back to your intro brainstorm about a buggy app update. Now write two sentences: (1) which principle you think was violated, and (2) how you'd refactor it, in the same before/after diagram style we used all lecture. That habit — <em>spot it, name it, redraw it</em> — is exactly what the design-patterns unit builds on next.</p>
+      </div>
+
+      <div class="pager"><button class="pbtn prevBtn">◀ Previous</button><button class="pbtn" disabled>End of Lecture 01</button></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const order = ["intro","encapsulation","interface","diamond","coupling","solid-intro","srp","ocp","lsp","isp","dip","quiz","summary"];
+  const navItems = document.querySelectorAll(".nav-item");
+  const sheets = document.querySelectorAll(".sheet");
+  const visited = new Set();
+
+  function showSection(id){
+    sheets.forEach(s => s.classList.toggle("active", s.dataset.id === id));
+    navItems.forEach(n => n.classList.toggle("active", n.dataset.target === id));
+    visited.add(id);
+    navItems.forEach(n => n.classList.toggle("visited", visited.has(n.dataset.target)));
+    document.getElementById("progressText").textContent = visited.size + " / " + order.length;
+    document.getElementById("main").scrollTo({top:0, behavior:"instant"});
+    document.getElementById("sidebar").classList.remove("open");
+  }
+
+  navItems.forEach(item => item.addEventListener("click", () => showSection(item.dataset.target)));
+
+  document.querySelectorAll(".nextBtn").forEach(btn => btn.addEventListener("click", (e) => {
+    const cur = e.target.closest(".sheet").dataset.id;
+    const idx = order.indexOf(cur);
+    if (idx < order.length - 1) showSection(order[idx+1]);
+  }));
+  document.querySelectorAll(".prevBtn").forEach(btn => btn.addEventListener("click", (e) => {
+    const cur = e.target.closest(".sheet").dataset.id;
+    const idx = order.indexOf(cur);
+    if (idx > 0) showSection(order[idx-1]);
+  }));
+
+  // Quiz logic
+  document.querySelectorAll(".quiz-card").forEach(card => {
+    const correctIdx = parseInt(card.dataset.answer, 10);
+    const opts = card.querySelectorAll(".opt");
+    const explain = card.querySelector(".explain");
+    opts.forEach((opt, idx) => {
+      opt.addEventListener("click", () => {
+        if (opt.disabled) return;
+        opts.forEach(o => o.disabled = true);
+        opts[correctIdx].classList.add("correct");
+        if (idx !== correctIdx) opt.classList.add("wrong");
+        explain.classList.add("show");
+      });
+    });
+  });
+
+  // OCP toggle panels
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      document.querySelectorAll(".ocp-panel").forEach(p => p.style.display = "none");
+      const target = btn.dataset.ocp;
+      document.getElementById(target === "v1" ? "ocpV1" : target === "v2" ? "ocpV2" : "ocpV3").style.display = "block";
+    });
+  });
+
+  // Mobile menu
+  document.getElementById("menuBtn").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+
+  showSection("intro");
+</script>
+</body>
+</html>

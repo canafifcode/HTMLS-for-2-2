@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 209 — Chapter 5: Large and Fast, Exploiting Memory Hierarchy</title>
+<style>
+  :root{
+    --parchment:#f4ecd8;
+    --parchment-dark:#ece1c8;
+    --paper:#fbf6ea;
+    --ink:#2b2620;
+    --ink-soft:#4a4437;
+    --navy:#1c2b45;
+    --navy-soft:#2e4066;
+    --maroon:#7c2233;
+    --maroon-soft:#9c3a4d;
+    --brass:#a9812f;
+    --brass-light:#c9a54a;
+    --rule:#c9bd9c;
+    --hit:#2f5d3a;
+    --miss:#7c2233;
+    --sage:#3f6350;
+    --sage-bg:#eaf1ec;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:Georgia,'Times New Roman',Cambria,serif;
+    background:var(--parchment);
+    color:var(--ink);
+    line-height:1.65;
+  }
+  ::selection{background:var(--brass-light);color:var(--navy);}
+
+  /* ---------- layout ---------- */
+  #app{display:flex;min-height:100vh;}
+
+  #sidebar{
+    width:290px;
+    flex-shrink:0;
+    background:var(--navy);
+    color:#e8e2d0;
+    position:fixed;
+    top:0; left:0; bottom:0;
+    overflow-y:auto;
+    z-index:50;
+    border-right:3px solid var(--brass);
+    transition:transform .25s ease;
+  }
+  #sidebar::-webkit-scrollbar{width:8px;}
+  #sidebar::-webkit-scrollbar-thumb{background:var(--navy-soft);border-radius:4px;}
+
+  .brand{
+    padding:22px 20px 16px 20px;
+    border-bottom:1px solid rgba(233,226,208,.18);
+  }
+  .brand .kicker{
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass-light);
+    margin-bottom:4px;
+  }
+  .brand h1{
+    font-size:1.18rem;
+    margin:0 0 4px 0;
+    font-weight:700;
+    line-height:1.3;
+  }
+  .brand .sub{font-size:.82rem;color:#c7c0aa;font-style:italic;}
+
+  nav.toc{padding:10px 0 30px 0;}
+  nav.toc .part-label{
+    padding:14px 20px 6px 20px;
+    font-size:.68rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--brass-light);
+    opacity:.85;
+  }
+  nav.toc a{
+    display:block;
+    padding:8px 20px 8px 22px;
+    color:#d9d3bd;
+    text-decoration:none;
+    font-size:.9rem;
+    border-left:3px solid transparent;
+    transition:background .15s, border-color .15s, color .15s;
+  }
+  nav.toc a:hover{background:rgba(233,226,208,.08);color:#fff;}
+  nav.toc a.active{
+    background:rgba(169,129,47,.18);
+    border-left-color:var(--brass);
+    color:#fff;
+    font-weight:700;
+  }
+  nav.toc a .num{color:var(--brass-light);margin-right:6px;font-style:italic;}
+
+  #menuToggle{
+    display:none;
+    position:fixed;
+    top:14px; left:14px;
+    z-index:60;
+    background:var(--navy);
+    color:#f4ecd8;
+    border:2px solid var(--brass);
+    border-radius:6px;
+    width:42px;height:42px;
+    font-size:1.2rem;
+    cursor:pointer;
+  }
+
+  main{
+    margin-left:290px;
+    flex:1;
+    min-width:0;
+    padding:0;
+  }
+
+  .hero{
+    background:linear-gradient(160deg,var(--navy) 0%,#25375a 55%,var(--navy) 100%);
+    color:#f4ecd8;
+    padding:56px 48px 44px 48px;
+    border-bottom:6px solid var(--brass);
+    position:relative;
+  }
+  .hero .eyebrow{color:var(--brass-light);letter-spacing:.16em;text-transform:uppercase;font-size:.8rem;margin-bottom:10px;}
+  .hero h1{font-size:2.1rem;margin:0 0 10px 0;}
+  .hero p{max-width:780px;color:#d9d3bd;font-size:1.02rem;}
+  .hero .setup{
+    margin-top:22px;
+    background:rgba(244,236,216,.08);
+    border:1px solid rgba(244,236,216,.25);
+    border-left:4px solid var(--brass-light);
+    border-radius:6px;
+    padding:16px 20px;
+    max-width:780px;
+  }
+  .hero .setup b{color:var(--brass-light);}
+
+  .section{
+    padding:46px 48px;
+    max-width:980px;
+    border-bottom:1px solid var(--rule);
+    scroll-margin-top:70px;
+  }
+  .section:last-of-type{border-bottom:none;}
+  .section h2{
+    font-size:1.55rem;
+    color:var(--navy);
+    margin:0 0 6px 0;
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+  }
+  .section h2 .tag{
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--maroon);
+    background:rgba(124,34,51,.08);
+    border:1px solid rgba(124,34,51,.3);
+    padding:3px 8px;
+    border-radius:3px;
+    white-space:nowrap;
+  }
+  .section .sec-intro{color:var(--ink-soft);font-style:italic;margin:0 0 26px 0;font-size:.98rem;}
+  .section h3{
+    font-size:1.18rem;
+    color:var(--maroon);
+    margin:32px 0 10px 0;
+    border-bottom:2px solid var(--rule);
+    padding-bottom:6px;
+  }
+  .section h4{font-size:1rem;color:var(--navy-soft);margin:20px 0 8px 0;}
+  .section p{margin:0 0 14px 0;}
+  .section ul, .section ol{margin:0 0 16px 0;padding-left:22px;}
+  .section li{margin-bottom:6px;}
+  strong{color:var(--navy);}
+  code, .mono{
+    font-family:'Courier New',Courier,monospace;
+    background:var(--parchment-dark);
+    padding:1px 5px;
+    border-radius:3px;
+    font-size:.92em;
+  }
+  pre{
+    background:#221d17;
+    color:#e8e0c8;
+    padding:16px 18px;
+    border-radius:6px;
+    overflow-x:auto;
+    font-family:'Courier New',Courier,monospace;
+    font-size:.85rem;
+    line-height:1.5;
+    border-left:4px solid var(--brass);
+  }
+
+  /* ---------- boxes ---------- */
+  .box{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:18px 20px;
+    margin:18px 0;
+  }
+  .box-title{
+    font-weight:700;
+    font-size:.92rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .worked{border-left:5px solid var(--navy);}
+  .worked .box-title{color:var(--navy);}
+
+  .trap{background:#f7e9e2;border:1px solid var(--maroon-soft);border-left:5px solid var(--maroon);}
+  .trap .box-title{color:var(--maroon);}
+
+  .note{border-left:5px solid var(--brass);}
+  .note .box-title{color:#8a6a1f;}
+
+  .brainstorm{background:#eef2ea;border-left:5px solid #4a6b4f;}
+  .brainstorm .box-title{color:#3c5a41;}
+
+  .analogy{background:var(--sage-bg);border:1px solid #bcd0c2;border-left:5px solid var(--sage);}
+  .analogy .box-title{color:var(--sage);}
+
+  /* ---------- quiz / click to reveal ---------- */
+  .quiz{
+    background:var(--paper);
+    border:1.5px dashed var(--brass);
+    border-radius:6px;
+    padding:14px 18px;
+    margin:14px 0;
+  }
+  .quiz .q{font-weight:700;color:var(--navy);cursor:pointer;display:flex;justify-content:space-between;gap:10px;}
+  .quiz .q::after{content:"Reveal ▾";font-size:.78rem;color:var(--brass);text-transform:uppercase;letter-spacing:.05em;font-weight:700;flex-shrink:0;}
+  .quiz.open .q::after{content:"Hide ▴";}
+  .quiz .a{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--rule);
+    display:none;
+    color:var(--ink-soft);
+  }
+  .quiz.open .a{display:block;}
+
+  /* ---------- tables ---------- */
+  table{
+    border-collapse:collapse;
+    width:100%;
+    margin:14px 0;
+    font-size:.92rem;
+    background:var(--paper);
+  }
+  caption{caption-side:top;text-align:left;font-style:italic;color:var(--ink-soft);margin-bottom:6px;}
+  th, td{
+    border:1px solid var(--rule);
+    padding:7px 10px;
+    text-align:center;
+  }
+  th{background:var(--navy);color:#f0ead6;font-weight:700;}
+  td.left, th.left{text-align:left;}
+  tr:nth-child(even) td{background:var(--parchment-dark);}
+  td.hit{color:var(--hit);font-weight:700;}
+  td.miss{color:var(--miss);font-weight:700;}
+  td.blank{background:repeating-linear-gradient(45deg,#e9e0c8,#e9e0c8 4px,#f4ecd8 4px,#f4ecd8 8px);}
+
+  /* ---------- svg diagram wrap ---------- */
+  .diagram{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:18px;
+    margin:18px 0;
+    text-align:center;
+  }
+  .diagram svg{max-width:100%;height:auto;}
+  .diagram .cap{font-size:.85rem;color:var(--ink-soft);font-style:italic;margin-top:10px;}
+
+  .two-col{display:flex;gap:20px;flex-wrap:wrap;}
+  .two-col > div{flex:1 1 320px;}
+
+  .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .pill{
+    background:var(--parchment-dark);
+    border:1px solid var(--rule);
+    border-radius:20px;
+    padding:5px 14px;
+    font-size:.85rem;
+    color:var(--navy);
+  }
+
+  .formula{
+    text-align:center;
+    font-size:1.15rem;
+    color:var(--navy);
+    background:var(--parchment-dark);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:14px;
+    margin:16px 0;
+    font-family:Georgia,serif;
+    font-style:italic;
+  }
+
+  footer.end{
+    padding:40px 48px 70px 48px;
+    color:var(--ink-soft);
+    font-size:.88rem;
+    max-width:980px;
+  }
+  footer.end hr{border:none;border-top:2px solid var(--rule);margin-bottom:18px;}
+
+  @media (max-width:860px){
+    #sidebar{transform:translateX(-100%);width:270px;}
+    #sidebar.show{transform:translateX(0);box-shadow:6px 0 24px rgba(0,0,0,.35);}
+    main{margin-left:0;}
+    #menuToggle{display:block;}
+    .brand{padding-top:64px;}
+    .hero{padding:70px 22px 34px 22px;}
+    .section{padding:32px 20px;}
+    footer.end{padding:30px 20px 60px 20px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+<button id="menuToggle" aria-label="Toggle navigation">☰</button>
+
+<aside id="sidebar">
+  <div class="brand">
+    <div class="kicker">CSE 209 · Computer Architecture</div>
+    <h1>Chapter 5</h1>
+    <div class="sub">Large and Fast: Exploiting Memory Hierarchy</div>
+  </div>
+  <nav class="toc" id="tocNav">
+    <div class="part-label">Foundations</div>
+    <a href="#locality"><span class="num">§5.1</span>Locality &amp; the Memory Hierarchy</a>
+    <a href="#tech"><span class="num">§5.2</span>Memory Technologies</a>
+
+    <div class="part-label">Caches</div>
+    <a href="#cache-basics"><span class="num">§5.3</span>Direct-Mapped Caches</a>
+    <a href="#misses-writes"><span class="num">§5.3</span>Misses &amp; Write Policies</a>
+    <a href="#performance"><span class="num">§5.4</span>Cache Performance &amp; AMAT</a>
+    <a href="#associativity"><span class="num">§5.4</span>Associativity</a>
+    <a href="#multilevel"><span class="num">§5.4</span>Multilevel Caches</a>
+    <a href="#blocking"><span class="num">§5.4</span>Software Blocking</a>
+
+    <div class="part-label">Virtual Memory</div>
+    <a href="#vm"><span class="num">§5.7</span>Virtual Memory Basics</a>
+    <a href="#tlb"><span class="num">§5.7</span>TLBs</a>
+    <a href="#vm-cache-together"><span class="num">§5.7</span>VM + TLB + Cache, Protection</a>
+
+    <div class="part-label">Synthesis</div>
+    <a href="#framework"><span class="num">§5.8</span>Common Framework &amp; 3 C's</a>
+    <a href="#coherence"><span class="num">§5.10</span>Cache Coherence</a>
+    <a href="#realworld"><span class="num">§5.13–16</span>Real Designs &amp; Pitfalls</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Patterson &amp; Hennessy · Computer Organization and Design, 5th Edition</div>
+    <h1>Large and Fast: Exploiting Memory Hierarchy</h1>
+    <p>Every idea in this chapter is really just one idea, dressed up in four or five different costumes: <strong>keep the stuff you need close, and only go far away when you absolutely have to.</strong> That's it. That's the whole chapter. Everything else — caches, tags, associativity, page tables, TLBs, coherence — is just the engineering detail of making that one idea work automatically, in hardware, billions of times a second, without you ever noticing it's happening.</p>
+    <div class="setup">
+      <p style="margin:0 0 8px 0;">So instead of jumping straight into circuit diagrams, we're going to keep coming back to one picture throughout this guide: <b>you, pulling an all-nighter before an exam.</b></p>
+      <p style="margin:0;">You've got facts memorized in your head, a few papers on your desk, a backpack under the table, a bookshelf across the room, a store-room down the hall, and the BUET central library across campus. Every single concept in this chapter — hits, misses, tags, associativity, page tables, TLBs, even multi-core cache coherence — has a direct, obvious equivalent in that scene. We'll build it up piece by piece, and by the end the "hardware version" will feel like the obvious way to do it, not a wall of new vocabulary.</p>
+    </div>
+  </div>
+
+  <section class="section" id="locality">
+    <h2>1 · The Big Picture <span class="tag">§5.1 Introduction</span></h2>
+    <p class="sec-intro">Why a "memory hierarchy" exists at all — and it starts with something you already do every time you study.</p>
+
+    <h3>Start With What You Already Do</h3>
+    <p>Picture yourself solving a stack of Signals and Systems problems at 2am. You don't spread every book, notebook, and past paper you own evenly across your desk. Instead, without even thinking about it, you keep the <em>one</em> formula sheet you're currently using right in front of you, and you keep flipping back to the <em>same</em> page over and over. When you move to the next problem, you usually reach for a page <em>near</em> the one you just used — not a completely random chapter from a different course.</p>
+    <p>That instinct — keep re-using what you just used, and grab things near it — has a name in computer architecture: the <strong>principle of locality</strong>. It's not a hardware trick. It's just an observed fact about how real programs (and real students) behave: at any given moment, you only care about a small slice of everything that exists. The entire memory hierarchy — every idea in this chapter — is hardware built specifically to bet on that instinct and win.</p>
+
+    <div class="box analogy">
+      <div class="box-title">🎒 The running example — your all-nighter</div>
+      <p style="margin:0;">Here's the scene we'll keep coming back to: you're studying at home, the exam is tomorrow. There's a stack of places your notes could physically be sitting right now, and they differ enormously in how fast you can get to them:</p>
+      <ul style="margin:10px 0 0 0;">
+        <li><strong>In your head</strong> — formulas you've already memorized. Instant. Zero delay.</li>
+        <li><strong>On your desk</strong> — the two or three papers you're actively using right now. Reach out, grab it, done in a second.</li>
+        <li><strong>In your backpack</strong> under the table — a bit more stuff, but you have to unzip it and dig around. A few seconds.</li>
+        <li><strong>On your room's bookshelf</strong> — more books than your bag can hold. You have to get up and walk over. Maybe 20 seconds.</li>
+        <li><strong>In the store-room down the hall</strong> — old semester's books, boxed up. A proper trip. A minute or two.</li>
+        <li><strong>The BUET central library, across campus</strong> — has basically everything that's ever been published. Getting there and back could eat twenty minutes of your night.</li>
+      </ul>
+    </div>
+
+    <p>Notice the pattern: the closer something is, the <em>less</em> of it you can fit, and the more expensive (per book) that shelf-space is to build. Your desk is tiny, but it cost you nothing to clear a spot on it. The central library holds a nation's worth of knowledge, but building and running a library is a massive undertaking compared to owning a desk. That trade-off — small-and-fast vs. big-and-cheap — is exactly the trade-off every memory technology in a computer faces too, and it's why no single technology can be both.</p>
+
+    <h3>Two Kinds of Locality</h3>
+    <p>Split that studying instinct into its two components, because both get used constantly for the rest of the chapter:</p>
+    <ul>
+      <li><strong>Temporal locality</strong> — <em>"I just used this, I'll probably need it again very soon."</em> Think of a formula you re-derive from three times in one problem, or a loop counter that's touched on every single pass through a loop.</li>
+      <li><strong>Spatial locality</strong> — <em>"I just used something on this page, I'll probably need the stuff right next to it too."</em> Think of reading a chapter start to finish, or a program walking through consecutive elements of an array.</li>
+    </ul>
+    <p>A subtle but important point: when you grab a formula sheet off your desk, you don't tear out and carry just the one line you need — you pick up the <em>whole page</em>. That's not laziness, it's efficiency: since spatial locality means you'll probably want the neighbouring formulas soon anyway, grabbing the whole page up front saves you a second trip. Hardware does exactly this too — memory is never moved one byte at a time between levels; it's always moved as a chunk. That chunk has a name.</p>
+
+    <h3>Building the Actual Hierarchy</h3>
+    <p>Now translate the six-rung ladder above into a computer, and rename each rung with its real title:</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg">
+        <text x="350" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="#1c2b45" font-weight="700">The Memory Hierarchy</text>
+
+        <rect x="290" y="46" width="120" height="46" fill="#7c2233" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="350" y="70" text-anchor="middle" fill="#fbf6ea" font-size="12.5" font-family="Georgia,serif">CPU Registers</text>
+        <text x="350" y="86" text-anchor="middle" fill="#f4ecd8" font-size="10" font-family="Georgia,serif">"in your head"</text>
+
+        <rect x="250" y="102" width="200" height="46" fill="#9c3a4d" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="350" y="124" text-anchor="middle" fill="#fbf6ea" font-size="12.5" font-family="Georgia,serif">L1 Cache (SRAM)</text>
+        <text x="350" y="140" text-anchor="middle" fill="#f4ecd8" font-size="10" font-family="Georgia,serif">"on your desk"</text>
+
+        <rect x="200" y="158" width="300" height="46" fill="#a9812f" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="350" y="180" text-anchor="middle" fill="#2b2620" font-size="12.5" font-family="Georgia,serif">L2 / L3 Cache (SRAM)</text>
+        <text x="350" y="196" text-anchor="middle" fill="#2b2620" font-size="10" font-family="Georgia,serif">"in your backpack / on your shelf"</text>
+
+        <rect x="140" y="214" width="420" height="46" fill="#c9a54a" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="350" y="236" text-anchor="middle" fill="#2b2620" font-size="12.5" font-family="Georgia,serif">Main Memory (DRAM)</text>
+        <text x="350" y="252" text-anchor="middle" fill="#2b2620" font-size="10" font-family="Georgia,serif">"the store-room down the hall"</text>
+
+        <rect x="70" y="270" width="560" height="46" fill="#e9e0c8" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="350" y="292" text-anchor="middle" fill="#2b2620" font-size="12.5" font-family="Georgia,serif">Disk / Flash (Secondary Storage)</text>
+        <text x="350" y="308" text-anchor="middle" fill="#2b2620" font-size="10" font-family="Georgia,serif">"the BUET central library, across campus"</text>
+
+        <line x1="40" y1="320" x2="40" y2="55" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="16" y="190" text-anchor="middle" font-size="12" fill="#1c2b45" font-family="Georgia,serif" transform="rotate(-90 16 190)">Speed &amp; cost/GB increase ↑</text>
+
+        <line x1="660" y1="55" x2="660" y2="320" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="684" y="190" text-anchor="middle" font-size="12" fill="#1c2b45" font-family="Georgia,serif" transform="rotate(90 684 190)">Capacity increases ↓</text>
+
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#1c2b45"/>
+          </marker>
+        </defs>
+
+        <text x="350" y="345" text-anchor="middle" font-size="12.5" fill="#4a4437" font-style="italic" font-family="Georgia,serif">Each level holds a copy of the most-recently-used data from the level below it.</text>
+      </svg>
+      <div class="cap">Fig. 1 — Same six rungs as your study session, just with computer-science name tags on.</div>
+    </div>
+
+    <p>And here's the mechanism that makes it all self-organizing, with no one "in charge" deciding what goes where: whatever you just touched (and the stuff physically near it) automatically gets pulled up closer to you — a page you keep re-reading migrates from "in the store-room" to "on my desk" simply by virtue of you fetching it and leaving it out. Nobody pre-plans your desk's contents at the start of the night; it just fills up with whatever you've actually needed recently. A cache works exactly the same way — it's not programmed with what to hold, it just accumulates whatever was recently, or spatially nearby, requested.</p>
+
+    <h3>The Vocabulary, Attached to the Analogy</h3>
+    <p>Every term below maps onto something you already intuitively understand from the desk scenario — the formal definition is really just giving a name to something you already do:</p>
+    <ul>
+      <li><strong>Block</strong> (a.k.a. <strong>line</strong>) — the "whole page," not just the one line — the unit that actually gets moved when something migrates up a level. A block can hold several words, exactly like a page holds several formulas.</li>
+      <li><strong>Hit</strong> — you reach for something and it's <em>already on your desk</em>. <strong>Hit ratio = hits / accesses</strong> — what fraction of the time you didn't have to get up.</li>
+      <li><strong>Miss</strong> — you reach for it, it's not there, and you have to go fetch it from further away. <strong>Miss ratio = misses / accesses = 1 − hit ratio.</strong></li>
+      <li><strong>Miss penalty</strong> — literally, how long that fetching trip costs you. Grabbing from your backpack costs a few seconds; a library run costs twenty minutes. Same idea, very different penalty depending on which level you had to go to.</li>
+    </ul>
+
+    <div class="box note">
+      <div class="box-title">📌 What actually happens on a miss</div>
+      <p style="margin:0;">Say you reach for your desk and the page isn't there. You don't just give up — you 1) realize it's missing (<strong>miss</strong>), 2) go get it from wherever it actually is — backpack, shelf, or worse (this trip <em>is</em> the <strong>miss penalty</strong>), and 3) bring it back and put it <em>on your desk</em> before using it. Notice you still end up reading it from your desk, even after a miss — the miss just describes the extra fetching step that had to happen first. Hardware behaves identically: even a value that missed the cache is still ultimately delivered to the CPU <em>from</em> the cache, one level closer than where it started.</p>
+    </div>
+
+    <div class="box note">
+      <div class="box-title">📖 One thing worth appreciating before we go further</div>
+      <p style="margin:0;">Here's the part that should feel almost unfair once it clicks: <strong>your CPU has no idea any of this is happening.</strong> A single <code>load</code> instruction looks completely identical whether the value was sitting right there in L1 or had to be dragged all the way from disk after a page fault. The instruction set never even mentions "cache" or "which level" — correctness never depends on where the data currently lives. Only <em>speed</em> depends on it. That's precisely why this whole hierarchy can exist without programmers having to manage it by hand: it's a performance illusion sitting quietly underneath a program that has no idea it's there.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: If a cache sees 1,000 accesses with a hit ratio of 0.97, how many misses occurred, and what is the miss ratio?</div>
+      <div class="a">Miss ratio = 1 − 0.97 = 0.03. Misses = 0.03 × 1000 = 30 misses (hits = 970, and 970 + 30 = 1000 checks out). In desk terms: out of 1000 times you reached for something, 30 times it wasn't on your desk and you had to get up.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: Why can't your whole "study setup" just be one giant desk — why bother with a backpack, shelf, and library at all?</div>
+      <div class="a">Because desk space is expensive in a way library space isn't — a desk demands everything on it be instantly grabbable, which is a much stricter (and costlier) requirement than "eventually findable." Physically, SRAM (used for caches/your desk) needs about 6 transistors per bit just to hold its state without decaying, versus DRAM's single transistor-plus-capacitor per bit — so a desk-sized amount of SRAM is already expensive, and a library-sized amount would be unaffordable and enormous. You get both speed and size only by accepting that the "fast" part has to be small.</div>
+    </div>
+
+    <div class="box brainstorm">
+      <div class="box-title">💭 Brainstorm</div>
+      <p style="margin:0;">You grab the whole formula page, not just one line — because spatial locality means the neighbouring formulas are likely wanted soon too, and a second trip back to the same spot would be wasteful. Now push that idea to a silly extreme: what if your "page" was actually your <em>entire notebook</em> — every time you needed one formula, you hauled the whole 200-page notebook onto your desk? Would your desk still feel "fast"? What have you gained, and what have you quietly lost? Hold onto this — we come back to it with real numbers in §3.</p>
+    </div>
+  </section>
+
+  <section class="section" id="tech">
+    <h2>2 · Memory Technologies <span class="tag">§5.2</span></h2>
+    <p class="sec-intro">Why your "desk" and your "library" have to be built out of physically different materials — you can't just build a bigger desk.</p>
+
+    <h3>Why You Can't Cheat and Just Build a Bigger Desk</h3>
+    <p>It's tempting to think "fine, let's just make SRAM cheaper and build the whole memory system out of it — then everything's fast." The reason that doesn't work comes down to how each technology physically stores a single bit:</p>
+    <ul>
+      <li><strong>SRAM</strong> (what your desk — the cache — is built from) holds a bit using a small loop of transistors actively fighting to keep their state. It never forgets, never needs topping up, and responds instantly — but that constant "actively holding a pose" costs roughly six transistors <em>per bit</em>. Six transistors, for one 1-or-0. That's an expensive way to store anything at scale.</li>
+      <li><strong>DRAM</strong> (your backpack/shelf/store-room — main memory) is almost lazy by comparison: one transistor and one tiny capacitor per bit. The capacitor just holds a charge — cheap, dense, lets you pack a huge amount into a small chip. The catch: that charge slowly leaks away, like air seeping out of a balloon, so the whole chip must be periodically <strong>refreshed</strong> — read out and written straight back — purely to top the charge up before it's lost. SRAM never has this problem; DRAM always does.</li>
+      <li><strong>Magnetic disk</strong> (the library) doesn't store bits electrically at all — it stores them as microscopic magnetized spots on a spinning platter, read by a physical arm that has to move. Astonishingly cheap per gigabyte, but bound by mechanical motion, which is why it's measured in milliseconds instead of nanoseconds.</li>
+    </ul>
+
+    <table>
+      <caption>Table 1 — Rough figures from the slide deck (illustrative order-of-magnitude, not fixed prices)</caption>
+      <thead><tr><th class="left">Technology</th><th>Access time</th><th>Cost per GB</th><th class="left">Our analogy</th></tr></thead>
+      <tbody>
+        <tr><td class="left">Static RAM (SRAM)</td><td>0.5 ns – 2.5 ns</td><td>$2,000 – $5,000</td><td class="left">Your desk</td></tr>
+        <tr><td class="left">Dynamic RAM (DRAM)</td><td>50 ns – 70 ns</td><td>$20 – $75</td><td class="left">Backpack / shelf / store-room</td></tr>
+        <tr><td class="left">Magnetic disk</td><td>5 ms – 20 ms</td><td>$0.20 – $2</td><td class="left">The central library</td></tr>
+        <tr><td class="left"><strong>Ideal memory</strong></td><td><em>SRAM's speed</em></td><td><em>Disk's cost</em></td><td class="left">A desk the size of a library — impossible in one material</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Disk access time is in <strong>milliseconds</strong>; SRAM/DRAM are in <strong>nanoseconds</strong> — a gap of roughly 10<sup>5</sup>–10<sup>6</sup>×. If your "desk-to-library" trip really took a hundred thousand times longer than reaching for a page, you'd be gone for days, not minutes — that's how brutal the real gap is, and it's exactly why the rest of this chapter is obsessed with never making that trip if it can possibly be avoided.</p>
+    </div>
+
+    <h3>DRAM Up Close: Living With a Leaky Bucket</h3>
+    <p>Because a DRAM cell is just a capacitor slowly leaking charge, the whole chip needs a background "top-up" routine constantly running — that's the refresh cycle mentioned above. A few clever tricks squeeze much more performance out of this humble one-transistor design than you'd expect:</p>
+    <ul>
+      <li>Bits sit in a <strong>rectangular array</strong>, and an entire <strong>row</strong> gets opened at once — like opening a whole drawer instead of picking out one item.</li>
+      <li><strong>Burst mode</strong> — once a row is open, grab several words from it in a row with reduced extra delay, since you've already "opened the drawer."</li>
+      <li><strong>Double Data Rate (DDR)</strong> DRAM sends data on both the rising <em>and</em> falling edge of the clock — basically getting two deliveries per clock tick instead of one, doubling bandwidth for free.</li>
+      <li><strong>Row buffer</strong>, <strong>synchronous DRAM (SDRAM)</strong>, and <strong>banking</strong> all chase the same goal from different angles: keep that opened "drawer" working for you as much as possible, and let multiple drawers be open in parallel, rather than re-paying the "open the drawer" cost on every single access.</li>
+    </ul>
+
+    <div class="box note">
+      <div class="box-title">📌 The DDR generational trend</div>
+      <p style="margin:0;">Each DDR generation (DDR → DDR2 → DDR3 → DDR4…) roughly doubles bandwidth and lowers operating voltage versus its predecessor. The slide deck's historical DRAM-price table tells the same story numerically: 64 Kbit in 1980 cost about $1.5 million per GB; by 2007, 1 Gbit cost about $50 per GB. That's not a typo — it's the same exponential cost collapse Moore's Law predicts for logic, just applied to memory.</p>
+    </div>
+
+    <h3>Dependable Memory: Why DRAM Needs Error Correction</h3>
+    <p>Here's an unsettling fact about that leaky-bucket design: DRAM cells can occasionally be flipped by something as mundane as background cosmic radiation striking the chip — nothing broke, no wear occurred, a stray particle just deposited enough charge to silently turn a 0 into a 1. These are called <strong>soft errors</strong>, precisely because the hardware itself is fine; only the stored value is momentarily wrong.</p>
+    <p>Server and workstation memory defends against this with an <strong>error-correcting code (ECC)</strong> — a handful of extra redundant bits stored alongside each word that let the memory controller silently detect and fix a single flipped bit before your CPU ever sees it. The typical design point is <strong>SEC/DED</strong> (Single-Error-Correcting, Double-Error-Detecting): one flipped bit gets fixed automatically; two flipped bits in the same word get flagged as an error rather than corrected. It's the exact same "add redundancy to survive corruption" idea used in disk RAID and network checksums, just applied one word at a time.</p>
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Don't merge <strong>refresh</strong> and <strong>ECC</strong> into one idea — they solve two unrelated problems. Refresh fights a known, predictable, constant physical process (the charge <em>always</em> leaks, on a schedule). ECC fights a rare, unpredictable event (radiation striking at some random moment). A system can — and server-grade systems typically do — need both running simultaneously, for entirely different reasons.</p>
+    </div>
+
+    <h3>Flash Storage — The Departmental Library, Not the Central One <span class="tag" style="margin-left:6px;">§6.4</span></h3>
+    <p>Flash sits in an interesting middle spot: <strong>nonvolatile</strong> like disk (it remembers everything with the power off), but semiconductor-based like SRAM/DRAM, which makes it much faster than a spinning platter — roughly 100×–1000× faster than disk, smaller, lower power, with no moving parts to break. The trade-off: still more expensive per GB than disk (though cheaper than DRAM).</p>
+    <table>
+      <thead><tr><th class="left">Type</th><th class="left">Bit cell resembles</th><th class="left">Access pattern</th><th class="left">Typical use</th></tr></thead>
+      <tbody>
+        <tr><td class="left"><strong>NOR flash</strong></td><td class="left">NOR gate</td><td class="left">Random read/write, byte-addressable</td><td class="left">Instruction memory in embedded systems</td></tr>
+        <tr><td class="left"><strong>NAND flash</strong></td><td class="left">NAND gate</td><td class="left">Block-at-a-time access only</td><td class="left">USB keys, SSD/media storage — denser &amp; cheaper per GB</td></tr>
+      </tbody>
+    </table>
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">A flash cell physically wears out after roughly thousands of write/erase cycles — think of repeatedly folding a single sheet of paper until it tears along the crease. This is why flash can't simply replace RAM or disk everywhere. <strong>Wear leveling</strong> is the fix: the controller deliberately rotates writes across less-used cells, like spreading the folding damage evenly across many sheets instead of destroying one. If asked "why not use flash for everything," write-endurance — not just cost — is the answer being fished for.</p>
+    </div>
+
+    <h3>Disk Storage — The Actual Trip Across Campus <span class="tag" style="margin-left:6px;">§6.3</span></h3>
+    <p>Magnetic disk is <strong>nonvolatile, rotating</strong> storage — physically the closest thing to "walking to the library." And just like a real trip, an access has several additive stages, each with its own delay:</p>
+    <ol>
+      <li><strong>Queuing delay</strong> — waiting your turn if the library's already busy serving someone else's request (zero if it's empty/idle).</li>
+      <li><strong>Seek time</strong> — walking to the right shelf (moving the read/write head to the correct track).</li>
+      <li><strong>Rotational latency</strong> — waiting for the right book to spin around to where you're standing (the platter has to rotate the target sector under the head).</li>
+      <li><strong>Data transfer time</strong> — actually reading the pages off the book.</li>
+      <li><strong>Controller overhead</strong> — the librarian's fixed paperwork time, every single visit.</li>
+    </ol>
+
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — timing an actual "library trip"</div>
+      <p><strong>Given:</strong> 512 B sector, 15,000 rpm, 4 ms average seek time, 100 MB/s transfer rate, 0.2 ms controller overhead, disk idle (no queue).</p>
+      <p><strong>Rotational latency</strong> — on average, the book you want is half a rotation away when you arrive at the shelf:</p>
+      <div class="formula">Rotational latency = ½ ÷ (15,000/60 rev/s) = ½ ÷ 250 rev/s = 2 ms</div>
+      <p><strong>Transfer time</strong>:</p>
+      <div class="formula">512 B ÷ 100 MB/s = 0.005 ms</div>
+      <p><strong>Total average read time</strong>:</p>
+      <div class="formula">4 ms (seek) + 2 ms (rotation) + 0.005 ms (transfer) + 0.2 ms (controller) = <strong>6.2 ms</strong></div>
+      <p style="margin-bottom:0;">And if the library staff already knows roughly where you tend to go (locality helping the "actual" average seek drop to 1 ms instead of the worst-case 4 ms average), the whole trip drops to <strong>3.2 ms</strong> — nearly half, just from not wandering randomly.</p>
+    </div>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap — rotational latency formula</div>
+      <p style="margin:0;">Use <strong>½ a revolution</strong>, never a full one — on average the target sector is halfway around when the head arrives. Also convert rpm → rev/s by dividing by 60 <em>before</em> inverting. Forgetting the ½ is the single most common arithmetic slip here, and it silently doubles your rotational-latency term.</p>
+    </div>
+
+    <p>Real disks soften the pain a little further: controllers remap physical sectors behind a clean logical interface (SATA/SCSI/ATA), and disks carry their own small on-board cache that <strong>prefetches</strong> — grabs sectors it guesses you'll want next, the same speculative "grab the whole page" instinct from §1, just implemented by the disk itself.</p>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why does DRAM need a "row buffer" but SRAM does not?</div>
+      <div class="a">DRAM's whole array is organized in rows that must be opened together, and reading a row is even destructive to the stored charge — so the row buffer captures an entire opened row, letting several words be read (or refreshed) without repeatedly re-opening it. SRAM cells hold their state actively and can be addressed individually with no "opening" step at all.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: A disk has 6ms average seek, 10,000 rpm, 200MB/s transfer, 0.1ms controller overhead, and reads a 2KB block from idle. Find the average access time.</div>
+      <div class="a">Rotational latency = ½ ÷ (10000/60) = 0.5 ÷ 166.67 = 3 ms. Transfer time = 2048B ÷ 200MB/s ≈ 0.01 ms. Total = 6 + 3 + 0.01 + 0.1 = <strong>9.11 ms</strong>.</div>
+    </div>
+  </section>
+
+  <section class="section" id="cache-basics">
+    <h2>3 · Direct-Mapped Caches <span class="tag">§5.3 The Basics of Caches</span></h2>
+    <p class="sec-intro">Your desk needs an organizing rule — you can't just pile things randomly and hope to find them again fast. Direct mapping is the simplest possible rule.</p>
+
+    <h3>Give Your Desk Labeled Slots</h3>
+    <p>Imagine your desk isn't just open space — it has exactly <strong>8 labeled slots</strong> cut into it, like a mail sorter. Every subject you might need has a rule that sends it to exactly <em>one</em> specific slot, no exceptions, no choice involved. That's a <strong>direct-mapped cache</strong>:</p>
+    <div class="formula">Cache index = (Block address) modulo (#Blocks in cache)</div>
+    <p>Because the number of slots is always a power of two, this "modulo" is completely free in hardware — no division circuit needed, you just read off the low-order bits of the address and that number <em>is</em> the slot. It's the equivalent of a rule like "subject code mod 8 tells you which drawer" — mechanical, instant, no thinking required.</p>
+
+    <h4>How You Know What's Actually in a Slot</h4>
+    <p>Here's the catch with only 8 slots: <em>far more than 8 subjects</em> exist, so lots of different subjects are all assigned to the same slot number. Slot 3 might currently hold your Signals notes — or it might hold your Software Engineering notes instead — the slot number alone doesn't tell you which. So every slot also carries a small label: the <strong>tag</strong>, recording exactly which subject is sitting there right now. And for a slot that's simply never been used yet, a <strong>valid bit</strong> (1 = something's actually here, 0 = empty) stops you from confidently reading garbage out of an empty drawer.</p>
+
+    <div class="pill-row">
+      <div class="pill"><strong>Hit</strong> = valid bit set <em>and</em> the tag matches what you're looking for</div>
+      <div class="pill"><strong>Miss</strong> = slot empty, <em>or</em> the tag says it's the wrong subject</div>
+    </div>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">A tag mismatch is <em>still a miss</em>, even with the valid bit set to 1 — that's the "wrong subject is currently sitting in this drawer" case. Students sometimes check only the valid bit and forget the tag has to match too. Both conditions are required for a hit.</p>
+    </div>
+
+    <h3>Watching It Happen — A Full Night's Worth of Desk Traffic</h3>
+    <p>Let's actually run through a study session on an 8-slot desk, one word per block, and watch exactly what ends up where. Addresses are 5 bits: with 8 = 2³ slots, the low 3 bits pick the slot (index), and the remaining high 2 bits are the tag (the "which subject" label).</p>
+
+    <table>
+      <caption>Table 2 — Access trace (desk starts completely empty — every slot invalid)</caption>
+      <thead><tr><th>#</th><th>Word Addr</th><th>Binary (tag·index)</th><th>Hit/Miss</th><th class="left">What happens</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>22</td><td>10·110</td><td class="miss">Miss</td><td class="left">Slot 110 empty → fetch Mem[10110], set tag=10, V=1</td></tr>
+        <tr><td>2</td><td>26</td><td>11·010</td><td class="miss">Miss</td><td class="left">Slot 010 empty → fetch Mem[11010], set tag=11, V=1</td></tr>
+        <tr><td>3</td><td>22</td><td>10·110</td><td class="hit">Hit</td><td class="left">Slot 110 valid, tag matches (10) → served from cache</td></tr>
+        <tr><td>4</td><td>26</td><td>11·010</td><td class="hit">Hit</td><td class="left">Slot 010 valid, tag matches (11) → served from cache</td></tr>
+        <tr><td>5</td><td>16</td><td>10·000</td><td class="miss">Miss</td><td class="left">Slot 000 empty → fetch Mem[10000], set tag=10, V=1</td></tr>
+        <tr><td>6</td><td>3</td><td>00·011</td><td class="miss">Miss</td><td class="left">Slot 011 empty → fetch Mem[00011], set tag=00, V=1</td></tr>
+        <tr><td>7</td><td>16</td><td>10·000</td><td class="hit">Hit</td><td class="left">Slot 000 valid, tag matches (10) → served from cache</td></tr>
+        <tr><td>8</td><td>18</td><td>10·010</td><td class="miss">Miss</td><td class="left"><strong>Slot fight!</strong> Slot 010 is valid but tagged 11 (address 26) — wrong subject → evict address 26, load Mem[10010], set tag=10</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <caption>Table 3 — Final desk state after step 8</caption>
+      <thead><tr><th>Index</th><th>V</th><th>Tag</th><th class="left">Data</th></tr></thead>
+      <tbody>
+        <tr><td>000</td><td>Y</td><td>10</td><td class="left">Mem[10000]</td></tr>
+        <tr><td>001</td><td>N</td><td class="blank"></td><td class="blank"></td></tr>
+        <tr><td>010</td><td>Y</td><td>10</td><td class="left">Mem[10010]</td></tr>
+        <tr><td>011</td><td>Y</td><td>00</td><td class="left">Mem[00011]</td></tr>
+        <tr><td>100</td><td>N</td><td class="blank"></td><td class="blank"></td></tr>
+        <tr><td>101</td><td>N</td><td class="blank"></td><td class="blank"></td></tr>
+        <tr><td>110</td><td>Y</td><td>10</td><td class="left">Mem[10110]</td></tr>
+        <tr><td>111</td><td>N</td><td class="blank"></td><td class="blank"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="box note">
+      <div class="box-title">📌 The part that should feel a little unfair</div>
+      <p style="margin:0;">Look at step 8 again. Address 26 was a <em>hit</em> just two steps earlier — you'd just used it, it was sitting right there, textbook temporal locality. And yet the instant something else that happens to share its slot number shows up, it's gone, with zero regard for how recently you needed it. That's the defining flaw of a fixed, one-slot-per-subject desk: two subjects fighting over the same drawer will keep evicting each other forever, no matter how "hot" either one is. This exact failure has a name — a <strong>conflict miss</strong> — and it's the entire reason the next section exists: give each subject a small <em>set</em> of allowed drawers instead of just one.</p>
+    </div>
+
+    <h3>Address Subdivision — When Blocks Hold More Than One Word</h3>
+    <p>So far each "page" was one word. Real blocks usually hold several words, which splits the address into three fields instead of two:</p>
+    <div class="diagram">
+      <svg viewBox="0 0 640 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="30" width="330" height="50" fill="#9c3a4d" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="185" y="60" text-anchor="middle" fill="#fbf6ea" font-size="14" font-family="Georgia,serif">Tag</text>
+        <rect x="350" y="30" width="180" height="50" fill="#a9812f" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="440" y="60" text-anchor="middle" fill="#2b2620" font-size="14" font-family="Georgia,serif">Index</text>
+        <rect x="530" y="30" width="90" height="50" fill="#c9a54a" stroke="#2b2620" stroke-width="1.2"/>
+        <text x="575" y="60" text-anchor="middle" fill="#2b2620" font-size="14" font-family="Georgia,serif">Offset</text>
+        <text x="185" y="100" text-anchor="middle" font-size="12" fill="#4a4437">"which subject" — compared to the label</text>
+        <text x="440" y="100" text-anchor="middle" font-size="12" fill="#4a4437">"which drawer"</text>
+        <text x="575" y="100" text-anchor="middle" font-size="12" fill="#4a4437">"which line on the page"</text>
+        <text x="20" y="20" font-size="11" fill="#1c2b45">31</text>
+        <text x="610" y="20" font-size="11" fill="#1c2b45" text-anchor="end">0</text>
+      </svg>
+      <div class="cap">Fig. 2 — Generic address subdivision: tag · index · block offset.</div>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — Larger Block Size</div>
+      <p><strong>Given:</strong> 64 blocks, 16 bytes/block. <strong>Question:</strong> which block does byte address 1200 map to?</p>
+      <div class="formula">Block address = Byte address ÷ Bytes/block = 1200 ÷ 16 = 75</div>
+      <div class="formula">Cache index = Block address mod #Blocks = 75 mod 64 = <strong>11</strong></div>
+      <p style="margin-bottom:0;">With a 32-bit address: offset needs 4 bits (2⁴=16 bytes/block), index needs 6 bits (2⁶=64 blocks), leaving 32−6−4 = <strong>22 bits</strong> for the tag.</p>
+    </div>
+
+    <h3>Why "Grab a Bigger Page" Isn't Always Better</h3>
+    <p>Back to the brainstorm from §1 — what if you grabbed your whole notebook instead of one page? Bigger blocks capture more spatial locality per fetch, which sounds like a pure win. But your desk is a <strong>fixed size</strong>: if each item you place on it is now a whole notebook instead of a single page, <em>far fewer distinct items fit</em> at once. Fewer slots filled means more subjects competing for the same drawers — conflict misses go up, not down, even though each individual fetch is "smarter." And each miss now costs more too, since you're hauling a whole notebook back each time instead of one page (a bigger <strong>miss penalty</strong>). Real hardware softens this with tricks like <strong>early restart</strong> (start working the moment your specific word arrives, don't wait for the whole block) and <strong>critical-word-first</strong> (fetch the actually-requested word first, rest of the block after) — but the underlying trade-off never goes away: there's a sweet spot, and going too big backfires.</p>
+
+    <div class="quiz">
+      <div class="q">Self-check: In the worked trace above, would address 18 have conflicted with address 26 on a fully-associative desk (any slot allowed) of the same total size?</div>
+      <div class="a">No. On a fully-associative desk, address 26's data could simply sit in a different slot, with no forced eviction based on shared slot numbers — as long as the desk isn't completely full. This exact miss (one that "would not occur in a fully associative cache of the same total size") is precisely the textbook definition of a conflict miss, formalized in §12.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: A direct-mapped cache has 32 blocks (5-bit index) and 8 bytes/block (3-bit offset), for a 32-bit address. How many tag bits, and what index/tag does byte address 0x00000148 produce?</div>
+      <div class="a">Tag bits = 32 − 5 − 3 = 24. 0x148 = 0000 0001 0100 1000₂. Offset (low 3 bits) = 000; Index (next 5 bits) = 01001 = 9; the remaining 24 high-order bits form the tag.</div>
+    </div>
+  </section>
+
+  <section class="section" id="misses-writes">
+    <h2>4 · Handling Misses &amp; Write Policies <span class="tag">§5.3</span></h2>
+    <p class="sec-intro">Reading from your desk is one thing — but what happens the moment you actually <em>correct</em> something on a page? Does the "official" copy back on the shelf need to know right away?</p>
+
+    <h3>What Happens the Instant You Reach for Something Missing</h3>
+    <p>On a hit, nothing dramatic happens — you just keep working. On a miss, you actually pause what you're doing (<strong>the pipeline stalls</strong>), go fetch the block from further away, and then continue: if it was an instruction you needed, you simply resume fetching where you left off; if it was data, you finish the load or store now that it's finally on your desk.</p>
+
+    <h3>Write-Through: Sprint to Fix the Master Copy Immediately</h3>
+    <p>Say you spot an error in a formula and fix it on your desk copy. The most cautious policy: immediately run down the hall and correct the store-room's master copy too, so the two never disagree even for a second. Safe — but if "running down the hall" costs real time, doing it after <em>every single correction</em> adds up brutally fast.</p>
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — the cost of sprinting every time</div>
+      <p>Base CPI = 1, 10% of instructions are stores, and writing to memory costs 100 cycles:</p>
+      <div class="formula">Effective CPI = 1 + 0.10 × 100 = <strong>11</strong></div>
+      <p style="margin-bottom:0;">CPI 1 → CPI 11 is an 11× slowdown — obviously unworkable. The fix is a <strong>write buffer</strong>: instead of sprinting yourself, you drop the correction in an outgoing mail tray and keep working; someone else delivers it to the store-room in the background. You only actually stall if that tray is already full.</p>
+    </div>
+
+    <h3>Write-Back: Just Fix Your Desk Copy, Deal With It Later</h3>
+    <p>The lazier (and usually smarter) policy: correct only your desk copy, and don't bother the store-room at all — <em>yet</em>. Just stick a little flag on that page marking it "dirty" (edited, doesn't match the official copy anymore). Only when that page is finally about to leave your desk (evicted to make room for something else) do you bother walking it back and updating the master copy — and if it was never marked dirty, you don't even need to; the store-room's copy was already correct, so you can just toss your desk copy and move on.</p>
+
+    <table>
+      <caption>Table 4 — Write-through vs. write-back at a glance</caption>
+      <thead><tr><th class="left">Aspect</th><th class="left">Write-through</th><th class="left">Write-back</th></tr></thead>
+      <tbody>
+        <tr><td class="left">Memory updated</td><td class="left">Immediately, on every write hit</td><td class="left">Only when the dirty block is evicted</td></tr>
+        <tr><td class="left">Extra state needed</td><td class="left">None (or just a write buffer)</td><td class="left">A dirty bit per block</td></tr>
+        <tr><td class="left">Consistency with memory</td><td class="left">Always consistent</td><td class="left">Memory may be stale until eviction</td></tr>
+        <tr><td class="left">Replacement simplicity</td><td class="left">Simple — just overwrite (memory already current)</td><td class="left">Must check dirty bit; write back if dirty first</td></tr>
+        <tr><td class="left">Bandwidth to memory</td><td class="left">Higher (every write travels down)</td><td class="left">Lower (many edits to one block cost only one eventual write-back)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Write Allocate: Do You Even Bother Fetching It First?</h3>
+    <p>A different question entirely: you're about to <em>overwrite</em> a whole page you don't currently have on your desk — do you bother walking to fetch the old version first, just to immediately scribble over it?</p>
+    <ul>
+      <li><strong>For write-through:</strong> two reasonable choices — <strong>write allocate</strong> (fetch it onto your desk first, then write) or <strong>write around / no-write-allocate</strong> (just send the new version straight to the store-room, don't bother bringing the old page to your desk at all). Write-around makes sense because you're often about to overwrite the <em>entire</em> page anyway (like zero-initializing a fresh worksheet) — fetching the old contents first would be pure wasted effort.</li>
+      <li><strong>For write-back:</strong> you <strong>usually do fetch it</strong>, because you expect to keep editing that page for a while, and having it on your desk means all those future edits get the fast write-back treatment instead of each one separately racing to the store-room.</li>
+    </ul>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Write-allocate and write-back are <strong>independent choices</strong>, even though they're usually paired together (write-back + write-allocate, write-through + no-write-allocate are the common real-world combos). An exam can absolutely ask about write-through + write-allocate as a valid, if less common, combination — don't assume they're welded together.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why does write-back need a "dirty" flag, but write-through never does?</div>
+      <div class="a">Write-through keeps the store-room's master copy current after every single edit, so by the time a page leaves your desk, the master is already correct — nothing needs writing back. Write-back deliberately lets your desk copy drift ahead of the master; the dirty bit is exactly the note-to-self that says "this one's different from the official version, don't discard it without updating the master first."</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: With base CPI = 1, 15% stores, write-through with a write buffer that only actually stalls the CPU 2% of the time (each stall costing 50 cycles), what is the effective CPI?</div>
+      <div class="a">Effective CPI = 1 + 0.15 × 0.02 × 50 = 1 + 0.15 = <strong>1.15</strong>. The write buffer converted almost all of what would have been a 100-cycle-per-store penalty into background work you never wait for — you only pay when the outgoing tray is already full.</div>
+    </div>
+  </section>
+
+  <section class="section" id="performance">
+    <h2>5 · Measuring Cache Performance: AMAT &amp; CPI <span class="tag">§5.4</span></h2>
+    <p class="sec-intro">How much of your total study time is actually spent <em>studying</em>, versus how much quietly vanishes into walking back and forth?</p>
+
+    <h3>The Core Idea: Every Trip Adds to Your Night</h3>
+    <p>If you never had to get up from your desk, one problem would take you a fixed, predictable amount of time — call that the <strong>base CPI</strong> of "an ideal, always-on-your-desk study session." But you do have to get up sometimes, and every single trip tacks extra time onto the night:</p>
+    <div class="formula">Actual CPI = Base CPI + Memory-stall cycles per instruction</div>
+    <div class="formula">Memory-stall cycles per instruction = Miss rate × Miss penalty &nbsp;(per access type)</div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — combining instruction and data trips</div>
+      <p><strong>Given:</strong> I-cache miss rate = 2%, D-cache miss rate = 4%, miss penalty = 100 cycles (same for both), base CPI (ideal cache) = 2, loads &amp; stores are 36% of instructions.</p>
+      <p>Every single instruction requires fetching the instruction itself (100% of the time you're "reading the next line of your problem set"), but only some of those instructions also touch data (36% are loads/stores — "look something up or jot something down"):</p>
+      <div class="formula">I-cache stall cycles/instr = 1.00 × 0.02 × 100 = 2</div>
+      <div class="formula">D-cache stall cycles/instr = 0.36 × 0.04 × 100 = 1.44</div>
+      <div class="formula">Actual CPI = 2 (base) + 2 (I) + 1.44 (D) = <strong>5.44</strong></div>
+      <p style="margin-bottom:0;">A perfect, no-trips-ever version of you would finish <strong>5.44 / 2 = 2.72× faster</strong> — the walking-around time alone costs more than the actual problem-solving time!</p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Follow-up — you get smarter, but your desk doesn't get closer</div>
+      <p>Now suppose you personally get faster at solving each step (base CPI drops from 2 to 1 — better focus, better technique), but nothing about your desk/backpack/shelf setup changes at all:</p>
+      <div class="formula">Actual CPI = 1 + 2 + 1.44 = <strong>4.44</strong></div>
+      <p>The ideal version of you is now <strong>4.44× faster</strong> than the real you — an even bigger relative gap. And the fraction of your night eaten by walking around actually <em>rose</em>:</p>
+      <div class="formula">3.44 / 5.44 = 63% &nbsp;→&nbsp; 3.44 / 4.44 = 77%</div>
+      <p style="margin-bottom:0;">That's the whole lesson of this section in one sentence: <strong>the faster you personally get, the more your unchanged desk setup dominates your night.</strong> A brilliant student with a badly-organized desk still loses most of the night to walking around — you cannot judge total study time while ignoring how the desk is arranged.</p>
+    </div>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Miss rate is given <strong>per access to that specific cache</strong>, not per instruction — that's exactly why the D-cache term needs the extra ×0.36 (only 36% of instructions even touch data) while the I-cache term doesn't (100% of instructions fetch an instruction). Forgetting to weight the D-cache miss rate by the load/store fraction is the single most common mistake on this style of question.</p>
+    </div>
+
+    <h3>Average Memory Access Time (AMAT)</h3>
+    <p>A close cousin of the CPI calculation — instead of a full breakdown, this collapses everything into one number: "on average, how long does one reach-for-something actually take, counting the occasional trip?"</p>
+    <div class="formula">AMAT = Hit time + Miss rate × Miss penalty</div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — AMAT</div>
+      <p>CPU with a 1ns clock, hit time = 1 cycle, miss penalty = 20 cycles, I-cache miss rate = 5%:</p>
+      <div class="formula">AMAT = 1 + 0.05 × 20 = <strong>2 ns</strong> = 2 cycles per instruction</div>
+      <p style="margin-bottom:0;">Here "2 cycles" and "2 ns" happen to be the same number only because the clock is exactly 1ns — don't assume that shortcut holds in general; always check whether a question wants <strong>cycles</strong> or <strong>time</strong>.</p>
+    </div>
+
+    <h3>Why This Keeps Mattering More, Not Less</h3>
+    <p>Three separate trends all push in the same direction — cache behaviour becomes <em>more</em> important as CPUs improve, never less:</p>
+    <ul>
+      <li><strong>You get faster at the actual work</strong> (lower base CPI) → the walking-around time becomes a bigger <em>share</em> of the total (63% → 77%, as above).</li>
+      <li><strong>Your clock ticks faster</strong> (higher clock rate) → since the real-world delay of a trip to the shelf doesn't shrink just because you're thinking faster, that same trip now "costs" more cycles than it used to.</li>
+      <li>Put together: as the CPU side of the equation keeps improving, the memory side becomes the bottleneck you can no longer ignore.</li>
+    </ul>
+
+    <div class="quiz">
+      <div class="q">Self-check: Base CPI = 1.5, I-cache miss rate = 3%, D-cache miss rate = 8%, miss penalty = 50 cycles, loads/stores = 30% of instructions. Find actual CPI.</div>
+      <div class="a">I-cache: 1.00 × 0.03 × 50 = 1.5. D-cache: 0.30 × 0.08 × 50 = 1.2. Actual CPI = 1.5 + 1.5 + 1.2 = <strong>4.2</strong>.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: Clock = 2 GHz (0.5 ns/cycle), hit time = 1 cycle, miss penalty = 40 cycles, miss rate = 4%. What is AMAT in both cycles and nanoseconds?</div>
+      <div class="a">AMAT = 1 + 0.04 × 40 = 2.6 cycles. In time: 2.6 × 0.5 ns = <strong>1.3 ns</strong>. Keep "cycles" and "ns" as separate answers until a problem explicitly ties them together via the clock period.</div>
+    </div>
+
+    <div class="box brainstorm">
+      <div class="box-title">💭 Brainstorm</div>
+      <p style="margin:0;">If 77% of your night is already being eaten by walking around, is it now smarter to invest effort in reorganizing your desk (lower miss penalty/rate) rather than getting even faster at solving problems (lower base CPI)? What would happen to that 77% if you simply added a well-stocked backpack under the table, so most "shelf trips" become quick "backpack grabs" instead? We answer that precisely, with real numbers, in §7.</p>
+    </div>
+  </section>
+
+  <section class="section" id="associativity">
+    <h2>6 · Associativity <span class="tag">§5.4</span></h2>
+    <p class="sec-intro">The fix for the "slot fight" from §3: stop forcing every subject into exactly one drawer.</p>
+
+    <h3>Give Each Subject a Small Set of Allowed Drawers</h3>
+    <p>Remember addresses 18 and 26 endlessly evicting each other in §3, purely because they were both assigned to the same single drawer? The obvious fix: instead of one fixed drawer per subject, allow a small <em>set</em> of drawers, and let the subject go in whichever one of that set happens to be free.</p>
+    <ul>
+      <li><strong>Direct mapped</strong> (1-way) — what we had: exactly one legal drawer. Cheapest, fastest to check, worst at avoiding fights.</li>
+      <li><strong>n-way set associative</strong> — the desk is grouped into sets, each set containing n drawers. A subject's <strong>set</strong> is still fixed by its address, but within that set it can land in <em>any</em> of the n drawers. You check all n drawers in the set at once (n comparators — more hardware, but bounded and manageable).</li>
+      <li><strong>Fully associative</strong> — no sets at all, a subject can go absolutely anywhere on the whole desk. But now finding it again means checking the label on <em>every single drawer</em> — one comparator per drawer, which gets expensive fast as the desk grows.</li>
+    </ul>
+
+    <div class="diagram">
+      <div style="display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-end;">
+        <div>
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;text-align:center;">Direct mapped<br>(8 sets × 1 way)</div>
+          <div style="display:flex;gap:3px;">
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+            <div style="width:22px;height:34px;background:#9c3a4d;border:1px solid #2b2620;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;text-align:center;">2-way set assoc.<br>(4 sets × 2 ways)</div>
+          <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#a9812f;"></div><div style="width:22px;height:34px;background:#a9812f;"></div></div>
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#a9812f;"></div><div style="width:22px;height:34px;background:#a9812f;"></div></div>
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#a9812f;"></div><div style="width:22px;height:34px;background:#a9812f;"></div></div>
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#a9812f;"></div><div style="width:22px;height:34px;background:#a9812f;"></div></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;text-align:center;">4-way set assoc.<br>(2 sets × 4 ways)</div>
+          <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div></div>
+            <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;"><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div><div style="width:22px;height:34px;background:#c9a54a;"></div></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;text-align:center;">Fully associative<br>(1 set × 8 ways)</div>
+          <div style="display:flex;gap:1px;border:2px solid #1c2b45;padding:2px;">
+            <div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div><div style="width:22px;height:34px;background:#e9e0c8;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Fig. 3 — Same 8 total drawers, four different "which drawers am I allowed to use" rules. Boxed groups = one set; checking a set means reading every label inside that box at once.</div>
+    </div>
+
+    <h3>Replaying the Same Fight, Three Different Ways</h3>
+    <p>Let's re-run addresses <strong>0, 8, 0, 6, 8</strong> — the exact pattern that caused endless trouble before — across all three drawer policies on a 4-slot desk, and watch the difference.</p>
+
+    <h4>Direct Mapped (index = block mod 4)</h4>
+    <table>
+      <thead><tr><th>Block Addr</th><th>Index</th><th>Hit/Miss</th><th class="left">Desk content after access (slots 0–3)</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[0], –, –, –</td></tr>
+        <tr><td>8</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[8], –, –, – <em>(evicted Mem[0])</em></td></tr>
+        <tr><td>0</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[0], –, –, – <em>(evicted Mem[8] — thrashing!)</em></td></tr>
+        <tr><td>6</td><td>2</td><td class="miss">Miss</td><td class="left">Mem[0], –, Mem[6], –</td></tr>
+        <tr><td>8</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[8], –, Mem[6], –</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Result: 5 misses, 0 hits.</strong> 0 and 8 are locked in an endless drawer fight, exactly like 18 and 26 before.</p>
+
+    <h4>2-Way Set Associative (2 sets, index = block mod 2)</h4>
+    <table>
+      <thead><tr><th>Block Addr</th><th>Set</th><th>Hit/Miss</th><th class="left">Set 0 content after access</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[0]</td></tr>
+        <tr><td>8</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[0], Mem[8] <em>(both fit — 2 ways!)</em></td></tr>
+        <tr><td>0</td><td>0</td><td class="hit">Hit</td><td class="left">Mem[0], Mem[8]</td></tr>
+        <tr><td>6</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[0], Mem[6] <em>(LRU evicts 8, the less-recently-used)</em></td></tr>
+        <tr><td>8</td><td>0</td><td class="miss">Miss</td><td class="left">Mem[8], Mem[6] <em>(LRU evicts 0)</em></td></tr>
+      </tbody>
+    </table>
+    <p><strong>Result: 4 misses, 1 hit.</strong> Just one extra drawer already rescues an access.</p>
+
+    <h4>Fully Associative (any of 4 slots)</h4>
+    <table>
+      <thead><tr><th>Block Addr</th><th>Hit/Miss</th><th class="left">Desk content after access</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td class="miss">Miss</td><td class="left">Mem[0]</td></tr>
+        <tr><td>8</td><td class="miss">Miss</td><td class="left">Mem[0], Mem[8]</td></tr>
+        <tr><td>0</td><td class="hit">Hit</td><td class="left">Mem[0], Mem[8]</td></tr>
+        <tr><td>6</td><td class="miss">Miss</td><td class="left">Mem[0], Mem[8], Mem[6] <em>(room to spare — no eviction)</em></td></tr>
+        <tr><td>8</td><td class="hit">Hit</td><td class="left">Mem[0], Mem[8], Mem[6]</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Result: 3 misses, 2 hits</strong> — the best of the three, as expected: more freedom in where things can go can only help or tie, never hurt, for a fixed total desk size.</p>
+
+    <h3>How Much Freedom Is Actually Worth Paying For?</h3>
+    <p>More associativity reliably helps — but with sharply <strong>diminishing returns</strong>. Simulation data for a 64KB data cache, 16-word blocks, running SPEC2000:</p>
+    <table>
+      <thead><tr><th>Associativity</th><th>Miss rate</th></tr></thead>
+      <tbody>
+        <tr><td>1-way (direct mapped)</td><td>10.3%</td></tr>
+        <tr><td>2-way</td><td>8.6%</td></tr>
+        <tr><td>4-way</td><td>8.3%</td></tr>
+        <tr><td>8-way</td><td>8.1%</td></tr>
+      </tbody>
+    </table>
+    <p>Going from 1-way to 2-way is worth a huge 1.7-point improvement — like going from "one fixed drawer" to "a spare drawer as backup." Going all the way from 4-way to 8-way only buys 0.2 points — diminishing returns have set in hard. That's exactly why real L1 caches typically stop at 2-way to 8-way instead of chasing fully associative: past a certain point, you're paying for a lot of extra comparator hardware to chase a shrinking benefit.</p>
+
+    <h3>Choosing Who Gets Evicted</h3>
+    <p>When a set is full and something new needs a spot, who leaves?</p>
+    <ul>
+      <li><strong>Direct mapped:</strong> no decision to make — there's only ever one slot.</li>
+      <li><strong>Set associative:</strong> prefer an empty drawer if one's available in the set; otherwise pick among the occupied ones using:
+        <ul>
+          <li><strong>Least Recently Used (LRU)</strong> — evict whichever item hasn't been touched the longest. Easy to track for 2-way, still manageable for 4-way, but tracking a full "who's oldest" ordering across 8+ drawers gets expensive fast.</li>
+          <li><strong>Random</strong> — just pick one arbitrarily. Surprisingly, at high associativity this performs almost as well as true LRU, for a fraction of the hardware cost.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">"More associativity always means better performance" is <strong>false</strong> as a blanket statement. More freedom lowers <em>miss rate</em>, but checking more drawers at once also costs real hardware — more comparators, a wider mux to pick the matching one — which can <strong>increase access time</strong>. Whether overall performance actually improves depends on whether the miss-rate savings outweigh that slower hit time — the same trade-off logic that reappears in §12's design table.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why does fully-associative placement need more comparators than set-associative, and why does that limit how big a fully-associative cache can practically be?</div>
+      <div class="a">Fully associative has to check every single drawer's label at once, since the item could be anywhere — one comparator per drawer. Set-associative only ever checks the drawers within one already-determined set (n comparators, n = associativity). As the desk grows, fully-associative comparator count grows right along with it — which is exactly why fully-associative designs are only practical for small structures (like a TLB), never for a multi-megabyte L2/L3 cache.</div>
+    </div>
+  </section>
+
+  <section class="section" id="multilevel">
+    <h2>7 · Multilevel Caches <span class="tag">§5.4</span></h2>
+    <p class="sec-intro">Continuing the brainstorm from §5: what if, before making the full trip to the store-room, you checked your backpack first?</p>
+
+    <h3>Insert a Middle Step</h3>
+    <p>Right now our story only has two speeds: "on my desk" (fast) or "all the way to the store-room" (slow). Real desks don't work that way, and neither do real computers — there's almost always a <em>backpack under the table</em> as a middle ground:</p>
+    <ul>
+      <li><strong>Primary (L1) cache</strong> — your desk. Small, but built purely for speed — you want zero delay reaching it.</li>
+      <li><strong>Level-2 (L2) cache</strong> — your backpack. Bigger than the desk, a little slower to dig through, but still miles faster than a store-room trip.</li>
+      <li><strong>Main memory</strong> — the store-room, reached only when even the backpack doesn't have it.</li>
+      <li>High-end systems add an <strong>L3</strong> — think of it as a shared shelf in the hallway that your whole household uses, one more stop before the store-room.</li>
+    </ul>
+
+    <div class="diagram">
+      <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="65" width="90" height="60" rx="6" fill="#7c2233" stroke="#2b2620"/>
+        <text x="55" y="99" text-anchor="middle" fill="#fbf6ea" font-size="13" font-family="Georgia,serif">CPU</text>
+        <rect x="150" y="65" width="100" height="60" rx="6" fill="#9c3a4d" stroke="#2b2620"/>
+        <text x="200" y="92" text-anchor="middle" fill="#fbf6ea" font-size="13" font-family="Georgia,serif">L1</text>
+        <text x="200" y="108" text-anchor="middle" fill="#f4ecd8" font-size="10" font-family="Georgia,serif">desk</text>
+        <rect x="310" y="65" width="130" height="60" rx="6" fill="#a9812f" stroke="#2b2620"/>
+        <text x="375" y="92" text-anchor="middle" fill="#2b2620" font-size="13" font-family="Georgia,serif">L2</text>
+        <text x="375" y="108" text-anchor="middle" fill="#2b2620" font-size="10" font-family="Georgia,serif">backpack</text>
+        <rect x="500" y="55" width="130" height="80" rx="6" fill="#e9e0c8" stroke="#2b2620"/>
+        <text x="565" y="90" text-anchor="middle" fill="#2b2620" font-size="13" font-family="Georgia,serif">Main</text>
+        <text x="565" y="106" text-anchor="middle" fill="#2b2620" font-size="13" font-family="Georgia,serif">Memory</text>
+        <line x1="100" y1="95" x2="150" y2="95" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="250" y1="95" x2="310" y2="95" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="440" y1="95" x2="500" y2="95" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="125" y="82" text-anchor="middle" font-size="10" fill="#4a4437">on L1 miss</text>
+        <text x="280" y="82" text-anchor="middle" font-size="10" fill="#4a4437">on L2 miss</text>
+        <text x="470" y="70" text-anchor="middle" font-size="10" fill="#4a4437">on L3/main miss</text>
+      </svg>
+      <div class="cap">Fig. 4 — Each level only ever gets touched when the level above it comes up empty.</div>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Worked example — adding a backpack (L2 cache)</div>
+      <p><strong>Given:</strong> CPU base CPI = 1, clock rate = 4 GHz (cycle time = 0.25 ns), miss rate to L1 = 2% per instruction, main-memory access time = 100 ns.</p>
+      <p><strong>Step 1 — desk only, no backpack:</strong></p>
+      <div class="formula">Miss penalty = 100 ns ÷ 0.25 ns/cycle = 400 cycles</div>
+      <div class="formula">Effective CPI = 1 + 0.02 × 400 = <strong>9</strong></div>
+      <p><strong>Step 2 — now add the backpack</strong> (L2), 5 ns access time, with a <strong>global</strong> miss rate to main memory of just 0.5% (i.e. only 0.5% of <em>all</em> instructions ever have to make the full store-room trip):</p>
+      <div class="formula">Backpack-check cost (paid on every desk miss) = 5 ns ÷ 0.25 ns = 20 cycles</div>
+      <div class="formula">Extra cost when the backpack also fails = 400 cycles (still have to go to the store-room)</div>
+      <div class="formula">CPI = 1 + (0.02 × 20) + (0.005 × 400) = 1 + 0.4 + 2 = <strong>3.4</strong></div>
+      <p style="margin-bottom:0;">Versus the desk-only design: <strong>9 / 3.4 ≈ 2.6× faster</strong> — one backpack more than doubled your effective study speed. That's how much a single extra cache level is worth in real processors.</p>
+    </div>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap — local vs. global miss rate</div>
+      <p style="margin:0;">The 2% figure is "how often the desk fails," measured against <em>all</em> instructions. The 0.5% figure is the <strong>global</strong> backpack-miss rate — also measured against <em>all</em> instructions, not just the ones that already failed the desk. The <strong>local</strong> backpack miss rate (the more "intuitive" one — of the times you actually opened the backpack, how often did <em>that</em> fail too?) would instead be 0.5% ÷ 2% = <strong>25%</strong>. Every multilevel-cache CPI formula in this course multiplies the <em>global</em> rate directly against total instructions — mixing up local and global is the single most common way to wreck this calculation. If a question ever gives you a local rate instead, convert first: global rate = local rate × (miss rate of the level above).</p>
+    </div>
+
+    <h3>Different Levels, Different Priorities</h3>
+    <ul>
+      <li><strong>L1 (the desk):</strong> optimise for <strong>minimal hit time</strong> — it's checked on literally every access, so keep it small and dead simple.</li>
+      <li><strong>L2 (the backpack):</strong> optimise for <strong>low miss rate</strong> instead — its whole job is to prevent the expensive store-room trip, and since it's already only reached after a desk-miss, its own speed matters comparatively less.</li>
+      <li><strong>Consequence:</strong> L1 ends up smaller than a single-level design would use, and L1's "pages" (block size) are typically smaller than L2's — small pages keep the desk fast, while the backpack can afford bigger pages to grab more spatial locality per trip.</li>
+    </ul>
+
+    <h3>What If You're Multitasking? (Out-of-Order CPUs)</h3>
+    <p>A modern CPU doesn't necessarily freeze completely while waiting on a miss — much like you wouldn't just sit frozen waiting for a page to arrive from your backpack. A pending write-down waits in your "to-write" pile; steps that <em>depend</em> on the missing page wait their turn; but steps that don't need it can carry on regardless. This makes the real-world cost of any given miss depend heavily on exactly what else was going on at the time — too tangled for one clean formula, which is why architects fall back on full simulation to evaluate this kind of overlap accurately.</p>
+
+    <div class="quiz">
+      <div class="q">Self-check: In the worked example, what would CPI become if the backpack-check itself got slower — 10ns instead of 5ns — with everything else unchanged?</div>
+      <div class="a">New backpack penalty = 10 ns ÷ 0.25 ns = 40 cycles. CPI = 1 + (0.02 × 40) + (0.005 × 400) = 1 + 0.8 + 2 = <strong>3.8</strong>. Notice the store-room term (0.005 × 400 = 2) doesn't change at all — only the desk-miss/backpack-hit term does, since that's the only term that depends on the backpack's own speed.</div>
+    </div>
+  </section>
+
+  <section class="section" id="blocking">
+    <h2>8 · Software Optimization: Blocking <span class="tag">§5.4</span></h2>
+    <p class="sec-intro">Everything so far has been about hardware decisions. This section is about <em>you</em> — how the order you choose to work through material changes how often you're forced to get up.</p>
+
+    <p>How much you have to walk around isn't just decided by desk size and drawer rules — it's also decided by how you choose to work. A canonical, very real example from scientific computing: <strong>matrix multiplication</strong> (specifically DGEMM, Double-precision GEneral Matrix Multiply), a routine used constantly in simulation and graphics.</p>
+
+    <h3>The Naive Approach: Sweep Everything, Every Time</h3>
+    <pre>for (int j = 0; j &lt; n; ++j)
+{
+  double cij = C[i+j*n];
+  for (int k = 0; k &lt; n; k++)
+    cij += A[i+k*n] * B[k+j*n];
+  C[i+j*n] = cij;
+}</pre>
+    <p>Think of this as reviewing your syllabus by scanning <em>the entire textbook</em> for every single sub-question before moving to the next one — technically thorough, but by the time you circle back to page 1, whatever was on your desk from that visit is long gone. The goal of blocking is exactly what your studying instinct already tells you to do: <strong>get as much use as possible out of material while it's still sitting on your desk</strong>, before it gets swept off to make room for something else. In the naive version, as the matrix (n) grows large, the total ground you cover before returning to reuse anything can vastly exceed what your desk can hold — producing a wave of avoidable <strong>capacity misses</strong>.</p>
+
+    <h3>The Fix: Study in Small, Complete Chunks</h3>
+    <p>The smarter approach: instead of sweeping across the whole syllabus in one giant pass, break your revision into small <code>BLOCKSIZE × BLOCKSIZE</code> chunks that <em>do</em> fit comfortably on your desk, and fully finish one chunk — squeezing out every bit of reuse — before moving to the next:</p>
+    <pre>#define BLOCKSIZE 32
+void do_block(int n, int si, int sj, int sk, double *A, double *B, double *C)
+{
+  for (int i = si; i &lt; si+BLOCKSIZE; ++i)
+    for (int j = sj; j &lt; sj+BLOCKSIZE; ++j)
+    {
+      double cij = C[i+j*n];          /* cij = C[i][j] */
+      for (int k = sk; k &lt; sk+BLOCKSIZE; k++)
+        cij += A[i+k*n] * B[k+j*n];   /* cij += A[i][k]*B[k][j] */
+      C[i+j*n] = cij;                 /* C[i][j] = cij */
+    }
+}
+void dgemm(int n, double* A, double* B, double* C)
+{
+  for (int sj = 0; sj &lt; n; sj += BLOCKSIZE)
+    for (int si = 0; si &lt; n; si += BLOCKSIZE)
+      for (int sk = 0; sk &lt; n; sk += BLOCKSIZE)
+        do_block(n, si, sj, sk, A, B, C);
+}</pre>
+
+    <div class="diagram">
+      <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;">Unoptimized — full row/column sweep</div>
+          <div style="display:grid;grid-template-columns:repeat(8,16px);grid-template-rows:repeat(8,16px);gap:1px;background:#c9bd9c;">
+            <div style="grid-column:1/9;grid-row:3;background:#9c3a4d;"></div>
+            <div style="grid-column:4;grid-row:1/9;background:#9c3a4d;"></div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.85rem;color:#4a4437;margin-bottom:8px;">Blocked — small tile reused repeatedly</div>
+          <div style="display:grid;grid-template-columns:repeat(8,16px);grid-template-rows:repeat(8,16px);gap:1px;background:#c9bd9c;">
+            <div style="grid-column:2/5;grid-row:2/5;background:#4a6b4f;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Fig. 5 — Unblocked DGEMM roams across a whole strip of "syllabus" before anything can be reused; blocking confines your attention to one small, fully-digestible chunk that stays on your desk throughout.</div>
+    </div>
+
+    <div class="box note">
+      <div class="box-title">📌 Why this actually works</div>
+      <p style="margin:0;">Blocking touches nothing about the desk itself — it's a pure <strong>study-habit</strong> change, not a hardware upgrade. By shrinking your working set at any given moment to fit what your desk can actually hold (choosing BLOCKSIZE with your desk's real size in mind), you get to reuse everything on it many times over while it's still sitting right there, converting what would have been repeated store-room trips into quick desk-reaches.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: If BLOCKSIZE is chosen far too large — bigger than your desk can hold all three subjects' worth of material simultaneously (A, B, and C) — what happens to the benefit of blocking?</div>
+      <div class="a">The benefit shrinks or disappears entirely: if the A, B, and C chunks no longer all fit on your desk at once, pieces start getting swept off before you've actually finished reusing them — you're right back to capacity misses, just organized slightly differently. Picking BLOCKSIZE correctly requires knowing your actual desk (cache) size — which is exactly why real high-performance math libraries auto-tune their block size for each specific CPU they run on.</div>
+    </div>
+  </section>
+
+  <section class="section" id="vm">
+    <h2>9 · Virtual Memory Fundamentals <span class="tag">§5.7</span></h2>
+    <p class="sec-intro">Zoom out from one student's desk to an entire hall of residence, with hundreds of students sharing the same building — and needing to never see each other's stuff.</p>
+
+    <h3>The New Problem: Sharing the Building Safely</h3>
+    <p>Everything so far has been about one student (one program) and their own desk-to-library hierarchy. Now picture an entire dorm: hundreds of students (programs) all sharing the same physical building (physical memory) at once. Two new problems appear immediately that never came up for a single student alone:</p>
+    <ul>
+      <li><strong>Sharing</strong> — the hall office needs to hand out storage space to everyone fairly, without students needing to know or care which actual room number they've been given.</li>
+      <li><strong>Protection</strong> — Student A should never be able to wander into Student B's room and read (or worse, scribble on) their notes, whether by accident or on purpose.</li>
+    </ul>
+    <p><strong>Virtual memory</strong> solves both at once: every student gets their own private, personal numbering system for their stuff — their <strong>virtual address space</strong> — and the hall office (working with the CPU hardware) silently translates that private numbering into wherever their things are <em>actually</em> sitting in the real building, on the fly, every time. VM uses main memory itself as a "cache" for disk, in exactly the same hit/miss spirit as before — just one more level removed, and now with an administrator in the loop.</p>
+
+    <div class="pill-row">
+      <div class="pill">Cache "block" ↔ VM <strong>page</strong></div>
+      <div class="pill">Cache "miss" ↔ VM <strong>page fault</strong></div>
+    </div>
+
+    <div class="box note">
+      <div class="box-title">📖 Why this got invented in the first place</div>
+      <p style="margin:0;">Historically, three separate headaches showed up together the moment computers started running several programs at once: programs needed <strong>relocation</strong> (able to run without knowing in advance which physical room would be free), the system needed <strong>protection</strong> (one student's bug shouldn't corrupt another's notes), and programmers wanted the freedom to write something <strong>bigger than the physical building could hold</strong> at once, without personally managing an overflow warehouse. Virtual memory's private-numbering-plus-translation trick solves all three simultaneously with one mechanism — which is exactly why it's a joint hardware/OS design: translation itself is naturally hardware-speed, while deciding who gets what room and enforcing the rules is naturally an OS/administrator decision.</p>
+    </div>
+
+    <h3>Addresses Split Just Like Before</h3>
+    <p>Memory is divided into fixed-size <strong>pages</strong> (commonly 4 KB) — think of a page as one "room" in the dorm. A virtual address splits into a <strong>virtual page number</strong> (which room, in the student's own private numbering) and a <strong>page offset</strong> (where within that room — this part never changes, since a room's internal layout doesn't move just because the room itself got reassigned). Translation only ever has to convert the room number; the "where inside the room" part passes straight through unchanged.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 660 220" xmlns="http://www.w3.org/2000/svg">
+        <text x="330" y="20" text-anchor="middle" font-size="13" fill="#1c2b45" font-family="Georgia,serif" font-weight="700">Virtual Address</text>
+        <rect x="120" y="30" width="260" height="40" fill="#9c3a4d" stroke="#2b2620"/>
+        <text x="250" y="55" text-anchor="middle" fill="#fbf6ea" font-size="12" font-family="Georgia,serif">Virtual Page Number</text>
+        <rect x="380" y="30" width="140" height="40" fill="#c9a54a" stroke="#2b2620"/>
+        <text x="450" y="55" text-anchor="middle" fill="#2b2620" font-size="12" font-family="Georgia,serif">Page Offset</text>
+
+        <path d="M250,70 L250,110 L280,140" stroke="#1c2b45" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+        <rect x="180" y="140" width="200" height="40" rx="6" fill="#1c2b45"/>
+        <text x="280" y="165" text-anchor="middle" fill="#f4ecd8" font-size="12" font-family="Georgia,serif">Page Table lookup</text>
+
+        <path d="M450,70 L450,190" stroke="#1c2b45" stroke-width="2" stroke-dasharray="4 3" fill="none" marker-end="url(#arrowhead)"/>
+        <text x="475" y="130" font-size="10" fill="#4a4437">offset passes through unchanged</text>
+
+        <path d="M380,160 L520,160" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+        <text x="330" y="205" text-anchor="middle" font-size="13" fill="#1c2b45" font-family="Georgia,serif" font-weight="700">Physical Address = Physical Page Number · Page Offset</text>
+      </svg>
+      <div class="cap">Fig. 6 — Only the "which room" portion of the address is translated; "where inside the room" never changes.</div>
+    </div>
+
+    <h3>Page Faults Are the Worst-Case Trip Imaginable</h3>
+    <p>A <strong>page fault</strong> means the room's contents aren't even in the building anymore — they've been shipped off to a remote warehouse (disk), and someone has to physically go retrieve them, costing <strong>millions</strong> of cycles, handled entirely by OS software rather than hardware (building dedicated fast hardware for something this rare and this slow simply isn't worth it). Because a page fault is so catastrophically expensive, VM design goes to lengths that would be wasteful anywhere else:</p>
+    <ul>
+      <li><strong>Fully associative placement</strong> — a page can go in <em>any</em> free room in the building. The "search cost" of checking everywhere is trivial next to a multi-million-cycle warehouse trip, so there's no reason not to take the benefit.</li>
+      <li><strong>Smart (software) replacement</strong> — since getting it wrong is so expensive, it's worth spending real time choosing carefully who gets evicted.</li>
+      <li><strong>Always write-back, never write-through</strong> — writing to the remote warehouse after every single edit would be absurd; only ship a room's contents back when it's actually being vacated.</li>
+    </ul>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">If fully-associative search is so expensive for hardware caches (§6), why is it suddenly fine here? Because the cost comparison flips completely: a cache's search must finish in a fraction of a nanosecond on <em>every single access</em>, so extra comparators are a real, constant tax. A page-table search is done by <em>software</em>, and only happens on a page fault — an event so rare and already so expensive (millions of cycles regardless) that the extra software search time is essentially free by comparison. Same idea (search everywhere to cut misses), completely different cost trade-off.</p>
+    </div>
+
+    <h3>The Hall Office's Ledger: Page Tables</h3>
+    <p>A <strong>page table</strong> is simply the hall office's ledger — an array of <strong>page table entries (PTEs)</strong>, one per virtual page a student owns, indexed by that student's private room number. A <strong>page table register</strong> in the CPU points to wherever this particular student's ledger currently lives in physical memory.</p>
+    <ul>
+      <li><strong>If the room is currently in the building:</strong> the PTE records the real physical room number, plus a couple of status flags (has it been visited recently? has it been written to?).</li>
+      <li><strong>If the room isn't in the building:</strong> the PTE instead points to where it's stored in the remote warehouse.</li>
+    </ul>
+
+    <div class="box note">
+      <div class="box-title">📌 Choosing who to evict, and writing back — mirrors the cache exactly</div>
+      <p style="margin:0;">Just like §6, VM prefers something LRU-like when a room must be freed up. Rather than tracking exact recency (too expensive at this scale), a simple <strong>reference bit</strong> in each PTE gets set to 1 whenever that room is visited, and is periodically cleared to 0 by the OS — a room whose reference bit still reads 0 clearly hasn't been visited "recently" (since the last clearing), giving a cheap approximate answer. On the write side: since a warehouse trip is so slow, entire rooms get shipped back <strong>as a whole, not item by item</strong>, and a <strong>dirty bit</strong> in the PTE tracks whether a room's contents were actually changed and therefore need shipping back before eviction — the exact same idea as the cache's dirty bit in §4, just one level further out.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why is write-through categorically ruled out for virtual memory, when it was merely "usually slower" for caches?</div>
+      <div class="a">Write-through for a cache costs roughly a hundred extra cycles per store — expensive but survivable, especially with a write buffer. Write-through for virtual memory would mean shipping something to the remote warehouse on <em>every single edit</em>, at a cost of millions of cycles each time — the machine would become unusable. The gap between "in the building" and "at the warehouse" is so much bigger than the gap between desk and backpack that write-back isn't just preferred here, it's the only workable option.</div>
+    </div>
+  </section>
+
+  <section class="section" id="tlb">
+    <h2>10 · TLBs: Fast Address Translation <span class="tag">§5.7</span></h2>
+    <p class="sec-intro">Asking the hall office "where's Room 482 actually located?" every single time you want to visit would be absurd. So... don't.</p>
+
+    <h3>The Obvious Shortcut</h3>
+    <p>Taken literally, every single memory access now seems to need <em>two</em> trips: one to the hall office to look up where a room really is, then a second trip to actually go there. That would double your effective travel time before you even start talking about hits and misses!</p>
+    <p>But here's the save: <strong>you keep asking about the same rooms over and over</strong> — the exact same locality instinct from §1, just applied to translations instead of data. So build a small, fast, dedicated lookup you keep in your pocket — a personal cheat-sheet of "room-number → real-location" pairs you've already looked up recently. That cheat-sheet is the <strong>Translation Look-aside Buffer (TLB)</strong>.</p>
+
+    <table>
+      <caption>Table 5 — Typical TLB characteristics</caption>
+      <thead><tr><th class="left">Property</th><th>Typical value</th></tr></thead>
+      <tbody>
+        <tr><td class="left">Number of entries</td><td>16 – 512 PTEs</td></tr>
+        <tr><td class="left">Hit time</td><td>0.5 – 1 cycle</td></tr>
+        <tr><td class="left">Miss penalty</td><td>10 – 100 cycles</td></tr>
+        <tr><td class="left">Miss rate</td><td>0.01% – 1%</td></tr>
+      </tbody>
+    </table>
+    <p>Notice the TLB is really just another tiny (usually fully-associative) cache — every bit of hit/miss vocabulary from §3 applies directly, just caching <em>translations</em> instead of data.</p>
+
+    <h3>The Full Chain: Pocket Cheat-Sheet → Office Ledger → Warehouse</h3>
+    <p>Every reference can now involve up to three nested lookups, each only consulted if the one above it fails:</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg">
+        <rect x="270" y="10" width="160" height="46" rx="6" fill="#1c2b45"/>
+        <text x="350" y="38" text-anchor="middle" fill="#f4ecd8" font-size="13" font-family="Georgia,serif">CPU issues address</text>
+
+        <path d="M350,56 L350,86" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <rect x="270" y="86" width="160" height="46" rx="6" fill="#9c3a4d"/>
+        <text x="350" y="114" text-anchor="middle" fill="#fbf6ea" font-size="13" font-family="Georgia,serif">Check TLB</text>
+
+        <path d="M330,132 L180,175" stroke="#2f5d3a" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="220" y="160" font-size="11" fill="#2f5d3a" font-weight="700">TLB hit</text>
+        <rect x="50" y="175" width="200" height="46" rx="6" fill="#eef2ea" stroke="#2f5d3a" stroke-width="1.5"/>
+        <text x="150" y="203" text-anchor="middle" fill="#2f5d3a" font-size="12" font-family="Georgia,serif">Use PPN directly → access cache/memory</text>
+
+        <path d="M400,132 L520,175" stroke="#7c2233" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="490" y="160" font-size="11" fill="#7c2233" font-weight="700">TLB miss</text>
+        <rect x="420" y="175" width="220" height="46" rx="6" fill="#f7e9e2" stroke="#7c2233" stroke-width="1.5"/>
+        <text x="530" y="197" text-anchor="middle" fill="#7c2233" font-size="12" font-family="Georgia,serif">Walk the page table</text>
+        <text x="530" y="212" text-anchor="middle" fill="#7c2233" font-size="10" font-family="Georgia,serif">(in hardware or via exception handler)</text>
+
+        <path d="M500,221 L380,265" stroke="#2f5d3a" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="410" y="250" font-size="11" fill="#2f5d3a" font-weight="700">page present</text>
+        <rect x="270" y="265" width="240" height="52" rx="6" fill="#eef2ea" stroke="#2f5d3a" stroke-width="1.5"/>
+        <text x="390" y="288" text-anchor="middle" fill="#2f5d3a" font-size="12" font-family="Georgia,serif">Load PTE into TLB,</text>
+        <text x="390" y="304" text-anchor="middle" fill="#2f5d3a" font-size="12" font-family="Georgia,serif">restart the instruction</text>
+
+        <path d="M580,221 L580,265" stroke="#7c2233" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="605" y="248" font-size="11" fill="#7c2233" font-weight="700">page absent</text>
+        <rect x="470" y="265" width="220" height="90" rx="6" fill="#f7e9e2" stroke="#7c2233" stroke-width="1.5"/>
+        <text x="580" y="285" text-anchor="middle" fill="#7c2233" font-size="12" font-weight="700" font-family="Georgia,serif">PAGE FAULT</text>
+        <text x="580" y="303" text-anchor="middle" fill="#7c2233" font-size="10.5" font-family="Georgia,serif">OS: locate on disk, choose</text>
+        <text x="580" y="317" text-anchor="middle" fill="#7c2233" font-size="10.5" font-family="Georgia,serif">victim (write back if dirty),</text>
+        <text x="580" y="331" text-anchor="middle" fill="#7c2233" font-size="10.5" font-family="Georgia,serif">read page in, update page table,</text>
+        <text x="580" y="345" text-anchor="middle" fill="#7c2233" font-size="10.5" font-family="Georgia,serif">restart faulting instruction</text>
+      </svg>
+      <div class="cap">Fig. 7 — Pocket cheat-sheet → office ledger → warehouse. Each step only happens if the one before it comes up empty.</div>
+    </div>
+
+    <h3>What a TLB Miss Actually Tells You</h3>
+    <p>A TLB miss just means your pocket cheat-sheet didn't have that room written down — it says <em>nothing yet</em> about whether the room even still exists in the building. Two very different outcomes follow:</p>
+    <ol>
+      <li><strong>Room is in the building, you just hadn't noted it down</strong> — copy the entry from the office ledger (page table) into your cheat-sheet, then retry. Cheap: 10–100 cycles, handled in hardware or via a lightweight software exception.</li>
+      <li><strong>Room isn't in the building at all</strong> — this is a genuine <strong>page fault</strong>, and now the OS has to get involved for real.</li>
+    </ol>
+
+    <h4>Page Fault Handler, Step by Step</h4>
+    <ol>
+      <li>Use the faulting address to identify the relevant ledger entry.</li>
+      <li>Find where the contents actually are in the remote warehouse.</li>
+      <li>Choose a room to clear out to make space.</li>
+      <li>If that room's contents were edited (dirty), ship them to the warehouse first.</li>
+      <li>Bring the requested contents into the newly-freed room, and update the ledger.</li>
+      <li>Let the process resume.</li>
+      <li>Restart execution from the instruction that faulted.</li>
+    </ol>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">"TLB miss" and "page fault" are <strong>not the same event</strong>, though it's tempting to conflate them. Every page fault necessarily also misses the TLB — you can't have a cheat-sheet entry for a room that isn't even in the building. But the reverse is <em>not</em> true: the overwhelming majority of TLB misses simply find the entry sitting quietly in the office ledger, costing maybe 10–100 cycles, with <strong>no warehouse trip involved at all</strong>. Only when the ledger itself comes up empty does a genuine, multi-million-cycle page fault occur.</p>
+    </div>
+
+    <p>For a concrete anchor: the Intel Core i7 profiled in §14 implements exactly this "pocket cheat-sheet, then bigger backup cheat-sheet" pattern — a tiny 64-entry data TLB and 128-entry instruction TLB (both sub-cycle) backed by a larger, still-fast 512-entry unified L2 TLB. Only missing all the way out of <em>that</em> triggers the full page-table walk described above.</p>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why does the handler restart the entire faulting <em>instruction</em> rather than just resuming mid-instruction from where the fault happened?</div>
+      <div class="a">The memory access hadn't actually completed yet — nothing about that instruction's effects has been committed. Restarting the whole instruction is simple and correct: once the page is resident, the identical instruction re-executes, this time hitting on both the TLB and the (now-updated) page table, and completes normally.</div>
+    </div>
+  </section>
+
+  <section class="section" id="vm-cache-together">
+    <h2>11 · VM + TLB + Cache Together, and Protection <span class="tag">§5.7</span></h2>
+    <p class="sec-intro">Three mechanisms, one hallway — and the rule that stops one student from ever wandering into another's room.</p>
+
+    <h3>How the Layers Cooperate</h3>
+    <p>Virtual memory and the cache aren't independent systems bolted together — they form one coordinated pipeline with a strict rule: <strong>nothing can be sitting on your desk unless the room it came from is currently in the building.</strong> The moment the hall office ships a room off to the warehouse, it actively enforces this:</p>
+    <ul>
+      <li>It <strong>clears</strong> any desk contents belonging to that room the instant it's shipped out.</li>
+      <li>It <strong>updates the ledger and your cheat-sheet</strong> so that if you ever reach for that room again, you correctly trigger a fresh page fault instead of silently reading old, wrong leftovers.</li>
+    </ul>
+
+    <h3>A Typical Trip, End to End</h3>
+    <p>A real access threads translation and caching together, and there's a neat shortcut: if the cache's "which drawer" bits fall entirely within the untranslated "where-in-the-room" portion of the address, the desk-drawer lookup can start <em>at the same time</em> as the office-ledger lookup, since that part of the address never changes during translation — only the final label-check has to wait for the translated room number.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="20" width="150" height="50" rx="6" fill="#1c2b45"/>
+        <text x="95" y="50" text-anchor="middle" fill="#f4ecd8" font-size="12" font-family="Georgia,serif">Virtual Address</text>
+
+        <path d="M170,35 L230,35" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <rect x="230" y="10" width="150" height="50" rx="6" fill="#9c3a4d"/>
+        <text x="305" y="40" text-anchor="middle" fill="#fbf6ea" font-size="12" font-family="Georgia,serif">TLB lookup (VPN)</text>
+
+        <path d="M170,55 L230,110" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <rect x="230" y="90" width="150" height="50" rx="6" fill="#a9812f"/>
+        <text x="305" y="112" text-anchor="middle" fill="#2b2620" font-size="11.5" font-family="Georgia,serif">Cache index lookup</text>
+        <text x="305" y="128" text-anchor="middle" fill="#2b2620" font-size="10" font-family="Georgia,serif">(from page-offset bits, in parallel)</text>
+
+        <path d="M380,35 L440,35" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <rect x="440" y="10" width="150" height="50" rx="6" fill="#1c2b45"/>
+        <text x="515" y="40" text-anchor="middle" fill="#f4ecd8" font-size="12" font-family="Georgia,serif">Physical Page Number</text>
+
+        <path d="M515,60 L515,90" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text x="600" y="78" text-anchor="middle" font-size="10" fill="#4a4437">used as tag</text>
+
+        <path d="M380,115 L440,115" stroke="#1c2b45" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <rect x="440" y="90" width="150" height="50" rx="6" fill="#7c2233"/>
+        <text x="515" y="112" text-anchor="middle" fill="#fbf6ea" font-size="12" font-family="Georgia,serif">Compare tag →</text>
+        <text x="515" y="128" text-anchor="middle" fill="#fbf6ea" font-size="12" font-family="Georgia,serif">cache hit / miss</text>
+
+        <text x="350" y="180" text-anchor="middle" font-size="12" fill="#4a4437" font-style="italic">If either the TLB misses or the cache misses, the corresponding handling cascade from §10 kicks in.</text>
+        <text x="350" y="200" text-anchor="middle" font-size="12" fill="#4a4437" font-style="italic">Data is only ever served once BOTH the translation is valid AND the cache tag matches.</text>
+      </svg>
+      <div class="cap">Fig. 8 — Checking the desk drawer and the office ledger simultaneously hides most of the translation delay behind the cache lookup itself.</div>
+    </div>
+
+    <div class="box note">
+      <div class="box-title">📌 Four possible outcomes for one access</div>
+      <p style="margin:0;"><strong>1)</strong> Cheat-sheet hit + desk hit → fastest path, everything you needed was already close. <strong>2)</strong> Cheat-sheet hit + desk miss → you knew where the room was, but its contents weren't on your desk — fetch from a lower cache level or memory. <strong>3)</strong> Cheat-sheet miss + desk hit → surprisingly possible: the ledger walk finds the room, and it turns out its contents were already separately sitting on your desk from an earlier, differently-numbered visit. <strong>4)</strong> Cheat-sheet miss + page fault → the slow path: an actual warehouse trip is required before anything else can happen.</p>
+    </div>
+
+    <h3>Protection: Why You Can't Just Wander Into Someone Else's Room</h3>
+    <p>Students can legitimately <strong>share</strong> parts of the building (a common study lounge, say) — but the system still has to guard against <strong>errant</strong> access, accidental or deliberate, into rooms a student has no business entering. This needs real enforcement, not just good manners, backed by hardware:</p>
+    <ul>
+      <li>A <strong>privileged supervisor mode</strong> (kernel mode) — think of it as the hall warden's own authority level, distinct from any student's.</li>
+      <li>A set of <strong>privileged instructions</strong> — actions only the warden, never a student, is allowed to perform.</li>
+      <li>The office ledger itself and other critical records are accessible <strong>only</strong> in supervisor mode — an ordinary student simply has no key that opens the records room, full stop.</li>
+    </ul>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Protection here rests on <strong>hardware-enforced privilege levels</strong>, not "the OS being careful." If a student could execute warden-only actions or directly read the records room, no amount of clever translation logic would stop them from reading someone else's private notes. Always mention the hardware/software <em>partnership</em> when asked "how is memory protection achieved": hardware enforces the mode bit and instruction restrictions; the OS uses that enforcement to implement the actual security policy on top.</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Self-check: Why must the office clear desk contents when a room is shipped to the warehouse, rather than just updating the ledger and leaving old desk copies alone?</div>
+      <div class="a">If stale desk contents survived, a later access could return wrong data even after the ledger was correctly updated — the whole point of the "nothing on the desk without a valid room" rule is to guarantee this can never silently happen. Clearing on migration keeps that invariant airtight across the entire pipeline, no exceptions.</div>
+    </div>
+  </section>
+
+  <section class="section" id="framework">
+    <h2>12 · A Common Framework &amp; the 3 C's <span class="tag">§5.8</span></h2>
+    <p class="sec-intro">Step back and notice: your desk, your backpack, and the entire dorm-room system have all been answering the <em>exact same four questions</em> this whole time, just with different answers.</p>
+
+    <h3>Four Questions, Every Level</h3>
+    <p>Whether you're looking at your desk, your backpack, the TLB cheat-sheet, or the whole virtual memory system, the same four design questions come up every time:</p>
+    <ol>
+      <li><strong>Placement</strong> — where in the structure is a given item even allowed to go?</li>
+      <li><strong>Finding it</strong> — once it's there, how do you locate it again?</li>
+      <li><strong>Replacement</strong> — when something new needs room, who gets evicted?</li>
+      <li><strong>Write policy</strong> — how do edits eventually propagate down to the level below?</li>
+    </ol>
+
+    <h4>1 · Placement (determined by associativity)</h4>
+    <ul>
+      <li><strong>Direct mapped</strong> — one fixed drawer, no choice.</li>
+      <li><strong>n-way set associative</strong> — n choices, within one determined set of drawers.</li>
+      <li><strong>Fully associative</strong> — anywhere on the whole desk.</li>
+    </ul>
+    <p>More freedom lowers miss rate, but costs more hardware and, usually, more time to check.</p>
+
+    <h4>2 · Finding It</h4>
+    <table>
+      <thead><tr><th class="left">Associativity</th><th class="left">Location method</th><th>Tag comparisons</th></tr></thead>
+      <tbody>
+        <tr><td class="left">Direct mapped</td><td class="left">Index</td><td>1</td></tr>
+        <tr><td class="left">n-way set associative</td><td class="left">Set index, then search entries within the set</td><td>n</td></tr>
+        <tr><td class="left">Fully associative</td><td class="left">Search all entries</td><td>#entries</td></tr>
+        <tr><td class="left">Fully associative (VM, software)</td><td class="left">Full ledger lookup</td><td>0 (in hardware terms)</td></tr>
+      </tbody>
+    </table>
+    <p>Hardware caches deliberately keep the search small to keep cost down. Virtual memory, being a <em>software</em> ledger search, can afford to search everywhere — which is exactly what makes its full associativity, and its correspondingly lower miss rate, affordable in the first place.</p>
+
+    <h4>3 · Replacement</h4>
+    <ul>
+      <li><strong>LRU</strong> — evict whoever's been untouched the longest. Accurate, but the bookkeeping gets expensive fast at high associativity.</li>
+      <li><strong>Random</strong> — nearly matches LRU's performance at high associativity, for far simpler hardware.</li>
+      <li><strong>Virtual memory</strong> uses the reference-bit LRU <em>approximation</em> from §9 — true LRU across thousands of rooms would be absurdly expensive to track exactly.</li>
+    </ul>
+
+    <h4>4 · Write Policy</h4>
+    <ul>
+      <li><strong>Write-through</strong> — sprint the correction down immediately; simple, but needs a write buffer to stay fast.</li>
+      <li><strong>Write-back</strong> — fix your copy, flag it dirty, ship it back only on eviction.</li>
+      <li><strong>Virtual memory: only write-back is feasible</strong> — a write-through warehouse trip on every edit would be unworkable.</li>
+    </ul>
+
+    <div class="box note">
+      <div class="box-title">📌 The one-sentence version of this whole chapter</div>
+      <p style="margin:0;">Every level — desk, backpack, TLB, virtual memory — answers the same four questions, but the <em>specific</em> answer at each level is dictated entirely by one ratio: how bad is it if you get this wrong (the miss penalty) versus how much are you willing to spend to get it right (the search/associativity cost)? Your desk favours cheap, fast, approximate answers because a desk-miss only costs seconds. Virtual memory favours expensive, thorough answers because a page fault costs a warehouse trip measured in millions of cycles.</p>
+    </div>
+
+    <h3>The Three C's — Every Miss Has One of Three Causes</h3>
+    <table>
+      <thead><tr><th class="left">Category</th><th class="left">Also called</th><th class="left">Cause, in desk terms</th></tr></thead>
+      <tbody>
+        <tr><td class="left"><strong>Compulsory</strong></td><td class="left">Cold-start miss</td><td class="left">You've simply never needed this page before — no desk arrangement in the world could have pre-loaded something you've never touched.</td></tr>
+        <tr><td class="left"><strong>Capacity</strong></td><td class="left">—</td><td class="left">Your desk genuinely isn't big enough to hold everything you need right now — something gets swept off, and you need it again later purely because there wasn't room.</td></tr>
+        <tr><td class="left"><strong>Conflict</strong></td><td class="left">Collision miss</td><td class="left">Your desk actually had enough <em>total</em> room, but the rigid drawer-assignment rule forced a fight anyway — exactly the 18-vs-26 drawer war from §3.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap — the precise test for "conflict miss"</div>
+      <p style="margin:0;">The exact test: <em>would this specific miss still have happened on a fully-associative desk of the same total size?</em> If yes — it's a capacity miss (there genuinely wasn't room; more freedom wouldn't have helped). If no — only the rigid drawer rule caused it while total capacity was actually sufficient — it's a conflict miss. Revisit §3's trace: 18 and 26 fighting forever is textbook conflict, since a fully-associative desk of the same 4 slots handled the identical sequence with only 3 misses instead of 5.</p>
+    </div>
+
+    <h3>Cache Design Trade-offs Summary</h3>
+    <table>
+      <caption>Table 6 — Every "improvement" costs something</caption>
+      <thead><tr><th class="left">Design change</th><th class="left">Effect on miss rate</th><th class="left">Negative performance effect</th></tr></thead>
+      <tbody>
+        <tr><td class="left">Increase cache size</td><td class="left">Decreases capacity misses</td><td class="left">May increase access time</td></tr>
+        <tr><td class="left">Increase associativity</td><td class="left">Decreases conflict misses</td><td class="left">May increase access time</td></tr>
+        <tr><td class="left">Increase block size</td><td class="left">Decreases compulsory misses</td><td class="left">Increases miss penalty; for very large blocks, may actually <em>increase</em> miss rate due to pollution</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quiz">
+      <div class="q">Self-check: A program's working set exactly fits on a 4-way set-associative desk but not on a direct-mapped desk of identical total size. In the direct-mapped case, are the extra misses conflict or capacity misses?</div>
+      <div class="a">Conflict misses. By hypothesis, the working set fits on a "more associative" desk of the same total capacity — so the direct-mapped desk's extra misses come purely from its rigid one-drawer-per-item rule, not from genuinely insufficient total space. That's exactly the definitional test above.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: Which of the 3 C's is fundamentally unavoidable, no matter how cleverly you design the desk?</div>
+      <div class="a">Compulsory misses. The very first time you ever need a page, it can't already be on your desk — no organisation, associativity, or replacement policy can pre-load something you've genuinely never touched before. (Prefetching can hide the <em>delay</em> of a compulsory miss by guessing ahead, but it can't eliminate the miss itself.)</div>
+    </div>
+  </section>
+
+  <section class="section" id="coherence">
+    <h2>13 · Multiprocessor Memory: Coherence &amp; Consistency <span class="tag">§5.10</span></h2>
+    <p class="sec-intro">Now give two roommates each their own desk, sharing one set of official notes between them. A brand-new correctness problem shows up that never existed for a single student alone.</p>
+
+    <h3>The Study-Group Problem</h3>
+    <p>Suppose you and your roommate are prepping from the same shared master notes, and you've each photocopied a page onto your own desk (your own private cache) so you don't have to keep fighting over the original. Walk through this sequence:</p>
+    <table>
+      <caption>Table 7 — Coherence violation with naive write-through desks</caption>
+      <thead><tr><th>Time step</th><th class="left">Event</th><th>Your desk (A)</th><th>Roommate's desk (B)</th><th>Master notes</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td class="left">—</td><td class="blank"></td><td class="blank"></td><td>0</td></tr>
+        <tr><td>1</td><td class="left">You read X</td><td>0</td><td class="blank"></td><td>0</td></tr>
+        <tr><td>2</td><td class="left">Roommate reads X</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>3</td><td class="left">You correct X to 1</td><td>1</td><td><strong>0</strong></td><td>1</td></tr>
+      </tbody>
+    </table>
+    <p>Right after step 3, the master notes correctly say 1 (you dutifully write-through'd the correction) — but <strong>your roommate's photocopy still says 0.</strong> If they glance at their own desk, they get the wrong answer, even though "the master copy" was updated. Simply making both desks write-through wasn't enough — this is the <strong>cache coherence problem</strong>, and it only shows up the moment more than one desk exists.</p>
+
+    <h3>Coherence, Defined Properly</h3>
+    <p>Informally: <em>everyone's reads should return the most recently written value.</em> Formally, three conditions must all hold:</p>
+    <ol>
+      <li>You write X, then you read X with no one else writing in between → you get back what you just wrote.</li>
+      <li>You write X, your roommate reads X <strong>sufficiently later</strong> (enough time for the update to actually propagate) → they get your written value. <em>(This is precisely the rule your roommate's stale photocopy violated in step 3.)</em></li>
+      <li>You and your roommate both write X → you <strong>both</strong> see the two writes land in the <em>same order</em>, so you converge on the same final value instead of silently disagreeing forever.</li>
+    </ol>
+
+    <h3>Two Ways to Keep Everyone in Sync</h3>
+    <p>A coherence protocol has to manage two things: letting each roommate keep a local copy for speed (<strong>migration</strong>, reduces trips to the shared master), and letting both hold read-only copies at once without contention (<strong>replication</strong>). Two broad strategies exist:</p>
+    <table>
+      <thead><tr><th class="left">Protocol family</th><th class="left">Key idea</th><th class="left">Best suited for</th></tr></thead>
+      <tbody>
+        <tr><td class="left"><strong>Snooping</strong></td><td class="left">Everyone in the room overhears everyone else's updates out loud. If you hear your roommate is about to correct a page you also have, you immediately update or cross out your own copy.</td><td class="left">A small room where everyone can genuinely hear everyone — small-scale systems on one shared bus.</td></tr>
+        <tr><td class="left"><strong>Directory-based</strong></td><td class="left">A dedicated notice-board records who currently holds a copy of what. You check the board instead of shouting across the room every time.</td><td class="left">A huge shared library floor — large-scale systems, where "shouting to everyone" would be complete chaos.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>The Fix: Invalidating Snooping</h3>
+    <p>The common approach: before correcting a page, you must first announce <strong>"I'm about to change X — cross out your copies!"</strong> — an <strong>invalidate</strong> message. Anyone else holding that page marks their copy invalid; their next read of it correctly misses and fetches the fresh version instead of trusting stale ink.</p>
+    <table>
+      <caption>Table 8 — The same scenario, now with invalidation</caption>
+      <thead><tr><th class="left">Your activity</th><th class="left">Announcement</th><th>Your desk (A)</th><th>Roommate's desk (B)</th><th>Master notes</th></tr></thead>
+      <tbody>
+        <tr><td class="left">—</td><td class="left">—</td><td class="blank"></td><td class="blank"></td><td>0</td></tr>
+        <tr><td class="left">You read X</td><td class="left">Cache miss for X</td><td>0</td><td class="blank"></td><td>0</td></tr>
+        <tr><td class="left">Roommate reads X</td><td class="left">Cache miss for X</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td class="left">You correct X to 1</td><td class="left"><strong>Invalidate</strong> for X</td><td>1</td><td class="blank"><em>(crossed out)</em></td><td>0</td></tr>
+        <tr><td class="left">Roommate reads X</td><td class="left">Cache miss for X</td><td>1</td><td>1</td><td>1</td></tr>
+      </tbody>
+    </table>
+    <p>Now the roommate's stale copy is explicitly crossed out at step 3, so their next glance correctly misses and fetches the up-to-date value — supplied either by the master notes or, in many real protocols, directly borrowed from your desk (the "owning" copy).</p>
+
+    <div class="box trap">
+      <div class="box-title">⚠ Exam trap</div>
+      <p style="margin:0;">Notice the master notes in Table 8 only get updated at the very <em>last</em> step, not the moment you corrected X — this trace assumes write-back-with-invalidation, where your desk supplies the fresh value directly on the next miss rather than forcing an immediate master update. Don't assume coherence always implies write-through; invalidating protocols pair naturally with write-back for exactly the bandwidth reasons from §4.</p>
+    </div>
+
+    <h3>Consistency: A Subtler Question Than Coherence</h3>
+    <p>Coherence tells you what a read of <em>one</em> address must return. <strong>Consistency</strong> asks something subtler: <em>when</em> does your correction become visible to your roommate, and in what order do corrections to <em>different</em> pages become visible relative to each other? A correction can't become visible to everyone instantaneously, so the rules need explicit assumptions:</p>
+    <ul>
+      <li>A write only counts as "done" once everyone has actually seen it.</li>
+      <li>You never reorder your own writes relative to your other actions.</li>
+    </ul>
+    <p><strong>Consequence:</strong> if you correct X and then correct Y, anyone who sees your new Y is <em>guaranteed</em> to also see your new X (since X's correction logically came first, and writes never get reordered). Reads can be reordered — writes never can.</p>
+
+    <div class="quiz">
+      <div class="q">Self-check: In the broken Table 7 scenario, which specific formal coherence condition was violated?</div>
+      <div class="a">Condition 2: "you write X, roommate reads X sufficiently later → they must see the write." You corrected X to 1 at step 3, but your roommate's next read (from their own stale desk) would still return 0 — a direct violation.</div>
+    </div>
+    <div class="quiz">
+      <div class="q">Self-check: Why is directory-based coherence preferred for large multiprocessor systems over snooping?</div>
+      <div class="a">Snooping requires everyone to overhear every single update, which only works while the whole group genuinely shares one "loud enough to hear" bus. As the group grows, broadcasting every correction to everyone floods the shared channel. A directory instead keeps a record of exactly who's holding a copy of what, so you can notify only the specific roommates who actually need to know — avoiding the broadcast storm entirely.</div>
+    </div>
+  </section>
+
+  <section class="section" id="realworld">
+    <h2>14 · Real Designs, Pitfalls &amp; Concluding Remarks <span class="tag">§5.13 – §5.16</span></h2>
+    <p class="sec-intro">How the theory shows up in actual silicon, the classic mistakes examiners love to test, and — finally — the one-paragraph version of everything above.</p>
+
+    <h3>Real Processors: Two Very Different "Desks"</h3>
+    <p>Both the ARM Cortex-A8 and Intel Core i7 (the first-generation "Nehalem" i7, the chip this edition of the textbook profiles) build every idea from this chapter into real silicon: multiple on-chip cache levels, a <strong>2-level TLB</strong> (exactly the pocket-cheat-sheet-plus-backup pattern from §10), and multi-banked caches supporting multiple accesses per cycle — as long as those accesses don't collide on the same bank. Concrete numbers make the abstractions click:</p>
+
+    <table>
+      <caption>Table 9 — The textbook's two reference designs, side by side</caption>
+      <thead><tr><th class="left">Parameter</th><th class="left">ARM Cortex-A8 (embedded/mobile)</th><th class="left">Intel Core i7 "Nehalem" (desktop/server)</th></tr></thead>
+      <tbody>
+        <tr><td class="left">L1 organisation</td><td class="left">Split I-cache/D-cache, 16 KB or 32 KB each, <strong>4-way</strong> set associative, 64 B blocks</td><td class="left">Split I-cache (32 KB, 4-way) / D-cache (32 KB, 8-way), 64 B blocks</td></tr>
+        <tr><td class="left">L2 organisation</td><td class="left">Optional/configurable: 0, 128 KB, 256 KB, 512 KB, or 1 MB; <strong>8-way</strong> set associative, 64 B blocks</td><td class="left">Unified, 256 KB <em>per core</em>, 8-way set associative, 64 B blocks</td></tr>
+        <tr><td class="left">L3 organisation</td><td class="left">— (not present)</td><td class="left">Unified, shared across all cores, 8 MB total, 16-way set associative, 64 B blocks</td></tr>
+        <tr><td class="left">TLB structure</td><td class="left">Single-level, small, highly associative</td><td class="left">2-level: L1 D-TLB 64 entries (4-way) + L1 I-TLB 128 entries (4-way), backed by a unified L2 TLB of 512 entries (4-way)</td></tr>
+        <tr><td class="left">Write policy</td><td class="left">Write-back</td><td class="left">Write-back, write-allocate</td></tr>
+        <tr><td class="left">Design priority</td><td class="left">Power efficiency, die area, cost</td><td class="left">Raw performance, multi-core throughput</td></tr>
+      </tbody>
+    </table>
+    <p>Two things fall directly out of ideas you already have. First, <strong>Cortex-A8 skips L3 entirely</strong> — it's a single/dual-core "one student, one desk" design; an L3 is only worth building once you've got several cores that all need a shared backpack before paying the full main-memory trip (exactly §7's logic, just extended to three levels and shared across roommates). Second, notice <strong>associativity climbs the further out you go</strong> in both designs (4-way → 8-way → 16-way) — precisely what §12's trade-off table predicts: outer levels can afford the extra drawer-checking hardware because their speed is already off the critical path, so architects spend that budget buying a lower miss rate instead.</p>
+
+    <p>Core i7-specific cache tricks worth remembering:</p>
+    <ul>
+      <li><strong>Return requested word first</strong> — critical-word-first from §3: don't make the CPU wait for the whole page if it only needs one line right now.</li>
+      <li><strong>Non-blocking cache</strong> — keeps serving new requests even mid-miss, enabling the "keep working while waiting" overlap from §7.</li>
+      <li><strong>Data prefetching</strong> — speculatively grabs data it predicts you'll want soon, before you've even asked — the hardware version of grabbing the next page before you've finished the current one.</li>
+    </ul>
+
+    <div class="box note">
+      <div class="box-title">📖 Textbook intuition — the whole hierarchy is invisible to the ISA</div>
+      <p style="margin:0;">Worth restating now that you've seen two real, very differently-organized chips: <strong>no instruction in ARM or x86 ever names a cache level, a TLB, or a page table.</strong> A <code>load</code> looks identical whether it hits in L1 or walks all the way to a page fault. That's exactly why Cortex-A8 and Core i7 can implement wildly different setups (4-way vs. 8-way, with or without L3, one-level vs. two-level TLB) while both correctly run the exact same compiled binaries. Software only ever "feels" the hierarchy through timing — which is the whole reason the AMAT/CPI formulas from §5 exist in the first place.</p>
+    </div>
+
+    <h3>Pitfalls</h3>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 1 — Byte vs. word addressing</div>
+      <p>Consider a 32-byte direct-mapped cache with 4-byte blocks (so 32 ÷ 4 = 8 total drawers). Which drawer does address <strong>36</strong> map to?</p>
+      <div class="formula">If 36 is a BYTE address: block = (36 ÷ 4) mod 8 = 9 mod 8 = <strong>block 1</strong></div>
+      <div class="formula">If 36 is a WORD address (and a block = 1 word = 4 bytes): block = 36 mod 8 = <strong>block 4</strong></div>
+      <p style="margin-bottom:0;">Same number "36," two completely different answers, purely from an unstated assumption about the addressing convention. Nasty precisely because the arithmetic itself is trivial. <strong>Always confirm which convention a problem is using before touching a single formula.</strong></p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 2 — Ignoring memory-system effects in your own code</div>
+      <p style="margin-bottom:0;">Iterating over a 2D array <strong>column-by-column</strong> when it's stored row-major (as C arrays are) produces a huge stride between successive accesses — like insisting on reading page 1, then page 41, then page 81 of a book instead of reading it straight through. Row-by-row iteration gets unit stride and excellent spatial locality; column-by-column destroys it. This is exactly the motivation for blocking in §8 — locality-aware ordering is a free win that costs nothing but how you structure the work.</p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 3 — Shared caches in multiprocessors need MORE associativity, not less</div>
+      <p style="margin-bottom:0;">When several cores share an L2/L3, if associativity is lower than the number of cores contending for it, you get inflated <strong>conflict misses</strong> — roommates fighting each other for the same limited drawers. As core counts rise, associativity has to rise too, or the shared cache becomes a bottleneck purely from cross-core interference.</p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 4 — AMAT breaks down for out-of-order processors</div>
+      <p style="margin-bottom:0;">As established in §7, an out-of-order CPU can keep working on independent instructions during a miss — AMAT's simple additive model assumes every miss fully stalls everything, ignoring that overlap entirely. Using AMAT to compare out-of-order designs systematically overstates the true cost of misses; full system simulation is the correct tool here, not closed-form arithmetic.</p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 5 — Extending address range with segments</div>
+      <p style="margin-bottom:0;">Historically (e.g. the Intel 80286), designers extended a small address space with <strong>segments</strong> — but a segment isn't always big enough for what a programmer wants to put in it, and segmented addressing badly complicates pointer arithmetic. Mostly a historical pitfall now, but it's a good illustration of why flat, large virtual address spaces won out over bolted-on segments.</p>
+    </div>
+
+    <div class="box worked">
+      <div class="box-title">✎ Pitfall 6 — Virtualizing an ISA that wasn't designed for it</div>
+      <p>Implementing a Virtual Machine Monitor (VMM) on an ISA never designed with virtualization in mind runs into trouble when <strong>non-privileged instructions can still touch hardware resources directly</strong>, breaking the VMM's illusion of isolation. The fix is either extending the ISA with proper virtualization support, or requiring guest OSes to avoid the problematic instructions.</p>
+      <p style="margin-bottom:0;margin-top:10px;"><em>Background, in one line:</em> a <strong>VMM (hypervisor)</strong> is the same idea as virtual memory, one floor further up — where VM gives every <em>process</em> a private address space, a VMM gives every <strong>guest operating system</strong> the illusion of its own private, complete computer, while several guests actually share one physical machine. This pitfall is the exact same isolation-breaking failure as the protection problem from §11, just one level higher: protecting whole operating systems from each other, instead of protecting students from each other within one dorm.</p>
+    </div>
+
+    <h3>Concluding Remarks — Back to the One Idea</h3>
+    <p>Strip away every acronym in this chapter and you're left with the sentence we opened with: <strong>keep the stuff you need close, and only go far when you absolutely have to.</strong> Fast memory is small; large memory is slow; you want both at once, and caching is the trick that gives you the illusion of having both, built entirely on the observation that you only ever need a small slice of everything at any given moment. Stack enough "desks" on top of each other — <strong>L1 → L2 → … → main memory → disk</strong> — and the whole system behaves, on average, almost as if it were built entirely out of the fastest material at the very top, without you ever consciously managing where anything actually lives. And the moment you add a second student sharing the same building, memory-system design stops being purely a speed question and becomes a <em>correctness</em> question too — which is exactly why coherence and consistency earn their own first-class place in modern computer architecture.</p>
+
+    <div class="box note">
+      <div class="box-title">🎓 Rapid-review formula sheet</div>
+      <p style="margin:4px 0;"><strong>Hit ratio</strong> = hits / accesses &nbsp;·&nbsp; <strong>Miss ratio</strong> = misses / accesses = 1 − hit ratio</p>
+      <p style="margin:4px 0;"><strong>Cache index</strong> (direct mapped) = (Block address) mod (#Blocks)</p>
+      <p style="margin:4px 0;"><strong>AMAT</strong> = Hit time + Miss rate × Miss penalty</p>
+      <p style="margin:4px 0;"><strong>Actual CPI</strong> = Base CPI + Σ (access fraction × miss rate × miss penalty), per cache level</p>
+      <p style="margin:4px 0;"><strong>Multilevel CPI</strong> = Base CPI + (L1 miss rate × L2 access penalty) + (global L2 miss rate × extra main-memory penalty)</p>
+      <p style="margin:4px 0;"><strong>3 C's</strong>: Compulsory (first touch) · Capacity (desk too small) · Conflict (would not occur if fully associative at the same size)</p>
+      <p style="margin:0;"><strong>Disk access time</strong> = Seek time + ½ rotation time + Transfer time + Controller overhead (+ Queuing delay)</p>
+    </div>
+
+    <div class="quiz">
+      <div class="q">Final self-check: A friend says "bigger blocks always reduce miss rate, so we should always use the biggest possible blocks." Where does this break down?</div>
+      <div class="a">It ignores the block-size trade-off from §3/§12: on a fixed-size desk, bigger blocks mean fewer distinct items fit at once, which increases conflict competition and can eventually raise overall miss rate ("pollution") instead of lowering it — the classic U-shaped curve. It also ignores that bigger blocks increase the <strong>miss penalty</strong> itself (more to haul back per trip), which can hurt overall AMAT/CPI even in the cases where miss rate genuinely does fall. "Lower miss rate" and "better performance" are not automatically the same claim — Table 6 in §12 exists specifically to catch students who conflate the two.</div>
+    </div>
+  </section>
+
+  <footer class="end">
+    <hr>
+    <div>CSE 209 study guide — Chapter 5, based on the course slide deck and <em>Computer Organization and Design</em> (Patterson &amp; Hennessy, 5th ed.). Built for intuition first, formalism second — always cross-check numeric conventions against what your instructor uses on paper.</div>
+  </footer>
+</main>
+</div>
+
+<script>
+// ---- sidebar toggle (mobile) ----
+const sidebar = document.getElementById('sidebar');
+const menuToggle = document.getElementById('menuToggle');
+menuToggle.addEventListener('click', () => sidebar.classList.toggle('show'));
+document.addEventListener('click', (e) => {
+  if (window.innerWidth <= 860 && sidebar.classList.contains('show')) {
+    if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+      sidebar.classList.remove('show');
+    }
+  }
+});
+document.querySelectorAll('#tocNav a').forEach(a => {
+  a.addEventListener('click', () => { if (window.innerWidth <= 860) sidebar.classList.remove('show'); });
+});
+
+// ---- quiz click-to-reveal ----
+document.addEventListener('click', (e) => {
+  const q = e.target.closest('.quiz .q');
+  if (q) {
+    q.parentElement.classList.toggle('open');
+  }
+});
+
+// ---- active section highlight ----
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('#tocNav a');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

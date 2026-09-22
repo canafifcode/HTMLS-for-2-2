@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDA Lecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#182420; --bg2:#1f2e29; --bg3:#25362f;
+  --ink:#edede3; --ink-dim:#a9b8b0; --ink-faint:#6f8078;
+  --accent:#f2c14e; --accent-dim:#b8923a; --rose:#e8735a; --mint:#7ec8a9; --blue:#7fb3d5;
+  --rule:rgba(237,237,227,0.13); --rule-strong:rgba(237,237,227,0.24);
+  --radius:10px;
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.65;min-height:100vh;}
+.layout{display:flex;max-width:1400px;margin:0 auto;min-height:100vh;}
+ 
+.sidebar{width:270px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--rule);padding:28px 18px 40px;}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--rule-strong);border-radius:3px;}
+.brand{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;}
+.brand-sub{font-size:12px;color:var(--ink-faint);margin-top:4px;margin-bottom:26px;}
+.navlink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--ink-dim);text-decoration:none;font-size:13.5px;cursor:pointer;border-left:2px solid transparent;transition:background .15s,color .15s;}
+.navlink:hover{background:var(--bg2);color:var(--ink);}
+.navlink.active{color:var(--accent);background:var(--bg2);border-left:2px solid var(--accent);}
+.navnum{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);width:16px;flex-shrink:0;}
+.navlink.active .navnum{color:var(--accent);}
+.progress-wrap{margin-top:24px;padding-top:18px;border-top:1px solid var(--rule);}
+.progress-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.progress-track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);width:10%;transition:width .3s;}
+ 
+.main{flex:1;padding:40px 56px 100px;max-width:920px;}
+.section{display:none;animation:fadein .35s ease;}
+.section.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+ 
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+h1.title{font-family:var(--font-display);font-size:34px;font-weight:600;margin-bottom:14px;line-height:1.2;}
+.lede{color:var(--ink-dim);font-size:16.5px;max-width:640px;margin-bottom:32px;}
+h2{font-family:var(--font-display);font-size:22px;font-weight:600;margin:38px 0 14px;color:var(--ink);}
+h2:first-of-type{margin-top:0;}
+h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin:22px 0 10px;color:var(--accent);}
+p{margin-bottom:14px;color:var(--ink);}
+p.dim{color:var(--ink-dim);}
+strong{color:var(--accent);font-weight:600;}
+ul,ol{margin:0 0 16px 22px;color:var(--ink);}
+li{margin-bottom:6px;}
+ 
+.rule-box{background:var(--bg2);border:1px solid var(--rule-strong);border-left:3px solid var(--accent);border-radius:var(--radius);padding:16px 20px;margin:16px 0;font-family:var(--font-mono);font-size:14.5px;color:var(--mint);overflow-x:auto;white-space:pre;}
+.inline-code{font-family:var(--font-mono);background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:14px;color:var(--mint);}
+ 
+.callout{border-radius:var(--radius);padding:16px 20px;margin:18px 0;border:1px solid var(--rule-strong);}
+.callout-title{font-family:var(--font-display);font-weight:600;font-size:13.5px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.callout.tip{background:rgba(126,200,169,0.08);border-color:rgba(126,200,169,0.3);}
+.callout.tip .callout-title{color:var(--mint);}
+.callout.warn{background:rgba(232,115,90,0.08);border-color:rgba(232,115,90,0.3);}
+.callout.warn .callout-title{color:var(--rose);}
+.callout.note{background:rgba(127,179,213,0.08);border-color:rgba(127,179,213,0.3);}
+.callout.note .callout-title{color:var(--blue);}
+ 
+.stepper{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:22px;margin:18px 0;}
+.stepper-display{font-family:var(--font-mono);font-size:18px;color:var(--accent);text-align:center;padding:26px 10px;min-height:34px;letter-spacing:.02em;word-break:break-all;}
+.stepper-controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;}
+.stepper-btn{background:var(--bg3);border:1px solid var(--rule-strong);color:var(--ink);padding:8px 16px;border-radius:7px;font-family:var(--font-body);font-size:13px;cursor:pointer;transition:background .15s,border-color .15s;}
+.stepper-btn:hover:not(:disabled){background:var(--bg);border-color:var(--accent-dim);}
+.stepper-btn:disabled{opacity:.35;cursor:default;}
+.stepper-dots{display:flex;gap:6px;}
+.step-dot{width:7px;height:7px;border-radius:50%;background:var(--rule-strong);transition:background .2s;}
+.step-dot.on{background:var(--accent);}
+.stepper-rule{text-align:center;font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);margin-top:8px;min-height:16px;}
+ 
+.accordion-item{border:1px solid var(--rule-strong);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;background:var(--bg2);}
+.accordion-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;font-family:var(--font-display);font-size:15px;font-weight:500;user-select:none;}
+.accordion-head:hover{background:var(--bg3);}
+.accordion-head .exnum{color:var(--accent);font-family:var(--font-mono);font-size:13px;margin-right:10px;}
+.accordion-chevron{color:var(--ink-faint);transition:transform .2s;font-size:13px;}
+.accordion-item.open .accordion-chevron{transform:rotate(180deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.accordion-item.open .accordion-body{max-height:900px;}
+.accordion-body-inner{padding:0 18px 18px;}
+ 
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+@media(max-width:700px){.card-grid{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:16px 18px;}
+.card h4{font-family:var(--font-display);font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.card p{font-size:14px;color:var(--ink-dim);margin-bottom:0;}
+ 
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);}
+th{color:var(--accent);font-family:var(--font-display);font-weight:600;font-size:13px;}
+td{color:var(--ink-dim);font-family:var(--font-mono);}
+ 
+.checklist{list-style:none;margin-left:0;}
+.checklist li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14.5px;color:var(--ink-dim);}
+.checklist li::before{content:'—';color:var(--accent);flex-shrink:0;}
+ 
+.quiz{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:20px;margin:20px 0;}
+.quiz-q{font-family:var(--font-display);font-size:15px;margin-bottom:14px;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{background:var(--bg3);border:1px solid var(--rule-strong);border-radius:7px;padding:10px 14px;font-size:14px;cursor:pointer;transition:border-color .15s,background .15s;}
+.quiz-opt:hover{border-color:var(--accent-dim);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(126,200,169,0.12);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--rose);background:rgba(232,115,90,0.12);color:var(--rose);}
+.quiz-fb{font-size:13.5px;margin-top:10px;color:var(--ink-dim);min-height:18px;}
+ 
+.section-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--rule);}
+.navbtn{font-family:var(--font-body);font-size:13.5px;color:var(--ink-dim);background:none;border:1px solid var(--rule-strong);padding:10px 18px;border-radius:8px;cursor:pointer;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
+.navbtn:disabled{opacity:0.3;cursor:default;}
+ 
+.brainstorm-list{list-style:none;margin-left:0;}
+.brainstorm-list li{background:var(--bg2);border:1px solid var(--rule-strong);border-left:3px solid var(--blue);border-radius:8px;padding:12px 16px;margin-bottom:10px;font-size:14.5px;color:var(--ink-dim);}
+.qa-item{border:1px solid var(--rule-strong);border-radius:var(--radius);margin-bottom:10px;background:var(--bg2);overflow:hidden;}
+.qa-q{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 18px;}
+.qa-q-text{font-family:var(--font-display);font-size:14.5px;font-weight:500;color:var(--ink);}
+.qa-tag{font-family:var(--font-mono);font-size:11px;color:var(--accent);flex-shrink:0;margin-right:8px;}
+.qa-reveal-btn{flex-shrink:0;background:var(--bg3);border:1px solid var(--rule-strong);color:var(--accent);font-family:var(--font-body);font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;transition:border-color .15s,background .15s;}
+.qa-reveal-btn:hover{border-color:var(--accent-dim);background:var(--bg);}
+.qa-answer{max-height:0;overflow:hidden;transition:max-height .3s ease;border-top:1px solid transparent;}
+.qa-item.revealed .qa-answer{max-height:600px;border-top:1px solid var(--rule);}
+.qa-answer-inner{padding:14px 18px 16px;font-size:14px;color:var(--mint);line-height:1.6;}
+.qa-answer-inner .rule-box{margin:8px 0;}
+ 
+.score-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:14px 20px;margin:18px 0 26px;position:sticky;top:0;z-index:5;}
+.score-label{font-family:var(--font-display);font-size:14px;color:var(--ink-dim);}
+.score-val{font-family:var(--font-mono);font-size:18px;color:var(--accent);font-weight:600;}
+.score-reset{background:var(--bg3);border:1px solid var(--rule-strong);color:var(--ink-dim);font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;}
+.score-reset:hover{color:var(--accent);border-color:var(--accent-dim);}
+.mcq-item{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;}
+.mcq-topic{font-family:var(--font-mono);font-size:11px;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.mcq-q{font-family:var(--font-display);font-size:15px;font-weight:500;margin-bottom:12px;}
+.mcq-opts{display:flex;flex-direction:column;gap:8px;}
+.mcq-explain{font-size:13px;color:var(--ink-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);display:none;}
+.mcq-item.answered .mcq-explain{display:block;}
+ 
+::selection{background:var(--accent);color:var(--bg);}
+@media(max-width:860px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--rule);}.main{padding:28px 22px 80px;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">CSE 211</div>
+    <div class="brand-sub">Theory of Computation — Pushdown Automata</div>
+    <div class="navgroup" id="navgroup"></div>
+    <div class="progress-wrap">
+      <div class="progress-label">Progress</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </nav>
+ 
+  <main class="main">
+ 
+    <!-- 0: WHY A STACK -->
+    <section class="section" data-section="0">
+      <div class="eyebrow">01 · Why a stack?</div>
+      <h1 class="title">The smallest extension that adds memory</h1>
+      <p class="lede">Today's question: what's the smallest useful extension of a finite automaton that can remember an unbounded amount of structured information? The answer is one unbounded, last-in-first-out stack.</p>
+ 
+      <h2>The first target language</h2>
+      <p>Take <span class="inline-code">A = {0ⁿ1ⁿ | n ≥ 0}</span>. A recognizer must remember how many 0s appeared, then verify the same number of 1s follows.</p>
+      <div class="card-grid">
+        <div class="card"><h4>A DFA has</h4><p>Finitely many states, no growing memory, no way to store an arbitrary n.</p></div>
+        <div class="card"><h4>A stack can</h4><p>Push one marker per 0, pop one marker per 1, detect mismatch or wrong order.</p></div>
+      </div>
+ 
+      <h2>A stack is last-in, first-out</h2>
+      <p>Two operations only: <strong>push</strong> (place a symbol on top) and <strong>pop</strong> (remove the top symbol). Only the top symbol is ever directly accessible — you cannot peek or modify anything beneath it.</p>
+ 
+      <h2>The PDA architecture</h2>
+      <p>A pushdown automaton is roughly an NFA equipped with a stack. At each step, the machine consults three things at once: <strong>current state</strong>, <strong>next input symbol (or ε)</strong>, and <strong>top stack symbol (or ε)</strong>.</p>
+ 
+      <h2>Running strategy for 0ⁿ1ⁿ</h2>
+      <ol>
+        <li>While reading 0s, push one 0 onto the stack for each input 0.</li>
+        <li>When the first 1 arrives, switch to a popping phase.</li>
+        <li>For every input 1, pop one stack 0.</li>
+        <li>Accept only when the entire input is consumed and the stack is empty.</li>
+      </ol>
+      <div class="callout tip"><div class="callout-title">Mental picture</div>The stack height records exactly <span class="inline-code">#0s read − #1s read</span> at every point in the computation.</div>
+ 
+      <h3>Interactive: trace on 000111</h3>
+      <div class="stepper" id="stepper-trace1"></div>
+ 
+      <h2>How bad strings fail</h2>
+      <div class="card-grid">
+        <div class="card"><h4>001</h4><p>Input ends while a 0 still remains on the stack — unmatched, so rejected.</p></div>
+        <div class="card"><h4>011</h4><p>The PDA needs to pop after the stack is already empty — no legal move.</p></div>
+      </div>
+      <div class="card-grid">
+        <div class="card"><h4>0101</h4><p>After entering the 1-phase, a later 0 has no legal transition available.</p></div>
+        <div class="card"><h4>General rule</h4><p>A PDA rejects when every possible computation branch fails to accept.</p></div>
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" disabled>← Previous</button>
+        <button class="navbtn" onclick="goTo(1)">Next: Formal definition →</button>
+      </div>
+    </section>
+ 
+    <!-- 1: FORMAL DEFINITION -->
+    <section class="section" data-section="1">
+      <div class="eyebrow">02 · Formal definition</div>
+      <h1 class="title">The 6-tuple, and what δ actually returns</h1>
+      <p class="lede">A PDA is P = (Q, Σ, Γ, δ, q₀, F). Five of the six pieces are familiar from NFAs — the new piece, Γ, is the entire point of this lecture.</p>
+ 
+      <div class="card-grid">
+        <div class="card"><h4>Q, q₀, F — finite control</h4><p>States, start state, accept states — exactly as in an NFA.</p></div>
+        <div class="card"><h4>Σ — input alphabet</h4><p>Symbols that may appear in the input.</p></div>
+        <div class="card"><h4>Γ — stack alphabet</h4><p>Symbols that may be stored on the stack — can overlap Σ or be entirely different bookkeeping symbols.</p></div>
+        <div class="card"><h4>δ — transition function</h4><p>Tells the PDA which input symbol to read (if any), which stack symbol to pop (if any), which state to enter, and which symbol to push (if any).</p></div>
+      </div>
+ 
+      <div class="rule-box">δ : Q × Σε × Γε → P(Q × Γε)
+where Σε = Σ ∪ {ε} and Γε = Γ ∪ {ε}</div>
+ 
+      <div class="callout warn">
+        <div class="callout-title">Why the power set P(...)?</div>
+        δ returns a SET of possible moves, not a single move — a PDA is generally nondeterministic. If (r, Y) ∈ δ(q, a, X), the machine may move q→r, read a (unless a=ε), pop X (unless X=ε), and push Y (unless Y=ε) — all as one legal option among possibly several.
+      </div>
+ 
+      <h2>Four common types of transitions</h2>
+      <table>
+        <tr><th>Pop</th><th>Push</th><th>Effect</th></tr>
+        <tr><td>X</td><td>Y</td><td>replace X by Y</td></tr>
+        <tr><td>X</td><td>ε</td><td>pop X</td></tr>
+        <tr><td>ε</td><td>Y</td><td>push Y</td></tr>
+        <tr><td>ε</td><td>ε</td><td>leave the stack unchanged</td></tr>
+      </table>
+      <p class="dim">Example: <span class="inline-code">(r,ε) ∈ δ(q,1,0)</span> means "while in q, read a 1, pop a 0, move to r." And <span class="inline-code">(r,0) ∈ δ(q,0,ε)</span> means "while in q, read a 0, push a 0, move to r."</p>
+ 
+      <h2>The three roles of ε</h2>
+      <table>
+        <tr><th>Position</th><th>Meaning</th></tr>
+        <tr><td>input = ε</td><td>change state/stack without consuming input</td></tr>
+        <tr><td>pop = ε</td><td>do not inspect or remove the current stack top</td></tr>
+        <tr><td>push = ε</td><td>do not place a new symbol on the stack</td></tr>
+      </table>
+      <div class="callout note"><div class="callout-title">Common confusion</div>ε is an INSTRUCTION meaning "do nothing here" — it is never a literal symbol stored in the input or on the stack.</div>
+ 
+      <h2>Why a separate stack alphabet?</h2>
+      <p>Σ and Γ serve different purposes: Σ is what can appear in the input, Γ is what can be stored as memory. For <span class="inline-code">L={0ⁿ1ⁿ}</span>, a natural choice is <span class="inline-code">Σ={0,1}, Γ={0,$}</span> — a 0 is pushed for every input 0, popped for every input 1, and <span class="inline-code">$</span> marks the bottom of the stack.</p>
+ 
+      <h2>Do we need a bottom-of-stack symbol?</h2>
+      <p>A special symbol like <span class="inline-code">$, ⊥, or Z₀</span> at the bottom lets the PDA detect when all previously stored symbols have been removed — reaching it again means the useful part of the stack is empty.</p>
+      <div class="callout warn"><div class="callout-title">Edge case — exam favorite</div>A bottom marker is a convenient DESIGN CHOICE, not a required component of Sipser's formal definition. Don't claim it's mandatory on an exam.</div>
+ 
+      <div class="quiz" id="quiz-formal">
+        <div class="quiz-q">Quick check: (r, Y) ∈ δ(q, a, X) with a=ε and X=ε. What does this transition do?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">Reads a from input and pops X</div>
+          <div class="quiz-opt" data-correct="true">Moves q→r and pushes Y, without reading input or popping anything</div>
+          <div class="quiz-opt" data-correct="false">Rejects immediately</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(0)">← Previous</button>
+        <button class="navbtn" onclick="goTo(2)">Next: Tracing computations →</button>
+      </div>
+    </section>
+ 
+    <!-- 2: TRACING COMPUTATIONS -->
+    <section class="section" data-section="2">
+      <div class="eyebrow">03 · Tracing computations</div>
+      <h1 class="title">Configurations, steps, and acceptance</h1>
+      <p class="lede">A configuration is the PDA's complete instantaneous snapshot. Chaining configurations together is how you trace — and verify — a computation by hand.</p>
+ 
+      <h2>Configurations</h2>
+      <div class="rule-box">(q, w, s)
+q = current state
+w = unread part of the input
+s = current stack content, top written on the LEFT</div>
+      <p class="dim">Example: <span class="inline-code">(qpop, 11, 00)</span> means the PDA is in state qpop, still has "11" left to read, and has two 0s on its stack.</p>
+ 
+      <h2>One computation step</h2>
+      <div class="rule-box">If (r,c) ∈ δ(q,a,b), then (q, aw, bs) ⊢ (r, w, cs)</div>
+      <p>Interpreted naturally when a component is ε: a=ε means no input symbol disappears; b=ε means no stack symbol disappears; c=ε means no stack symbol is added.</p>
+ 
+      <h2>Acceptance by final state</h2>
+      <div class="rule-box">P accepts w if (q0, w, ε) ⊢* (qf, ε, s)  for some qf ∈ F, some s ∈ Γ*</div>
+      <ol>
+        <li>The entire input must be consumed.</li>
+        <li>At least one computation branch must finish in an accept state.</li>
+      </ol>
+      <div class="callout note"><div class="callout-title">Alternative convention</div>Acceptance by empty stack is another standard convention — it recognizes exactly the same class of languages. We'll formalize the equivalence in a later lecture.</div>
+ 
+      <h2>A complete worked PDA: A = {0ⁿ1ⁿ}</h2>
+      <p>Three states suffice: <span class="inline-code">qpush</span>, <span class="inline-code">qpop</span>, <span class="inline-code">qacc</span>, with a direct ε-transition qpush→qacc handling the n=0 case (the empty string).</p>
+      <div class="card-grid">
+        <div class="card"><h4>Every string in A is accepted</h4><p>For 0ⁿ1ⁿ, the machine pushes exactly n markers, then pops exactly n markers, consuming all input and reaching qacc.</p></div>
+        <div class="card"><h4>Every accepted string is in A</h4><p>An accepting run must read only 0s while pushing, then only 1s while popping — each 1 cancels exactly one earlier 0, so the counts must match.</p></div>
+      </div>
+ 
+      <h3>Interactive: formal trace of 0011</h3>
+      <div class="stepper" id="stepper-trace2"></div>
+ 
+      <div class="quiz" id="quiz-config">
+        <div class="quiz-q">In (q, aw, bs) ⊢ (r, w, cs), what happens to the stack if c = ε and b ≠ ε?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">A symbol is pushed</div>
+          <div class="quiz-opt" data-correct="true">The top symbol b is popped and nothing new is pushed</div>
+          <div class="quiz-opt" data-correct="false">The stack is unchanged</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(1)">← Previous</button>
+        <button class="navbtn" onclick="goTo(3)">Next: Design patterns →</button>
+      </div>
+    </section>
+ 
+    <!-- 3: DESIGN PATTERNS -->
+    <section class="section" data-section="3">
+      <div class="eyebrow">04 · Designing PDAs</div>
+      <h1 class="title">Ten worked-out PDA examples</h1>
+      <p class="lede">Every worked example below uses the label convention <span class="inline-code">input, pop → push</span>, and a bottom-of-stack marker Z, accepting by final state only once Z becomes visible again.</p>
+ 
+      <div class="callout note">
+        <div class="callout-title">A practical design checklist — ask these first</div>
+        <ol style="margin-left:18px;">
+          <li>What information must survive for an unbounded distance?</li>
+          <li>What exactly should each stack symbol mean?</li>
+          <li>When does the machine push, and when does it pop?</li>
+          <li>Is the phase boundary visible in the input, or must it be guessed?</li>
+          <li>What malformed input orders should have no transition at all?</li>
+          <li>How are ε and the empty input handled?</li>
+          <li>Why can no string outside the language ever reach an accept state?</li>
+        </ol>
+      </div>
+ 
+      <div id="accordion-patterns"></div>
+ 
+      <h2>Summary of the ten patterns</h2>
+      <table>
+        <tr><th>Language type</th><th>Stack role</th></tr>
+        <tr><td>aⁿb²ⁿ, aⁱbʲ (i≤j)</td><td>counter, with slightly modified popping rule</td></tr>
+        <tr><td>aⁱbʲcᵏ (i=k), aⁱbʲc^(i+j)</td><td>ignore irrelevant block, match total count</td></tr>
+        <tr><td>w#wᴿ, palindromes</td><td>store symbols, compare in reverse order</td></tr>
+        <tr><td>balanced parentheses</td><td>store unmatched opening symbols</td></tr>
+        <tr><td>#0 = #1</td><td>store current imbalance</td></tr>
+        <tr><td>i=j or j=k</td><td>nondeterministically choose a branch</td></tr>
+        <tr><td>aⁿbᵐcᵐdⁿ</td><td>exploit nested LIFO structure</td></tr>
+      </table>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(2)">← Previous</button>
+        <button class="navbtn" onclick="goTo(4)">Next: Nondeterminism →</button>
+      </div>
+    </section>
+ 
+    <!-- 4: NONDETERMINISM -->
+    <section class="section" data-section="4">
+      <div class="eyebrow">05 · Why nondeterminism matters</div>
+      <h1 class="title">Guessing what the input doesn't tell you</h1>
+      <p class="lede">This is the PDA lecture's answer to "ambiguity" — not a flaw to fix, but a deliberate design tool for handling boundaries the input doesn't mark.</p>
+ 
+      <h2>Even palindromes: B = {wwᴿ}</h2>
+      <p>A natural plan: push symbols from the first half, switch modes at the midpoint, compare the second half against the stack. <strong>The difficulty:</strong> there's no delimiter telling us where the midpoint occurs.</p>
+ 
+      <h2>Guess the midpoint</h2>
+      <p>A nondeterministic PDA branches at every position — one branch keeps pushing, another guesses "the first half ends here" and begins popping.</p>
+      <div class="callout tip"><div class="callout-title">Acceptance semantics</div>The input is accepted if ONE branch guesses the correct midpoint and every symbol comparison in that branch succeeds. A wrong guess is harmless — that branch simply gets stuck or rejects, and doesn't affect the others.</div>
+ 
+      <div class="rule-box">PDA for B = {wwᴿ}:
+push:  0,ε→0   1,ε→1
+guess: ε,ε→ε   (nondeterministic switch to matching phase)
+match: 0,0→ε   1,1→ε</div>
+      <p class="dim">One accepting branch for 0110: push 0, push 1, guess the midpoint (stack: 10), then match 1 against 1, match 0 against 0, accept. Other branches guessing too early or too late simply fail.</p>
+ 
+      <h2>A delimiter removes the guess entirely</h2>
+      <p>For <span class="inline-code">C = {w#wᴿ}</span>, the symbol # explicitly marks the midpoint: push everything before #, pop-and-compare everything after. No guessing needed — this is the deterministic cousin of the palindrome problem, and it's exactly why {w#wᴿ} is easier to design than {wwᴿ}.</p>
+ 
+      <h2>Nondeterminism as union</h2>
+      <p>Consider <span class="inline-code">D = {0ⁱ1ʲ2ᵏ | i=j or j=k}</span>. A PDA branches into two independent jobs: one verifies i=j and ignores the 2s; the other ignores the 0s and verifies j=k.</p>
+      <div class="callout note"><div class="callout-title">Key principle</div>Nondeterministic branching naturally implements a language union, L₁ ∪ L₂. The machine doesn't need to know in advance which condition holds — it branches, and accepts if at least one branch verifies its condition while consuming all input.</div>
+ 
+      <div class="quiz" id="quiz-nondet">
+        <div class="quiz-q">Why does {w#wᴿ} not require nondeterministic guessing, while {wwᴿ} does?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">{w#wᴿ} is not context-free</div>
+          <div class="quiz-opt" data-correct="true"># explicitly marks the midpoint, so the phase switch is triggered by input, not guessed</div>
+          <div class="quiz-opt" data-correct="false">Both require guessing equally</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(3)">← Previous</button>
+        <button class="navbtn" onclick="goTo(5)">Next: Limits of PDAs →</button>
+      </div>
+    </section>
+ 
+    <!-- 5: LIMITS -->
+    <section class="section" data-section="5">
+      <div class="eyebrow">06 · What one stack still can't do</div>
+      <h1 class="title">The ceiling above pushdown automata</h1>
+      <p class="lede">A PDA is strictly more powerful than a finite automaton — but it isn't all-powerful either. One stack buys you exactly one running comparison at a time.</p>
+ 
+      <h2>DFA versus PDA</h2>
+      <table>
+        <tr><th>Property</th><th>Finite automaton</th><th>Pushdown automaton</th></tr>
+        <tr><td>Memory</td><td>current state only</td><td>state + unbounded stack</td></tr>
+        <tr><td>Access</td><td>finite control</td><td>top of stack only</td></tr>
+        <tr><td>Typical power</td><td>local patterns</td><td>nested / matched structure</td></tr>
+        <tr><td>Example</td><td>strings ending in 01</td><td>0ⁿ1ⁿ, palindromes</td></tr>
+        <tr><td>Nondeterminism</td><td>no extra language power</td><td>strictly increases power over deterministic PDAs</td></tr>
+      </table>
+ 
+      <h2>The language that breaks one stack</h2>
+      <p>Consider <span class="inline-code">{0ⁿ1ⁿ2ⁿ | n≥0}</span>. This cannot be recognized by any one-stack PDA.</p>
+      <div class="callout warn">
+        <div class="callout-title">Intuition, not yet a proof</div>
+        After using the stack to compare the 0s with the 1s, that stack has been consumed doing exactly that job — there's no independent leftover memory to also compare the same n against the 2s. One LIFO structure can only maintain one running comparison at a time. A formal impossibility proof (the PDA/CFL pumping lemma) comes in a later lecture.
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(4)">← Previous</button>
+        <button class="navbtn" onclick="goTo(6)">Next: Practice & recap →</button>
+      </div>
+    </section>
+ 
+    <!-- 6: PRACTICE & RECAP -->
+    <section class="section" data-section="6">
+      <div class="eyebrow">07 · Practice & recap</div>
+      <h1 class="title">Quick concept check</h1>
+      <p class="lede">Five questions straight from the lecture's recap slide — work through each before moving on.</p>
+ 
+      <ol>
+        <li style="margin-bottom:12px;">Why does δ return a SET of possible moves rather than a single move?</li>
+        <li style="margin-bottom:12px;">What does the label <span class="inline-code">1, 0 → ε</span> mean?</li>
+        <li style="margin-bottom:12px;">Can a PDA accept with a nonempty stack under final-state acceptance?</li>
+        <li style="margin-bottom:12px;">Why does {wwᴿ} need a guessed midpoint, but {w#wᴿ} does not?</li>
+        <li style="margin-bottom:12px;">Why is consuming the entire input part of acceptance?</li>
+      </ol>
+ 
+      <h2>Today's big picture</h2>
+      <div class="rule-box">PDA = finite-state control + one unbounded LIFO stack</div>
+      <div class="card-grid">
+        <div class="card"><h4>Store</h4><p>Push information from an earlier input region.</p></div>
+        <div class="card"><h4>Compare</h4><p>Pop to match counts or reverse-order symbols.</p></div>
+      </div>
+      <div class="card-grid">
+        <div class="card"><h4>Guess</h4><p>Use nondeterminism when the correct phase boundary is hidden.</p></div>
+        <div class="card"><h4>Next lecture</h4><p>Richer PDA examples, empty-stack acceptance, and the equivalence between CFGs and PDAs.</p></div>
+      </div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(5)">← Previous</button>
+        <button class="navbtn" onclick="goTo(7)">Next: Exam mastery →</button>
+      </div>
+    </section>
+ 
+    <!-- 7: EXAM MASTERY -->
+    <section class="section" data-section="7">
+      <div class="eyebrow">08 · Exam mastery</div>
+      <h1 class="title">Edge cases and common mistakes</h1>
+      <p class="lede">The mistakes that recur most often when students design their first few PDAs — and the precise wording examiners look for.</p>
+ 
+      <h2>Common mistakes</h2>
+      <table>
+        <tr><th>Mistake</th><th>Why it's wrong</th></tr>
+        <tr><td>Accept as soon as stack is empty</td><td>even though unread input may still remain — both conditions are required together</td></tr>
+        <tr><td>Forgetting n=0</td><td>the empty string is a valid case whenever the language allows it</td></tr>
+        <tr><td>Popping without checking</td><td>a symbol must actually match before popping, or the machine accepts wrong strings</td></tr>
+        <tr><td>Wrong symbol order permitted</td><td>a transition that's too permissive lets malformed input reach accept</td></tr>
+        <tr><td>Misreading nondeterminism</td><td>it means "accept if SOME branch succeeds," not "try one arbitrary choice"</td></tr>
+        <tr><td>Confusing ε with a symbol</td><td>ε is an instruction ("do nothing here"), never a literal stored symbol</td></tr>
+      </table>
+ 
+      <h2>Worked exam problem</h2>
+      <p><em>Design a PDA (informally) for L = {aⁱbʲcᵏ | i=j or j=k}, and explain why nondeterminism is essential here.</em></p>
+      <div class="callout warn">
+        <div class="callout-title">The trap</div>
+        Trying to build ONE deterministic machine that checks both conditions at once fails — by the time the c's arrive, a single stack has already been used up verifying (or not verifying) i=j against the b's, leaving no way to also independently verify j=k.
+      </div>
+      <p><strong>Correct approach — branch into two independent sub-machines at the start:</strong></p>
+      <div class="rule-box">Branch 1 (verifies i=j):  push X per a; pop X per b; ignore c's entirely
+Branch 2 (verifies j=k):  ignore a's entirely; push Y per b; pop Y per c</div>
+      <p class="dim">The whole PDA accepts a string iff at least one branch both verifies its equality AND consumes the entire input — nondeterminism is what lets both possibilities coexist in one machine without knowing in advance which one holds.</p>
+ 
+      <h2>Traps at a glance</h2>
+      <table>
+        <tr><th>Trap</th><th>Why it bites</th></tr>
+        <tr><td>Claiming a bottom marker is required</td><td>it's a design convenience, not part of Sipser's formal definition</td></tr>
+        <tr><td>Treating δ as a function, not a relation</td><td>the power-set codomain is what makes nondeterminism possible at all</td></tr>
+        <tr><td>Ignoring the "entire input consumed" clause</td><td>an empty stack alone is never sufficient for acceptance</td></tr>
+        <tr><td>Assuming one stack can track two independent comparisons</td><td>see {0ⁿ1ⁿ2ⁿ} — one LIFO structure, one running comparison</td></tr>
+      </table>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(6)">← Previous</button>
+        <button class="navbtn" onclick="goTo(8)">Next: Exam corner →</button>
+      </div>
+    </section>
+ 
+    <!-- 8: EXAM CORNER -->
+    <section class="section" data-section="8">
+      <div class="eyebrow">09 · Exam corner</div>
+      <h1 class="title">Brainstorm first, then test yourself</h1>
+      <p class="lede">Open questions worth sitting with before checking anything, followed by a reveal-on-demand Q&A bank.</p>
+ 
+      <h2>Brainstorming — think before reading on</h2>
+      <ul class="brainstorm-list" id="brainstorm-list"></ul>
+ 
+      <h2>Exam-likely questions</h2>
+      <p class="dim">Attempt each before hitting reveal.</p>
+      <div id="qa-bank"></div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(7)">← Previous</button>
+        <button class="navbtn" onclick="goTo(9)">Next: MCQ self-test →</button>
+      </div>
+    </section>
+ 
+    <!-- 9: MCQ SELF-TEST -->
+    <section class="section" data-section="9">
+      <div class="eyebrow">10 · Self-test</div>
+      <h1 class="title">Twelve MCQs, spanning everything</h1>
+      <p class="lede">Mixed across the formal definition, computation traces, design patterns, nondeterminism, and the limits of PDAs.</p>
+ 
+      <div class="score-bar">
+        <div><span class="score-label">Score: </span><span class="score-val" id="scoreVal">0 / 12</span></div>
+        <button class="score-reset" id="scoreReset">Reset</button>
+      </div>
+ 
+      <div id="mcq-bank"></div>
+ 
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(8)">← Previous</button>
+        <button class="navbtn" onclick="goTo(0)">Back to start →</button>
+      </div>
+    </section>
+ 
+  </main>
+</div>
+ 
+<script>
+const sections = [
+  {label:'Why a stack?', sub:'Motivation'},
+  {label:'Formal definition', sub:'6-tuple, δ, ε roles'},
+  {label:'Tracing computations', sub:'Configurations, acceptance'},
+  {label:'Design patterns', sub:'10 worked examples'},
+  {label:'Nondeterminism', sub:'Guessing boundaries, union'},
+  {label:'Limits of PDAs', sub:'What one stack can\'t do'},
+  {label:'Practice & recap', sub:'Concept check'},
+  {label:'Exam mastery', sub:'Common mistakes & traps'},
+  {label:'Exam corner', sub:'Brainstorm + Q&A bank'},
+  {label:'MCQ self-test', sub:'12 mixed questions'}
+];
+const navgroup = document.getElementById('navgroup');
+sections.forEach((s,i)=>{
+  const a = document.createElement('div');
+  a.className = 'navlink' + (i===0?' active':'');
+  a.innerHTML = `<span class="navnum">${String(i+1).padStart(2,'0')}</span><span>${s.label}</span>`;
+  a.onclick = ()=>goTo(i);
+  a.id = 'nav-'+i;
+  navgroup.appendChild(a);
+});
+function goTo(i){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.section[data-section="${i}"]`).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+i).classList.add('active');
+  document.getElementById('progressFill').style.width = (((i+1)/sections.length)*100)+'%';
+  document.querySelector('.main').scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+goTo(0);
+ 
+/* ---------- Derivation/trace steppers ---------- */
+function buildStepper(containerId, steps){
+  const el = document.getElementById(containerId);
+  let i = 0;
+  el.innerHTML = `
+    <div class="stepper-display" id="${containerId}-disp"></div>
+    <div class="stepper-rule" id="${containerId}-rule"></div>
+    <div class="stepper-controls">
+      <button class="stepper-btn" id="${containerId}-prev">← Back</button>
+      <div class="stepper-dots" id="${containerId}-dots"></div>
+      <button class="stepper-btn" id="${containerId}-next">Next →</button>
+    </div>`;
+  const dotsEl = document.getElementById(containerId+'-dots');
+  steps.forEach(()=>{ const d=document.createElement('div'); d.className='step-dot'; dotsEl.appendChild(d); });
+  function render(){
+    document.getElementById(containerId+'-disp').textContent = steps[i].form;
+    document.getElementById(containerId+'-rule').textContent = steps[i].rule || '';
+    [...dotsEl.children].forEach((d,idx)=>d.classList.toggle('on', idx===i));
+    document.getElementById(containerId+'-prev').disabled = i===0;
+    document.getElementById(containerId+'-next').disabled = i===steps.length-1;
+  }
+  document.getElementById(containerId+'-prev').onclick = ()=>{ if(i>0){i--; render();} };
+  document.getElementById(containerId+'-next').onclick = ()=>{ if(i<steps.length-1){i++; render();} };
+  render();
+}
+ 
+buildStepper('stepper-trace1', [
+  {form:'unread: 000111   stack: ε', rule:'start'},
+  {form:'unread: 00111   stack: 0', rule:'read 0, push 0'},
+  {form:'unread: 0111   stack: 00', rule:'read 0, push 0'},
+  {form:'unread: 111   stack: 000', rule:'read 0, push 0'},
+  {form:'unread: 11   stack: 00', rule:'read 1, pop 0'},
+  {form:'unread: 1   stack: 0', rule:'read 1, pop 0'},
+  {form:'unread: ε   stack: ε', rule:'read 1, pop 0 — accept'}
+]);
+ 
+buildStepper('stepper-trace2', [
+  {form:'(qpush, 0011, ε)', rule:'start'},
+  {form:'(qpush, 011, 0)', rule:'read 0, push 0'},
+  {form:'(qpush, 11, 00)', rule:'read 0, push 0'},
+  {form:'(qpop, 1, 0)', rule:'read 1, pop 0, switch to qpop'},
+  {form:'(qpop, ε, ε)', rule:'read 1, pop 0'},
+  {form:'(qacc, ε, ε)', rule:'ε-move to qacc — accept'}
+]);
+ 
+/* ---------- Accordion: PDA design patterns ---------- */
+const patterns = [
+  {t:'L₁ = {aⁿb²ⁿ | n≥0}', g:'a,ε→X\nb,ε→ε   (first b of each pair)\nb,X→ε   (second b of each pair)',
+   d:'Push one X for each a, then read the b\'s in pairs — the second b of every pair pops one X. Odd number of b\'s, too few, too many, or an a appearing after a b all get stuck automatically.'},
+  {t:'L₂ = {aⁱbʲ | i≤j}', g:'a,ε→X   (push X per a)\nb,X→ε   (cancel one a per b)\nb,ε→ε   (extra b\'s once X\'s are gone)',
+   d:'Each b cancels one earlier a. Once the stack returns to just Z, extra b\'s are harmless — a self-loop on Z lets them be consumed without changing the stack, while acceptance still requires the entire input to be read.'},
+  {t:'L₃ = {aⁱbʲcᵏ | i=k}', g:'a,ε→X\nb,ε→ε   (ε-move guesses the a-block has ended)\nc,X→ε',
+   d:'Only a-count and c-count matter — b\'s never touch the stack, so stack height records exactly i−k throughout. Acceptance occurs exactly when that difference returns to zero.'},
+  {t:'L₄ = {w#wᴿ}', g:'before #:  0,ε→0   1,ε→1\nafter #:   0,0→ε   1,1→ε',
+   d:'Push every symbol before #; after #, pop and compare each symbol. The stack automatically reverses the first half — no guessing needed since # marks the boundary explicitly.'},
+  {t:'L₅ = {w | w=wᴿ} (palindromes)', g:'push:  0,ε→0   1,ε→1\nguess: ε,ε→ε   (nondeterministic phase switch)\nmatch: 0,0→ε   1,1→ε',
+   d:'Push a prefix, nondeterministically guess the middle (an ε-move for even length, or consuming one extra symbol first for odd length), then pop to match the suffix. Wrong guesses simply reject — one correct branch is enough.'},
+  {t:'L₆ = balanced parentheses', g:'(,ε→X\n),X→ε',
+   d:'Push one X per opening paren, pop one X per closing paren. Invariant: at every moment, the stack holds exactly the unmatched opening parentheses of the prefix read so far. A prefix with more closes than opens gets stuck — no X to pop.'},
+  {t:'L₇ = {w | #0(w)=#1(w)}', g:'in state q0: 0,ε→X   1,X→ε   (X means "extra 0\'s")\nin state q1: 1,ε→X   0,X→ε   (X means "extra 1\'s")',
+   d:'The stack stores the CURRENT imbalance — its meaning depends on which state you\'re in. The machine never stores both kinds of excess simultaneously, so acceptance (back to just Z) means the two counts are equal.'},
+  {t:'L₈ = {aⁱbʲcᵏ | i=j or j=k}', g:'branch 1: a,ε→X | b,X→ε | c,ε→ε   (verify i=j, ignore c)\nbranch 2: a,ε→ε | b,ε→Y | c,Y→ε   (ignore a, verify j=k)',
+   d:'Nondeterministic branching directly implements a union — the PDA doesn\'t need to know in advance which equality holds. It branches, and accepts if at least one branch verifies its equality while consuming all the input.'},
+  {t:'L₉ = {aⁿbᵐcᵐdⁿ}', g:'a,ε→A   (push A per a)\nb,ε→B   (push B per b, B\'s sit ABOVE A\'s)\nc,B→ε   (pop B per c)\nd,A→ε   (pop A per d)',
+   d:'A nested dependency: since B\'s sit above A\'s on the stack (LIFO), every c must match a b before any d can match an a. This is the PDA mirror of the aⁿbᵐcᵐdⁿ CFG from the previous lecture — same nesting, different mechanism.'},
+  {t:'L₁₀ = {aⁱbʲc^(i+j)}', g:'a,ε→X\nb,ε→X   (same symbol, same phase — order among a\'s and b\'s doesn\'t matter)\nc,X→ε',
+   d:'Push one X for every a AND every b (they share a symbol), then each c pops one X. The number of c\'s must therefore equal the TOTAL pushed, i+j — the stack counts a combined total, not two separate quantities.'}
+];
+const accEl = document.getElementById('accordion-patterns');
+patterns.forEach((p,i)=>{
+  const item = document.createElement('div');
+  item.className = 'accordion-item';
+  item.innerHTML = `
+    <div class="accordion-head" onclick="this.parentElement.classList.toggle('open')">
+      <span><span class="exnum">Ex ${i+1}</span>${p.t}</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-body-inner">
+      <div class="rule-box">${p.g}</div>
+      <p class="dim" style="margin-bottom:0;">${p.d}</p>
+    </div></div>`;
+  accEl.appendChild(item);
+});
+ 
+/* ---------- Exam corner: brainstorm list ---------- */
+const brainstorm = [
+  'Why does giving an NFA a single stack (rather than, say, a queue) unlock languages like 0ⁿ1ⁿ but still fail on 0ⁿ1ⁿ2ⁿ?',
+  'If δ returned a single element of Q×Γε directly instead of a set, what would that cost the model — could it still guess midpoints?',
+  'Guessing a midpoint versus reading an explicit delimiter both solve "compare two halves." When would a real exam question expect you to prefer one over the other?',
+  'Is Γ ever required to overlap with Σ? What would go wrong, or what would you gain, if it never did?',
+  '"Acceptance by empty stack" recognizes the same language class as final-state acceptance. Can you sketch, even loosely, why converting between the two should always be possible?',
+  'Why does nondeterministic branching implement a language UNION so naturally, but not, in general, an intersection?',
+  'A DFA can only encode "the difference #0s−#1s" up to some fixed bound baked into its states. Why does moving that counter onto a stack remove the bound entirely?'
+];
+const bEl = document.getElementById('brainstorm-list');
+brainstorm.forEach(q=>{
+  const li = document.createElement('li');
+  li.textContent = q;
+  bEl.appendChild(li);
+});
+ 
+/* ---------- Exam corner: Q&A bank ---------- */
+const qaBank = [
+  {tag:'Definition', q:'Give the formal 6-tuple definition of a PDA and the signature of δ.',
+   a:'P = (Q, Σ, Γ, δ, q0, F).\nδ : Q × Σε × Γε → P(Q × Γε), where Σε = Σ∪{ε} and Γε = Γ∪{ε}.'},
+  {tag:'Transitions', q:'What are the four types of stack operation a transition can express, based on pop/push symbols?',
+   a:'pop X, push Y → replace X by Y.\npop X, push ε → pop X.\npop ε, push Y → push Y.\npop ε, push ε → leave the stack unchanged.'},
+  {tag:'Computation', q:'Define a configuration and state the rule for one computation step.',
+   a:'(q, w, s): current state, unread input, stack content with top on the left.\nIf (r,c) ∈ δ(q,a,b), then (q, aw, bs) ⊢ (r, w, cs).'},
+  {tag:'Acceptance', q:'State both requirements for acceptance by final state.',
+   a:'(1) The entire input must be consumed. (2) At least one computation branch must end in an accept state: (q0,w,ε) ⊢* (qf,ε,s) for some qf ∈ F and some stack content s.'},
+  {tag:'Design', q:'Why is a bottom-of-stack marker useful even though it is optional?',
+   a:'It lets the PDA detect that all previously stored symbols have been removed — seeing the marker reappear on top means the useful part of the stack is empty, which the machine otherwise couldn\'t distinguish from "still has content."'},
+  {tag:'Nondeterminism', q:'Using {wwᴿ}, explain why nondeterminism is essential rather than just convenient.',
+   a:'There is no delimiter marking the midpoint, so a deterministic machine can\'t know when to switch from pushing to popping. Nondeterministic branching tries every possible split simultaneously; the string is accepted iff at least one branch\'s guess turns out correct.'},
+  {tag:'Nondeterminism', q:'How does nondeterministic branching implement L₁ ∪ L₂ for {0ⁱ1ʲ2ᵏ | i=j or j=k}?',
+   a:'The PDA branches into two independent sub-computations at the start — one verifies i=j while ignoring the 2\'s, the other ignores the 0\'s and verifies j=k. The whole machine accepts if EITHER branch accepts, exactly matching set-union semantics.'},
+  {tag:'Limits', q:'Fill in the DFA vs PDA comparison for memory, access, and the effect of nondeterminism.',
+   a:'DFA: current state only, finite-control access, nondeterminism adds no extra language power.\nPDA: state + unbounded stack, top-of-stack-only access, nondeterminism STRICTLY increases power over deterministic PDAs.'},
+  {tag:'Limits', q:'Give the intuition (not a full proof) for why {0ⁿ1ⁿ2ⁿ} needs more than one stack.',
+   a:'After the single stack is used to verify #0\'s=#1\'s, it has effectively been consumed doing that job — there\'s no independent leftover memory to also verify the same n against the 2\'s. One LIFO structure supports one running comparison at a time.'},
+  {tag:'Common mistakes', q:'List three common PDA-design mistakes from the lecture.',
+   a:'Any three of: accepting the moment the stack empties while input remains; forgetting the n=0 empty-string case; popping without checking the symbol actually matches; permitting wrong symbol order; treating nondeterminism as "pick one arbitrary branch" instead of "accept if some branch succeeds"; confusing ε-as-instruction with a literal stored symbol.'}
+];
+const qaEl = document.getElementById('qa-bank');
+qaBank.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'qa-item';
+  const answerHtml = item.a.includes('\n')
+    ? `<div class="rule-box">${item.a}</div>`
+    : `<p style="margin:0;">${item.a}</p>`;
+  div.innerHTML = `
+    <div class="qa-q">
+      <span><span class="qa-tag">Q${i+1} · ${item.tag}</span><span class="qa-q-text">${item.q}</span></span>
+      <button class="qa-reveal-btn">Reveal answer</button>
+    </div>
+    <div class="qa-answer"><div class="qa-answer-inner">${answerHtml}</div></div>`;
+  const btn = div.querySelector('.qa-reveal-btn');
+  btn.onclick = ()=>{
+    const revealed = div.classList.toggle('revealed');
+    btn.textContent = revealed ? 'Hide answer' : 'Reveal answer';
+  };
+  qaEl.appendChild(div);
+});
+ 
+/* ---------- MCQ self-test ---------- */
+const mcqBank = [
+  {topic:'Formal definition', q:'In P=(Q,Σ,Γ,δ,q0,F), what is Γ?',
+   opts:['The input alphabet','The stack alphabet','The set of accept states','The transition function'],
+   correct:1, explain:'Σ is the input alphabet; Γ is the stack alphabet — symbols the machine may store as memory.'},
+  {topic:'Transition function', q:'Why does δ\'s codomain involve a power set, P(Q×Γε)?',
+   opts:['So the PDA always rejects','Because a PDA is generally nondeterministic — multiple transitions can be legal from one configuration','Because Γε must be finite','Because acceptance requires an empty stack'],
+   correct:1, explain:'δ returns a SET of legal moves rather than one, which is exactly what makes nondeterministic branching possible.'},
+  {topic:'ε roles', q:'If the input component of a transition label is ε, what does that mean?',
+   opts:['Reject the string','Change state/stack without consuming any input symbol','Push ε onto the stack always','The input alphabet is empty'],
+   correct:1, explain:'ε in the input position means the move happens without reading anything — a state or stack change "for free."'},
+  {topic:'Configurations', q:'In a configuration (q,w,s), how is the stack content s written?',
+   opts:['Bottom symbol on the left','Top symbol on the left','Alphabetically','It does not matter'],
+   correct:1, explain:'Convention: the top of the stack is written on the left of s, matching what\'s directly accessible.'},
+  {topic:'Acceptance', q:'Acceptance by final state requires which two conditions together?',
+   opts:['Stack must be empty AND input consumed','Entire input consumed AND some computation branch reaches an accept state','Only reaching an accept state, stack content irrelevant','Only consuming input, state irrelevant'],
+   correct:1, explain:'Both conditions are required simultaneously — an empty stack alone is not sufficient, and neither is an accept state with unread input remaining.'},
+  {topic:'Bottom marker', q:'Is a bottom-of-stack marker like Z or $ required by Sipser\'s formal PDA definition?',
+   opts:['Yes, always required','No — it\'s a convenient design choice, not a required component','Only for deterministic PDAs','Only under empty-stack acceptance'],
+   correct:1, explain:'It\'s a common and useful convention for detecting an empty stack, but the formal 6-tuple definition does not mandate it.'},
+  {topic:'Design pattern', q:'For L={aⁱbʲ | i≤j}, why are "extra" b\'s after the stack empties harmless?',
+   opts:['Because the PDA rejects them anyway','A self-loop on Z lets excess b\'s be read without changing the stack, and acceptance only checks the entire input is consumed with Z on top','Because i≤j is impossible','Because b\'s are ignored from the very start'],
+   correct:1, explain:'Once every a has been cancelled, remaining b\'s just get consumed by a Z-preserving self-loop — they don\'t need to touch the stack at all.'},
+  {topic:'Nondeterminism', q:'Why does {wwᴿ} need a nondeterministically guessed midpoint but {w#wᴿ} does not?',
+   opts:['{w#wᴿ} is regular, so no guessing is needed','The # symbol explicitly marks the boundary, removing the need to guess','{wwᴿ} is not context-free','Both need guessing equally'],
+   correct:1, explain:'An explicit delimiter in the input removes the need for the machine to guess where the phase change happens.'},
+  {topic:'Nondeterminism / union', q:'A PDA branches into two sub-machines — one verifying i=j while ignoring c\'s, the other ignoring a\'s while verifying j=k. What construction does this implement?',
+   opts:['Intersection of two languages','Union of two languages','Complement of a language','Concatenation of two languages'],
+   correct:1, explain:'Accepting when EITHER branch succeeds is precisely the semantics of a language union, L1 ∪ L2.'},
+  {topic:'Design (LIFO)', q:'For L={aⁿbᵐcᵐdⁿ}, why must all c\'s match the b\'s before any d can match an a?',
+   opts:['Because the language forces alphabetical order','Because B\'s are pushed on top of A\'s, and a stack is LIFO — top symbols must be removed first','Because the PDA has only one state','It\'s arbitrary, order doesn\'t actually matter'],
+   correct:1, explain:'LIFO order is the whole mechanism here: B\'s sit above A\'s, so they must be popped (matched with c\'s) first before the A\'s underneath become reachable.'},
+  {topic:'Limits', q:'What is the key intuition for why no single-stack PDA recognizes {0ⁿ1ⁿ2ⁿ}?',
+   opts:['The alphabet has too many symbols','After using the stack to compare 0\'s with 1\'s, no independent memory remains to also compare against the 2\'s','PDAs cannot read three distinct symbols','The language is finite'],
+   correct:1, explain:'One LIFO stack can only maintain one running comparison — verifying a second independent equality needs a second, independent memory structure.'},
+  {topic:'Common mistakes', q:'A student\'s PDA moves to an accept state the moment the stack becomes empty, even with unread input remaining. What\'s wrong?',
+   opts:['Nothing, that\'s correct','Acceptance requires the ENTIRE input to be consumed, not just an empty stack','PDAs cannot have empty stacks mid-computation','The stack must never become empty'],
+   correct:1, explain:'Both conditions — full input consumption and reaching an accept state — are required together; satisfying only one is a classic design bug.'}
+];
+const mcqEl = document.getElementById('mcq-bank');
+const scoreValEl = document.getElementById('scoreVal');
+let score = 0;
+const answered = new Array(mcqBank.length).fill(false);
+function updateScore(){ scoreValEl.textContent = `${score} / ${mcqBank.length}`; }
+mcqBank.forEach((item,qi)=>{
+  const div = document.createElement('div');
+  div.className = 'mcq-item';
+  div.innerHTML = `
+    <div class="mcq-topic">${item.topic}</div>
+    <div class="mcq-q">Q${qi+1}. ${item.q}</div>
+    <div class="mcq-opts"></div>
+    <div class="mcq-explain">${item.explain}</div>`;
+  const optsEl = div.querySelector('.mcq-opts');
+  item.opts.forEach((optText,oi)=>{
+    const opt = document.createElement('div');
+    opt.className = 'quiz-opt';
+    opt.textContent = optText;
+    opt.onclick = ()=>{
+      if(answered[qi]) return;
+      answered[qi] = true;
+      div.classList.add('answered');
+      const isCorrect = oi === item.correct;
+      opt.classList.add(isCorrect?'correct':'wrong');
+      if(!isCorrect){
+        [...optsEl.children][item.correct].classList.add('correct');
+      } else {
+        score++;
+        updateScore();
+      }
+    };
+    optsEl.appendChild(opt);
+  });
+  mcqEl.appendChild(div);
+});
+document.getElementById('scoreReset').onclick = ()=>{
+  score = 0;
+  updateScore();
+  answered.fill(false);
+  mcqEl.querySelectorAll('.mcq-item').forEach(item=>{
+    item.classList.remove('answered');
+    item.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong'));
+  });
+};
+updateScore();
+ 
+/* ---------- Quizzes ---------- */
+document.querySelectorAll('.quiz').forEach(q=>{
+  const fb = q.querySelector('.quiz-fb');
+  q.querySelectorAll('.quiz-opt').forEach(opt=>{
+    opt.onclick = ()=>{
+      const already = q.querySelector('.correct,.wrong');
+      if(already) return;
+      const correct = opt.dataset.correct === 'true';
+      opt.classList.add(correct?'correct':'wrong');
+      if(!correct){
+        q.querySelectorAll('.quiz-opt').forEach(o=>{ if(o.dataset.correct==='true') o.classList.add('correct'); });
+      }
+      fb.textContent = correct ? 'Correct.' : 'Not quite — correct answer highlighted above.';
+    };
+  });
+});
+</script>
+</body>
+</html>
+ 

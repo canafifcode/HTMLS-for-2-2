@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 209 — Lecture 01: Arithmetic Logic Unit (ALU)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f14;
+    --panel:#0f1620;
+    --panel2:#121b27;
+    --line:#20303f;
+    --grid: rgba(45,212,191,0.055);
+    --text:#dbe6ec;
+    --muted:#7d93a3;
+    --cyan:#39d6c4;
+    --amber:#f0a94e;
+    --amber-dim:#7a5a2c;
+    --red:#e0654f;
+    --trace:#28414f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;}
+  ::selection{background:var(--cyan);color:#04140f;}
+
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  h1,h2,h3,.disp{font-family:'Space Grotesk',sans-serif;}
+
+  a{color:var(--cyan);}
+
+  /* ---------- layout ---------- */
+  .wrap{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
+  @media (max-width:880px){.wrap{grid-template-columns:1fr;} nav.side{position:relative;height:auto;}}
+
+  nav.side{
+    position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+    border-right:1px solid var(--line);
+    padding:22px 16px 40px;
+    background:linear-gradient(180deg,#0b1119,#0a0f14 60%);
+  }
+  nav.side .chiplabel{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--amber);
+    border:1px solid var(--amber-dim);border-radius:3px;padding:8px 10px;margin-bottom:18px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  nav.side .chiplabel span.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  nav.side ol{list-style:none;margin:0;padding:0;counter-reset:pin;}
+  nav.side li{counter-increment:pin;margin-bottom:2px;}
+  nav.side button.navlink{
+    display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--muted);
+    font-size:12.5px;padding:7px 8px;border-radius:4px;border:none;border-left:2px solid transparent;
+    width:100%;text-align:left;background:transparent;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+  }
+  nav.side button.navlink::before{
+    content:counter(pin);color:var(--muted);border:1px solid var(--line);border-radius:2px;
+    width:20px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex:none;
+  }
+  nav.side button.navlink:hover{color:var(--text);background:var(--panel2);border-left-color:var(--cyan);}
+  nav.side button.navlink:hover::before{border-color:var(--cyan);color:var(--cyan);}
+  nav.side button.navlink.active{color:var(--cyan);background:var(--panel2);border-left-color:var(--cyan);}
+  nav.side button.navlink:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  main{padding:48px 56px 120px;max-width:960px;}
+  @media (max-width:880px){main{padding:32px 20px 100px;}}
+
+  /* ---------- hero ---------- */
+  .hero{border:1px solid var(--line);border-radius:6px;padding:34px 32px;background:
+     radial-gradient(circle at 85% 0%, rgba(57,214,196,0.08), transparent 55%), var(--panel);
+     position:relative;overflow:hidden;margin-bottom:44px;}
+  .hero .eyebrow{color:var(--cyan);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;}
+  .hero h1{font-size:clamp(28px,4vw,42px);margin:0 0 10px;line-height:1.08;color:#fff;}
+  .hero h1 em{font-style:normal;color:var(--amber);}
+  .hero p.sub{color:var(--muted);max-width:640px;font-size:15px;line-height:1.6;margin:0 0 18px;}
+  .hero .meta{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;}
+  .hero .meta b{color:var(--text);}
+  .pins{position:absolute;top:0;bottom:0;right:18px;display:flex;flex-direction:column;justify-content:space-around;opacity:.35;}
+  .pins div{width:26px;height:2px;background:var(--cyan);margin:3px 0;}
+
+  section{margin-bottom:56px;scroll-margin-top:24px;}
+  .kicker{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .kicker .n{font-family:'Space Grotesk';font-weight:700;color:var(--amber);font-size:13px;border:1px solid var(--amber-dim);padding:2px 8px;border-radius:3px;}
+  h2.title{font-size:22px;margin:0 0 14px;color:#fff;}
+  h2.title .tag{font-size:11px;color:var(--muted);font-weight:400;font-family:'IBM Plex Mono';margin-left:10px;}
+  p{line-height:1.7;color:#c3d0d9;font-size:14.5px;}
+  p.lead{font-family:'Source Serif 4',serif;font-size:17px;color:var(--text);line-height:1.65;}
+  ul.bullets{padding-left:18px;color:#c3d0d9;font-size:14.5px;line-height:1.75;}
+  ul.bullets li{margin-bottom:6px;}
+  code, .eqn{font-family:'IBM Plex Mono',monospace;background:#0d1520;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--cyan);font-size:13.5px;}
+
+  .panel{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:20px 22px;margin:16px 0;}
+  .panel h4{margin:0 0 10px;font-size:13px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk';}
+
+  /* tables */
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:14px 0;}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:center;}
+  th{background:#0d1620;color:var(--amber);font-family:'Space Grotesk';font-weight:600;font-size:12px;letter-spacing:.03em;}
+  td{color:#c9d5de;}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
+  td.op{color:var(--cyan);font-weight:600;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:700px){.grid2{grid-template-columns:1fr;}}
+
+  svg.diagram{width:100%;height:auto;display:block;background:#0b1119;border:1px solid var(--line);border-radius:6px;}
+  .diagram-cap{font-size:11.5px;color:var(--muted);margin-top:6px;font-style:italic;}
+
+  .callout{border-left:3px solid var(--cyan);background:rgba(57,214,196,0.06);padding:12px 16px;border-radius:0 4px 4px 0;font-size:13.5px;color:#cfe7e1;margin:14px 0;}
+  .callout.warn{border-left-color:var(--red);background:rgba(224,101,79,0.07);color:#f0d3cd;}
+  .callout b{color:var(--text);}
+
+  /* exam corner */
+  details.exam{border:1px dashed var(--amber-dim);border-radius:6px;padding:12px 16px;margin:12px 0;background:rgba(240,169,78,0.03);}
+  details.exam summary{cursor:pointer;color:var(--amber);font-weight:600;font-size:13.5px;font-family:'Space Grotesk';list-style:none;}
+  details.exam summary::before{content:"▸ ";}
+  details.exam[open] summary::before{content:"▾ ";}
+  details.exam .ans{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13.5px;color:#c9d5de;line-height:1.7;}
+
+  /* quiz */
+  .quiz-q{border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin-bottom:14px;background:var(--panel2);}
+  .quiz-q p.q{margin:0 0 10px;color:var(--text);font-size:14px;font-weight:600;}
+  .quiz-q label{display:block;font-size:13.5px;color:#c3d0d9;padding:6px 8px;border-radius:4px;cursor:pointer;border:1px solid transparent;}
+  .quiz-q label:hover{background:#0d1620;}
+  .quiz-q input{margin-right:8px;}
+  .quiz-q .fb{display:none;margin-top:8px;font-size:13px;padding:8px 10px;border-radius:4px;}
+  .quiz-q .fb.correct{display:block;background:rgba(57,214,196,0.1);color:var(--cyan);border:1px solid var(--cyan);}
+  .quiz-q .fb.wrong{display:block;background:rgba(224,101,79,0.1);color:var(--red);border:1px solid var(--red);}
+  #quizScore{font-family:'Space Grotesk';font-size:15px;color:var(--amber);margin-top:8px;}
+  button.check{background:var(--cyan);color:#04140f;border:none;padding:10px 20px;border-radius:4px;font-weight:700;font-family:'Space Grotesk';cursor:pointer;font-size:13px;letter-spacing:.03em;}
+  button.check:hover{background:#5fe7d7;}
+
+  footer{border-top:1px solid var(--line);margin-top:60px;padding-top:24px;color:var(--muted);font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="side">
+  <div class="chiplabel">ALU<span class="dot"></span></div>
+  <ol>
+    <li><button type="button" class="navlink" data-target="intro">What Is an ALU</button></li>
+    <li><button type="button" class="navlink" data-target="half">Half-Adder</button></li>
+    <li><button type="button" class="navlink" data-target="full">Full-Adder</button></li>
+    <li><button type="button" class="navlink" data-target="parallel">Parallel Adder</button></li>
+    <li><button type="button" class="navlink" data-target="arith-ops">Arithmetic via Cin</button></li>
+    <li><button type="button" class="navlink" data-target="tc">True/Complement Circuit</button></li>
+    <li><button type="button" class="navlink" data-target="arith-circuit">Arithmetic Circuit</button></li>
+    <li><button type="button" class="navlink" data-target="carry-table">Carry &amp; Overflow</button></li>
+    <li><button type="button" class="navlink" data-target="design-ex">Design Example</button></li>
+    <li><button type="button" class="navlink" data-target="logic-circuit">Logic Circuit (MUX)</button></li>
+    <li><button type="button" class="navlink" data-target="combine">Combining Logic + Arith</button></li>
+    <li><button type="button" class="navlink" data-target="efficient">Efficient 4-Function ALU</button></li>
+    <li><button type="button" class="navlink" data-target="status">Status Register</button></li>
+    <li><button type="button" class="navlink" data-target="quiz">Self-Test Quiz</button></li>
+    <li><button type="button" class="navlink" data-target="cheatsheet">Cheat Sheet</button></li>
+  </ol>
+</nav>
+
+<main>
+
+<div class="hero">
+  <div class="pins"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  <div class="eyebrow">CSE 209 · Computer Architecture · Lecture 01</div>
+  <h1>Designing the <em>Arithmetic Logic Unit</em></h1>
+  <p class="sub">The ALU is the "muscle" of the datapath — a single combinational block that a control unit can command, via a few select lines, to add, subtract, increment, compare, AND, OR, or complement two operands. Today we build one from scratch: half-adder → full-adder → parallel adder → arithmetic circuit → logic circuit → full 4-bit ALU → status register.</p>
+  <div class="meta"><span><b>Source:</b> Mano, Digital Logic and Computer Design, Ch. 9.3–9.7</span><span><b>Level:</b> Combinational logic, already assumes Boolean algebra + K-maps</span></div>
+</div>
+
+<!-- 1 -->
+<section id="intro">
+  <div class="kicker"><span class="n">01</span></div>
+  <h2 class="title">What Is an ALU? <span class="tag">Fig. 9-5</span></h2>
+  <p class="lead">An ALU is a combinational circuit that performs both <b>arithmetic</b> and <b>logic</b> operations on binary data, chosen at run time by select inputs — it is not one fixed circuit but a <em>family</em> of circuits multiplexed together.</p>
+
+  <svg class="diagram" viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <rect x="260" y="60" width="240" height="180" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="380" y="150" fill="#dbe6ec" font-family="Space Grotesk" font-size="16" text-anchor="middle" font-weight="700">4-bit</text>
+    <text x="380" y="168" fill="#dbe6ec" font-family="Space Grotesk" font-size="16" text-anchor="middle" font-weight="700">ALU</text>
+    <!-- A inputs -->
+    <text x="300" y="45" fill="#f0a94e" font-size="12" text-anchor="middle">A₁..A₄</text>
+    <line x1="300" y1="50" x2="300" y2="60" stroke="#39d6c4" stroke-width="1.5"/>
+    <polygon points="296,60 304,60 300,68" fill="#39d6c4"/>
+    <!-- B inputs -->
+    <text x="450" y="45" fill="#f0a94e" font-size="12" text-anchor="middle">B₁..B₄</text>
+    <line x1="450" y1="50" x2="450" y2="60" stroke="#39d6c4" stroke-width="1.5"/>
+    <polygon points="446,60 454,60 450,68" fill="#39d6c4"/>
+    <!-- select lines -->
+    <text x="620" y="98" fill="#c3d0d9" font-size="11" text-anchor="start">s₂ (mode: arith/logic)</text>
+    <line x1="500" y1="95" x2="600" y2="95" stroke="#7d93a3" stroke-width="1.2"/>
+    <text x="620" y="128" fill="#c3d0d9" font-size="11" text-anchor="start">s₁ (function select)</text>
+    <line x1="500" y1="125" x2="600" y2="125" stroke="#7d93a3" stroke-width="1.2"/>
+    <text x="620" y="158" fill="#c3d0d9" font-size="11" text-anchor="start">s₀ (function select)</text>
+    <line x1="500" y1="155" x2="600" y2="155" stroke="#7d93a3" stroke-width="1.2"/>
+    <text x="620" y="192" fill="#c3d0d9" font-size="11" text-anchor="start">Cin (input carry)</text>
+    <line x1="500" y1="190" x2="600" y2="190" stroke="#7d93a3" stroke-width="1.2"/>
+    <!-- outputs -->
+    <text x="380" y="270" fill="#f0a94e" font-size="12" text-anchor="middle">F₁..F₄ (result)</text>
+    <line x1="380" y1="240" x2="380" y2="255" stroke="#39d6c4" stroke-width="1.5"/>
+    <polygon points="376,255 384,255 380,263" fill="#39d6c4"/>
+    <text x="200" y="140" fill="#c3d0d9" font-size="11" text-anchor="middle">Cout</text>
+    <line x1="220" y1="150" x2="260" y2="150" stroke="#7d93a3" stroke-width="1.2"/>
+  </svg>
+  <p class="diagram-cap">Fig. 9-5 (redrawn) — A, B: 4-bit operands. s₂s₁s₀: select code. Cin/Cout: carry chain. F: result.</p>
+
+  <div class="callout"><b>Key idea:</b> s₂ typically picks <em>arithmetic vs. logic mode</em>; s₁s₀ (plus Cin) then pick <em>which</em> operation within that mode. This is exactly the structure we will build, piece by piece.</div>
+
+  <details class="exam">
+    <summary>Exam-style question: Why is Cin listed as a control input, not just a carry?</summary>
+    <div class="ans">Because toggling Cin between 0 and 1 lets the <em>same</em> adder hardware realize two related functions — e.g. <code>A+B</code> vs. <code>A+B+1</code>, or (combined with B̄) <code>A+B̄</code> vs. <code>A+B̄+1 = A−B</code>. This is the trick the whole chapter exploits: reuse one adder for many arithmetic functions instead of building separate circuits.</div>
+  </details>
+</section>
+
+<!-- 2 -->
+<section id="half">
+  <div class="kicker"><span class="n">02</span></div>
+  <h2 class="title">Building Block 1: The 1-bit Half-Adder</h2>
+  <p>A half-adder adds two single bits <code>x, y</code> and produces a sum <code>S</code> and carry <code>C</code>. It has no provision for an incoming carry — hence "half."</p>
+  <div class="grid2">
+    <div>
+      <table>
+        <tr><th>x</th><th>y</th><th>C</th><th>S</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+      </table>
+      <p><code>S = x'y + xy' = x ⊕ y</code><br><code>C = xy</code></p>
+    </div>
+    <svg class="diagram" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+      <text x="10" y="35" fill="#f0a94e" font-size="13">x</text>
+      <text x="10" y="90" fill="#f0a94e" font-size="13">y</text>
+      <path d="M40 30 L90 30 Q110 30 110 45 Q110 60 90 60 L40 60 Q52 45 40 30 Z" fill="none" stroke="#39d6c4" stroke-width="1.5"/>
+      <line x1="30" y1="30" x2="42" y2="30" stroke="#7d93a3"/>
+      <line x1="30" y1="85" x2="42" y2="85" stroke="#7d93a3"/>
+      <path d="M42 30 Q52 45 42 85 M40 30 Q50 45 40 85" fill="none" stroke="#39d6c4" stroke-width="1.5"/>
+      <line x1="110" y1="45" x2="150" y2="45" stroke="#39d6c4" stroke-width="1.5"/>
+      <text x="155" y="49" fill="#c3d0d9" font-size="12">S (XOR)</text>
+      <rect x="45" y="100" width="55" height="34" rx="4" fill="none" stroke="#39d6c4" stroke-width="1.5"/>
+      <text x="72" y="122" fill="#dbe6ec" font-size="12" text-anchor="middle">AND</text>
+      <line x1="20" y1="30" x2="20" y2="117" stroke="#7d93a3"/>
+      <line x1="20" y1="117" x2="45" y2="117" stroke="#7d93a3"/>
+      <line x1="20" y1="85" x2="35" y2="85" stroke="#7d93a3"/>
+      <line x1="35" y1="85" x2="35" y2="127" stroke="#7d93a3"/>
+      <line x1="35" y1="127" x2="45" y2="127" stroke="#7d93a3"/>
+      <line x1="100" y1="117" x2="150" y2="117" stroke="#39d6c4" stroke-width="1.5"/>
+      <text x="155" y="121" fill="#c3d0d9" font-size="12">C (AND)</text>
+    </svg>
+  </div>
+  <div class="callout warn"><b>Edge case:</b> A half-adder cannot chain — it has no carry-<em>in</em> pin, so it can only ever be the least-significant bit of an adder unless you add extra gates. That's precisely the gap the full-adder fixes.</div>
+</section>
+
+<!-- 3 -->
+<section id="full">
+  <div class="kicker"><span class="n">03</span></div>
+  <h2 class="title">Building Block 2: The 1-bit Full-Adder</h2>
+  <p>Adds three bits: <code>x, y</code> and an incoming carry <code>z (=Cin)</code>, producing sum <code>S</code> and outgoing carry <code>C</code>.</p>
+  <table>
+    <tr><th>x</th><th>y</th><th>z</th><th>C</th><th>S</th></tr>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  </table>
+  <p><code>S = x⊕y⊕z</code>&nbsp;&nbsp;&nbsp;<code>C = xy + xz + yz</code> (majority function — carry out is 1 whenever <em>at least two</em> of the three inputs are 1)</p>
+  <div class="callout"><b>Composition trick:</b> a full-adder = two half-adders + an OR gate. <code>S = HA1.S ⊕ z</code>, and <code>C = HA1.C + HA2.C</code>. This is a classic "build a bigger block from two smaller identical blocks" exam question.</div>
+  <details class="exam">
+    <summary>Practice: Derive C = xy + xz + yz directly from the K-map. Show it's the majority function.</summary>
+    <div class="ans">Minterms where C=1: 011, 101, 110, 111 (i.e. x'yz, xy'z, xyz', xyz). Grouping pairs in the K-map: {110,111}→xy, {101,111}→xz, {011,111}→yz. Union: C = xy+xz+yz. Each term is "true when two specific inputs are both 1" — exactly majority voting among 3 bits.</div>
+  </details>
+</section>
+
+<!-- 4 -->
+<section id="parallel">
+  <div class="kicker"><span class="n">04</span></div>
+  <h2 class="title">The Parallel Adder <span class="tag">cascaded full-adders</span></h2>
+  <p>An n-bit parallel adder is <em>n</em> full-adders connected in cascade: the carry-out of stage <em>i</em> feeds the carry-in of stage <em>i+1</em>. This is a <b>ripple-carry adder</b> — simple, but the carry has to physically ripple through all n stages before the final sum is valid (the classic speed/complexity tradeoff, often contrasted with carry-lookahead adders on exams).</p>
+  <svg class="diagram" viewBox="0 0 720 190" xmlns="http://www.w3.org/2000/svg">
+    <text x="30" y="20" fill="#c3d0d9" font-size="11">C₁ (Cin)</text>
+    <line x1="10" y1="30" x2="60" y2="30" stroke="#7d93a3"/>
+    <line x1="60" y1="30" x2="60" y2="90" stroke="#7d93a3"/>
+    <line x1="60" y1="90" x2="80" y2="90" stroke="#39d6c4" stroke-width="1.5"/>
+    <g font-family="Space Grotesk" font-size="13" fill="#dbe6ec">
+    <rect x="80" y="55" width="110" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="135" y="95" text-anchor="middle">FA₁</text>
+    <rect x="240" y="55" width="110" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="295" y="95" text-anchor="middle">FA₂</text>
+    <rect x="400" y="55" width="110" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="455" y="95" text-anchor="middle">FA₃</text>
+    <rect x="560" y="55" width="110" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="615" y="95" text-anchor="middle">FA₄</text>
+    </g>
+    <line x1="190" y1="90" x2="240" y2="90" stroke="#f0a94e" stroke-width="1.5"/><text x="215" y="82" fill="#f0a94e" font-size="10" text-anchor="middle">C₂</text>
+    <line x1="350" y1="90" x2="400" y2="90" stroke="#f0a94e" stroke-width="1.5"/><text x="375" y="82" fill="#f0a94e" font-size="10" text-anchor="middle">C₃</text>
+    <line x1="510" y1="90" x2="560" y2="90" stroke="#f0a94e" stroke-width="1.5"/><text x="535" y="82" fill="#f0a94e" font-size="10" text-anchor="middle">C₄</text>
+    <line x1="670" y1="90" x2="700" y2="90" stroke="#f0a94e" stroke-width="1.5"/><text x="695" y="80" fill="#f0a94e" font-size="10" text-anchor="end">Cout</text>
+    <g font-size="11" fill="#c3d0d9" text-anchor="middle">
+    <text x="105" y="45">A₁</text><text x="165" y="45">B₁</text>
+    <text x="265" y="45">A₂</text><text x="325" y="45">B₂</text>
+    <text x="425" y="45">A₃</text><text x="485" y="45">B₃</text>
+    <text x="585" y="45">A₄</text><text x="645" y="45">B₄</text>
+    </g>
+    <g stroke="#7d93a3">
+    <line x1="105" y1="50" x2="105" y2="55"/><line x1="165" y1="50" x2="165" y2="55"/>
+    <line x1="265" y1="50" x2="265" y2="55"/><line x1="325" y1="50" x2="325" y2="55"/>
+    <line x1="425" y1="50" x2="425" y2="55"/><line x1="485" y1="50" x2="485" y2="55"/>
+    <line x1="585" y1="50" x2="585" y2="55"/><line x1="645" y1="50" x2="645" y2="55"/>
+    </g>
+    <g font-size="11" fill="#39d6c4" text-anchor="middle">
+    <text x="135" y="150">S₁</text><text x="295" y="150">S₂</text><text x="455" y="150">S₃</text><text x="615" y="150">S₄</text>
+    </g>
+    <g stroke="#39d6c4">
+    <line x1="135" y1="125" x2="135" y2="145"/><line x1="295" y1="125" x2="295" y2="145"/>
+    <line x1="455" y1="125" x2="455" y2="145"/><line x1="615" y1="125" x2="615" y2="145"/>
+    </g>
+  </svg>
+  <p class="diagram-cap">Fig. matches slide "Design of Arithmetic Circuit" — note the numbering C1→C5 on the slide corresponds to C1→Cout here.</p>
+</section>
+
+<!-- 5 -->
+<section id="arith-ops">
+  <div class="kicker"><span class="n">05</span></div>
+  <h2 class="title">One Adder, Many Operations <span class="tag">Fig. 9-9 style</span></h2>
+  <p class="lead">The central insight of ALU design: <b>don't build a separate circuit per operation.</b> Feed the same parallel adder different combinations of (B or B̄) on its second input and different Cin, and you get addition, subtraction, increment, decrement, and pass-through — all from one adder.</p>
+  <table>
+    <tr><th>Inputs to adder</th><th>Cin</th><th>Output</th><th>Operation</th></tr>
+    <tr><td>A, B</td><td>0</td><td class="op">F = A + B</td><td>Addition</td></tr>
+    <tr><td>A, B</td><td>1</td><td class="op">F = A + B + 1</td><td>Addition with carry</td></tr>
+    <tr><td>A, B̄ (1's complement)</td><td>0</td><td class="op">F = A + B̄</td><td>A plus 1's complement of B</td></tr>
+    <tr><td>A, B̄</td><td>1</td><td class="op">F = A + B̄ + 1 = A − B</td><td><b>Subtraction</b> (2's complement trick)</td></tr>
+    <tr><td>A, 0</td><td>0</td><td class="op">F = A</td><td>Transfer A</td></tr>
+    <tr><td>A, 0</td><td>1</td><td class="op">F = A + 1</td><td>Increment A</td></tr>
+    <tr><td>A, all 1's</td><td>0</td><td class="op">F = A − 1</td><td>Decrement A</td></tr>
+    <tr><td>A, all 1's</td><td>1</td><td class="op">F = A</td><td>Transfer A</td></tr>
+  </table>
+  <div class="callout"><b>Why does A + B̄ + 1 equal A − B?</b> Because 2's complement of B is <code>B̄ + 1</code>. Adding that to A gives <code>A + (2's complement of B) = A − B</code> in modular (wraparound) binary arithmetic. This single identity is worth memorizing cold — it is asked in almost every architecture exam in some form.</div>
+  <details class="exam">
+    <summary>Worked problem: A = 0110 (6), B = 0011 (3). Compute F = A + B̄ + 1 and verify it equals A − B.</summary>
+    <div class="ans">
+    B̄ = 1100. A + B̄ = 0110 + 1100 = 10010 (5-bit). Add Cin=1: 10011. Drop the overflow carry (5th bit) → F = 0011 = 3.<br>
+    Check: A − B = 6 − 3 = 3. ✅ Matches. The dropped carry-out (Cout=1) here also tells us "no borrow occurred," i.e. A ≥ B — see the overflow table below.
+    </div>
+  </details>
+</section>
+
+<!-- 6 -->
+<section id="tc">
+  <div class="kicker"><span class="n">06</span></div>
+  <h2 class="title">The True/Complement, One/Zero Circuit <span class="tag">Fig. 9-7</span></h2>
+  <p>Rather than physically inverting B with a separate step, we build a small combinational circuit that, per bit, can output <code>0</code>, <code>Bᵢ</code>, <code>B'ᵢ</code>, or <code>1</code> — selected by two control lines s₁s₀. This is what actually sits between the raw B input and the adder's Y input.</p>
+  <div class="grid2">
+    <table>
+      <tr><th>s₁</th><th>s₀</th><th>Yᵢ</th></tr>
+      <tr><td>0</td><td>0</td><td>0</td></tr>
+      <tr><td>0</td><td>1</td><td>Bᵢ</td></tr>
+      <tr><td>1</td><td>0</td><td>B'ᵢ</td></tr>
+      <tr><td>1</td><td>1</td><td>1</td></tr>
+    </table>
+    <div>
+      <p><code>Xᵢ = Aᵢ</code> &nbsp;(A always passes through unchanged)</p>
+      <p><code>Yᵢ = Bᵢs₀ + B'ᵢs₁</code></p>
+      <p class="diagram-cap">One AND gate gated by s₀ passes true B; another AND gate (fed by an inverted B) gated by s₁ passes complemented B; an OR gate merges them. s₁=s₀=1 forces Yᵢ=1 for every bit — that's how "all 1's" is generated for decrement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="arith-circuit">
+  <div class="kicker"><span class="n">07</span></div>
+  <h2 class="title">The Complete Arithmetic Circuit <span class="tag">Fig. 9-8, Table 9-1</span></h2>
+  <p>Put the true/complement circuit in front of a 4-bit parallel adder, and feed Cin as well as s₁s₀ to a small combinational block generating X and Y for every stage. The result: 8 selectable arithmetic functions from 3 control bits (s₁, s₀, Cin).</p>
+  <table>
+    <tr><th>s₁</th><th>s₀</th><th>Cin</th><th>Y</th><th>Output</th><th>Function</th></tr>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="op">F = A</td><td>Transfer A</td></tr>
+    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td class="op">F = A+1</td><td>Increment A</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>B</td><td class="op">F = A+B</td><td>Add B to A</td></tr>
+    <tr><td>0</td><td>1</td><td>1</td><td>B</td><td class="op">F = A+B+1</td><td>Add B to A plus 1</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>B̄</td><td class="op">F = A+B̄</td><td>Add 1's complement of B</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>B̄</td><td class="op">F = A+B̄+1</td><td>Add 2's complement of B (i.e. subtract)</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>1's</td><td class="op">F = A−1</td><td>Decrement A</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1's</td><td class="op">F = A</td><td>Transfer A</td></tr>
+  </table>
+  <div class="callout">Notice this table is <em>exactly</em> the s1/s0/Cin table from Section 05, just organized by control code instead of by operation name — same eight functions, two views. Examiners love asking you to translate between these two table formats.</div>
+</section>
+
+<!-- 8 -->
+<section id="carry-table">
+  <div class="kicker"><span class="n">08</span></div>
+  <h2 class="title">Reading the Output Carry: Overflow &amp; Borrow <span class="tag">Table 9-2</span></h2>
+  <p>Cout isn't just a leftover bit — for each arithmetic function it encodes a different useful condition (overflow for addition, "no borrow" for subtraction, etc.).</p>
+  <table style="font-size:12px">
+    <tr><th>s₁ s₀ Cin</th><th>Function</th><th>Cout = 1 if…</th><th>Meaning</th></tr>
+    <tr><td>0 0 0</td><td>F=A</td><td>—</td><td>Cout always 0</td></tr>
+    <tr><td>0 0 1</td><td>F=A+1</td><td>A = 2ⁿ−1</td><td>Cout=1, F=0 when A is all 1's</td></tr>
+    <tr><td>0 1 0</td><td>F=A+B</td><td>(A+B) ≥ 2ⁿ</td><td>Overflow if Cout=1</td></tr>
+    <tr><td>0 1 1</td><td>F=A+B+1</td><td>(A+B) ≥ 2ⁿ−1</td><td>Overflow if Cout=1</td></tr>
+    <tr><td>1 0 0</td><td>F=A−B−1</td><td>A &gt; B</td><td>If Cout=0: A&lt;B, F = 1's complement of (B−A)</td></tr>
+    <tr><td>1 0 1</td><td>F=A−B</td><td>A ≥ B</td><td>If Cout=0: A&lt;B, F = 2's complement of (B−A)</td></tr>
+    <tr><td>1 1 0</td><td>F=A−1</td><td>A ≠ 0</td><td>Cout=1 except when A=0</td></tr>
+    <tr><td>1 1 1</td><td>F=A</td><td>—</td><td>Cout always 1</td></tr>
+  </table>
+  <div class="callout warn"><b>Common exam trap:</b> For subtraction, <code>Cout = 0</code> does <em>not</em> mean an error — it means "a borrow occurred," i.e. A &lt; B, and the true magnitude is recovered by complementing F. Students routinely misread Cout=0 as "invalid result."</div>
+</section>
+
+<!-- 9 -->
+<section id="design-ex">
+  <div class="kicker"><span class="n">09</span></div>
+  <h2 class="title">Worked Design Example: Single-Select Adder/Subtractor</h2>
+  <p class="lead"><b>Problem:</b> Design a circuit with one selection variable <code>s</code> such that s=0 gives F=A+B, and s=1 gives F=A−B via 2's complement of B.</p>
+  <table>
+    <tr><th>s</th><th>Aᵢ</th><th>Bᵢ</th><th>Xᵢ</th><th>Yᵢ</th></tr>
+    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+    <tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+  </table>
+  <p>Solving: <code>Xᵢ = Aᵢ</code>, &nbsp; <code>Yᵢ = Bᵢ ⊕ s</code>, &nbsp; <code>Cin = s</code>.</p>
+  <div class="callout"><b>Elegant result:</b> a single row of XOR gates (one per bit, each fed by Bᵢ and the shared control line s) doubles as the "true/complement" selector, and that same s wire is tied directly into Cin. Four XOR gates + one 4-bit adder = a full adder/subtractor. This exact circuit is the heart of virtually every real ALU's add/sub unit.</div>
+  <details class="exam">
+    <summary>Exam variant: what happens if you tie s permanently to 0? To 1?</summary>
+    <div class="ans">s=0 forever: Yᵢ=Bᵢ, Cin=0 → a plain 4-bit adder (subtractor logic is "dead" hardware). s=1 forever: Yᵢ=B̄ᵢ, Cin=1 → a dedicated subtractor. This shows the same gates can be "hard-wired" into a simpler, fixed-function circuit if the flexibility is never needed — a common area/speed tradeoff discussion point.</div>
+  </details>
+</section>
+
+<!-- 10 -->
+<section id="logic-circuit">
+  <div class="kicker"><span class="n">10</span></div>
+  <h2 class="title">Design of the Logic Circuit <span class="tag">Fig. 9-11</span></h2>
+  <p>The logic section is built completely differently from the arithmetic section: instead of an adder, each bit-slice uses a 4-to-1 <b>multiplexer</b> whose four data inputs are the four bitwise functions of Aᵢ, Bᵢ, and whose select lines are s₁s₀.</p>
+  <table>
+    <tr><th>s₁</th><th>s₀</th><th>Output</th><th>Operation</th></tr>
+    <tr><td>0</td><td>0</td><td class="op">Fᵢ = Aᵢ + Bᵢ</td><td>OR</td></tr>
+    <tr><td>0</td><td>1</td><td class="op">Fᵢ = Aᵢ ⊕ Bᵢ</td><td>XOR</td></tr>
+    <tr><td>1</td><td>0</td><td class="op">Fᵢ = AᵢBᵢ</td><td>AND</td></tr>
+    <tr><td>1</td><td>1</td><td class="op">Fᵢ = A'ᵢ</td><td>NOT</td></tr>
+  </table>
+  <div class="callout">Notice the logic circuit has <b>no carry chain at all</b> — each bit is fully independent, unlike the arithmetic section. That's a structural difference worth stating explicitly if asked to compare the two halves of an ALU.</div>
+</section>
+
+<!-- 11 -->
+<section id="combine">
+  <div class="kicker"><span class="n">11</span></div>
+  <h2 class="title">Combining Logic and Arithmetic Circuits <span class="tag">Fig. 9-12</span></h2>
+  <p>The most direct (if not most efficient) way to merge the two halves: build them as two completely separate circuits, then use a 2-to-1 MUX per bit to pick between them, controlled by the extra mode-select line s₂.</p>
+  <svg class="diagram" viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg">
+    <rect x="180" y="20" width="230" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="295" y="60" fill="#dbe6ec" font-family="Space Grotesk" font-size="13" text-anchor="middle">One stage of arithmetic circuit</text>
+    <rect x="180" y="130" width="230" height="70" rx="4" fill="#0f1a24" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="295" y="170" fill="#dbe6ec" font-family="Space Grotesk" font-size="13" text-anchor="middle">One stage of logic circuit</text>
+    <rect x="480" y="70" width="90" height="90" rx="4" fill="#0f1a24" stroke="#f0a94e" stroke-width="1.5"/>
+    <text x="525" y="100" fill="#f0a94e" font-family="Space Grotesk" font-size="12" text-anchor="middle">MUX</text>
+    <text x="500" y="82" fill="#c3d0d9" font-size="10">0</text>
+    <text x="500" y="150" fill="#c3d0d9" font-size="10">1</text>
+    <text x="525" y="132" fill="#c3d0d9" font-size="11" text-anchor="middle">select</text>
+    <line x1="410" y1="55" x2="480" y2="85" stroke="#39d6c4" stroke-width="1.3"/>
+    <line x1="410" y1="165" x2="480" y2="140" stroke="#39d6c4" stroke-width="1.3"/>
+    <line x1="570" y1="115" x2="610" y2="115" stroke="#39d6c4" stroke-width="1.5"/>
+    <text x="618" y="119" fill="#c3d0d9" font-size="11">Fᵢ</text>
+    <text x="30" y="15" fill="#c3d0d9" font-size="11">Cᵢ →</text>
+    <line x1="10" y1="10" x2="180" y2="10" stroke="#7d93a3"/><line x1="180" y1="10" x2="180" y2="20" stroke="#7d93a3"/>
+    <text x="30" y="105" fill="#c3d0d9" font-size="11">Aᵢ, Bᵢ, s₁, s₀ →</text>
+    <line x1="10" y1="112" x2="180" y2="112" stroke="#7d93a3"/>
+    <line x1="10" y1="112" x2="10" y2="165" stroke="#7d93a3"/><line x1="10" y1="165" x2="180" y2="165" stroke="#7d93a3"/>
+    <line x1="525" y1="70" x2="525" y2="35" stroke="#f0a94e" stroke-width="1.2"/>
+    <line x1="525" y1="35" x2="605" y2="35" stroke="#f0a94e" stroke-width="1.2"/><text x="613" y="39" fill="#c3d0d9" font-size="11">Cᵢ₊₁</text>
+    <line x1="80" y1="200" x2="525" y2="200" stroke="#f0a94e" stroke-width="1.2"/>
+    <line x1="80" y1="200" x2="80" y2="112" stroke="#f0a94e" stroke-width="1.2" stroke-dasharray="2,2"/>
+    <text x="90" y="215" fill="#f0a94e" font-size="10">s₂ (select)</text>
+  </svg>
+  <p class="diagram-cap">Fig. 9-12 — Simple but wasteful: the arithmetic and logic paths are built as fully separate circuits, and half the hardware is idle at any given moment.</p>
+  <div class="callout warn"><b>Weakness of this design:</b> it duplicates AND/XOR-type gates that already exist inside the arithmetic circuit's true/complement stage. Section 12 shows how to avoid that duplication.</div>
+</section>
+
+<!-- 12 -->
+<section id="efficient">
+  <div class="kicker"><span class="n">12</span></div>
+  <h2 class="title">A More Efficient Unified Design <span class="tag">Fig. 9-13, Table 9-3 &amp; 9-4</span></h2>
+  <p class="lead">Instead of two parallel circuits, <b>reuse</b> the arithmetic circuit's gates: force Cin=0 for every stage (so the carry chain can't corrupt bitwise results), and see which logic functions "fall out" of the existing X/Y generation gates for free.</p>
+  <table>
+    <tr><th>s₂</th><th>s₁</th><th>s₀</th><th>Xᵢ</th><th>Yᵢ</th><th>Cᵢ</th><th>Fᵢ = Xᵢ⊕Yᵢ</th><th>Result</th></tr>
+    <tr><td>1</td><td>0</td><td>0</td><td>Aᵢ</td><td>0</td><td>0</td><td>Aᵢ</td><td class="op">OR-slot → but gives Transfer</td></tr>
+    <tr><td>1</td><td>0</td><td>1</td><td>Aᵢ</td><td>Bᵢ</td><td>0</td><td>Aᵢ⊕Bᵢ</td><td class="op">XOR</td></tr>
+    <tr><td>1</td><td>1</td><td>0</td><td>Aᵢ</td><td>B'ᵢ</td><td>0</td><td>Aᵢ⊙Bᵢ</td><td class="op">Equivalence (needs mod → AND)</td></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>Aᵢ</td><td>1</td><td>0</td><td>A'ᵢ</td><td class="op">NOT</td></tr>
+  </table>
+  <p>Only XOR and NOT come out "for free" — OR and AND need small extra gating terms added to X, Y, Z. The final derived equations (with s₂ now gating whether B or C reaches the adder at all):</p>
+  <div class="panel">
+    <h4>Modified stage equations</h4>
+    <p><code>Xᵢ = Aᵢ + s₂s₁′s₀′Bᵢ + s₂s₁s₀′B′ᵢ</code></p>
+    <p><code>Yᵢ = s₀Bᵢ + s₁B′ᵢ</code></p>
+    <p><code>Zᵢ = s₂′Cᵢ</code> &nbsp;<span class="diagram-cap">(this term forces the carry chain to 0 in logic mode, so bits don't interfere with each other)</span></p>
+  </div>
+  <p>This produces one unified ALU with <b>12 selectable functions</b> from only 3 control bits + Cin:</p>
+  <table style="font-size:12px">
+    <tr><th>s₂ s₁ s₀ Cin</th><th>Output</th><th>Function</th></tr>
+    <tr><td>0 0 0 0</td><td>F=A</td><td>Transfer A</td></tr>
+    <tr><td>0 0 0 1</td><td>F=A+1</td><td>Increment A</td></tr>
+    <tr><td>0 0 1 0</td><td>F=A+B</td><td>Addition</td></tr>
+    <tr><td>0 0 1 1</td><td>F=A+B+1</td><td>Add with carry</td></tr>
+    <tr><td>0 1 0 0</td><td>F=A−B−1</td><td>Subtract with borrow</td></tr>
+    <tr><td>0 1 0 1</td><td>F=A−B</td><td>Subtraction</td></tr>
+    <tr><td>0 1 1 0</td><td>F=A−1</td><td>Decrement A</td></tr>
+    <tr><td>0 1 1 1</td><td>F=A</td><td>Transfer A</td></tr>
+    <tr><td>1 0 0 X</td><td>F=A∨B</td><td>OR</td></tr>
+    <tr><td>1 0 1 X</td><td>F=A⊕B</td><td>XOR</td></tr>
+    <tr><td>1 1 0 X</td><td>F=A∧B</td><td>AND</td></tr>
+    <tr><td>1 1 1 X</td><td>F=Ā</td><td>Complement A</td></tr>
+  </table>
+  <div class="callout"><b>The whole point of Sec. 12:</b> s₂ = 0 → arithmetic mode (Cin matters); s₂ = 1 → logic mode (Cin is a "don't care," marked X). This is the textbook, minimal-gate way real ALUs like the 74181 are structured.</div>
+</section>
+
+<!-- 13 -->
+<section id="status">
+  <div class="kicker"><span class="n">13</span></div>
+  <h2 class="title">The Status (Flags) Register <span class="tag">Fig. 9-14</span></h2>
+  <p class="lead">An ALU alone only computes F — a CPU also needs to <em>react</em> to properties of F (was it zero? negative? did it overflow?). Four flag bits, typically labeled <b>C S Z V</b>, capture this after every ALU operation.</p>
+  <ul class="bullets">
+    <li><b>C (Carry):</b> set to the ALU's Cout directly.</li>
+    <li><b>S (Sign):</b> set to the most-significant (sign) bit of F. 1 = result is negative in signed 2's-complement.</li>
+    <li><b>Z (Zero):</b> set when F is <em>all zero bits</em> — implemented as a big NOR across every output bit.</li>
+    <li><b>V (Overflow):</b> set when <code>C(n-1) ⊕ Cn</code> = 1, i.e. the carry into the sign bit differs from the carry out of the sign bit. For an 8-bit ALU this fires exactly when the true signed result falls outside [−128, 127].</li>
+  </ul>
+  <div class="callout warn"><b>Classic exam trap:</b> C and V answer <em>different questions</em>. C=1 signals unsigned overflow (result exceeded 2ⁿ−1 treating operands as unsigned). V=1 signals signed overflow. A calculation can set one without the other — e.g. adding two large positive signed numbers can set V=1 while C=0.</div>
+  <details class="exam">
+    <summary>Worked problem: A = 01111111 (127), B = 00000001 (1), 8-bit signed add. Find C, S, Z, V.</summary>
+    <div class="ans">
+    127 + 1 = 128 unsigned = 10000000 binary. F = 10000000.<br>
+    C = 0 (no carry out of bit 7, since 128 &lt; 256).<br>
+    S = 1 (MSB of F is 1).<br>
+    Z = 0 (F ≠ 0).<br>
+    V: carry into bit7 (C7) = 1 (from 0111111+0000001 in bits 0-6... let's trust the standard result): here C7=1, C8(Cout)=0 → V = C7⊕C8 = 1. <b>V=1</b>: correctly flags that 127+1=128 overflowed the signed 8-bit range (max +127). Even though C=0, this is a signed overflow.
+    </div>
+  </details>
+</section>
+
+<!-- 14 -->
+<section id="quiz">
+  <div class="kicker"><span class="n">14</span></div>
+  <h2 class="title">Self-Test Quiz</h2>
+  <p>Answer, then check your score. These mirror typical short-answer / MCQ exam items for this topic.</p>
+  <div id="quizRoot"></div>
+  <button class="check" onclick="gradeQuiz()">Check Answers</button>
+  <div id="quizScore"></div>
+</section>
+
+<!-- 15 -->
+<section id="cheatsheet">
+  <div class="kicker"><span class="n">15</span></div>
+  <h2 class="title">One-Page Cheat Sheet</h2>
+  <div class="panel">
+    <h4>Must-know identities</h4>
+    <ul class="bullets">
+      <li>2's complement of B = B̄ + 1 → subtraction is "add the complement": <code>A − B = A + B̄ + 1</code></li>
+      <li>Half-adder: S = x⊕y, C = xy — <em>no</em> carry-in support.</li>
+      <li>Full-adder: S = x⊕y⊕z, C = xy+xz+yz (majority function).</li>
+      <li>True/complement/0/1 selector: Yᵢ = Bᵢs₀ + B'ᵢs₁ — lets one adder input become 0, B, B̄, or all-1's.</li>
+      <li>Ripple-carry adder = n full-adders, Cout of stage i → Cin of stage i+1.</li>
+      <li>Logic stage ≠ arithmetic stage: logic uses an independent MUX per bit, no carry chain.</li>
+      <li>Unified ALU: force Cin=0 in logic mode (via Zᵢ = s₂′Cᵢ) so the two modes can share the same adder gates.</li>
+      <li>Flags: C=Cout · S=sign bit of F · Z=NOR of all F bits · V = C(n-1) ⊕ Cn.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  CSE 209 — Computer Architecture · Lecture 01: ALU Design · Source: M. Morris Mano, <i>Digital Logic and Computer Design</i>, §9.3–9.7 · Prepared as an interactive study guide.
+</footer>
+
+</main>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "1. A ripple-carry parallel adder built from full-adders is slow mainly because:",
+    options: [
+      "Full-adders use more gates than half-adders",
+      "The carry must propagate sequentially through every stage before the final sum is valid",
+      "It cannot handle 2's complement numbers",
+      "It requires a separate clock for every bit"
+    ],
+    correct: 1
+  },
+  {
+    q: "2. In the arithmetic circuit (Fig. 9-8), setting s1=1, s0=0, Cin=1 produces:",
+    options: [
+      "F = A + B",
+      "F = A − 1",
+      "F = A + B̄ + 1 (subtraction)",
+      "F = A"
+    ],
+    correct: 2
+  },
+  {
+    q: "3. For the subtraction function F = A − B, an output carry Cout = 0 means:",
+    options: [
+      "An arithmetic error occurred",
+      "A borrow occurred, i.e. A < B",
+      "A = B exactly",
+      "Overflow occurred"
+    ],
+    correct: 1
+  },
+  {
+    q: "4. Which flag distinguishes signed overflow from unsigned overflow?",
+    options: ["C (Carry)", "Z (Zero)", "S (Sign)", "V (Overflow)"],
+    correct: 3
+  },
+  {
+    q: "5. In the efficient unified ALU design (Fig. 9-13), why is Zᵢ = s₂′Cᵢ used?",
+    options: [
+      "To double the number of arithmetic functions",
+      "To force the carry chain to 0 during logic-mode operations so bits don't interfere",
+      "To generate the Zero flag",
+      "To invert every output bit"
+    ],
+    correct: 1
+  },
+  {
+    q: "6. A full-adder's carry-out function C = xy + xz + yz is best described as:",
+    options: [
+      "An XOR of all three inputs",
+      "The majority function of the three inputs",
+      "Always equal to the sum bit",
+      "Independent of z"
+    ],
+    correct: 1
+  }
+];
+
+const root = document.getElementById('quizRoot');
+QUESTIONS.forEach((item, qi) => {
+  const div = document.createElement('div');
+  div.className = 'quiz-q';
+  let optsHtml = item.options.map((opt, oi) => `
+    <label><input type="radio" name="q${qi}" value="${oi}"> ${opt}</label>
+  `).join('');
+  div.innerHTML = `<p class="q">${item.q}</p>${optsHtml}<div class="fb" id="fb${qi}"></div>`;
+  root.appendChild(div);
+});
+
+var navButtons = document.querySelectorAll('button.navlink');
+navButtons.forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var id = this.getAttribute('data-target');
+    var el = document.getElementById(id);
+    if(el){
+      el.scrollIntoView({behavior:'smooth', block:'start'});
+      navButtons.forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+    }
+  });
+});
+
+// Highlight the section currently in view
+var sections = Array.prototype.map.call(navButtons, function(b){
+  return document.getElementById(b.getAttribute('data-target'));
+});
+var spy = new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if(en.isIntersecting){
+      var idx = sections.indexOf(en.target);
+      if(idx > -1){
+        navButtons.forEach(function(b){ b.classList.remove('active'); });
+        navButtons[idx].classList.add('active');
+      }
+    }
+  });
+}, {rootMargin:'-40% 0px -55% 0px'});
+sections.forEach(function(s){ if(s) spy.observe(s); });
+
+function gradeQuiz(){
+  let score = 0;
+  QUESTIONS.forEach((item, qi) => {
+    const chosen = document.querySelector(`input[name="q${qi}"]:checked`);
+    const fb = document.getElementById(`fb${qi}`);
+    if(!chosen){
+      fb.className = 'fb wrong';
+      fb.style.display='block';
+      fb.textContent = 'No answer selected — correct answer: ' + item.options[item.correct];
+      return;
+    }
+    if(parseInt(chosen.value) === item.correct){
+      score++;
+      fb.className = 'fb correct';
+      fb.textContent = '✓ Correct.';
+    } else {
+      fb.className = 'fb wrong';
+      fb.textContent = '✗ Not quite — correct answer: ' + item.options[item.correct];
+    }
+  });
+  document.getElementById('quizScore').textContent = `Score: ${score} / ${QUESTIONS.length}`;
+}
+</script>
+
+</body>
+</html>

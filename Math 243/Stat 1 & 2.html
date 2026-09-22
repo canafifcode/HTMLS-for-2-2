@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATH 243 — Statistics &amp; Probability | Interactive Course Notes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2ede0;
+    --paper-2:#e9e1cd;
+    --card:#faf7ee;
+    --ink:#1b2a35;
+    --ink-soft:#4a5a66;
+    --navy:#132436;
+    --navy-2:#0d1c2b;
+    --navy-panel:#1a3049;
+    --blue-grid:#3d6690;
+    --blue-grid-soft:rgba(127,166,201,.35);
+    --accent:#c1560f;
+    --accent-dark:#9a4409;
+    --accent-soft:#f0d9c4;
+    --brass:#a9812f;
+    --verdigris:#2f6e62;
+    --verdigris-soft:#dcebe6;
+    --line:#c9bfa2;
+    --shadow: 0 2px 0 rgba(27,42,53,.06), 0 8px 20px -12px rgba(27,42,53,.25);
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  /* ===== faint blueprint grid texture on paper ===== */
+  .paper-tex{
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    opacity:.16;
+    position:fixed; inset:0; left:280px; pointer-events:none; z-index:0;
+  }
+
+  h1,h2,h3,h4{ font-family:'IBM Plex Serif', serif; margin:0; color:var(--ink); }
+  code, .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color: var(--accent-dark); }
+  p{ line-height:1.65; color:var(--ink-soft); }
+
+  /* ===================== LAYOUT ===================== */
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:280px; flex-shrink:0;
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    color:#dce8f2;
+    position:fixed; top:0; left:0; bottom:0;
+    overflow-y:auto;
+    z-index:20;
+    border-right: 3px solid var(--accent-dark);
+  }
+  .sidebar::-webkit-scrollbar{ width:8px; }
+  .sidebar::-webkit-scrollbar-thumb{ background:#2a445e; border-radius:4px; }
+
+  .brand{
+    padding:22px 20px 16px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+    position:relative;
+  }
+  .brand .plate{
+    display:flex; align-items:center; gap:12px;
+  }
+  .brand .badge{
+    width:44px; height:44px; flex-shrink:0;
+  }
+  .brand .code{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:.14em;
+    color:var(--accent);
+    text-transform:uppercase;
+  }
+  .brand h1{
+    font-size:19px; color:#fff; line-height:1.2; margin-top:2px;
+  }
+  .brand .sub{
+    margin-top:8px; font-size:11.5px; color:#9fb4c6; line-height:1.5;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  .nav{ padding:10px 0 24px; }
+  .nav .group-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:#5c7387; padding:16px 20px 8px;
+  }
+  .nav-item{
+    display:flex; align-items:flex-start; gap:12px;
+    width:100%; text-align:left;
+    background:transparent; border:none; cursor:pointer;
+    padding:11px 20px 11px 17px;
+    border-left:3px solid transparent;
+    color:#c3d4e2;
+    font-family:'IBM Plex Sans', sans-serif;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+    position:relative;
+  }
+  .nav-item:hover{ background:rgba(255,255,255,.05); color:#fff; }
+  .nav-item.active{
+    background:rgba(193,86,15,.16);
+    border-left-color:var(--accent);
+    color:#fff;
+  }
+  .nav-item .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px; color:var(--accent);
+    display:block; letter-spacing:.06em;
+  }
+  .nav-item.active .tag{ color:#ffb787; }
+  .nav-item .ttl{ font-size:13.5px; font-weight:500; display:block; margin-top:2px; line-height:1.3; }
+  .nav-item .dot{
+    width:7px; height:7px; border-radius:50%; margin-top:5px; flex-shrink:0;
+    background:#33495e; border:1px solid #4a6277;
+  }
+  .nav-item.visited .dot{ background:var(--verdigris); border-color:var(--verdigris); }
+  .nav-item.active .dot{ background:var(--accent); border-color:var(--accent); }
+
+  .sidebar-foot{
+    padding:16px 20px 22px; margin-top:6px;
+    border-top:1px solid rgba(255,255,255,.1);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px; color:#5c7387; line-height:1.7;
+  }
+  .progress-track{
+    height:6px; background:#1f3849; border-radius:3px; overflow:hidden; margin:8px 0 10px;
+    border:1px solid #2a445e;
+  }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--accent-dark),var(--accent)); width:0%; transition:width .4s ease; }
+
+  /* mobile top bar */
+  .topbar{ display:none; }
+
+  /* ---------- MAIN ---------- */
+  .main{
+    margin-left:280px; flex:1; position:relative; z-index:1;
+    padding: 44px 48px 100px;
+    max-width:1180px;
+  }
+  .section{ display:none; animation: fadein .35s ease; }
+  .section.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .sec-eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent-dark);
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+  }
+  .sec-eyebrow .src{
+    background:var(--navy-panel); color:#cfe0ee; padding:3px 9px; border-radius:2px; letter-spacing:.04em;
+    font-size:10.5px;
+  }
+  .sec-title{ font-size:34px; font-weight:600; letter-spacing:-.01em; }
+  .sec-intro{ font-size:16px; max-width:820px; margin-top:14px; }
+  .sec-head{ padding-bottom:26px; margin-bottom:30px; border-bottom:2px solid var(--ink); position:relative; }
+  .sec-head::after{
+    content:""; position:absolute; left:0; bottom:-5px; width:70px; height:3px; background:var(--accent);
+  }
+
+  h2.block-h{
+    font-size:22px; margin: 40px 0 14px; padding-left:14px; border-left:4px solid var(--accent);
+    display:flex; align-items:center; gap:10px;
+  }
+  h2.block-h .num{ font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:15px; }
+  h3.sub-h{ font-size:16.5px; margin:22px 0 10px; color:var(--navy); font-family:'IBM Plex Sans'; font-weight:700; }
+
+  /* ---------- CARDS / PLATES ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 24px; margin:16px 0;
+  }
+
+  .formula-plate{
+    background:var(--navy-panel); color:#eaf1f7; border-radius:2px; padding:22px 26px;
+    margin:18px 0; position:relative; box-shadow:var(--shadow);
+    border:1px solid #24425e;
+  }
+  .formula-plate .rivet{
+    position:absolute; width:7px; height:7px; border-radius:50%;
+    background:#0f2032; box-shadow: inset 0 0 0 1px #3a5a76, 0 1px 0 rgba(255,255,255,.08);
+  }
+  .formula-plate .rivet.tl{ top:8px; left:8px; } .formula-plate .rivet.tr{ top:8px; right:8px; }
+  .formula-plate .rivet.bl{ bottom:8px; left:8px; } .formula-plate .rivet.br{ bottom:8px; right:8px; }
+  .formula-plate .plate-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:#8fb3d1; margin-bottom:10px;
+  }
+  .formula-plate .formula{ font-size:19px; text-align:center; padding:6px 0; overflow-x:auto; }
+  .formula-plate .formula-note{ font-size:12.5px; color:#a9c1d4; margin-top:10px; font-family:'IBM Plex Mono',monospace; line-height:1.7;}
+  .formula-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:760px){ .formula-grid{ grid-template-columns:1fr; } }
+
+  /* worked example */
+  .worked{
+    border:1px solid var(--line); border-left:4px solid var(--brass); background:var(--card);
+    border-radius:var(--radius); padding:20px 24px; margin:18px 0; box-shadow:var(--shadow);
+  }
+  .worked .wk-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--brass); margin-bottom:6px;
+  }
+  .worked .wk-q{ font-size:14.5px; color:var(--ink); margin-bottom:12px; }
+  .steps{ counter-reset:step; list-style:none; margin:0; padding:0; }
+  .steps li{
+    counter-increment:step; position:relative; padding:2px 0 14px 34px; font-size:14.5px; color:var(--ink-soft);
+    border-left:1px dashed #c7bda0; margin-left:11px;
+  }
+  .steps li:last-child{ border-left:1px solid transparent; }
+  .steps li::before{
+    content:counter(step); position:absolute; left:-12px; top:-1px; width:22px; height:22px; border-radius:50%;
+    background:var(--navy-panel); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 3px var(--card);
+  }
+  .steps .kv{ color:var(--ink); font-weight:600; }
+
+  /* diagram card */
+  .diagram{
+    border:1px solid var(--line); border-radius:var(--radius); background:
+      repeating-linear-gradient(0deg, rgba(61,102,144,.07) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(90deg, rgba(61,102,144,.07) 0 1px, transparent 1px 26px),
+      #fbfaf4;
+    padding:18px; margin:18px 0; box-shadow:var(--shadow);
+  }
+  .diagram svg{ width:100%; height:auto; display:block; }
+  .diagram .cap{
+    text-align:center; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .diagram .ctrl{ display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+  .diagram .ctrl button{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.03em;
+    background:var(--card); border:1px solid var(--ink-soft); color:var(--ink); padding:6px 13px;
+    border-radius:2px; cursor:pointer; transition:.15s;
+  }
+  .diagram .ctrl button:hover{ background:var(--navy-panel); color:#fff; border-color:var(--navy-panel); }
+  .diagram .ctrl button.on{ background:var(--accent); border-color:var(--accent-dark); color:#fff; }
+
+  /* key points */
+  .keypoints{ background:var(--verdigris-soft); border:1px solid #b7d4cb; border-radius:var(--radius); padding:18px 22px; margin:18px 0; }
+  .keypoints .kp-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--verdigris); margin-bottom:10px; font-weight:600;
+  }
+  .keypoints ul{ margin:0; padding:0; list-style:none; }
+  .keypoints li{ position:relative; padding-left:26px; margin-bottom:9px; font-size:14px; color:#20423a; line-height:1.55; }
+  .keypoints li::before{
+    content:""; position:absolute; left:0; top:3px; width:14px; height:14px; border:2px solid var(--verdigris);
+    background:#fff;
+  }
+  .keypoints li::after{
+    content:"✓"; position:absolute; left:2.5px; top:-2.5px; font-size:11px; color:var(--verdigris); font-weight:700;
+  }
+
+  /* exam questions */
+  .exam-block{ margin:18px 0; }
+  .exam-block .ex-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent-dark); margin-bottom:10px; font-weight:600;
+    display:flex; align-items:center; gap:8px;
+  }
+  .exam-card{
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--card); margin-bottom:10px; box-shadow:var(--shadow);
+  }
+  .exam-q{ padding:15px 20px; display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+  .exam-q .qn{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:#fff; background:var(--ink);
+    width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+  }
+  .exam-q .qt{ font-size:14.5px; color:var(--ink); flex:1; }
+  .exam-q .qmeta{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); white-space:nowrap; margin-top:3px; }
+  .exam-a{
+    max-height:0; overflow:hidden; transition:max-height .25s ease;
+    background:#fdf6ec; border-top:1px dashed var(--line);
+  }
+  .exam-card.open .exam-a{ max-height:600px; }
+  .exam-a-in{ padding:14px 20px 16px 56px; font-size:13.5px; color:var(--ink-soft); line-height:1.6; }
+  .exam-a-in b{ color:var(--ink); }
+
+  /* brainstorm */
+  .brainstorm{
+    background: var(--navy); color:#eaf1f7; border-radius:var(--radius); padding:20px 24px; margin:26px 0 10px;
+    position:relative; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .brainstorm::before{
+    content:""; position:absolute; top:-40px; right:-40px; width:140px; height:140px; border-radius:50%;
+    background:radial-gradient(circle, rgba(193,86,15,.35), transparent 70%);
+  }
+  .brainstorm .bs-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:#ffb787; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .brainstorm p{ color:#cfe0ee; font-size:14.5px; margin:0; position:relative; z-index:1;}
+  .brainstorm p + p{ margin-top:10px; }
+
+  /* prev/next */
+  .pagenav{ display:flex; justify-content:space-between; margin-top:48px; padding-top:20px; border-top:1px solid var(--line); gap:14px; }
+  .pagenav button{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--card); border:1px solid var(--ink); color:var(--ink);
+    padding:12px 18px; border-radius:2px; cursor:pointer; display:flex; flex-direction:column; gap:2px; min-width:180px;
+    transition:.15s;
+  }
+  .pagenav button:hover{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  .pagenav button.next{ text-align:right; align-items:flex-end; margin-left:auto; }
+  .pagenav button .lbl{ font-size:9.5px; letter-spacing:.14em; color:var(--accent); text-transform:uppercase; }
+  .pagenav button:hover .lbl{ color:#ffb787; }
+
+  /* misc inline */
+  .pill{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; background:var(--accent-soft); color:var(--accent-dark); padding:2px 9px; border-radius:10px; margin:0 4px 4px 0; }
+  .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:760px){ .twocol{ grid-template-columns:1fr; } }
+  table.dtab{ border-collapse:collapse; width:100%; font-size:13.5px; margin:14px 0; }
+  table.dtab th, table.dtab td{ border:1px solid var(--line); padding:8px 10px; text-align:center; }
+  table.dtab th{ background:var(--navy-panel); color:#fff; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:11.5px; letter-spacing:.03em; }
+  table.dtab td.hl{ background:var(--accent-soft); font-weight:600; }
+  table.dtab td.tot{ background:#eee6d2; font-weight:600; }
+
+  /* menu button (mobile) */
+  .menu-btn{
+    display:none; align-items:center; gap:8px; background:var(--navy); color:#fff; border:none;
+    padding:10px 16px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.06em;
+    position:fixed; top:14px; left:14px; z-index:30; border-radius:3px; box-shadow:var(--shadow); cursor:pointer;
+  }
+
+  @media(max-width:900px){
+    .sidebar{ transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.3); }
+    .sidebar.open{ transform:translateX(0); }
+    .main{ margin-left:0; padding:80px 20px 80px; }
+    .paper-tex{ left:0; }
+    .menu-btn{ display:flex; }
+    .sec-title{ font-size:26px; }
+    .formula-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰ &nbsp;COURSE MENU</button>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="plate">
+        <svg class="badge" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="20" stroke="#c1560f" stroke-width="2"/>
+          <circle cx="22" cy="22" r="14" stroke="#7fa6c9" stroke-width="1"/>
+          <line x1="22" y1="2" x2="22" y2="42" stroke="#7fa6c9" stroke-width="1"/>
+          <line x1="2" y1="22" x2="42" y2="22" stroke="#7fa6c9" stroke-width="1"/>
+          <path d="M14 28 L22 12 L30 28 Z" fill="none" stroke="#eaf1f7" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="22" cy="22" r="2" fill="#c1560f"/>
+        </svg>
+        <div>
+          <div class="code">MATH · 243</div>
+          <h1>Statistics &amp; Probability</h1>
+        </div>
+      </div>
+      <div class="sub">Interactive course notes — compiled from Stat L1–L2 &amp; Probability L2–L5. Prof. Claude's working notebook.</div>
+    </div>
+
+    <div class="nav" id="navList">
+      <div class="group-label">Start Here</div>
+      <button class="nav-item" data-target="s0">
+        <span class="dot"></span>
+        <span><span class="tag">ORIENTATION</span><span class="ttl">Welcome &amp; How This Works</span></span>
+      </button>
+
+      <div class="group-label">Part I — Statistics</div>
+      <button class="nav-item" data-target="s1">
+        <span class="dot"></span>
+        <span><span class="tag">STAT · L1</span><span class="ttl">Foundations of Statistics</span></span>
+      </button>
+      <button class="nav-item" data-target="s2">
+        <span class="dot"></span>
+        <span><span class="tag">STAT · L2</span><span class="ttl">Organizing Data: Frequency Distributions</span></span>
+      </button>
+      <button class="nav-item" data-target="s3">
+        <span class="dot"></span>
+        <span><span class="tag">CH · 03</span><span class="ttl">Measures of Central Tendency</span></span>
+      </button>
+      <button class="nav-item" data-target="s4">
+        <span class="dot"></span>
+        <span><span class="tag">CH · 03B</span><span class="ttl">Skewness, Moments &amp; Kurtosis</span></span>
+      </button>
+
+      <div class="group-label">Part II — Probability</div>
+      <button class="nav-item" data-target="s5">
+        <span class="dot"></span>
+        <span><span class="tag">LECTURE 02</span><span class="ttl">Foundations of Probability</span></span>
+      </button>
+      <button class="nav-item" data-target="s6">
+        <span class="dot"></span>
+        <span><span class="tag">LECTURE 03–04</span><span class="ttl">Odds &amp; Joint Probability</span></span>
+      </button>
+      <button class="nav-item" data-target="s7">
+        <span class="dot"></span>
+        <span><span class="tag">LECTURE 05</span><span class="ttl">Conditional Probability &amp; Bayes</span></span>
+      </button>
+
+      <div class="group-label">Exam Prep</div>
+      <button class="nav-item" data-target="s8">
+        <span class="dot"></span>
+        <span><span class="tag">CHEAT SHEET</span><span class="ttl">Full Formula Reference</span></span>
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      COURSE PROGRESS
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span id="progressText">0 / 9 modules visited</span>
+    </div>
+  </nav>
+
+  <div class="paper-tex"></div>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="main" id="main">
+
+    <!-- SECTION 0 -->
+    <section class="section" id="s0" data-title="Welcome" data-prev="" data-next="s1">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Orientation <span class="src">Course Overview</span></div>
+        <h1 class="sec-title">Welcome to MATH 243</h1>
+        <p class="sec-intro">Good morning. I'm your professor for this notebook — think of me as a colleague who has already marked every exam this material tends to produce, and who is going to walk you through it the way I wish someone had walked me through it the first time. We will go from the very first definition of "statistics" all the way to Bayes' theorem, in the same order your slides do. Nothing here is padding — every section maps directly onto a lecture you've been given.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">§0.1</span> How this notebook is built</h2>
+      <p>Every module on the left follows the same drafting-table layout, so once you know the pattern, you can move fast:</p>
+      <div class="twocol">
+        <div class="card">
+          <h3 class="sub-h">📐 Background &amp; Key Formulas</h3>
+          <p style="margin:0;font-size:14px;">A brief, no-fluff explanation of <em>why</em> the topic exists, followed by the formulas mounted on a "spec plate" exactly as you'll need to write them in an exam.</p>
+        </div>
+        <div class="card">
+          <h3 class="sub-h">🧮 Worked Examples</h3>
+          <p style="margin:0;font-size:14px;">Step-by-step solutions, numbered like a lab procedure, pulled straight from your lecture data sets.</p>
+        </div>
+        <div class="card">
+          <h3 class="sub-h">📊 Diagrams</h3>
+          <p style="margin:0;font-size:14px;">Hand-drafted blueprint-style figures — some interactive — so you can <em>see</em> what a formula is doing, not just compute it.</p>
+        </div>
+        <div class="card">
+          <h3 class="sub-h">✅ Key Points + 🎓 Exam Questions</h3>
+          <p style="margin:0;font-size:14px;">A checklist of what's non-negotiable to remember, followed by exam-style questions with tap-to-reveal solutions.</p>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">§0.2</span> The road map</h2>
+      <div class="diagram">
+        <svg viewBox="0 0 1080 220" xmlns="http://www.w3.org/2000/svg">
+          <line x1="60" y1="110" x2="1020" y2="110" stroke="#c9bfa2" stroke-width="2" stroke-dasharray="2 6"/>
+          <!-- 7 stations -->
+          <g font-family="IBM Plex Mono, monospace">
+            <!-- station template repeated -->
+            <g transform="translate(60,110)">
+              <circle r="9" fill="#c1560f"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">L1</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Foundations</text>
+            </g>
+            <g transform="translate(220,110)">
+              <circle r="9" fill="#c1560f"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">L2</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Frequency Dist.</text>
+            </g>
+            <g transform="translate(380,110)">
+              <circle r="9" fill="#c1560f"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">Ch3</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Central Tendency</text>
+            </g>
+            <g transform="translate(540,110)">
+              <circle r="9" fill="#c1560f"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">Ch3b</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Skew &amp; Kurtosis</text>
+            </g>
+            <g transform="translate(700,110)">
+              <circle r="9" fill="#2f6e62"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">P2</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Probability</text>
+            </g>
+            <g transform="translate(850,110)">
+              <circle r="9" fill="#2f6e62"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">P3–4</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Odds &amp; Joint</text>
+            </g>
+            <g transform="translate(1020,110)">
+              <circle r="9" fill="#2f6e62"/>
+              <text y="-24" text-anchor="middle" font-size="11" fill="#1b2a35" font-weight="600">P5</text>
+              <text y="34" text-anchor="middle" font-size="10.5" fill="#4a5a66">Bayes' Theorem</text>
+            </g>
+          </g>
+          <text x="60" y="170" font-family="IBM Plex Mono, monospace" font-size="10" fill="#c1560f" letter-spacing="1px">■ STATISTICS — describing &amp; summarizing data</text>
+          <text x="700" y="170" font-family="IBM Plex Mono, monospace" font-size="10" fill="#2f6e62" letter-spacing="1px">■ PROBABILITY — reasoning about uncertainty</text>
+        </svg>
+        <div class="cap">Fig. 0.1 — The course in one line: we describe data first, then learn to reason about the uncertainty behind it.</div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Professor's Note</div>
+        <p>Statistics and Probability are two halves of one skill: statistics takes a pile of real numbers and organizes it into a story (mean, spread, shape); probability takes a story about chance and predicts what numbers you'd expect to see. Every topic from here on is really just one of those two moves. Keep asking yourself, "Am I describing data I already have, or predicting data I don't have yet?" — it will tell you which toolbox to reach into on exam day.</p>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Before you start — three habits that separate a top result from an average one</div>
+        <ul>
+          <li>Always write down what each symbol means <b>before</b> plugging numbers in — half of exam marks are for method, not the final number.</li>
+          <li>For grouped-data formulas, get the class boundaries right first (subtract/add 0.5) — a wrong boundary silently wrongs every answer after it.</li>
+          <li>In probability, always define your events in words first (e.g. "Let $D$ = person has the disease") — it prevents the single most common exam mistake: mixing up $P(A|B)$ with $P(B|A)$.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SECTION 1 -->
+    <section class="section" id="s1" data-title="Foundations of Statistics" data-prev="s0" data-next="s2">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part I — Statistics <span class="src">Source: Stat_L1.pdf</span></div>
+        <h1 class="sec-title">1. Foundations of Statistics</h1>
+        <p class="sec-intro">Before any formula, we need shared vocabulary. This module defines statistics itself, separates <em>describing</em> data from <em>inferring</em> from it, classifies the variables you'll be measuring, and covers the four ways researchers actually go out and collect a sample.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">1.1</span> What is Statistics?</h2>
+      <p><b>Statistics</b> is the science of collecting, organizing, summarizing, analyzing, and drawing conclusions from data. A <b>variable</b> is any characteristic that can take different values; the actual recorded values are <b>data</b>. When a variable's value is left to chance, it's a <b>random variable</b> — an insurer can't predict which car crashes this year, but knows that on average 3% will.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="330" cy="130" r="115" fill="rgba(61,102,144,.08)" stroke="#3d6690" stroke-width="2"/>
+          <text x="330" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#132436" font-weight="600">POPULATION</text>
+          <text x="330" y="50" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="#4a5a66">all subjects being studied</text>
+          <circle cx="360" cy="150" r="55" fill="rgba(193,86,15,.12)" stroke="#c1560f" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="360" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#9a4409" font-weight="700">SAMPLE</text>
+          <!-- dots population -->
+          <g fill="#7fa6c9">
+            <circle cx="255" cy="90" r="5"/><circle cx="290" cy="70" r="5"/><circle cx="230" cy="140" r="5"/>
+            <circle cx="250" cy="190" r="5"/><circle cx="400" cy="60" r="5"/><circle cx="410" cy="200" r="5"/>
+            <circle cx="300" cy="210" r="5"/><circle cx="220" cy="100" r="5"/><circle cx="240" cy="60" r="5"/>
+          </g>
+          <!-- dots sample (inside small circle, highlighted) -->
+          <g fill="#c1560f">
+            <circle cx="340" cy="130" r="5.5"/><circle cx="370" cy="120" r="5.5"/><circle cx="380" cy="165" r="5.5"/>
+            <circle cx="345" cy="170" r="5.5"/>
+          </g>
+          <line x1="480" y1="60" x2="600" y2="60" stroke="#c9bfa2" stroke-dasharray="2 4"/>
+          <text x="610" y="64" font-family="IBM Plex Sans" font-size="12.5" fill="#1b2a35" font-weight="600">Census</text>
+          <text x="610" y="80" font-family="IBM Plex Sans" font-size="11" fill="#4a5a66">data from every subject</text>
+          <line x1="480" y1="150" x2="600" y2="150" stroke="#c9bfa2" stroke-dasharray="2 4"/>
+          <text x="610" y="154" font-family="IBM Plex Sans" font-size="12.5" fill="#9a4409" font-weight="600">Biased sample</text>
+          <text x="610" y="170" font-family="IBM Plex Sans" font-size="11" fill="#4a5a66">doesn't represent the population</text>
+          <text x="610" y="200" font-family="IBM Plex Sans" font-size="11" fill="#4a5a66">— results differ wildly from a census</text>
+        </svg>
+        <div class="cap">Fig. 1.1 — A sample (orange) is a workable slice pulled from the full population (blue).</div>
+      </div>
+
+      <h3 class="sub-h">Descriptive vs. Inferential Statistics</h3>
+      <div class="twocol">
+        <div class="card">
+          <h3 class="sub-h" style="margin-top:0;">📋 Descriptive Statistics</h3>
+          <p style="margin:0;font-size:14px;">Collecting, organizing, summarizing and presenting data — e.g. reporting the average age from a census. No generalizing beyond the data in hand.</p>
+        </div>
+        <div class="card">
+          <h3 class="sub-h" style="margin-top:0;">🔮 Inferential Statistics</h3>
+          <p style="margin:0;font-size:14px;">Generalizing from a <em>sample</em> to a <em>population</em>: estimation, hypothesis testing, and prediction. This is where probability theory gets used.</p>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">1.2</span> Classifying Variables</h2>
+      <div class="diagram">
+        <svg viewBox="0 0 900 230" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <g stroke="#3d6690" stroke-width="1.6" fill="none">
+            <line x1="450" y1="40" x2="450" y2="70"/>
+            <line x1="450" y1="70" x2="230" y2="70"/><line x1="230" y1="70" x2="230" y2="90"/>
+            <line x1="450" y1="70" x2="650" y2="70"/><line x1="650" y1="70" x2="650" y2="90"/>
+            <line x1="650" y1="130" x2="650" y2="150"/>
+            <line x1="650" y1="150" x2="530" y2="150"/><line x1="530" y1="150" x2="530" y2="170"/>
+            <line x1="650" y1="150" x2="770" y2="150"/><line x1="770" y1="150" x2="770" y2="170"/>
+          </g>
+          <rect x="380" y="10" width="140" height="30" rx="3" fill="#132436"/>
+          <text x="450" y="30" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="600">VARIABLE</text>
+          <rect x="150" y="90" width="160" height="34" rx="3" fill="#faf7ee" stroke="#3d6690" stroke-width="1.5"/>
+          <text x="230" y="111" text-anchor="middle" font-size="12" font-weight="600" fill="#1b2a35">Qualitative</text>
+          <text x="230" y="140" text-anchor="middle" font-size="10.5" fill="#4a5a66">categories, e.g. gender, color</text>
+          <rect x="570" y="90" width="160" height="34" rx="3" fill="#faf7ee" stroke="#3d6690" stroke-width="1.5"/>
+          <text x="650" y="111" text-anchor="middle" font-size="12" font-weight="600" fill="#1b2a35">Quantitative</text>
+          <rect x="450" y="170" width="150" height="34" rx="3" fill="rgba(193,86,15,.1)" stroke="#c1560f" stroke-width="1.5"/>
+          <text x="530" y="191" text-anchor="middle" font-size="12" font-weight="600" fill="#9a4409">Discrete</text>
+          <rect x="690" y="170" width="160" height="34" rx="3" fill="rgba(47,110,98,.1)" stroke="#2f6e62" stroke-width="1.5"/>
+          <text x="770" y="191" text-anchor="middle" font-size="12" font-weight="600" fill="#2f6e62">Continuous</text>
+          <text x="530" y="218" text-anchor="middle" font-size="10" fill="#4a5a66">countable: 0,1,2… (e.g. # of children)</text>
+          <text x="770" y="218" text-anchor="middle" font-size="10" fill="#4a5a66">measured, infinite values (e.g. temperature)</text>
+        </svg>
+        <div class="cap">Fig. 1.2 — Every variable in this course falls somewhere on this tree.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">1.3</span> Levels of Measurement</h2>
+      <p>Beyond qualitative/quantitative, every variable also sits on a "ladder" of how much information it carries:</p>
+      <div class="diagram">
+        <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <g>
+            <rect x="20" y="150" width="860" height="30" fill="#eee6d2" stroke="#c9bfa2"/>
+            <text x="45" y="170" font-size="12" font-weight="700" fill="#1b2a35">1 · NOMINAL</text>
+            <text x="230" y="170" font-size="11" fill="#4a5a66">Names/categories only, no order — e.g. automobile color</text>
+          </g>
+          <g>
+            <rect x="20" y="112" width="860" height="30" fill="#e6dabc" stroke="#c9bfa2"/>
+            <text x="45" y="132" font-size="12" font-weight="700" fill="#1b2a35">2 · ORDINAL</text>
+            <text x="230" y="132" font-size="11" fill="#4a5a66">Categories with rank/order — e.g. small/medium/large pizza</text>
+          </g>
+          <g>
+            <rect x="20" y="74" width="860" height="30" fill="#f0d9c4" stroke="#c9bfa2"/>
+            <text x="45" y="94" font-size="12" font-weight="700" fill="#9a4409">3 · INTERVAL</text>
+            <text x="230" y="94" font-size="11" fill="#4a5a66">Ordered, equal gaps, but no true zero — e.g. temperature (°F)</text>
+          </g>
+          <g>
+            <rect x="20" y="36" width="860" height="30" fill="#e3c4ab" stroke="#c9bfa2"/>
+            <text x="45" y="56" font-size="12" font-weight="700" fill="#9a4409">4 · RATIO</text>
+            <text x="230" y="56" font-size="11" fill="#4a5a66">Ordered, equal gaps, true zero, true ratios — e.g. height, weight</text>
+          </g>
+          <path d="M10 178 L10 30" stroke="#c1560f" stroke-width="2" marker-end="url(#arrow1)"/>
+          <defs><marker id="arrow1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c1560f"/></marker></defs>
+          <text x="-2" y="20" transform="rotate(-90 10 178)" font-size="9" fill="#9a4409" font-family="IBM Plex Mono, monospace" letter-spacing="1px" text-anchor="start"></text>
+        </svg>
+        <div class="cap">Fig. 1.3 — Information content increases as you climb: nominal → ordinal → interval → ratio.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">1.4</span> Sampling Methods</h2>
+      <p>Since studying a full population is usually too costly, we sample it. Click each method below to see how it selects subjects.</p>
+      <div class="diagram">
+        <div class="ctrl">
+          <button class="on" data-show="all">All</button>
+          <button data-show="random">Random</button>
+          <button data-show="systematic">Systematic</button>
+          <button data-show="stratified">Stratified</button>
+          <button data-show="cluster">Cluster</button>
+        </div>
+        <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <!-- Random -->
+          <g data-layer="random">
+            <text x="90" y="24" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1b2a35">Random</text>
+            <g fill="#aebfcc">
+              <circle cx="20" cy="50" r="6"/><circle cx="70" cy="45" r="6"/><circle cx="120" cy="50" r="6"/>
+              <circle cx="30" cy="90" r="6"/><circle cx="60" cy="100" r="6"/><circle cx="160" cy="90" r="6"/>
+              <circle cx="40" cy="130" r="6"/><circle cx="150" cy="150" r="6"/><circle cx="105" cy="130" r="6"/>
+              <circle cx="170" cy="60" r="6"/><circle cx="100" cy="165" r="6"/>
+            </g>
+            <g fill="#c1560f">
+              <circle cx="45" cy="70" r="6"/><circle cx="95" cy="65" r="6"/><circle cx="90" cy="85" r="6"/><circle cx="130" cy="135" r="6"/>
+            </g>
+          </g>
+          <!-- Systematic -->
+          <g data-layer="systematic" transform="translate(230,0)">
+            <text x="90" y="24" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1b2a35">Systematic</text>
+            <g fill="#aebfcc">
+              <circle cx="20" cy="55" r="6"/><circle cx="80" cy="55" r="6"/><circle cx="110" cy="55" r="6"/><circle cx="170" cy="55" r="6"/>
+              <circle cx="20" cy="90" r="6"/><circle cx="80" cy="90" r="6"/><circle cx="110" cy="90" r="6"/><circle cx="170" cy="90" r="6"/>
+              <circle cx="20" cy="125" r="6"/><circle cx="80" cy="125" r="6"/><circle cx="110" cy="125" r="6"/>
+            </g>
+            <g fill="#c1560f">
+              <circle cx="50" cy="55" r="6"/><circle cx="140" cy="55" r="6"/><circle cx="50" cy="90" r="6"/><circle cx="140" cy="90" r="6"/><circle cx="50" cy="125" r="6"/>
+            </g>
+            <text x="90" y="195" text-anchor="middle" font-size="9.5" fill="#4a5a66">every k-th subject ⭢</text>
+          </g>
+          <!-- Stratified -->
+          <g data-layer="stratified" transform="translate(460,0)">
+            <text x="90" y="24" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1b2a35">Stratified</text>
+            <line x1="10" y1="72" x2="175" y2="72" stroke="#c9bfa2" stroke-dasharray="3 3"/>
+            <line x1="10" y1="117" x2="175" y2="117" stroke="#c9bfa2" stroke-dasharray="3 3"/>
+            <g fill="#aebfcc">
+              <circle cx="20" cy="50" r="6"/><circle cx="80" cy="50" r="6"/><circle cx="110" cy="50" r="6"/><circle cx="170" cy="50" r="6"/>
+              <circle cx="20" cy="95" r="6"/><circle cx="50" cy="95" r="6"/><circle cx="110" cy="95" r="6"/><circle cx="140" cy="95" r="6"/>
+              <circle cx="50" cy="140" r="6"/><circle cx="80" cy="140" r="6"/><circle cx="140" cy="140" r="6"/><circle cx="170" cy="140" r="6"/>
+            </g>
+            <g fill="#c1560f">
+              <circle cx="50" cy="50" r="6"/><circle cx="140" cy="50" r="6"/>
+              <circle cx="80" cy="95" r="6"/><circle cx="170" cy="95" r="6"/>
+              <circle cx="20" cy="140" r="6"/><circle cx="110" cy="140" r="6"/>
+            </g>
+            <text x="185" y="54" font-size="9" fill="#4a5a66">strata 1</text>
+            <text x="185" y="99" font-size="9" fill="#4a5a66">strata 2</text>
+            <text x="185" y="144" font-size="9" fill="#4a5a66">strata 3</text>
+          </g>
+          <!-- Cluster -->
+          <g data-layer="cluster" transform="translate(690,0)">
+            <text x="90" y="24" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1b2a35">Cluster</text>
+            <rect x="25" y="38" width="50" height="50" fill="none" stroke="#aebfcc" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <rect x="105" y="38" width="50" height="50" fill="none" stroke="#c1560f" stroke-width="1.6"/>
+            <rect x="25" y="120" width="50" height="50" fill="none" stroke="#c1560f" stroke-width="1.6"/>
+            <rect x="105" y="120" width="50" height="50" fill="none" stroke="#aebfcc" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <g fill="#aebfcc">
+              <circle cx="38" cy="51" r="5"/><circle cx="62" cy="51" r="5"/><circle cx="38" cy="75" r="5"/><circle cx="62" cy="75" r="5"/>
+              <circle cx="118" cy="133" r="5"/><circle cx="142" cy="133" r="5"/><circle cx="118" cy="157" r="5"/><circle cx="142" cy="157" r="5"/>
+            </g>
+            <g fill="#c1560f">
+              <circle cx="118" cy="51" r="5"/><circle cx="142" cy="51" r="5"/><circle cx="118" cy="75" r="5"/><circle cx="142" cy="75" r="5"/>
+              <circle cx="38" cy="133" r="5"/><circle cx="62" cy="133" r="5"/><circle cx="38" cy="157" r="5"/><circle cx="62" cy="157" r="5"/>
+            </g>
+            <text x="90" y="195" text-anchor="middle" font-size="9.5" fill="#4a5a66">whole clusters selected</text>
+          </g>
+        </svg>
+        <div class="cap" id="sampCap">Every dot is a member of the population; orange dots are the ones selected into the sample.</div>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li><b>Population</b> = everyone being studied; <b>sample</b> = a selected subset used when a census is impractical.</li>
+          <li><b>Descriptive</b> statistics summarizes what you have; <b>inferential</b> statistics generalizes to what you don't.</li>
+          <li>Quantitative variables split into <b>discrete</b> (countable) and <b>continuous</b> (measured, infinitely divisible).</li>
+          <li>Measurement levels, from weakest to strongest information: <b>Nominal → Ordinal → Interval → Ratio.</b> Only Ratio has a true zero.</li>
+          <li>Four sampling methods: <b>Random</b> (chance/number generator), <b>Systematic</b> (every k-th subject), <b>Stratified</b> (random pick within subgroups), <b>Cluster</b> (use whole intact subgroups).</li>
+          <li><b>Sampling error</b> is simply the difference between a sample's result and the true population result.</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">Distinguish between descriptive and inferential statistics with one example each.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in"><b>Descriptive:</b> "The average high temperature across 50 states was 114°F" — a plain summary. <b>Inferential:</b> "Based on a survey of 9,317 shoppers, we estimate all US consumers spent \$116 on average" — generalizing sample → population.</div></div>
+        </div>
+
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">Classify: (a) number of siblings, (b) body temperature, (c) T-shirt size, (d) zip code.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">(a) Discrete quantitative / ratio. (b) Continuous quantitative / interval. (c) Qualitative / ordinal. (d) Qualitative / nominal (numbers used only as labels).</div></div>
+        </div>
+
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">A researcher numbers 2,000 factory workers and selects every 25th worker starting from a random point between 1–25. Name and define this sampling method.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in"><b>Systematic sampling.</b> Subjects are chosen using every k-th number after the first subject is randomly selected from 1 through k (here k = 2000/80 = 25).</div></div>
+        </div>
+
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">4</span><span class="qt">Why is cluster sampling preferred over random sampling when studying hospital patients spread across an entire country?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because a true random sample would require reaching individuals scattered across a huge geographic area — costly and slow. Cluster sampling instead randomly selects a few intact clusters (e.g. a handful of hospitals) and surveys everyone inside them, which is far cheaper.</div></div>
+        </div>
+
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">5</span><span class="qt">Explain why temperature is an interval variable, not a ratio variable.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because 0°F does not mean "no temperature" — it's an arbitrary point, not a true zero. So you cannot say 100°F is "twice as hot" as 50°F. (Kelvin, which has an absolute zero, would be ratio.)</div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>The textbook's own systematic-sampling warning is worth sitting with: if a population is arranged wife, husband, wife, husband, ... and you sample every 40th person, you could accidentally sample <em>only husbands</em>. What other everyday orderings (seating charts, roll-call lists, shift schedules) could quietly sabotage a systematic sample the same way? Try to invent one example — it's a favorite style of "spot the flaw" exam question.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section" id="s2" data-title="Frequency Distributions" data-prev="s1" data-next="s3">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part I — Statistics <span class="src">Source: Stat_L2.pdf</span></div>
+        <h1 class="sec-title">2. Organizing Data: Frequency Distributions</h1>
+        <p class="sec-intro">Raw data — fifty temperature readings scattered on a page — tells you almost nothing at a glance. A <b>grouped frequency distribution</b> buckets it into classes so patterns (peaks, gaps, outliers) become visible. This is the very first "summarizing" step of descriptive statistics in action.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">2.1</span> Building a Grouped Frequency Distribution</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Procedure — 4 steps</div>
+        <div class="formula" style="text-align:left; font-size:15px;">
+          <b>Step 1</b> — Range: $R = H - L$ &nbsp; (highest − lowest value)<br>
+          <b>Step 2</b> — Class width: $\text{Width} = \dfrac{R}{\text{number of classes}}$, always round <em>up</em><br>
+          <b>Step 3</b> — Class limits: start at a convenient number ≤ L, add the width repeatedly<br>
+          <b>Step 4</b> — Class boundaries: subtract 0.5 from every lower limit, add 0.5 to every upper limit
+        </div>
+        <div class="formula-note">Boundaries close the gap between classes (e.g. 100–104 and 105–109 become 99.5–104.5 and 104.5–109.5) so continuous data has nowhere to "fall through the cracks."</div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example</div>
+        <div class="wk-q">Record high temperatures (°F) for all 50 US states. Construct a grouped frequency distribution using 7 classes. Highest $H=134$, Lowest $L=100$.</div>
+        <ol class="steps">
+          <li>Range: <span class="kv">$R = 134 - 100 = 34$</span></li>
+          <li>Class width: <span class="kv">$34/7 = 4.86 \Rightarrow$ round up to $5$</span></li>
+          <li>Class limits starting at 100, width 5: <span class="kv">100–104, 105–109, 110–114, … , 130–134</span></li>
+          <li>Class boundaries: <span class="kv">99.5–104.5, 104.5–109.5, … , 129.5–134.5</span></li>
+          <li>Tally the 50 data values into each class and count frequencies (table + chart below)</li>
+        </ol>
+      </div>
+
+      <div class="twocol">
+        <div class="card">
+          <h3 class="sub-h" style="margin-top:0;">Frequency Table</h3>
+          <table class="dtab">
+            <tr><th>Class</th><th>Boundaries</th><th>Freq. (f)</th><th>Cum. Freq.</th></tr>
+            <tr><td>100–104</td><td>99.5–104.5</td><td>2</td><td>2</td></tr>
+            <tr><td>105–109</td><td>104.5–109.5</td><td>8</td><td>10</td></tr>
+            <tr class="hlrow"><td class="hl">110–114</td><td class="hl">109.5–114.5</td><td class="hl">18</td><td class="hl">28</td></tr>
+            <tr><td>115–119</td><td>114.5–119.5</td><td>13</td><td>41</td></tr>
+            <tr><td>120–124</td><td>119.5–124.5</td><td>7</td><td>48</td></tr>
+            <tr><td>125–129</td><td>124.5–129.5</td><td>1</td><td>49</td></tr>
+            <tr><td>130–134</td><td>129.5–134.5</td><td>1</td><td>50</td></tr>
+            <tr><td class="tot">Total</td><td class="tot">—</td><td class="tot">50</td><td class="tot">—</td></tr>
+          </table>
+        </div>
+        <div class="diagram" style="margin:16px 0;">
+          <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+            <!-- bars: freqs 2,8,18,13,7,1,1 max 18 -->
+            <g fill="#3d6690">
+              <rect x="30" y="216" width="42" height="4"/>
+              <rect x="78" y="200" width="42" height="20" fill="#3d6690"/>
+              <rect x="126" y="130" width="42" height="90" fill="#c1560f"/>
+              <rect x="174" y="155" width="42" height="65"/>
+              <rect x="222" y="185" width="42" height="35"/>
+              <rect x="270" y="215" width="42" height="5"/>
+              <rect x="318" y="215" width="42" height="5"/>
+            </g>
+            <g font-size="11" fill="#1b2a35" text-anchor="middle">
+              <text x="51" y="234">100-104</text><text x="99" y="234">105-109</text><text x="147" y="234">110-114</text>
+              <text x="195" y="234">115-119</text><text x="243" y="234">120-124</text><text x="291" y="234">125-129</text><text x="339" y="234">130-134</text>
+            </g>
+            <g font-size="11" fill="#4a5a66" text-anchor="middle">
+              <text x="51" y="210">2</text><text x="99" y="194">8</text><text x="147" y="124" fill="#9a4409" font-weight="700">18</text>
+              <text x="195" y="149">13</text><text x="243" y="179">7</text><text x="291" y="209">1</text><text x="339" y="209">1</text>
+            </g>
+            <line x1="20" y1="220" x2="370" y2="220" stroke="#1b2a35" stroke-width="1.4"/>
+          </svg>
+          <div class="cap">Fig. 2.1 — Histogram: most record highs cluster around 110–119°F.</div>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">2.2</span> Cumulative Frequency Distribution</h2>
+      <p>A <b>cumulative frequency distribution</b> shows how many data values fall at or below each upper boundary — just keep a running total. It answers questions like "how many states have a record high of 114°F or below?" (answer: 28).</p>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Rule</div>
+        <div class="formula">cumulative freq. of class $i$ = cumulative freq. of class $(i-1)$ + freq. of class $i$</div>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>Number of classes is usually chosen between 5 and 20 (often given to you in exam questions).</li>
+          <li>Always <b>round the class width up</b> — even if the division comes out exact, add an extra class to be safe.</li>
+          <li>Class <b>boundaries</b> (with the .5) are what make classes continuous with no gaps — used in every later formula (median, mode, quartiles).</li>
+          <li>Cumulative frequency of the last class always equals $N$, the total frequency.</li>
+          <li>Peaks in a distribution show where data concentrates; extreme values far from the rest are called <b>outliers</b>.</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">Given $H=97$, $L=21$, and 6 desired classes, find the class width.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$R = 97-21=76$. Width $=76/6=12.67 \Rightarrow$ round up to <b>13</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">Why do we compute class boundaries instead of just using the class limits directly?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because limits like 100–104 and 105–109 leave a hidden gap (104 to 105) where a continuous value like 104.3 wouldn't fit anywhere. Boundaries (99.5–104.5, 104.5–109.5…) remove that gap.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">From the temperature table above, how many states had a record high strictly less than 120°F?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Use the cumulative frequency of the class ending at 119.5: <b>41 states.</b></div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>Notice the histogram is lopsided — a tall cluster around 110–119°F with a long thin tail out to 134°F. Hold that shape in your head; it's exactly the intuition Module 4 (Skewness) will put a number on.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section" id="s3" data-title="Central Tendency" data-prev="s2" data-next="s4">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part I — Statistics <span class="src">Source: 1__Central_Tendency.pdf</span></div>
+        <h1 class="sec-title">3. Measures of Central Tendency</h1>
+        <p class="sec-intro">A measure of central tendency compresses an entire data set into <b>one representative number</b> — useful for comparison, ranking, and reporting. This module covers all five classical measures: mean, median, mode, geometric mean, and harmonic mean.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.1</span> Arithmetic Mean</h2>
+      <p>The mean is the total of all observations divided by how many there are. For grouped data with a wide range, the <b>short-cut (step-deviation) method</b> avoids large multiplications.</p>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Direct method</div>
+          <div class="formula">$\bar{X} = \dfrac{\sum X_i}{N}$ &nbsp; or, for frequency data, &nbsp; $\bar{X}=\dfrac{\sum f_i X_i}{\sum f_i}$</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Short-cut / step-deviation method</div>
+          <div class="formula">$\bar{X} = A + \dfrac{\sum f_i d_i}{N}\times h,\quad d_i = \dfrac{x_i - A}{h}$</div>
+          <div class="formula-note">$A$ = assumed mean (a convenient mid-value) &nbsp;·&nbsp; $h$ = class width</div>
+        </div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — Short-cut Method</div>
+        <div class="wk-q">Marks of 80 students: classes 0–20, 20–40, … ,120–140 with frequencies 4, 26, 22, 10, 9, 6, 3. Take $A=70$, $h=20$.</div>
+        <ol class="steps">
+          <li>Compute $d_i = (x_i - 70)/20$ for each class midpoint, giving −3,−2,−1,0,+1,+2,+3</li>
+          <li>Multiply by frequency: $f_id_i$ = −12,−52,−22, 0, +9, +12, +9</li>
+          <li>Sum: <span class="kv">$\sum f_i d_i = -56$</span></li>
+          <li>Apply formula: $\bar{X} = 70 + \dfrac{-56}{80}\times 20 = $ <span class="kv">$56$</span></li>
+        </ol>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.2</span> Median</h2>
+      <p>The middle value once data is sorted — unaffected by extreme outliers, unlike the mean.</p>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Ungrouped data</div>
+          <div class="formula" style="font-size:16px;">$N$ odd: median = $\left(\dfrac{N+1}{2}\right)^{th}$ value<br>$N$ even: average of $\left(\dfrac{N}{2}\right)^{th}$ &amp; $\left(\dfrac{N}{2}+1\right)^{th}$ values</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Grouped data</div>
+          <div class="formula">$\text{Median} = L + \dfrac{\frac{N}{2} - \text{p.c.f}}{f}\times h$</div>
+          <div class="formula-note">$L$ = lower boundary of median class · p.c.f = cumulative freq. <em>before</em> median class · $f$ = freq. of median class</div>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.3</span> Quartiles, Deciles &amp; Percentiles</h2>
+      <p>These generalize the median: quartiles cut data into 4 equal parts, deciles into 10, percentiles into 100. $Q_2$ = median.</p>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">General position formula (grouped data)</div>
+        <div class="formula">$Q_i = L + \dfrac{\frac{iN}{4}-\text{p.c.f}}{f}\times h \;\;(i=1,2,3)\qquad D_i = L+\dfrac{\frac{iN}{10}-\text{p.c.f}}{f}\times h\;\;(i=1..9)\qquad P_i = L+\dfrac{\frac{iN}{100}-\text{p.c.f}}{f}\times h\;\;(i=1..99)$</div>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 800 110" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+          <rect x="40" y="40" width="180" height="30" fill="rgba(61,102,144,.15)" stroke="#3d6690"/>
+          <rect x="220" y="40" width="180" height="30" fill="rgba(193,86,15,.18)" stroke="#c1560f"/>
+          <rect x="400" y="40" width="180" height="30" fill="rgba(193,86,15,.18)" stroke="#c1560f"/>
+          <rect x="580" y="40" width="180" height="30" fill="rgba(61,102,144,.15)" stroke="#3d6690"/>
+          <text x="40" y="30" font-size="11" fill="#1b2a35">25%</text><text x="220" y="30" font-size="11" fill="#1b2a35">25%</text>
+          <text x="400" y="30" font-size="11" fill="#1b2a35">25%</text><text x="580" y="30" font-size="11" fill="#1b2a35">25%</text>
+          <text x="220" y="90" text-anchor="middle" font-size="12" fill="#9a4409" font-weight="700">Q1</text>
+          <text x="400" y="90" text-anchor="middle" font-size="12" fill="#9a4409" font-weight="700">Q2 = Median</text>
+          <text x="580" y="90" text-anchor="middle" font-size="12" fill="#9a4409" font-weight="700">Q3</text>
+        </svg>
+        <div class="cap">Fig. 3.1 — Quartiles slice sorted data into four equal-frequency bands.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.4</span> Mode</h2>
+      <p>The value occurring most often — the only central-tendency measure that works for purely qualitative data too.</p>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Grouped data</div>
+        <div class="formula">$\text{Mode} = L + \dfrac{\Delta_1}{\Delta_1+\Delta_2}\times h$</div>
+        <div class="formula-note">$L$ = lower boundary of modal class (highest frequency) · $\Delta_1$ = (modal freq. − pre-modal freq.) · $\Delta_2$ = (modal freq. − post-modal freq.)</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.5</span> Geometric &amp; Harmonic Mean</h2>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Geometric Mean</div>
+          <div class="formula">$GM = \text{Antilog}\left(\dfrac{\sum \log X_i}{N}\right)$</div>
+          <div class="formula-note">best for growth rates / ratios (interest rates, index numbers)</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Harmonic Mean</div>
+          <div class="formula">$HM = \dfrac{N}{\sum \left(\frac{1}{X_i}\right)}$</div>
+          <div class="formula-note">best for rates / speeds (km per hour, price per unit)</div>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">3.6</span> The Empirical Relationship</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Very exam-favorite formula</div>
+        <div class="formula">$\text{Mode} = 3\,\text{Median} - 2\,\text{Mean}$</div>
+        <div class="formula-note">Lets you find any one of the three if you already know the other two — for a moderately skewed distribution.</div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — All Three, Linked</div>
+        <div class="wk-q">Weights of 150 students: classes 30–40…80–90 with frequencies 18, 37, 45, 27, 15, 8. (Median class 50–60, Modal class 50–60.)</div>
+        <ol class="steps">
+          <li>Median $= 50 + \dfrac{75-55}{45}\times 10 = $ <span class="kv">54.44</span></li>
+          <li>Mode $= 50 + \dfrac{8}{8+18}\times 10 = $ <span class="kv">53.08</span></li>
+          <li>Using the empirical relation: $\text{Mean} = \dfrac{3(54.44)-53.08}{2} = $ <span class="kv">55.12</span></li>
+        </ol>
+      </div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <g transform="translate(0,0)">
+            <path d="M20 150 Q120 20 220 150 Q320 20 420 150" fill="none" stroke="#3d6690" stroke-width="2.4"/>
+            <line x1="220" y1="150" x2="220" y2="40" stroke="#1b2a35" stroke-width="1.4"/>
+            <text x="220" y="170" text-anchor="middle" font-size="11" font-weight="700">Mean = Median = Mode</text>
+            <text x="220" y="20" text-anchor="middle" font-size="11.5" fill="#4a5a66" font-weight="600">Symmetric</text>
+          </g>
+          <g transform="translate(460,0)">
+            <path d="M20 150 Q100 15 175 60 Q280 130 440 150" fill="none" stroke="#c1560f" stroke-width="2.4"/>
+            <line x1="150" y1="150" x2="150" y2="60" stroke="#1b2a35" stroke-width="1.1" stroke-dasharray="3 2"/>
+            <line x1="180" y1="150" x2="180" y2="55" stroke="#1b2a35" stroke-width="1.1" stroke-dasharray="3 2"/>
+            <line x1="215" y1="150" x2="215" y2="65" stroke="#1b2a35" stroke-width="1.1" stroke-dasharray="3 2"/>
+            <text x="150" y="165" text-anchor="middle" font-size="10" fill="#1b2a35">Mode</text>
+            <text x="180" y="30" text-anchor="middle" font-size="10" fill="#1b2a35">Median</text>
+            <text x="240" y="165" text-anchor="middle" font-size="10" fill="#1b2a35">Mean</text>
+            <text x="230" y="20" text-anchor="middle" font-size="11.5" fill="#4a5a66" font-weight="600">Positively (right) skewed — Mean &gt; Median &gt; Mode</text>
+          </g>
+        </svg>
+        <div class="cap">Fig. 3.2 — Where mean, median, and mode sit relative to each other tells you the shape (preview of Module 4).</div>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>Mean uses <b>every</b> value, so it's sensitive to outliers; median ignores extremes and is more "robust."</li>
+          <li>For grouped data, always locate the correct class first using cumulative frequency — median/quartile class is where $\frac{iN}{4}$ (or $\frac{N}{2}$) falls, modal class is simply the one with highest frequency.</li>
+          <li>The empirical relation $\text{Mode}=3\text{Median}-2\text{Mean}$ only holds for <em>moderately</em> skewed distributions — memorize it, exams love it.</li>
+          <li>Geometric Mean suits growth/ratio data; Harmonic Mean suits rate data (speed, price per unit).</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">Find the median of: 39, 40, 41, 42, 43, 44, 47, 52, 55, 58, 61.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$N=11$ (odd) → median is the $\frac{11+1}{2}=6^{th}$ value = <b>44</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">If Mean = 56 and Median = 49.09, estimate the Mode using the empirical relation.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$\text{Mode}=3(49.09)-2(56)=147.27-112=$ <b>35.27</b></div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">Why can't you compute a meaningful "mode" for continuous grouped data the same way as for ungrouped data?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because every value can be unique in continuous data — no single value repeats. Instead we locate the <em>modal class</em> (highest frequency) and interpolate within it using $\Delta_1,\Delta_2$.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">4</span><span class="qt">A salesperson drives 60 km/h going and 40 km/h returning the same distance. Which average speed is correct — arithmetic or harmonic mean?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in"><b>Harmonic mean</b> — because we're averaging a rate over the <em>same distance</em>. $HM=\frac{2}{\frac1{60}+\frac1{40}}=48$ km/h (not the arithmetic 50 km/h).</div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>Income data is famously right-skewed — a few billionaires drag the mean far above the median. That's exactly why governments report "median household income," not average. Can you think of another real-world data set where reporting the mean would be misleading?</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="section" id="s4" data-title="Skewness, Moments &amp; Kurtosis" data-prev="s3" data-next="s5">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part I — Statistics <span class="src">Source: 3__Skewness_Moments_and_Kurtosis.pdf</span></div>
+        <h1 class="sec-title">4. Skewness, Moments &amp; Kurtosis</h1>
+        <p class="sec-intro">Central tendency tells you <em>where</em> data sits; dispersion tells you <em>how spread out</em> it is. Neither tells you the <em>shape</em>. Skewness measures asymmetry (which side has the longer tail), and kurtosis measures peakedness. Moments are the unifying mathematical machine behind both.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">4.1</span> What is Skewness?</h2>
+      <p><b>Skewness</b> is lack of symmetry. Where measures of variation tell you the <em>amount</em> of spread, measures of skewness tell you its <em>direction</em>.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <g transform="translate(0,0)">
+            <path d="M20 160 Q140 20 260 160" fill="none" stroke="#3d6690" stroke-width="2.4"/>
+            <line x1="140" y1="160" x2="140" y2="30" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <text x="140" y="180" text-anchor="middle" font-size="10.5" font-weight="700">X̄ = Me = Mo</text>
+            <text x="140" y="14" text-anchor="middle" font-size="12" fill="#4a5a66" font-weight="700">(a) Symmetrical</text>
+          </g>
+          <g transform="translate(300,0)">
+            <path d="M20 160 Q90 15 150 60 Q220 130 300 160" fill="none" stroke="#c1560f" stroke-width="2.4"/>
+            <line x1="110" y1="160" x2="110" y2="70" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <line x1="140" y1="160" x2="140" y2="60" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <line x1="175" y1="160" x2="175" y2="72" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <text x="110" y="176" text-anchor="middle" font-size="10">Mo</text>
+            <text x="140" y="45" text-anchor="middle" font-size="10">Me</text>
+            <text x="175" y="176" text-anchor="middle" font-size="10">X̄</text>
+            <text x="160" y="14" text-anchor="middle" font-size="12" fill="#4a5a66" font-weight="700">(b) Positively skewed</text>
+          </g>
+          <g transform="translate(600,0)">
+            <path d="M20 160 Q100 130 170 60 Q230 15 300 160" fill="none" stroke="#2f6e62" stroke-width="2.4"/>
+            <line x1="125" y1="160" x2="125" y2="72" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <line x1="160" y1="160" x2="160" y2="60" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <line x1="190" y1="160" x2="190" y2="70" stroke="#1b2a35" stroke-dasharray="3 2"/>
+            <text x="125" y="176" text-anchor="middle" font-size="10">X̄</text>
+            <text x="160" y="45" text-anchor="middle" font-size="10">Me</text>
+            <text x="190" y="176" text-anchor="middle" font-size="10">Mo</text>
+            <text x="160" y="14" text-anchor="middle" font-size="12" fill="#4a5a66" font-weight="700">(c) Negatively skewed</text>
+          </g>
+        </svg>
+        <div class="cap">Fig. 4.1 — In (b) mean &gt; mode with median between; in (c) mode &gt; mean with median between.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">4.2</span> Measures of Skewness</h2>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Karl Pearson's Coefficient</div>
+          <div class="formula">$SK_P = \dfrac{\text{Mean}-\text{Mode}}{\sigma}$</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Bowley's Coefficient</div>
+          <div class="formula">$SK_B = \dfrac{Q_3+Q_1-2Q_2}{Q_3-Q_1}$</div>
+        </div>
+      </div>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Kelly's Coefficient</div>
+        <div class="formula">$SK_K = \dfrac{P_{90}-2P_{50}+P_{10}}{P_{90}-P_{10}} = \dfrac{D_9-2D_5+D_1}{D_9-D_1}$</div>
+        <div class="formula-note">Rule for all three: value $>0 \Rightarrow$ positively skewed &nbsp;·&nbsp; $=0 \Rightarrow$ symmetric &nbsp;·&nbsp; $<0 \Rightarrow$ negatively skewed</div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — Karl Pearson's Coefficient</div>
+        <div class="wk-q">Profits of 1000 companies. Computed: Mean $= 177.86$, Mode $= 190.56$, $\sigma = 25.2$.</div>
+        <ol class="steps">
+          <li>$SK_P = \dfrac{177.86-190.56}{25.2} = $ <span class="kv">$-0.504$</span></li>
+          <li><b>Interpretation:</b> mode exceeds mean by about 50.4% of a standard deviation → moderately <b>negatively</b> skewed distribution.</li>
+        </ol>
+      </div>
+
+      <h2 class="block-h"><span class="num">4.3</span> Moments</h2>
+      <p><b>Moments</b> are a family of descriptive measures that, taken together, uniquely characterize a distribution — mean, variance, skewness and kurtosis are all just specific moments.</p>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Raw moments (about assumed mean A)</div>
+          <div class="formula">$\mu'_r = \dfrac{\sum f_i(x_i-A)^r}{N} = \dfrac{\sum f_i d_i^{\,r}}{N}\times h^r$</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Central moments (about mean X̄)</div>
+          <div class="formula">$\mu_r = \dfrac{\sum f_i(x_i-\bar{X})^r}{N}$</div>
+        </div>
+      </div>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Conversion — raw → central (memorize these four)</div>
+        <div class="formula" style="font-size:16px; text-align:left;">
+          $\mu_1 = 0$<br>
+          $\mu_2 = \mu'_2 - (\mu'_1)^2$ &nbsp; <span style="color:#8fb3d1;">← this is the variance $\sigma^2$</span><br>
+          $\mu_3 = \mu'_3 - 3\mu'_1\mu'_2 + 2(\mu'_1)^3$ &nbsp; <span style="color:#8fb3d1;">← relates to skewness</span><br>
+          $\mu_4 = \mu'_4 - 4\mu'_1\mu'_3 + 6(\mu'_1)^2\mu'_2 - 3(\mu'_1)^4$ &nbsp; <span style="color:#8fb3d1;">← relates to kurtosis</span>
+        </div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — First Four Moments</div>
+        <div class="wk-q">Profits of 100 companies, classes 10–20…50–60, freq. 18,20,30,22,10. Using $A=35$, $h=10$: $\sum f_id_i=-14,\;\sum f_id_i^2=154,\;\sum f_id_i^3=-62,\;\sum f_id_i^4=490$.</div>
+        <ol class="steps">
+          <li>Raw moments: $\mu'_1=-1.4,\ \mu'_2=154,\ \mu'_3=-620,\ \mu'_4=49000$</li>
+          <li>Central moments: $\mu_1=0$</li>
+          <li>$\mu_2 = 154-(-1.4)^2 = $ <span class="kv">152.04</span></li>
+          <li>$\mu_3 = -620-3(154)(-1.4)+2(-1.4)^3 = $ <span class="kv">21.312</span></li>
+          <li>$\mu_4 = 49000-4(-620)(-1.4)+6(154)(-1.4)^2-3(-1.4)^4 = $ <span class="kv">47327.51</span></li>
+        </ol>
+      </div>
+
+      <h2 class="block-h"><span class="num">4.4</span> Kurtosis</h2>
+      <p><b>Kurtosis</b> measures peakedness relative to the normal curve.</p>
+      <div class="diagram">
+        <div class="ctrl">
+          <button class="on" data-show="all">Show all three</button>
+          <button data-show="lepto">Leptokurtic</button>
+          <button data-show="meso">Mesokurtic</button>
+          <button data-show="platy">Platykurtic</button>
+        </div>
+        <svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <line x1="30" y1="165" x2="670" y2="165" stroke="#1b2a35" stroke-width="1.4"/>
+          <path data-layer="lepto" d="M100 165 C 260 165, 300 15, 350 15 C 400 15, 440 165, 600 165" fill="none" stroke="#c1560f" stroke-width="2.4"/>
+          <path data-layer="meso" d="M80 165 C 230 165, 300 30, 350 30 C 400 30, 470 165, 620 165" fill="none" stroke="#132436" stroke-width="2.4"/>
+          <path data-layer="platy" d="M60 165 C 180 165, 260 60, 350 60 C 440 60, 520 165, 640 165" fill="none" stroke="#2f6e62" stroke-width="2.4"/>
+          <text x="360" y="10" text-anchor="middle" font-size="10.5" fill="#9a4409" font-weight="700">Leptokurtic (peaked, β₂&gt;3)</text>
+          <text x="360" y="185" text-anchor="middle" font-size="10.5" fill="#132436" font-weight="700">Mesokurtic — normal curve (β₂=3)</text>
+          <text x="360" y="55" text-anchor="middle" font-size="10.5" fill="#2f6e62" font-weight="700">Platykurtic (flat, β₂&lt;3)</text>
+        </svg>
+        <div class="cap">Fig. 4.2 — All three curves share the same mean and area, but differ in how "pointy" the peak is.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">4.5</span> Skewness &amp; Kurtosis via Moments</h2>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Skewness coefficients</div>
+          <div class="formula">$\beta_1 = \dfrac{\mu_3^2}{\mu_2^3} \qquad \gamma_1 = \sqrt{\beta_1} = \dfrac{\mu_3}{\mu_2^{3/2}}$</div>
+          <div class="formula-note">$\beta_1$ is always positive (can't show direction) — use $\gamma_1$ instead: $\gamma_1=0$ symmetric, $\gamma_1>0$ positive skew, $\gamma_1<0$ negative skew</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Kurtosis coefficients</div>
+          <div class="formula">$\beta_2 = \dfrac{\mu_4}{\mu_2^2} \qquad \gamma_2 = \beta_2 - 3$</div>
+          <div class="formula-note">$\beta_2>3\,(\gamma_2>0)$ leptokurtic &nbsp;·&nbsp; $\beta_2=3\,(\gamma_2=0)$ mesokurtic &nbsp;·&nbsp; $\beta_2<3\,(\gamma_2<0)$ platykurtic</div>
+        </div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — Putting It All Together</div>
+        <div class="wk-q">Employee earnings, 7 classes (60 workers). Computed central moments: $\mu_2=926.56,\ \mu_3=4774.832,\ \mu_4=21{,}951{,}073$.</div>
+        <ol class="steps">
+          <li>$\gamma_1 = \dfrac{4774.832}{926.56^{1.5}} = $ <span class="kv">0.1693</span> → slightly <b>right-skewed</b> (not perfectly symmetric)</li>
+          <li>$\beta_2 = \dfrac{21951073}{926.56^2} = 2.56 \Rightarrow \gamma_2 = \beta_2-3 = $ <span class="kv">−0.44</span> → distribution is <b>platykurtic</b> (flatter than normal)</li>
+        </ol>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>Skewness = direction of asymmetry; Kurtosis = peakedness. They answer different questions about shape.</li>
+          <li>Karl Pearson's coefficient needs the mode (can be unreliable if mode is ill-defined) — Bowley's and Kelly's use only quartiles/percentiles, so they're more robust for skewed or open-ended data.</li>
+          <li>The 1st central moment is <b>always 0</b> by definition (deviations from the mean cancel out); the 2nd central moment <b>is</b> the variance.</li>
+          <li>$\beta$ values are always positive; use the signed $\gamma$ values to read <em>direction</em>.</li>
+          <li>Mesokurtic = normal curve = the benchmark ($\beta_2=3$ exactly).</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">If Mean = 36.96, Mode = 37.21, σ = 6.736, find Karl Pearson's coefficient of skewness and interpret it.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$SK_P = \frac{36.96-37.21}{6.736}=-0.037$ — very close to 0, distribution is only <b>slightly negatively skewed</b> (nearly symmetric).</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">Why is $\beta_1$ (not $\gamma_1$) unable to tell you the direction of skewness?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because $\beta_1=\mu_3^2/\mu_2^3$ squares $\mu_3$, destroying its sign — a square is always non-negative regardless of whether the original skew was left or right. $\gamma_1$ keeps $\mu_3$ unsquared (via square root with sign), preserving direction.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">A distribution has $\mu_2=64$ and $\mu_4=15{,}000$. Is it lepto-, meso-, or platykurtic?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$\beta_2 = 15000/64^2 = 3.66 > 3 \Rightarrow \gamma_2=0.66>0 \Rightarrow$ <b>leptokurtic</b> (more peaked than normal).</div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>Two distributions can have <em>identical</em> mean, variance, and even skewness — yet look completely different if one is leptokurtic and the other platykurtic (imagine two exam-score distributions both centered at 70 with the same spread, but one has most students bunched tightly near 70 with fat tails of extreme scores, and the other is evenly spread across the whole range). Why might a professor care about that difference when deciding how to grade on a curve?</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section class="section" id="s5" data-title="Foundations of Probability" data-prev="s4" data-next="s6">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part II — Probability <span class="src">Source: PLecture_2.pdf</span></div>
+        <h1 class="sec-title">5. Foundations of Probability</h1>
+        <p class="sec-intro">We now flip from describing data we already have to reasoning about outcomes we haven't seen yet. This module builds the toolkit: random experiments, set operations, counting (permutations &amp; combinations), and the classical probability formula.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">5.1</span> Random Experiments</h2>
+      <p>A <b>random experiment</b> is one where (a) all possible outcomes are known in advance, (b) the actual outcome of any one trial is unknown beforehand, and (c) it can be repeated under identical conditions. The set of all possible outcomes is the <b>sample space</b> $S$.</p>
+      <div style="margin:14px 0;">
+        <span class="pill">Toss a coin → S={H,T}</span>
+        <span class="pill">Roll a die → S={1,2,3,4,5,6}</span>
+        <span class="pill">Draw a card → S = 52 cards</span>
+        <span class="pill">Two children → S={BB,BG,GB,GG}</span>
+      </div>
+      <p style="font-size:14px;">Two events are <b>equally likely</b> if they share the same chance of occurring — e.g. getting Heads vs. Tails on a fair coin.</p>
+
+      <h2 class="block-h"><span class="num">5.2</span> Set Theory &amp; De Morgan's Laws</h2>
+      <p>Events are sets, so unions ($A\cup B$ = A or B), intersections ($A\cap B$ = A and B), and complements ($A^c$ = not A) all apply. Click a button to highlight each region below.</p>
+      <div class="diagram">
+        <div class="ctrl">
+          <button class="on" data-show="none">Reset</button>
+          <button data-show="union">A ∪ B</button>
+          <button data-show="intersection">A ∩ B</button>
+          <button data-show="complementA">Aᶜ</button>
+          <button data-show="complementUnion">(A ∪ B)ᶜ</button>
+        </div>
+        <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <defs>
+            <clipPath id="clipCircleA"><circle cx="150" cy="90" r="60"/></clipPath>
+            <mask id="maskNotA">
+              <rect x="20" y="20" width="360" height="140" fill="#fff"/>
+              <circle cx="150" cy="90" r="60" fill="#000"/>
+            </mask>
+            <mask id="maskNotAUB">
+              <rect x="20" y="20" width="360" height="140" fill="#fff"/>
+              <circle cx="150" cy="90" r="60" fill="#000"/>
+              <circle cx="230" cy="90" r="60" fill="#000"/>
+            </mask>
+          </defs>
+          <rect x="20" y="20" width="360" height="140" fill="none" stroke="#1b2a35" stroke-width="1.6"/>
+          <text x="30" y="36" font-size="12" fill="#1b2a35" font-weight="700">S</text>
+
+          <g data-layer="union" style="opacity:.08">
+            <circle cx="150" cy="90" r="60" fill="#c1560f"/>
+            <circle cx="230" cy="90" r="60" fill="#c1560f"/>
+          </g>
+          <g data-layer="intersection" style="opacity:.08">
+            <circle cx="230" cy="90" r="60" fill="#c1560f" clip-path="url(#clipCircleA)"/>
+          </g>
+          <g data-layer="complementA" style="opacity:.08">
+            <rect x="20" y="20" width="360" height="140" fill="#c1560f" mask="url(#maskNotA)"/>
+          </g>
+          <g data-layer="complementUnion" style="opacity:.08">
+            <rect x="20" y="20" width="360" height="140" fill="#c1560f" mask="url(#maskNotAUB)"/>
+          </g>
+
+          <circle cx="150" cy="90" r="60" fill="none" stroke="#3d6690" stroke-width="2"/>
+          <circle cx="230" cy="90" r="60" fill="none" stroke="#132436" stroke-width="2"/>
+          <text x="115" y="60" font-size="14" fill="#3d6690" font-weight="700">A</text>
+          <text x="265" y="60" font-size="14" fill="#132436" font-weight="700">B</text>
+        </svg>
+        <div class="cap">Fig. 5.1 — De Morgan: $(A\cup B)^c = A^c \cap B^c$. Compare the last two buttons — they occupy the same region.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">5.3</span> Permutations vs. Combinations</h2>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Permutation — order matters</div>
+          <div class="formula">${}_nP_r = \dfrac{n!}{(n-r)!}$</div>
+          <div class="formula-note">Arranging 3 books ABC on a shelf → ${}_3P_3=6$ orders: ABC, ACB, BAC, BCA, CAB, CBA</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Combination — order doesn't matter</div>
+          <div class="formula">${}_nC_r = \dfrac{n!}{r!(n-r)!}$</div>
+          <div class="formula-note">Choosing 2 of 3 books to take on a trip → ${}_3C_2=3$ selections: AB, AC, BC</div>
+        </div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — Combinations with a Constraint</div>
+        <div class="wk-q">20 people: 8 men, 12 women. Form a 5-person committee with exactly 3 men and 2 women.</div>
+        <ol class="steps">
+          <li>Choose men: ${}_8C_3 = $ <span class="kv">56</span> ways</li>
+          <li>Choose women: ${}_{12}C_2 = $ <span class="kv">66</span> ways</li>
+          <li>Choices are independent, so multiply: $56\times 66 = $ <span class="kv">3696 committees</span></li>
+        </ol>
+      </div>
+
+      <h2 class="block-h"><span class="num">5.4</span> Classical Probability &amp; the Multiplication Rule</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Classical Approach — requires equally likely outcomes</div>
+        <div class="formula">$P(A) = \dfrac{n(A)}{n(S)}$</div>
+        <div class="formula-note">Other approaches exist too: <b>relative frequency</b> (based on repeated trials) and <b>subjective</b> (based on judgement) — but classical is what we compute with in this course.</div>
+      </div>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Independent events</div>
+          <div class="formula">$P(A\cap B) = P(A)\times P(B)$</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Dependent events</div>
+          <div class="formula">$P(A\cap B) = P(A)\times P(B|A)$</div>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <circle cx="40" cy="110" r="6" fill="#132436"/>
+          <line x1="40" y1="110" x2="220" y2="45" stroke="#3d6690" stroke-width="1.6"/>
+          <line x1="40" y1="110" x2="220" y2="175" stroke="#3d6690" stroke-width="1.6"/>
+          <text x="120" y="65" font-size="11.5" fill="#1b2a35">Red &nbsp; 3/5</text>
+          <text x="120" y="160" font-size="11.5" fill="#1b2a35">Blue &nbsp; 2/5</text>
+          <circle cx="220" cy="45" r="5" fill="#c1560f"/><circle cx="220" cy="175" r="5" fill="#3d6690"/>
+          <line x1="220" y1="45" x2="420" y2="15" stroke="#3d6690" stroke-width="1.4"/>
+          <line x1="220" y1="45" x2="420" y2="75" stroke="#3d6690" stroke-width="1.4"/>
+          <text x="290" y="20" font-size="10.5" fill="#4a5a66">Red 2/4</text>
+          <text x="290" y="90" font-size="10.5" fill="#4a5a66">Blue 2/4</text>
+          <text x="430" y="20" font-size="11" fill="#1b2a35">P = 3/5 × 2/4 = <tspan font-weight="700" fill="#9a4409">3/10</tspan></text>
+          <text x="430" y="80" font-size="11" fill="#1b2a35">P = 3/5 × 2/4 = 3/10</text>
+          <line x1="220" y1="175" x2="420" y2="145" stroke="#3d6690" stroke-width="1.4"/>
+          <line x1="220" y1="175" x2="420" y2="205" stroke="#3d6690" stroke-width="1.4"/>
+          <text x="290" y="150" font-size="10.5" fill="#4a5a66">Red 3/4</text>
+          <text x="290" y="220" font-size="10.5" fill="#4a5a66">Blue 1/4</text>
+          <text x="430" y="150" font-size="11" fill="#1b2a35">P = 2/5 × 3/4 = 3/10</text>
+          <text x="430" y="210" font-size="11" fill="#1b2a35">P = 2/5 × 1/4 = 1/10</text>
+          <text x="30" y="20" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4a5a66">3 red, 2 blue — drawing twice, no replacement</text>
+        </svg>
+        <div class="cap">Fig. 5.2 — A probability tree for dependent events: multiply <em>along</em> each branch.</div>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>A sample space $S$ must list <b>every</b> possible outcome — get this wrong and every downstream probability is wrong.</li>
+          <li>Permutation = order matters (arrangements); Combination = order doesn't matter (selections). Combinations are always $\le$ permutations for the same $n,r$.</li>
+          <li>Classical probability $P(A)=n(A)/n(S)$ only works when outcomes are <b>equally likely</b> — check this assumption before using it.</li>
+          <li>Independent events: knowing one tells you nothing about the other, so probabilities simply multiply. Dependent events: you must condition — $P(B|A)$ changes after $A$ happens (as in "without replacement" problems).</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">A committee of 3 is chosen from 5 people. How many different committees are possible?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Order doesn't matter → combination: ${}_5C_3 = \dfrac{5!}{3!2!}=$ <b>10</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">A die is thrown once. Are "even number" and "number greater than 4" equally likely events?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$P(\text{even})=3/6=1/2$; $P(>4)=2/6=1/3$. Since $1/2 \ne 1/3$, <b>not equally likely.</b></div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">Using De Morgan's law, if $S=\{1..6\}$, $A=\{1,2,3,4\}$, $B=\{3,4,5,6\}$, find $(A\cap B)^c$ two different ways.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Directly: $A\cap B=\{3,4\}$, so $(A\cap B)^c=\{1,2,5,6\}$. Via De Morgan: $A^c\cup B^c=\{5,6\}\cup\{1,2\}=\{1,2,5,6\}$ — matches. ✓</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">4</span><span class="qt">A fair coin is tossed 3 times. Find $P(\text{exactly two heads})$.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$S$ has $2^3=8$ equally likely outcomes. Exactly 2 heads: {HHT, HTH, THH} → $n(A)=3$. $P(A)=3/8$.</div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>${}_nC_r = \frac{{}_nP_r}{r!}$ — a combination is just a permutation with the ordering "divided back out." Can you explain in one sentence <em>why</em> dividing by $r!$ removes the effect of order? (Hint: how many different orders can the same $r$ chosen items be arranged in?)</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section class="section" id="s6" data-title="Odds &amp; Joint Probability" data-prev="s5" data-next="s7">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part II — Probability <span class="src">Source: PLecture_3&amp;4.pdf</span></div>
+        <h1 class="sec-title">6. Odds &amp; Joint Probability</h1>
+        <p class="sec-intro">"Odds" are how bookmakers and everyday speech express chance — and they convert cleanly to probability. Then we build up to <b>joint probability</b>, which handles two events happening together, and the joint probability table that organizes it all.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">6.1</span> Odds</h2>
+      <p>Odds compare success against failure directly, rather than success against the whole sample space.</p>
+      <div class="formula-grid">
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Odds in favor of A</div>
+          <div class="formula">$O_A = \dfrac{P(A)}{1-P(A)} = \dfrac{n(A)}{n(A^c)}$</div>
+        </div>
+        <div class="formula-plate">
+          <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Odds against A</div>
+          <div class="formula">$O_{A^c} = \dfrac{n(A^c)}{n(A)}$ &nbsp; (reciprocal of odds in favor)</div>
+        </div>
+      </div>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Converting odds → probability</div>
+        <div class="formula">If odds in favor of A are $a:b$, then $P(A)=\dfrac{a}{a+b}$ and $P(A^c)=\dfrac{b}{a+b}$</div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example</div>
+        <div class="wk-q">The probability of an athlete winning a race is 0.2. Find the odds against winning.</div>
+        <ol class="steps">
+          <li>$P(\text{win})=0.2 \Rightarrow P(\text{lose})=0.8$</li>
+          <li>Odds against $= \dfrac{0.8}{0.2} = $ <span class="kv">4, i.e. 4:1</span></li>
+          <li><b>Interpretation:</b> for every 1 chance of winning, there are 4 chances of losing.</li>
+        </ol>
+      </div>
+
+      <h2 class="block-h"><span class="num">6.2</span> Joint Probability</h2>
+      <p><b>Joint probability</b> $P(A\cap B)$ is the chance that two (or more) events happen at the same time.</p>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">General addition rule (recap — needed constantly here)</div>
+        <div class="formula">$P(A\cup B) = P(A)+P(B)-P(A\cap B)$</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">6.3</span> The Joint Probability Table</h2>
+      <p>A 2×2 table is the cleanest way to organize two binary events at once — every cell is a joint probability, and row/column totals are <b>marginal</b> probabilities.</p>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — Two Machines</div>
+        <div class="wk-q">Machine A makes 40% of items (5% defective); Machine B makes 60% (10% defective). Build the joint table and find: (i) P(item is defective), (ii) P(from A | defective).</div>
+        <table class="dtab">
+          <tr><th></th><th>Y = Defective</th><th>Y′ = Not Defective</th><th>Total</th></tr>
+          <tr><td style="background:var(--navy-panel);color:#fff;">X = Machine A</td><td>0.4×0.05 = <b>0.02</b></td><td>0.4×0.95 = 0.38</td><td class="tot">0.40</td></tr>
+          <tr><td style="background:var(--navy-panel);color:#fff;">X = Machine B</td><td>0.6×0.10 = <b>0.06</b></td><td>0.6×0.90 = 0.54</td><td class="tot">0.60</td></tr>
+          <tr><td class="tot">Total</td><td class="hl tot">0.08</td><td class="tot">0.92</td><td class="tot">1.00</td></tr>
+        </table>
+        <ol class="steps">
+          <li>P(defective) = sum down the "Defective" column = $0.02+0.06=$ <span class="kv">0.08</span></li>
+          <li>P(Machine A | defective) $=\dfrac{P(A\cap Y)}{P(Y)}=\dfrac{0.02}{0.08}=$ <span class="kv">0.25 (25%)</span></li>
+        </ol>
+      </div>
+      <p style="font-size:13.5px;"><b>Marginal distribution</b> is simply the row totals (distribution of X alone) or column totals (distribution of Y alone) — "marginal" because they sit in the table's margins.</p>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>Odds in favor and odds against are always <b>reciprocals</b> of each other.</li>
+          <li>To go from odds $a:b$ to probability, divide each side by the total: $P=\frac{a}{a+b}$.</li>
+          <li>In a joint probability table, every <b>cell</b> is a joint probability $P(X\cap Y)$; every <b>total</b> is a marginal probability $P(X)$ or $P(Y)$; and all cells sum to 1.</li>
+          <li>Reading "P(from A | defective)" out of the table is really just conditional probability wearing a table costume — a preview of Module 7.</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">Odds in favor of event A are 5:3. Find P(A) and P(A′).</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$P(A)=\frac{5}{5+3}=\frac{5}{8}=0.625$; $P(A')=\frac{3}{8}=0.375$.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">60% of students study Maths, 50% study Physics, 30% study both. Find P(Maths or Physics) and P(neither).</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$P(M\cup P)=0.6+0.5-0.3=0.8$. $P(\text{neither})=1-0.8=0.2$.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">In the two-machine example above, find P(item is non-defective AND from Machine B).</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Read straight from the table: $P(X_B\cap Y') = 0.6\times0.9=$ <b>0.54</b>.</div></div>
+        </div>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 Brainstorm</div>
+        <p>In the two-machine example, Machine B makes more items <em>and</em> has a higher defect rate — yet it's still true that most defective items overall come from B (0.06 vs 0.02). Before you calculated it, would you have guessed Machine A or B contributes more defects? This kind of "which factor dominates" intuition-check is exactly what Module 7's Bayes' theorem will formalize.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section class="section" id="s7" data-title="Conditional Probability &amp; Bayes" data-prev="s6" data-next="s8">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Part II — Probability <span class="src">Source: PLecture_5.pdf</span></div>
+        <h1 class="sec-title">7. Conditional Probability &amp; Bayes' Theorem</h1>
+        <p class="sec-intro">This is the capstone of the probability half of the course. Conditional probability asks "given that I already know B happened, how likely is A?" Bayes' theorem then flips that around — letting you go from $P(\text{evidence}|\text{cause})$ to the far more useful $P(\text{cause}|\text{evidence})$.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">7.1</span> Conditional Probability</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Definition</div>
+        <div class="formula">$P(A|B) = \dfrac{P(A\cap B)}{P(B)}, \quad P(B)\neq 0$</div>
+        <div class="formula-note">Read as "probability of A given B." In general $P(A|B)\neq P(B|A)$ — mixing these up is the #1 exam mistake.</div>
+      </div>
+
+      <div class="diagram">
+        <svg viewBox="0 0 620 190" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+          <rect x="20" y="20" width="220" height="140" fill="none" stroke="#1b2a35" stroke-width="1.6"/>
+          <text x="28" y="34" font-size="11" fill="#1b2a35" font-weight="700">S</text>
+          <circle cx="105" cy="90" r="52" fill="none" stroke="#3d6690" stroke-width="2"/>
+          <circle cx="165" cy="90" r="52" fill="none" stroke="#132436" stroke-width="2"/>
+          <circle cx="165" cy="90" r="52" fill="#c1560f" opacity=".85" clip-path="url(#clipCircleA2)"/>
+          <defs><clipPath id="clipCircleA2"><circle cx="105" cy="90" r="52"/></clipPath></defs>
+          <text x="80" y="60" font-size="13" fill="#3d6690" font-weight="700">A</text>
+          <text x="190" y="60" font-size="13" fill="#132436" font-weight="700">B</text>
+          <text x="130" y="170" text-anchor="middle" font-size="10.5" fill="#4a5a66">Full sample space</text>
+
+          <path d="M270 90 L340 90" stroke="#9a4409" stroke-width="2" marker-end="url(#arrow2)"/>
+          <defs><marker id="arrow2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9a4409"/></marker></defs>
+          <text x="305" y="75" text-anchor="middle" font-size="9.5" fill="#9a4409">"given B"</text>
+
+          <rect x="370" y="20" width="220" height="140" fill="none" stroke="#132436" stroke-width="2.4"/>
+          <text x="378" y="34" font-size="11" fill="#132436" font-weight="700">B is now the whole world</text>
+          <rect x="370" y="20" width="80" height="140" fill="#c1560f" opacity=".85"/>
+          <line x1="450" y1="20" x2="450" y2="160" stroke="#3d6690" stroke-width="1.6" stroke-dasharray="3 2"/>
+          <text x="410" y="185" text-anchor="middle" font-size="10.5" fill="#4a5a66">A∩B</text>
+          <text x="520" y="185" text-anchor="middle" font-size="10.5" fill="#4a5a66">rest of B</text>
+        </svg>
+        <div class="cap">Fig. 7.1 — Conditioning on B shrinks the universe to just B; $P(A|B)$ is what fraction of that new, smaller world is also in A.</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">7.2</span> The Multiplication Law (General Form)</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">For k events</div>
+        <div class="formula" style="font-size:15.5px;">$P(A_1\cap A_2\cap\cdots\cap A_k) = P(A_1)\,P(A_2|A_1)\,P(A_3|A_1\cap A_2)\cdots P(A_k|A_1\cap\cdots\cap A_{k-1})$</div>
+      </div>
+
+      <h2 class="block-h"><span class="num">7.3</span> Bayes' Theorem</h2>
+      <div class="formula-plate">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">The formula that "flips" a conditional probability</div>
+        <div class="formula">$P(A|B) = \dfrac{P(B|A)\,P(A)}{P(B|A)P(A) + P(B|A^c)P(A^c)}$</div>
+        <div class="formula-note">Numerator = the one branch you care about. Denominator = <em>every</em> way B could have happened (total probability). For $k$ competing causes $A_1,\dots,A_k$: &nbsp; $P(A_i|D)=\dfrac{P(A_i)P(D|A_i)}{\sum_j P(A_j)P(D|A_j)}$</div>
+      </div>
+
+      <div class="worked">
+        <div class="wk-label">Worked Example — The Classic Diagnostic Test Paradox</div>
+        <div class="wk-q">A blood test detects a disease 90% of the time when present, but gives a false positive 5% of the time when absent. Only 1% of the population actually has the disease. If a random person tests positive, what's the probability they actually have the disease?</div>
+        <div class="diagram" style="margin-top:14px;">
+          <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans">
+            <circle cx="40" cy="115" r="6" fill="#132436"/>
+            <line x1="40" y1="115" x2="220" y2="45" stroke="#3d6690" stroke-width="1.6"/>
+            <line x1="40" y1="115" x2="220" y2="185" stroke="#3d6690" stroke-width="1.6"/>
+            <text x="115" y="65" font-size="11" fill="#1b2a35">D &nbsp; (0.01)</text>
+            <text x="115" y="170" font-size="11" fill="#1b2a35">D′ &nbsp; (0.99)</text>
+            <circle cx="220" cy="45" r="5" fill="#c1560f"/><circle cx="220" cy="185" r="5" fill="#3d6690"/>
+            <line x1="220" y1="45" x2="420" y2="20" stroke="#3d6690" stroke-width="1.4"/>
+            <line x1="220" y1="45" x2="420" y2="70" stroke="#3d6690" stroke-width="1.4"/>
+            <text x="300" y="20" font-size="10" fill="#4a5a66">Positive 0.90</text>
+            <text x="300" y="90" font-size="10" fill="#4a5a66">Negative 0.10</text>
+            <text x="430" y="20" font-size="10.5" fill="#1b2a35">0.01×0.90 = <tspan font-weight="700" fill="#9a4409">0.009</tspan></text>
+            <text x="430" y="75" font-size="10.5" fill="#1b2a35">0.01×0.10 = 0.001</text>
+            <line x1="220" y1="185" x2="420" y2="150" stroke="#3d6690" stroke-width="1.4"/>
+            <line x1="220" y1="185" x2="420" y2="205" stroke="#3d6690" stroke-width="1.4"/>
+            <text x="300" y="145" font-size="10" fill="#4a5a66">Positive 0.05</text>
+            <text x="300" y="220" font-size="10" fill="#4a5a66">Negative 0.95</text>
+            <text x="430" y="150" font-size="10.5" fill="#1b2a35">0.99×0.05 = <tspan font-weight="700" fill="#9a4409">0.0495</tspan></text>
+            <text x="430" y="210" font-size="10.5" fill="#1b2a35">0.99×0.95 = 0.9405</text>
+          </svg>
+          <div class="cap">Fig. 7.2 — Only the two "Positive" branches (highlighted) matter for our answer.</div>
+        </div>
+        <ol class="steps">
+          <li>$P(D)=0.01,\;P(P|D)=0.90,\;P(D^c)=0.99,\;P(P|D^c)=0.05$</li>
+          <li>$P(P) = (0.01)(0.90)+(0.99)(0.05) = 0.009+0.0495 = $ <span class="kv">0.0585</span></li>
+          <li>$P(D|P) = \dfrac{0.009}{0.0585} \approx $ <span class="kv">0.154 (about 15%)</span></li>
+        </ol>
+      </div>
+
+      <div class="brainstorm">
+        <div class="bs-label">💡 The Base-Rate Fallacy</div>
+        <p>A "90% accurate" test that comes back positive only means you're <b>15% likely</b> to actually be sick! Why? Because the disease is rare (1%), so even a small false-positive rate (5%) applied to the huge healthy majority produces more false positives (0.0495) than true positives (0.009). This is called the <b>base-rate fallacy</b> — ignoring how common something is in the first place — and it's one of the most tested real-world applications of Bayes' theorem, in medicine, law, and spam filtering alike.</p>
+      </div>
+
+      <div class="keypoints">
+        <div class="kp-label">Key Points to Remember</div>
+        <ul>
+          <li>$P(A|B)\ne P(B|A)$ in general — always define events in words first to avoid flipping them.</li>
+          <li>Bayes' theorem's denominator is just the <b>law of total probability</b>: every path that could lead to the observed evidence, added up.</li>
+          <li>A low base rate (rare disease/rare event) can make even an accurate-sounding test surprisingly unreliable in practice — always check the prior, not just the test's accuracy.</li>
+          <li>For more than 2 competing causes, extend the denominator to sum over all of them: $\sum_j P(A_j)P(D|A_j)$.</li>
+        </ul>
+      </div>
+
+      <div class="exam-block">
+        <div class="ex-label">🎓 Possible Exam Questions</div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">1</span><span class="qt">A pair of dice is thrown. Find P(sum ≥ 10 | a 5 appears on the first die).</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$B=\{(5,1)...(5,6)\}$, $n(B)=6$. $A\cap B = \{(5,5),(5,6)\}$, $n=2$. $P(A|B)=\frac{2/36}{6/36}=$ <b>1/3</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">2</span><span class="qt">P(husband watches show)=0.4, P(wife watches)=0.5, P(husband watches | wife watches)=0.7. Find P(both watch).</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">$P(W\cap H)=P(W)\,P(H|W)=0.5\times0.7=$ <b>0.35</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">3</span><span class="qt">A health program has 3 centers testing 50%, 20%, 30% of patients respectively, with detection rates 2%, 12%, 6%. If a test is positive, what's the probability it came from Center B (the 20% center)?</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Numerator: $0.20\times0.12=0.024$. Denominator: $(0.5)(0.02)+(0.2)(0.12)+(0.3)(0.06)=0.01+0.024+0.018=0.052$. $P(B|+)=\frac{0.024}{0.052}\approx$ <b>0.46 (46%)</b>.</div></div>
+        </div>
+        <div class="exam-card">
+          <div class="exam-q"><span class="qn">4</span><span class="qt">Explain in plain language why P(D|Positive) is so much smaller than the test's 90% accuracy figure.</span><span class="qmeta">tap to reveal</span></div>
+          <div class="exam-a"><div class="exam-a-in">Because the disease is rare (1% base rate), the healthy 99% of the population is a huge pool — even its small 5% false-positive rate generates more positive results than the true 90% detection rate among the tiny 1% who are actually sick. Positive results are dominated by false alarms, not true cases.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section class="section" id="s8" data-title="Formula Reference" data-prev="s7" data-next="">
+      <div class="sec-head">
+        <div class="sec-eyebrow">Exam Prep <span class="src">All Modules — Condensed</span></div>
+        <h1 class="sec-title">8. Full Formula Reference</h1>
+        <p class="sec-intro">Every formula from Modules 1–7 on one page. Print this, tape it above your desk the night before the exam, and make sure you can explain — not just recite — each line.</p>
+      </div>
+
+      <h2 class="block-h"><span class="num">I</span> Central Tendency</h2>
+      <div class="formula-grid">
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Mean</div>
+          <div class="formula" style="font-size:16px;">$\bar{X}=\dfrac{\sum f_iX_i}{N}\quad$or$\quad\bar{X}=A+\dfrac{\sum f_id_i}{N}h$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Median (grouped)</div>
+          <div class="formula" style="font-size:16px;">$Me=L+\dfrac{\frac{N}{2}-\text{p.c.f}}{f}h$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Mode (grouped)</div>
+          <div class="formula" style="font-size:16px;">$Mo=L+\dfrac{\Delta_1}{\Delta_1+\Delta_2}h$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Quartiles / Deciles / Percentiles</div>
+          <div class="formula" style="font-size:15px;">$Q_i=L+\dfrac{\frac{iN}{4}-\text{p.c.f}}{f}h$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Geometric / Harmonic Mean</div>
+          <div class="formula" style="font-size:15px;">$GM=\text{AL}\left(\frac{\sum\log X_i}{N}\right)\;\;HM=\frac{N}{\sum(1/X_i)}$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Empirical Relation</div>
+          <div class="formula" style="font-size:16px;">$Mo=3Me-2\bar{X}$</div>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">II</span> Skewness, Moments &amp; Kurtosis</h2>
+      <div class="formula-grid">
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Pearson's / Bowley's Skewness</div>
+          <div class="formula" style="font-size:15px;">$SK_P=\dfrac{\bar{X}-Mo}{\sigma}\;\;SK_B=\dfrac{Q_3+Q_1-2Q_2}{Q_3-Q_1}$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Moments</div>
+          <div class="formula" style="font-size:15px;">$\mu'_r=\frac{\sum f_id_i^r}{N}h^r\quad \mu_2=\mu'_2-\mu_1'^2$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Skewness &amp; Kurtosis coefficients</div>
+          <div class="formula" style="font-size:15px;">$\gamma_1=\dfrac{\mu_3}{\mu_2^{3/2}}\qquad \gamma_2=\dfrac{\mu_4}{\mu_2^2}-3$</div>
+        </div>
+      </div>
+
+      <h2 class="block-h"><span class="num">III</span> Probability</h2>
+      <div class="formula-grid">
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Classical Probability</div>
+          <div class="formula" style="font-size:16px;">$P(A)=\dfrac{n(A)}{n(S)}$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Permutations / Combinations</div>
+          <div class="formula" style="font-size:15px;">${}_nP_r=\dfrac{n!}{(n-r)!}\quad {}_nC_r=\dfrac{n!}{r!(n-r)!}$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Addition Rule</div>
+          <div class="formula" style="font-size:16px;">$P(A\cup B)=P(A)+P(B)-P(A\cap B)$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Multiplication Rule</div>
+          <div class="formula" style="font-size:15px;">Indep: $P(A\cap B)=P(A)P(B)$<br>Dep: $P(A\cap B)=P(A)P(B|A)$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Odds</div>
+          <div class="formula" style="font-size:15px;">$O_A=\dfrac{P(A)}{1-P(A)}\;\;$ favor $a{:}b\Rightarrow P(A)=\dfrac{a}{a+b}$</div>
+        </div>
+        <div class="formula-plate"><span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+          <div class="plate-label">Conditional Probability</div>
+          <div class="formula" style="font-size:16px;">$P(A|B)=\dfrac{P(A\cap B)}{P(B)}$</div>
+        </div>
+      </div>
+      <div class="formula-plate" style="max-width:640px;">
+        <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+        <div class="plate-label">Bayes' Theorem — the big one</div>
+        <div class="formula">$P(A|B) = \dfrac{P(B|A)\,P(A)}{P(B|A)P(A) + P(B|A^c)P(A^c)}$</div>
+      </div>
+
+      <div class="brainstorm" style="margin-top:32px;">
+        <div class="bs-label">🎯 Final Word from Prof. Claude</div>
+        <p>You now have every tool this course tests. The formulas will feel mechanical at first — that's normal. The moment they click is when you can look at a word problem and immediately hear the right formula in your head before you've even written a number down. Work back through the "Possible Exam Questions" in each module without peeking at the answers first — that's the single highest-leverage way to convert this notebook into a top result. Good luck — you've got this.</p>
+      </div>
+
+      <div class="keypoints" style="margin-top:20px;">
+        <div class="kp-label">Last-Minute Sanity Checks</div>
+        <ul>
+          <li>Probabilities must always land between 0 and 1 — if your answer doesn't, you've made an arithmetic or conceptual error, go back and check.</li>
+          <li>All marginal totals in a joint probability table must sum to exactly 1.</li>
+          <li>$\beta_1 \ge 0$ and $\beta_2 \ge 0$ always — negative values mean you mixed up a formula somewhere.</li>
+          <li>Odds and probability are related but <em>not the same number</em> — never report one when asked for the other.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const navItems = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('.section');
+  const visited = new Set();
+  const TOTAL = sections.length;
+
+  function updateProgress(){
+    document.getElementById('progressFill').style.width = (visited.size/TOTAL*100)+'%';
+    document.getElementById('progressText').textContent = visited.size+' / '+TOTAL+' modules visited';
+  }
+
+  function goTo(id){
+    sections.forEach(s=>s.classList.toggle('active', s.id===id));
+    navItems.forEach(n=>n.classList.toggle('active', n.dataset.target===id));
+    visited.add(id);
+    document.querySelectorAll('.nav-item').forEach(n=>{ if(visited.has(n.dataset.target)) n.classList.add('visited'); });
+    updateProgress();
+    window.scrollTo(0,0);
+    document.getElementById('sidebar').classList.remove('open');
+    renderMath();
+  }
+
+  navItems.forEach(btn=>{
+    btn.addEventListener('click', ()=> goTo(btn.dataset.target));
+  });
+
+  document.getElementById('menuBtn').addEventListener('click', ()=>{
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+
+  function renderMath(){
+    if(window.renderMathInElement){
+      renderMathInElement(document.body, {
+        delimiters:[
+          {left:"$$", right:"$$", display:true},
+          {left:"$", right:"$", display:false}
+        ],
+        throwOnError:false
+      });
+    }
+  }
+
+  // exam question toggles (event delegation)
+  document.addEventListener('click', function(e){
+    const q = e.target.closest('.exam-q');
+    if(q){
+      q.parentElement.classList.toggle('open');
+    }
+    const ctrl = e.target.closest('.diagram .ctrl button');
+    if(ctrl && ctrl.dataset.show){
+      const diagram = ctrl.closest('.diagram');
+      diagram.querySelectorAll('.ctrl button').forEach(b=>b.classList.remove('on'));
+      ctrl.classList.add('on');
+      diagram.querySelectorAll('[data-layer]').forEach(l=>{ l.style.opacity = (l.dataset.layer===ctrl.dataset.show || ctrl.dataset.show==='all') ? '1':'0.08'; });
+    }
+  });
+
+  // build prev/next buttons dynamically
+  function titleOf(id){ const el=document.getElementById(id); return el? el.dataset.title : ''; }
+  sections.forEach(sec=>{
+    const nav = document.createElement('div');
+    nav.className='pagenav';
+    const prevId = sec.dataset.prev, nextId = sec.dataset.next;
+    nav.innerHTML =
+      (prevId ? `<button class="prevbtn" data-go="${prevId}"><span class="lbl">&larr; Previous</span><span>${titleOf(prevId)}</span></button>` : `<span></span>`) +
+      (nextId ? `<button class="next nextbtn" data-go="${nextId}"><span class="lbl">Next &rarr;</span><span>${titleOf(nextId)}</span></button>` : `<span></span>`);
+    sec.appendChild(nav);
+  });
+  document.addEventListener('click', function(e){
+    const b = e.target.closest('[data-go]');
+    if(b) goTo(b.dataset.go);
+  });
+
+  goTo('s0');
+  window.addEventListener('load', renderMath);
+</script>
+</body>
+</html>

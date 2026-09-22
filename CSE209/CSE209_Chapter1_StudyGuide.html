@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSE209 — Chapter 1: Computer Abstractions and Technology</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Source+Serif+4:opsz,ital,wght@8..60,0,400;8..60,0,500;8..60,0,600;8..60,1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#F5EFE0;
+  --paper-panel:#FFFCF5;
+  --paper-panel-2:#FBF5E8;
+  --ink:#2A2418;
+  --ink-soft:#5C5340;
+  --ink-faint:#8B8065;
+  --navy:#16283F;
+  --navy-2:#1F3A5C;
+  --navy-soft:#3C5978;
+  --maroon:#7A2331;
+  --maroon-soft:#9C4A55;
+  --gold:#9C7328;
+  --gold-soft:#E4D6AE;
+  --rule:#CBBE9C;
+  --rule-soft:#DED2B4;
+  --shadow: 0 6px 24px rgba(42,36,24,0.12);
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; height:100%; }
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size:16.5px;
+  line-height:1.65;
+  display:flex;
+  min-height:100vh;
+}
+
+::selection{ background:var(--gold-soft); color:var(--ink); }
+
+h1,h2,h3,h4{ font-family:'Playfair Display', Georgia, serif; font-weight:700; color:var(--navy); margin:0; }
+
+/* ============ SIDEBAR ============ */
+#sidebar{
+  width:290px;
+  min-width:290px;
+  background:var(--navy);
+  color:#E9E2CC;
+  height:100vh;
+  position:sticky;
+  top:0;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  border-right:1px solid #0d1826;
+}
+#sidebar::-webkit-scrollbar{ width:8px; }
+#sidebar::-webkit-scrollbar-thumb{ background:#31496a; border-radius:4px; }
+
+.side-header{
+  padding:26px 22px 18px 22px;
+  border-bottom:1px solid rgba(233,226,204,0.18);
+}
+.side-header .kicker{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:2px;
+  color:var(--gold-soft);
+  text-transform:uppercase;
+  opacity:0.85;
+}
+.side-header h1{
+  color:#F6F1E1;
+  font-size:22px;
+  line-height:1.3;
+  margin-top:8px;
+}
+.side-header .sub{
+  font-size:12.5px;
+  color:#B9C3D2;
+  margin-top:8px;
+  font-family:'Source Serif 4', serif;
+  font-style:italic;
+}
+
+nav#toc{
+  padding:14px 12px 12px 12px;
+  flex:1;
+}
+nav#toc .nav-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  letter-spacing:1.5px;
+  color:#8FA0B8;
+  text-transform:uppercase;
+  padding:8px 10px 6px 10px;
+}
+.nav-btn{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:none;
+  border-left:3px solid transparent;
+  color:#D6CDB0;
+  font-family:'Source Serif 4', serif;
+  font-size:14px;
+  padding:10px 12px 10px 13px;
+  border-radius:2px;
+  cursor:pointer;
+  margin-bottom:2px;
+  transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  line-height:1.35;
+}
+.nav-btn .n{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--gold-soft);
+  display:block;
+  margin-bottom:2px;
+  letter-spacing:0.5px;
+}
+.nav-btn:hover{ background:rgba(233,226,204,0.08); color:#F6F1E1; }
+.nav-btn.active{
+  background:rgba(233,226,204,0.12);
+  border-left:3px solid var(--gold-soft);
+  color:#F6F1E1;
+  font-weight:600;
+}
+
+.side-footer{
+  padding:16px 22px 22px 22px;
+  border-top:1px solid rgba(233,226,204,0.18);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:#8FA0B8;
+}
+.side-footer .progress-track{
+  width:100%; height:5px; background:rgba(233,226,204,0.15); border-radius:3px; margin-top:10px; overflow:hidden;
+}
+.side-footer .progress-fill{
+  height:100%; background:var(--gold-soft); width:10%; transition:width 0.3s ease;
+}
+
+/* ============ MAIN ============ */
+#main{
+  flex:1;
+  max-width:calc(100vw - 290px);
+  min-height:100vh;
+  overflow-y:auto;
+  padding:56px 64px 100px 64px;
+  scroll-behavior:smooth;
+}
+.page{ display:none; max-width:840px; margin:0 auto; animation:fadein 0.35s ease; }
+.page.active{ display:block; }
+@keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.page-eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--maroon);
+  margin-bottom:10px;
+}
+.page-title{
+  font-size:38px;
+  border-bottom:3px double var(--rule);
+  padding-bottom:20px;
+  margin-bottom:8px;
+}
+.page-sub{
+  font-family:'Source Serif 4', serif;
+  font-style:italic;
+  color:var(--ink-soft);
+  font-size:16px;
+  margin:12px 0 34px 0;
+}
+
+.page p{ margin:0 0 16px 0; }
+.page h3{ font-size:22px; margin:36px 0 14px 0; color:var(--navy); }
+.page h3 .sec-no{ color:var(--gold); font-family:'IBM Plex Mono',monospace; font-size:16px; margin-right:8px; }
+.page h4{ font-size:17px; color:var(--maroon-soft); margin:22px 0 10px 0; }
+
+ul.classic, ol.classic{ padding-left:26px; margin:0 0 16px 0; }
+ul.classic li, ol.classic li{ margin-bottom:7px; }
+ul.classic{ list-style:none; padding-left:6px; }
+ul.classic li::before{ content:"—  "; color:var(--gold); font-weight:600; }
+ul.classic li{ padding-left:8px; }
+ul.classic ul{ margin-top:6px; padding-left:22px; }
+ul.classic ul li::before{ content:"·  "; color:var(--ink-faint); }
+
+strong{ color:var(--navy); font-weight:600; }
+em.term{ font-style:italic; color:var(--maroon-soft); font-weight:600; }
+code.inline{ font-family:'IBM Plex Mono', monospace; background:var(--paper-panel-2); border:1px solid var(--rule-soft); padding:1px 6px; border-radius:3px; font-size:14px; }
+
+/* ============ CALLOUT BOXES ============ */
+.box{
+  border:1px solid var(--rule);
+  background:var(--paper-panel);
+  border-radius:3px;
+  padding:18px 22px;
+  margin:22px 0;
+  box-shadow:var(--shadow);
+}
+.box-title{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.box.idea{ border-left:5px solid var(--gold); }
+.box.idea .box-title{ color:var(--gold); }
+.box.trap{ border-left:5px solid var(--maroon); background:#FBF0EC; }
+.box.trap .box-title{ color:var(--maroon); }
+.box.worked{ border-left:5px solid var(--navy-2); }
+.box.worked .box-title{ color:var(--navy-2); }
+.box.brainstorm{ border-left:5px solid var(--ink-faint); background:var(--paper-panel-2); }
+.box.brainstorm .box-title{ color:var(--ink-soft); }
+
+.box p:last-child{ margin-bottom:0; }
+
+.formula{
+  font-family:'IBM Plex Mono', monospace;
+  background:var(--navy);
+  color:#F3ECD8;
+  padding:14px 20px;
+  border-radius:4px;
+  margin:14px 0;
+  font-size:15px;
+  overflow-x:auto;
+  line-height:1.7;
+}
+.formula .op{ color:var(--gold-soft); }
+
+table.classic{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0 22px 0;
+  font-size:14.5px;
+  background:var(--paper-panel);
+}
+table.classic caption{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; letter-spacing:0.5px; }
+table.classic th{
+  background:var(--navy);
+  color:#F3ECD8;
+  text-align:left;
+  padding:9px 12px;
+  font-family:'Source Serif 4', serif;
+  font-weight:600;
+  font-size:14px;
+}
+table.classic td{ padding:9px 12px; border-bottom:1px solid var(--rule-soft); }
+table.classic tr:nth-child(even) td{ background:var(--paper-panel-2); }
+table.classic td.num, table.classic th.num{ font-family:'IBM Plex Mono',monospace; text-align:right; }
+
+/* self test / details */
+details.quiz{
+  border:1px solid var(--rule);
+  border-radius:3px;
+  background:var(--paper-panel);
+  margin:14px 0;
+  padding:12px 18px;
+}
+details.quiz summary{
+  cursor:pointer;
+  font-weight:600;
+  color:var(--navy-2);
+  font-family:'Source Serif 4', serif;
+  font-size:15px;
+  list-style:none;
+  display:flex;
+  gap:10px;
+  align-items:baseline;
+}
+details.quiz summary::-webkit-details-marker{ display:none; }
+details.quiz summary::before{
+  content:"Q.";
+  font-family:'IBM Plex Mono',monospace;
+  color:var(--gold);
+  font-weight:700;
+}
+details.quiz[open] summary{ margin-bottom:10px; border-bottom:1px dashed var(--rule); padding-bottom:10px; }
+.quiz .answer{ font-size:14.5px; }
+.quiz .answer .a-label{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--maroon);
+  text-transform:uppercase; margin-bottom:4px; display:block;
+}
+
+/* svg diagram wrapper */
+.diagram-wrap{
+  background:var(--paper-panel);
+  border:1px solid var(--rule);
+  border-radius:4px;
+  padding:20px;
+  margin:22px 0;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+.diagram-cap{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  color:var(--ink-soft);
+  margin-top:10px;
+  letter-spacing:0.3px;
+}
+
+/* nav footer */
+.page-nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:56px;
+  padding-top:22px;
+  border-top:1px solid var(--rule);
+}
+.nav-arrow{
+  background:var(--navy);
+  color:#F3ECD8;
+  border:none;
+  padding:12px 20px;
+  border-radius:3px;
+  cursor:pointer;
+  font-family:'Source Serif 4', serif;
+  font-size:14px;
+  max-width:340px;
+  text-align:left;
+  transition:background 0.15s ease;
+}
+.nav-arrow:hover{ background:var(--navy-2); }
+.nav-arrow .lbl{ display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:var(--gold-soft); margin-bottom:3px; text-transform:uppercase; }
+.nav-arrow.disabled{ visibility:hidden; }
+.nav-arrow.next{ text-align:right; margin-left:auto; }
+
+.pagecount{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-faint); }
+
+@media (max-width: 880px){
+  body{ flex-direction:column; }
+  #sidebar{ width:100%; height:auto; position:relative; min-width:0; }
+  #main{ max-width:100vw; padding:32px 22px 80px 22px; }
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="side-header">
+    <div class="kicker">CSE209 · Computer Architecture</div>
+    <h1>Computer Abstractions &amp; Technology</h1>
+    <div class="sub">Chapter 1 — Patterson &amp; Hennessy, COD 5th Ed.</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-label">Contents</div>
+    <button class="nav-btn" data-target="s1"><span class="n">§1.1</span>The Computer Revolution</button>
+    <button class="nav-btn" data-target="s2"><span class="n">§1.1</span>Classes of Computers</button>
+    <button class="nav-btn" data-target="s3"><span class="n">§1.1</span>The Post-PC Era</button>
+    <button class="nav-btn" data-target="s4"><span class="n">§1.1</span>Understanding Performance</button>
+    <button class="nav-btn" data-target="s5"><span class="n">§1.2</span>Eight Great Ideas</button>
+    <button class="nav-btn" data-target="s6"><span class="n">§1.3–1.4</span>Below Your Program</button>
+    <button class="nav-btn" data-target="s7"><span class="n">§1.4</span>Abstractions: ISA &amp; ABI</button>
+    <button class="nav-btn" data-target="s8"><span class="n">§1.6</span>Defining &amp; Measuring Performance</button>
+    <button class="nav-btn" data-target="s9"><span class="n">§1.6</span>The CPU Performance Equation</button>
+    <button class="nav-btn" data-target="s10"><span class="n">§1.9–1.10</span>Pitfalls &amp; Concluding Remarks</button>
+  </nav>
+  <div class="side-footer">
+    Progress
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</div>
+
+<div id="main">
+
+<!-- ============ SECTION 1 ============ -->
+<section class="page" id="s1">
+  <div class="page-eyebrow">§1.1 · Introduction</div>
+  <h1 class="page-title">The Computer Revolution</h1>
+  <p class="page-sub">Why a "computer architecture" course exists, and what has made computing the most transformative technology of the last sixty years.</p>
+
+  <p>Welcome to Chapter 1. Before we touch a single instruction or logic gate, we need to build the right mental model of <em class="term">why</em> this field matters and <em class="term">where</em> it is heading — because everything in CSE209 is really an answer to one question: <strong>how do we keep making computers faster, cheaper, and more capable, generation after generation?</strong></p>
+
+  <h3><span class="sec-no">1.1.1</span>Progress in Computer Technology</h3>
+  <p>The entire discipline of computer architecture is underpinned by one empirical observation, commonly called <strong>Moore's Law</strong>: the number of transistors that can be economically placed on an integrated circuit roughly doubles every two years. This is <em>not</em> a law of physics — it is an economic and engineering trend that the semiconductor industry has managed to sustain for decades through relentless innovation.</p>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>Moore's Law is about <strong>transistor count doubling</strong>, not directly about "computers getting twice as fast." Students routinely write "performance doubles every two years" — that is a common but imprecise restatement. The precise statement is about transistor density/count. Performance gains follow as a <em>consequence</em> of more transistors (enabling more parallelism, more cache, more functional units), but the law itself is about counting transistors, not timing programs.</p>
+  </div>
+
+  <p>Because raw computing capability keeps improving, applications that were once science fiction become routine engineering. The slide deck highlights a few landmark examples of what this exponential progress made feasible:</p>
+
+  <ul class="classic">
+    <li>Computers embedded in automobiles (engine control, safety systems, and now driver assistance)</li>
+    <li>Cell phones — from bulky analog handsets to full computers in your pocket</li>
+    <li>The Human Genome Project — sequencing 3 billion base pairs was only tractable because of massive gains in processing and storage</li>
+    <li>The World Wide Web — a direct product of cheap networked computation</li>
+    <li>Search engines — indexing and querying web-scale data in milliseconds</li>
+  </ul>
+
+  <p>The umbrella takeaway: <strong>computers are pervasive</strong>. They are no longer a specialist tool locked in a research lab — they are woven into transportation, communication, medicine, entertainment, and science. This course is about understanding what happens <em>underneath</em> all of that — the layers of hardware and software abstraction that make it possible.</p>
+
+  <div class="box idea">
+    <div class="box-title">★ Professor's Intuition</div>
+    <p>Think of Moore's Law as a "budget" that keeps growing. Every two years, architects are handed roughly twice as many transistors to spend. The central design question of computer architecture is: <em>what is the smartest way to spend that budget?</em> More cache? More cores? Wider pipelines? Better branch predictors? Chapter 1's "Eight Great Ideas" (coming in §1.2) are essentially the field's best answers to that spending question.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>Moore's Law states that computer performance doubles every two years. True or false — and why?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>False, strictly speaking.</strong> Moore's Law is a statement about the number of transistors on an integrated circuit roughly doubling every two years. Performance improvements are a downstream <em>effect</em> of having more transistors available (more cores, larger caches, wider execution units) — but the law itself does not directly measure or guarantee execution-time speedup. On an exam, always tie your answer back to "transistor count," not "speed."</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow disabled next" data-nav="prev"></button>
+    <span class="pagecount">Page 1 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Classes of Computers →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section class="page" id="s2">
+  <div class="page-eyebrow">§1.1 · Introduction</div>
+  <h1 class="page-title">Classes of Computers</h1>
+  <p class="page-sub">The same fundamental components appear in every computer — but the constraints they're designed under differ enormously.</p>
+
+  <p>The textbook divides computers into four broad classes. What matters for exams is not just the names, but the <em class="term">optimization target</em> each class is designed around — because that target explains every downstream architectural decision.</p>
+
+  <h3><span class="sec-no">1.1.2</span>The Four Classes</h3>
+  <table class="classic">
+    <caption>Table 1.1 — Classes of computers and their defining constraint</caption>
+    <thead>
+      <tr><th>Class</th><th>Defining Trait</th><th>Primary Constraint</th><th>Scale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Personal Computer (PC)</strong></td><td>General purpose, runs a wide variety of software</td><td>Cost / performance tradeoff</td><td>Single-user desktop/laptop</td></tr>
+      <tr><td><strong>Server</strong></td><td>Network-based, serves many clients</td><td>Capacity, performance, <em>reliability</em></td><td>Small servers → building-sized data centers</td></tr>
+      <tr><td><strong>Supercomputer</strong></td><td>High-end scientific / engineering computation</td><td>Raw capability, cost is secondary</td><td>Highest capability, but a tiny fraction of the market by unit count</td></tr>
+      <tr><td><strong>Embedded Computer</strong></td><td>Hidden inside another system (a car, a microwave, a router)</td><td>Power, performance, <em>and</em> cost — all simultaneously stringent</td><td>By far the most numerous class in the world</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>A very common multiple-choice trap: "Which class of computer represents the largest fraction of the overall computer <em>market</em> (by units sold)?" Students instinctively answer "PC" or "Server" because those are the most visible. The correct answer is <strong>embedded computers</strong> — there are vastly more microcontrollers quietly running your car, your washing machine, your router, and your thermostat than there are PCs and servers combined. Conversely, supercomputers represent the highest <em>capability</em> but the smallest fraction of the market.</p>
+  </div>
+
+  <h4>Why reliability matters more for servers</h4>
+  <p>A single PC crashing inconveniences one user. A server crashing can mean thousands of simultaneous users losing access, financial transactions failing mid-flight, or an entire company's infrastructure going dark. This is why server design invests heavily in redundancy — extra power supplies, RAID storage, ECC memory, hot-swappable components — concepts that map directly onto one of the "Eight Great Ideas" you'll meet shortly: <em class="term">Dependability via Redundancy</em>.</p>
+
+  <h4>Why embedded systems are the hardest design problem</h4>
+  <p>Embedded computers face the toughest simultaneous constraint set in the entire field: they must be cheap (produced by the millions), power-efficient (often battery-powered or passively cooled), and still performant enough to do real-time control (like anti-lock braking). Unlike a supercomputer, you can't just throw more transistors and power at an embedded problem — every milliwatt and every cent counts.</p>
+
+  <details class="quiz">
+    <summary>A company wants to build a system for real-time flight control on an aircraft. Which class of computer is this, and what is its primary design constraint?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>This is an <strong>embedded computer</strong>. It is hidden as a component of the larger aircraft system, and it must satisfy stringent, simultaneous constraints on <strong>power, performance, and cost</strong> — with the added real-world requirement of hard real-time correctness (missing a deadline is a safety failure, not just a slowdown).</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← The Computer Revolution</button>
+    <span class="pagecount">Page 2 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>The Post-PC Era →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section class="page" id="s3">
+  <div class="page-eyebrow">§1.1 · Introduction</div>
+  <h1 class="page-title">The Post-PC Era</h1>
+  <p class="page-sub">Computing shifted from a device on your desk to a device in your pocket, tethered invisibly to a warehouse full of servers.</p>
+
+  <p>The textbook frames a historic transition: the <em class="term">Post-PC Era</em>, where the dominant computing device is no longer a desktop tower but a battery-powered, internet-connected handheld — and where a large portion of the "computing" doesn't even happen on your device at all.</p>
+
+  <h3><span class="sec-no">1.1.3</span>Personal Mobile Devices (PMDs)</h3>
+  <ul class="classic">
+    <li><strong>Battery operated</strong> — power efficiency becomes a first-class architectural concern, not an afterthought</li>
+    <li><strong>Connects to the Internet</strong> — the device is rarely useful in isolation; it's a terminal into a much larger networked system</li>
+    <li><strong>Costs hundreds of dollars</strong> — far cheaper than traditional PCs, driving enormous unit volumes</li>
+    <li>Examples: smartphones, tablets, electronic glasses (wearables)</li>
+  </ul>
+
+  <h3><span class="sec-no">1.1.4</span>Cloud Computing</h3>
+  <p>The counterpart to the lightweight PMD is the <em class="term">Warehouse Scale Computer (WSC)</em> — literally a building filled with thousands of servers, functioning as one enormous computer. This pairing enables <em class="term">Software as a Service (SaaS)</em>, where:</p>
+  <ul class="classic">
+    <li>A <strong>portion of the software runs on the PMD</strong> (the lightweight front-end / UI)</li>
+    <li>A <strong>portion runs in the Cloud</strong> (the heavy computation, storage, and data at scale)</li>
+    <li>Companies like <strong>Amazon and Google</strong> are given as the canonical examples of organizations operating at WSC scale</li>
+  </ul>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+      <!-- PMD -->
+      <rect x="40" y="70" width="110" height="90" rx="10" fill="#FFFCF5" stroke="#16283F" stroke-width="2"/>
+      <rect x="60" y="85" width="70" height="50" rx="4" fill="#E4D6AE" stroke="#9C7328" stroke-width="1.5"/>
+      <text x="95" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#16283F">app UI</text>
+      <text x="95" y="180" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" fill="#2A2418" font-weight="600">Personal Mobile Device</text>
+      <text x="95" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5C5340">battery · internet-linked</text>
+
+      <!-- connection -->
+      <line x1="150" y1="115" x2="290" y2="115" stroke="#7A2331" stroke-width="2" stroke-dasharray="6,5"/>
+      <polygon points="290,110 302,115 290,120" fill="#7A2331"/>
+      <text x="220" y="102" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#7A2331">SaaS request</text>
+
+      <!-- WSC -->
+      <rect x="310" y="40" width="360" height="150" rx="8" fill="#FFFCF5" stroke="#16283F" stroke-width="2"/>
+      <text x="490" y="60" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" fill="#2A2418" font-weight="600">Warehouse-Scale Computer (Cloud)</text>
+      <g>
+        <rect x="326" y="75" width="60" height="95" fill="#1F3A5C"/>
+        <rect x="392" y="75" width="60" height="95" fill="#1F3A5C"/>
+        <rect x="458" y="75" width="60" height="95" fill="#1F3A5C"/>
+        <rect x="524" y="75" width="60" height="95" fill="#1F3A5C"/>
+        <rect x="590" y="75" width="60" height="95" fill="#1F3A5C"/>
+        <!-- rack lines -->
+        <g stroke="#E4D6AE" stroke-width="1">
+          <line x1="330" y1="90" x2="382" y2="90"/><line x1="330" y1="102" x2="382" y2="102"/><line x1="330" y1="114" x2="382" y2="114"/>
+          <line x1="396" y1="90" x2="448" y2="90"/><line x1="396" y1="102" x2="448" y2="102"/><line x1="396" y1="114" x2="448" y2="114"/>
+          <line x1="462" y1="90" x2="514" y2="90"/><line x1="462" y1="102" x2="514" y2="102"/><line x1="462" y1="114" x2="514" y2="114"/>
+          <line x1="528" y1="90" x2="580" y2="90"/><line x1="528" y1="102" x2="580" y2="102"/><line x1="528" y1="114" x2="580" y2="114"/>
+          <line x1="594" y1="90" x2="646" y2="90"/><line x1="594" y1="102" x2="646" y2="102"/><line x1="594" y1="114" x2="646" y2="114"/>
+        </g>
+      </g>
+      <text x="490" y="184" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5C5340">e.g., Amazon, Google · runs the heavy computation</text>
+    </svg>
+    <div class="diagram-cap">Fig. 1.1 — Software as a Service splits work between a lightweight PMD and a Warehouse-Scale Computer</div>
+  </div>
+
+  <div class="box idea">
+    <div class="box-title">★ Professor's Intuition</div>
+    <p>Whenever you see "SaaS," ask yourself: <em>which part runs locally, and which part runs remotely, and why?</em> The local part is thin because PMDs are power- and cost-constrained. The remote part is heavy because WSCs have (comparatively) unlimited power and cooling infrastructure. This split is itself an application of <em class="term">"make the common case fast"</em> and resource-appropriate design — themes that recur constantly in this course.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>Why can't a smartphone simply do all of Google Search's ranking computation locally, on-device?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>Because a PMD is fundamentally constrained: it is battery-powered, must stay within tight thermal/power budgets, and has orders of magnitude less compute and storage than a warehouse full of servers. Search ranking over a web-scale index requires the aggregate capacity of a Warehouse Scale Computer. The PMD instead sends a lightweight request and renders the returned result — the classic SaaS split.</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Classes of Computers</button>
+    <span class="pagecount">Page 3 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Understanding Performance →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section class="page" id="s4">
+  <div class="page-eyebrow">§1.1 · Introduction</div>
+  <h1 class="page-title">What You Will Learn &amp; Understanding Performance</h1>
+  <p class="page-sub">A roadmap for the entire course — and the four ingredients that jointly determine how fast a program runs.</p>
+
+  <h3><span class="sec-no">1.1.5</span>What You Will Learn in CSE209</h3>
+  <p>The introductory slides set expectations for the whole semester. By the end of this course, you should understand:</p>
+  <ul class="classic">
+    <li>How programs written in a high-level language are <strong>translated into machine language</strong></li>
+    <li>How the hardware actually <strong>executes</strong> those machine instructions</li>
+    <li>The <strong>hardware/software interface</strong> — the contract between the two worlds</li>
+    <li>What <strong>determines program performance</strong>, and how it can be improved</li>
+    <li>How hardware designers <strong>improve performance</strong> at the architecture level</li>
+    <li>What <strong>parallel processing</strong> is, and why modern architecture leans on it so heavily</li>
+  </ul>
+  <p>Notice the throughline: this course moves from <em>software concepts</em> (translation, instructions) down to <em>hardware realities</em> (execution, performance, parallelism). Everything you learn is really tracing one continuous path from a line of C code down to electrons moving through silicon.</p>
+
+  <h3><span class="sec-no">1.1.6</span>Understanding Performance</h3>
+  <p>"Performance" feels like a single number, but it is actually the product of decisions made at <em>four independent layers</em> of the system. This is one of the most exam-favorite lists in the entire chapter:</p>
+
+  <table class="classic">
+    <caption>Table 1.2 — What determines program performance</caption>
+    <thead><tr><th>Layer</th><th>What it Determines</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Algorithm</strong></td><td>The number of operations executed (e.g., O(n²) vs O(n log n))</td></tr>
+      <tr><td><strong>Programming language, compiler, architecture</strong></td><td>The number of machine instructions executed <em>per operation</em></td></tr>
+      <tr><td><strong>Processor and memory system</strong></td><td>How fast instructions are actually executed</td></tr>
+      <tr><td><strong>I/O system (including the OS)</strong></td><td>How fast I/O operations are executed</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>A frequently tested confusion: students conflate "algorithm" and "compiler" as both affecting instruction count and think they're interchangeable. They are <em>not</em> the same lever. The <strong>algorithm</strong> determines the number of high-level <em>operations</em> (independent of any machine). The <strong>compiler/language/architecture</strong> determines how many machine instructions are needed to realize each of those operations. A brilliant algorithm compiled badly can still perform poorly, and vice versa — these are orthogonal design decisions, and exam questions love asking you to identify "which layer is responsible" for a described performance problem.</p>
+  </div>
+
+  <div class="box brainstorm">
+    <div class="box-title">✎ Brainstorm</div>
+    <p>Suppose a program runs slowly. Walk through each of the four layers as a checklist: Is the <em>algorithm</em> asymptotically inefficient? Is the <em>compiler</em> generating bloated code (poor optimization)? Is the <em>processor/memory</em> stalling on cache misses? Is the program <em>I/O-bound</em>, waiting on disk or network? Real performance debugging is exactly this kind of layered elimination process — and this four-layer model is the mental checklist professional engineers use.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>A programmer switches from bubble sort to quicksort and the program speeds up dramatically. Which of the four performance layers did they change?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>The algorithm.</strong> Bubble sort is O(n²); quicksort is O(n log n) on average. This changes the number of operations executed for a given input, independent of compiler, processor, or I/O system.</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← The Post-PC Era</button>
+    <span class="pagecount">Page 4 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Eight Great Ideas →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section class="page" id="s5">
+  <div class="page-eyebrow">§1.2 · Eight Great Ideas in Computer Architecture</div>
+  <h1 class="page-title">Eight Great Ideas</h1>
+  <p class="page-sub">The unifying framework for the entire course. Almost every technique you'll learn in CSE209 is a specific instance of one of these eight ideas.</p>
+
+  <p>Memorize this list well — professors love building entire exam sections around "identify which Great Idea this technique demonstrates." Treat it the way you'd treat a periodic table: a small set of primitives that everything else in the course is built from.</p>
+
+  <ol class="classic">
+    <li><strong>Design for Moore's Law</strong> — anticipate that transistor budgets will keep growing, and design so that your architecture can scale to exploit tomorrow's silicon, not just today's.</li>
+    <li><strong>Use abstraction to simplify design</strong> — hide lower-level detail behind clean interfaces (this is literally the subject of §1.3, coming up next).</li>
+    <li><strong>Make the common case fast</strong> — don't spend equal engineering effort on rare and frequent operations; optimize what actually happens most often.</li>
+    <li><strong>Performance via parallelism</strong> — do multiple things at once (multiple cores, multiple ALUs, multiple memory banks).</li>
+    <li><strong>Performance via pipelining</strong> — overlap the stages of executing multiple instructions, like an assembly line.</li>
+    <li><strong>Performance via prediction</strong> — sometimes it's faster to guess and be right most of the time (with a cheap recovery path when wrong) than to always wait for certainty. Branch prediction is the flagship example.</li>
+    <li><strong>Hierarchy of memories</strong> — balance speed, cost, and capacity by layering small/fast memory (registers, cache) on top of large/slow memory (RAM, disk).</li>
+    <li><strong>Dependability via redundancy</strong> — duplicate critical components so the system tolerates individual failures (this is exactly why server design emphasizes reliability, as we saw in §1.1).</li>
+  </ol>
+
+  <div class="box idea">
+    <div class="box-title">★ Professor's Intuition</div>
+    <p>Group these eight into three buckets to memorize them faster:</p>
+    <p><strong>Design philosophy</strong> (ideas 1–2): Moore's Law, Abstraction.<br>
+    <strong>Performance techniques</strong> (ideas 3–6): Common case, Parallelism, Pipelining, Prediction — notice these four literally all start with a "P" sound (common-case is the odd one out, but three of the four performance techniques are the "3 P's": Parallelism, Pipelining, Prediction).<br>
+    <strong>System-level concerns</strong> (ideas 7–8): Memory hierarchy, Redundancy/dependability.</p>
+  </div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p><em class="term">Parallelism</em> and <em class="term">pipelining</em> are frequently confused. Parallelism means doing <strong>independent</strong> work at the <strong>same time</strong> using duplicated resources (e.g., 4 cores each running a different instruction stream, or 4 ALUs computing 4 independent additions simultaneously). Pipelining means <strong>overlapping the stages</strong> of processing a <strong>sequential stream</strong> of work — like a car factory where car #2 enters the paint stage while car #1 is already at the assembly stage. Pipelining does not require duplicate full resources for each stage; it requires splitting one task into stages and overlapping them across different items in a stream. If a question describes multiple independent cores → parallelism. If it describes overlapping stages of a single instruction stream → pipelining.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>A CPU guesses which way a branch will go and starts executing down that path before the branch condition is actually known. If the guess is right, execution continues at full speed; if wrong, the work is discarded and redone. Which Great Idea is this?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>Performance via prediction</strong> (branch prediction is the textbook's flagship example of this idea).</p>
+    </div>
+  </details>
+
+  <details class="quiz">
+    <summary>A processor keeps a small, extremely fast L1 cache close to the core, backed by a larger, slower L2 cache, backed by even larger, even slower main memory. Which Great Idea does this illustrate?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>Hierarchy of memories</strong> — balancing speed, capacity, and cost by layering memory technologies.</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Understanding Performance</button>
+    <span class="pagecount">Page 5 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Below Your Program →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section class="page" id="s6">
+  <div class="page-eyebrow">§1.3–1.4 · Below Your Program &amp; Under the Covers</div>
+  <h1 class="page-title">Below Your Program</h1>
+  <p class="page-sub">Tracing the full stack — from the code you type down to the bits that actually move through hardware.</p>
+
+  <h3><span class="sec-no">1.3.1</span>Software Layers</h3>
+  <ul class="classic">
+    <li><strong>Application software</strong> — written in a high-level language (HLL); this is what end-users and most programmers interact with directly.</li>
+    <li><strong>System software</strong>
+      <ul>
+        <li><strong>Compiler</strong> — translates HLL source code into machine code (or into assembly, which is then assembled)</li>
+        <li><strong>Operating System</strong> — provides services common to all programs: handling input/output, managing memory and storage, scheduling tasks, and sharing resources safely among programs</li>
+      </ul>
+    </li>
+    <li><strong>Hardware</strong> — the processor, memory, and I/O controllers that ultimately do the work</li>
+  </ul>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" style="max-width:420px; height:auto;">
+      <rect x="150" y="20" width="300" height="60" rx="4" fill="#E4D6AE" stroke="#9C7328" stroke-width="2"/>
+      <text x="300" y="45" text-anchor="middle" font-family="Source Serif 4, serif" font-weight="600" font-size="15" fill="#2A2418">Application Software</text>
+      <text x="300" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5340">written in a high-level language</text>
+
+      <line x1="300" y1="80" x2="300" y2="100" stroke="#7A2331" stroke-width="2"/>
+      <polygon points="294,100 300,112 306,100" fill="#7A2331"/>
+
+      <rect x="120" y="112" width="360" height="70" rx="4" fill="#FBF5E8" stroke="#1F3A5C" stroke-width="2"/>
+      <text x="300" y="134" text-anchor="middle" font-family="Source Serif 4, serif" font-weight="600" font-size="15" fill="#2A2418">System Software</text>
+      <text x="220" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#1F3A5C">Compiler</text>
+      <text x="380" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#1F3A5C">Operating System</text>
+      <text x="300" y="173" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5C5340">I/O · memory/storage · scheduling</text>
+
+      <line x1="300" y1="182" x2="300" y2="202" stroke="#7A2331" stroke-width="2"/>
+      <polygon points="294,202 300,214 306,202" fill="#7A2331"/>
+
+      <rect x="90" y="214" width="420" height="66" rx="4" fill="#16283F" stroke="#16283F" stroke-width="2"/>
+      <text x="300" y="240" text-anchor="middle" font-family="Source Serif 4, serif" font-weight="600" font-size="15" fill="#F3ECD8">Hardware</text>
+      <text x="300" y="260" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D6CDB0">Processor · Memory · I/O Controllers</text>
+    </svg>
+    <div class="diagram-cap">Fig. 1.2 — "Below Your Program": the three layers between your code and the silicon</div>
+  </div>
+
+  <h3><span class="sec-no">1.3.2</span>Levels of Program Code</h3>
+  <p>A single piece of source code passes through three representations before it can run:</p>
+  <table class="classic">
+    <thead><tr><th>Level</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>High-level language</strong></td><td>Closer to the problem domain; provides productivity and portability (e.g., C, Java, Python)</td></tr>
+      <tr><td><strong>Assembly language</strong></td><td>A textual, human-readable representation of individual machine instructions</td></tr>
+      <tr><td><strong>Hardware representation</strong></td><td>Binary digits (bits) — the actual encoded instructions and data the processor consumes</td></tr>
+    </tbody>
+  </table>
+  <p>The <strong>compiler</strong> handles the first translation (HLL → assembly/machine code); an <strong>assembler</strong> handles turning assembly text into binary machine code. You'll get hands-on with this exact pipeline in Chapter 2 (MIPS ISA) and again when we discuss translation, linking, and loading.</p>
+
+  <h3><span class="sec-no">1.4.1</span>Components of a Computer</h3>
+  <p>Regardless of whether you're looking at a desktop, a server, or an embedded controller, the same fundamental components recur:</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" style="max-width:500px; height:auto;">
+      <rect x="30" y="90" width="110" height="60" rx="4" fill="#FBF5E8" stroke="#1F3A5C" stroke-width="2"/>
+      <text x="85" y="124" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" font-weight="600" fill="#2A2418">Input</text>
+
+      <rect x="500" y="90" width="110" height="60" rx="4" fill="#FBF5E8" stroke="#1F3A5C" stroke-width="2"/>
+      <text x="555" y="124" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" font-weight="600" fill="#2A2418">Output</text>
+
+      <rect x="180" y="20" width="280" height="60" rx="4" fill="#E4D6AE" stroke="#9C7328" stroke-width="2"/>
+      <text x="320" y="46" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" font-weight="600" fill="#2A2418">Memory</text>
+      <text x="320" y="64" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5C5340">stores instructions &amp; data</text>
+
+      <rect x="180" y="160" width="280" height="60" rx="4" fill="#16283F" stroke="#16283F" stroke-width="2"/>
+      <text x="320" y="184" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" font-weight="600" fill="#F3ECD8">Processor</text>
+      <text x="270" y="204" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D6CDB0">Datapath</text>
+      <text x="370" y="204" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#D6CDB0">Control</text>
+
+      <line x1="140" y1="120" x2="180" y2="120" stroke="#7A2331" stroke-width="2"/>
+      <line x1="180" y1="120" x2="180" y2="80" stroke="#7A2331" stroke-width="2"/>
+      <line x1="180" y1="120" x2="180" y2="160" stroke="#7A2331" stroke-width="2"/>
+      <line x1="460" y1="120" x2="500" y2="120" stroke="#7A2331" stroke-width="2"/>
+      <line x1="460" y1="120" x2="460" y2="80" stroke="#7A2331" stroke-width="2"/>
+      <line x1="460" y1="120" x2="460" y2="160" stroke="#7A2331" stroke-width="2"/>
+    </svg>
+    <div class="diagram-cap">Fig. 1.3 — Components of a computer: Input, Output, Memory, and Processor (Datapath + Control)</div>
+  </div>
+
+  <ul class="classic">
+    <li><strong>Input/Output</strong> includes user-interface devices (display, keyboard, mouse), storage devices (hard disk, CD/DVD, flash), and network adapters for communicating with other computers.</li>
+    <li>The <strong>Processor</strong> is itself made of two parts you will study in depth later this course: the <strong>Datapath</strong> (which performs operations on data) and the <strong>Control</strong> (which orchestrates the datapath, memory, and I/O).</li>
+  </ul>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>Storage devices (hard disk, flash, CD/DVD) are frequently miscategorized. Students want to call them "Memory," but in this taxonomy they fall under <strong>I/O</strong> (specifically, storage I/O) — "Memory" in this diagram refers specifically to the fast, directly-addressable main memory the processor reads instructions and data from. Long-term/secondary storage is treated as an I/O device the processor talks to indirectly.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>Which two sub-components make up "the Processor" in the classic computer components diagram?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>Datapath</strong> (performs the actual operations on data) and <strong>Control</strong> (directs the datapath, memory, and I/O devices according to the instructions being executed).</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Eight Great Ideas</button>
+    <span class="pagecount">Page 6 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Abstractions: ISA &amp; ABI →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section class="page" id="s7">
+  <div class="page-eyebrow">§1.4 · Under the Covers — The Big Picture</div>
+  <h1 class="page-title">Abstractions: ISA &amp; ABI</h1>
+  <p class="page-sub">Three precisely distinct terms that examiners love to test against each other.</p>
+
+  <p>Abstraction is how we tame the staggering complexity of a modern computer — by hiding lower-level detail behind well-defined interfaces so that each layer of the system only needs to know about the layer directly below it. Chapter 1 introduces three specific abstraction concepts that you must be able to tell apart cold.</p>
+
+  <table class="classic">
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Instruction Set Architecture (ISA)</strong></td><td>The hardware/software interface — the complete set of instructions, registers, and behaviors a processor exposes to software. This is <em>the contract</em>.</td></tr>
+      <tr><td><strong>Application Binary Interface (ABI)</strong></td><td>The ISA <em>plus</em> the system software (OS) interface — includes calling conventions, system call interfaces, and binary formats. A compiled binary conforming to a given ABI can run unmodified on any machine implementing that ABI.</td></tr>
+      <tr><td><strong>Implementation</strong></td><td>The actual hardware details realizing an interface — the specific circuits, pipeline design, and microarchitecture underneath.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box idea">
+    <div class="box-title">★ Professor's Intuition</div>
+    <p>Think of the ISA as a restaurant's <em>menu</em>: it tells you exactly what dishes (instructions) you can order and what you'll get back, without telling you anything about the kitchen. The <em>implementation</em> is the kitchen itself — two different restaurants (say, Intel and AMD) can serve the exact same menu (the x86 ISA) using completely different kitchens (microarchitectures) — different pipeline depths, different cache designs, different out-of-order execution logic — yet a customer (a compiled program) ordering off that menu gets a compatible result either way. The <em>ABI</em> extends the analogy: it's the menu <em>plus</em> the restaurant's ordering procedure (how you pay, how you're seated) — matching both means your "order" (binary) works without any changes across compatible restaurants.</p>
+  </div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>The classic trick question: "If two processors implement the same ISA, will a compiled binary always run identically fast on both?" <strong>No.</strong> Same ISA guarantees <em>correctness</em> (the same instructions produce the same architectural results) — it does <strong>not</strong> guarantee the same <em>performance</em>, because performance depends on the <em>implementation</em> (pipeline design, cache sizes, clock rate), which can differ freely underneath a shared ISA. This is precisely why Intel and AMD chips both run x86 software correctly, yet have very different performance profiles.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>A software vendor ships a single compiled binary that runs, unmodified, on any Linux machine with an x86-64 CPU — regardless of the specific CPU model. What abstraction makes this possible?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>The <strong>Application Binary Interface (ABI)</strong> — because it fixes not just the ISA but also the OS-level interface (system calls, calling conventions, binary/executable format), a binary built against a stable ABI runs unmodified across any compliant hardware/OS combination.</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Below Your Program</button>
+    <span class="pagecount">Page 7 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Defining &amp; Measuring Performance →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 8 ============ -->
+<section class="page" id="s8">
+  <div class="page-eyebrow">§1.6 · Performance</div>
+  <h1 class="page-title">Defining &amp; Measuring Performance</h1>
+  <p class="page-sub">"Performance" sounds simple until you have to define it precisely — and precision here is where most exam points are won or lost.</p>
+
+  <h3><span class="sec-no">1.6.1</span>Defining Performance: Which Airplane Wins?</h3>
+  <p>The textbook opens with a deliberately provocative question: <em>which airplane has the best performance?</em> The answer depends entirely on what you're optimizing for.</p>
+
+  <table class="classic">
+    <caption>Table 1.3 — Airplane performance depends on your metric</caption>
+    <thead><tr><th>Airplane</th><th class="num">Passenger Capacity</th><th class="num">Cruising Range (mi)</th><th class="num">Cruising Speed (mph)</th><th class="num">Passengers × Speed</th></tr></thead>
+    <tbody>
+      <tr><td>Boeing 777</td><td class="num">375</td><td class="num">4,630</td><td class="num">610</td><td class="num">228,750</td></tr>
+      <tr><td>Boeing 747</td><td class="num">470</td><td class="num">4,150</td><td class="num">610</td><td class="num">286,700</td></tr>
+      <tr><td>BAC/Sud Concorde</td><td class="num">132</td><td class="num">4,000</td><td class="num">1,350</td><td class="num">178,200</td></tr>
+      <tr><td>Douglas DC-8-50</td><td class="num">146</td><td class="num">8,720</td><td class="num">544</td><td class="num">79,424</td></tr>
+    </tbody>
+  </table>
+  <p>If your metric is <strong>raw speed</strong>, the Concorde wins outright. If your metric is <strong>throughput</strong> (passengers × speed — how many passenger-miles you deliver per hour), the Boeing 747 wins. If your metric is <strong>range</strong>, the DC-8-50 wins. This is not a trick — it is the entire point: <strong>you cannot discuss "performance" without first fixing the metric.</strong> The same discipline applies directly to computers.</p>
+
+  <h3><span class="sec-no">1.6.2</span>Response Time vs. Throughput</h3>
+  <ul class="classic">
+    <li><strong>Response time (latency)</strong> — how long it takes to complete one task, start to finish.</li>
+    <li><strong>Throughput (bandwidth)</strong> — total work completed per unit time (e.g., transactions per hour).</li>
+  </ul>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap — the single most common Chapter 1 exam question</div>
+    <p><strong>Replacing the processor with a faster version</strong> improves <em>both</em> response time (each task finishes sooner) <em>and</em> throughput (more tasks complete per unit time) — a rare "everybody wins" upgrade.</p>
+    <p><strong>Adding more processors</strong> primarily improves <em>throughput</em> (more tasks can run concurrently) but does <strong>not</strong>, by itself, reduce the response time of any single task. Analogy: adding more checkout lanes at a grocery store lets more customers check out per hour (higher throughput), but it does not make any individual customer's own checkout any faster (unchanged response time) — it just reduces how long they wait <em>in line</em> beforehand if the store was congested.</p>
+  </div>
+
+  <h3><span class="sec-no">1.6.3</span>Relative Performance</h3>
+  <div class="formula">Performance <span class="op">=</span> 1 / Execution Time</div>
+  <p>To say "X is <em>n</em> times faster than Y," compute:</p>
+  <div class="formula">n <span class="op">=</span> Execution Time<sub>Y</sub> / Execution Time<sub>X</sub></div>
+
+  <div class="box worked">
+    <div class="box-title">✓ Worked Example</div>
+    <p>A program takes <strong>10s on Computer A</strong> and <strong>15s on Computer B</strong>. How much faster is A?</p>
+    <div class="formula">Execution Time<sub>B</sub> / Execution Time<sub>A</sub> <span class="op">=</span> 15s / 10s <span class="op">=</span> 1.5</div>
+    <p><strong>A is 1.5 times faster than B.</strong></p>
+  </div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>Students very frequently <strong>invert the ratio</strong>. The rule to memorize: put the <em>slower</em> machine's time on top (numerator) and the <em>faster</em> (reference) machine's time on the bottom (denominator). If you're claiming "A is faster," A's time belongs in the denominator. Getting this backwards silently flips your answer to a number less than 1, which should immediately look wrong if you're claiming something is "faster."</p>
+  </div>
+
+  <h3><span class="sec-no">1.6.4</span>Measuring Execution Time — Elapsed vs. CPU Time</h3>
+  <ul class="classic">
+    <li><strong>Elapsed time (wall-clock time)</strong> — total response time including <em>everything</em>: processing, I/O, OS overhead, and idle time. This is what a user actually experiences and what determines overall system performance.</li>
+    <li><strong>CPU time</strong> — time spent actually processing a given job, discounting I/O time and time spent running other jobs. It further splits into <em>user CPU time</em> and <em>system CPU time</em>.</li>
+  </ul>
+  <p>Different programs are affected very differently by CPU performance versus system (OS/I/O) performance — a compute-bound scientific simulation lives and dies by CPU time, while a program that spends most of its life waiting on disk or network is dominated by elapsed time factors the CPU has little control over.</p>
+
+  <details class="quiz">
+    <summary>A data center operator adds 8 more identical servers behind a load balancer. What improves — response time, throughput, both, or neither?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p><strong>Throughput</strong> improves — more requests can be served concurrently. The <strong>response time</strong> of any individual request is not directly improved by adding more processors (it may improve indirectly if the system was previously congested/queued, but the fundamental per-task processing time is unchanged).</p>
+    </div>
+  </details>
+
+  <details class="quiz">
+    <summary>Computer P runs a benchmark in 8 seconds. Computer Q runs the same benchmark in 20 seconds. How many times faster is P than Q?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>20s / 8s <strong>= 2.5</strong>. P is 2.5 times faster than Q.</p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Abstractions: ISA &amp; ABI</button>
+    <span class="pagecount">Page 8 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>The CPU Performance Equation →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 9 ============ -->
+<section class="page" id="s9">
+  <div class="page-eyebrow">§1.6 · Performance</div>
+  <h1 class="page-title">The CPU Performance Equation</h1>
+  <p class="page-sub">The single most important equation in Chapter 1 — and the one that shows up in nearly every exam, in some form, for the rest of the course.</p>
+
+  <h3><span class="sec-no">1.6.5</span>CPU Clocking</h3>
+  <p>Digital hardware operates under a constant-rate clock. Every cycle, data transfer and computation happen, followed by a state update.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 560 130" xmlns="http://www.w3.org/2000/svg" style="max-width:480px; height:auto;">
+      <polyline points="20,100 20,40 90,40 90,100 160,100 160,40 230,40 230,100 300,100 300,40 370,40 370,100 440,100 440,40 510,40 510,100"
+        fill="none" stroke="#16283F" stroke-width="3"/>
+      <line x1="20" y1="115" x2="160" y2="115" stroke="#7A2331" stroke-width="1.5"/>
+      <line x1="20" y1="110" x2="20" y2="120" stroke="#7A2331" stroke-width="1.5"/>
+      <line x1="160" y1="110" x2="160" y2="120" stroke="#7A2331" stroke-width="1.5"/>
+      <text x="90" y="129" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#7A2331">clock period</text>
+      <text x="90" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#5C5340">data transfer + computation</text>
+    </svg>
+    <div class="diagram-cap">Fig. 1.4 — A constant-rate clock signal; one clock period = one clock cycle</div>
+  </div>
+
+  <ul class="classic">
+    <li><strong>Clock period</strong> — the duration of one clock cycle. Example: 250ps = 0.25ns = 250×10⁻¹² s</li>
+    <li><strong>Clock frequency (rate)</strong> — cycles per second, the reciprocal of the period. Example: 4.0GHz = 4000MHz = 4.0×10⁹ Hz</li>
+  </ul>
+  <div class="formula">Clock Period <span class="op">=</span> 1 / Clock Frequency</div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>Unit conversions are where numeric points are lost, not conceptual misunderstanding. Keep a mental conversion table on hand during exams: 1 GHz = 10⁹ Hz, 1 ns = 10⁻⁹ s, 1 ps = 10⁻¹² s. A clock period given in picoseconds must be converted to seconds before it can be combined with a CPU time given in seconds — mixing units mid-calculation is the single most common arithmetic error on this topic.</p>
+  </div>
+
+  <h3><span class="sec-no">1.6.6</span>CPU Time</h3>
+  <p>Performance can be improved by <strong>reducing the number of clock cycles</strong> or by <strong>increasing the clock rate</strong> — and hardware designers constantly trade one against the other, because a design decision that increases clock rate (e.g., a deeper pipeline) often also increases the number of cycles needed per instruction.</p>
+
+  <div class="box worked">
+    <div class="box-title">✓ Worked Example — CPU Time</div>
+    <p><strong>Computer A:</strong> 2GHz clock, 10s CPU time. You are designing <strong>Computer B</strong>, targeting 6s CPU time, but the faster design causes 1.2× as many clock cycles. How fast must B's clock be?</p>
+    <p><strong>Step 1</strong> — find A's clock cycle count:</p>
+    <div class="formula">Clock Cycles<sub>A</sub> <span class="op">=</span> CPU Time<sub>A</sub> × Clock Rate<sub>A</sub> <span class="op">=</span> 10s × 2×10⁹ Hz <span class="op">=</span> 20×10⁹ cycles</div>
+    <p><strong>Step 2</strong> — scale by the 1.2× cycle-count penalty:</p>
+    <div class="formula">Clock Cycles<sub>B</sub> <span class="op">=</span> 1.2 × 20×10⁹ <span class="op">=</span> 24×10⁹ cycles</div>
+    <p><strong>Step 3</strong> — solve for B's required clock rate to hit the 6s target:</p>
+    <div class="formula">Clock Rate<sub>B</sub> <span class="op">=</span> Clock Cycles<sub>B</sub> / CPU Time<sub>B</sub> <span class="op">=</span> 24×10⁹ / 6s <span class="op">= 4.0 GHz</span></div>
+    <p><strong>Computer B must clock at 4.0 GHz</strong> — double A's clock rate, even though it needs less than double the raw speedup, because of the extra 1.2× cycle overhead.</p>
+  </div>
+
+  <h3><span class="sec-no">1.6.7</span>Instruction Count and CPI</h3>
+  <ul class="classic">
+    <li><strong>Instruction Count (IC)</strong> — determined by the program, the ISA, and the compiler.</li>
+    <li><strong>Average Cycles Per Instruction (CPI)</strong> — determined by the CPU hardware. When different instructions take different numbers of cycles, the average CPI is affected by the <em>instruction mix</em> (which instruction types actually get executed, and how often).</li>
+  </ul>
+
+  <div class="formula">CPU Time <span class="op">=</span> Instruction Count <span class="op">×</span> CPI <span class="op">×</span> Clock Cycle Time
+      <span class="op">=</span> (Instruction Count <span class="op">×</span> CPI) / Clock Rate</div>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" style="max-width:520px; height:auto;">
+      <rect x="20" y="20" width="150" height="60" rx="4" fill="#FBF5E8" stroke="#1F3A5C" stroke-width="2"/>
+      <text x="95" y="45" text-anchor="middle" font-family="Source Serif 4, serif" font-size="12.5" font-weight="600" fill="#2A2418">Instruction Count</text>
+      <text x="95" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5340">Program · ISA · Compiler</text>
+
+      <rect x="205" y="20" width="150" height="60" rx="4" fill="#E4D6AE" stroke="#9C7328" stroke-width="2"/>
+      <text x="280" y="45" text-anchor="middle" font-family="Source Serif 4, serif" font-size="12.5" font-weight="600" fill="#2A2418">CPI</text>
+      <text x="280" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5340">CPU hardware, instr. mix</text>
+
+      <rect x="390" y="20" width="150" height="60" rx="4" fill="#16283F" stroke="#16283F" stroke-width="2"/>
+      <text x="465" y="45" text-anchor="middle" font-family="Source Serif 4, serif" font-size="12.5" font-weight="600" fill="#F3ECD8">Clock Cycle Time</text>
+      <text x="465" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#D6CDB0">Hardware technology</text>
+
+      <text x="185" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="#7A2331">×</text>
+      <text x="370" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="#7A2331">×</text>
+
+      <line x1="280" y1="80" x2="280" y2="110" stroke="#7A2331" stroke-width="2"/>
+      <polygon points="274,110 280,122 286,110" fill="#7A2331"/>
+      <rect x="130" y="122" width="300" height="46" rx="4" fill="#F5EFE0" stroke="#7A2331" stroke-width="2"/>
+      <text x="280" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="#7A2331">CPU Time</text>
+    </svg>
+    <div class="diagram-cap">Fig. 1.5 — The three independent levers of CPU performance, and who controls each</div>
+  </div>
+
+  <div class="box worked">
+    <div class="box-title">✓ Worked Example — Comparing CPI</div>
+    <p><strong>Computer A:</strong> Cycle Time = 250ps, CPI = 2.0. <strong>Computer B:</strong> Cycle Time = 500ps, CPI = 1.2. Same ISA (so same Instruction Count, call it <em>IC</em>). Which is faster, and by how much?</p>
+    <div class="formula">CPU Time<sub>A</sub> <span class="op">=</span> IC × 2.0 × 250ps <span class="op">=</span> 500 × IC  ps
+CPU Time<sub>B</sub> <span class="op">=</span> IC × 1.2 × 500ps <span class="op">=</span> 600 × IC  ps
+
+CPU Time<sub>B</sub> / CPU Time<sub>A</sub> <span class="op">=</span> 600/500 <span class="op">= 1.2</span></div>
+    <p><strong>A is faster, by a factor of 1.2.</strong> Notice B has a <em>lower</em> CPI, yet A still wins overall — a lower CPI alone tells you nothing if the clock cycle time is worse. This is exactly why the full three-term equation matters; no single term determines performance in isolation.</p>
+  </div>
+
+  <h3><span class="sec-no">1.6.8</span>CPI in More Detail — Weighted Average CPI</h3>
+  <p>When different instruction classes take different numbers of cycles, we compute a weighted average CPI:</p>
+  <div class="formula">CPI <span class="op">=</span> Σᵢ (CPIᵢ × ICᵢ) / Instruction Count<sub>total</sub>
+    <span class="op">=</span> Σᵢ (CPIᵢ × Fᵢ)   where Fᵢ = ICᵢ / Instruction Count<sub>total</sub>  (relative frequency)</div>
+
+  <div class="box worked">
+    <div class="box-title">✓ Worked Example — Two Compiled Sequences</div>
+    <p>Two compiled code sequences use instructions from classes A, B, C:</p>
+    <table class="classic">
+      <thead><tr><th>Class</th><th class="num">A</th><th class="num">B</th><th class="num">C</th></tr></thead>
+      <tbody>
+        <tr><td>CPI for class</td><td class="num">1</td><td class="num">2</td><td class="num">3</td></tr>
+        <tr><td>IC in Sequence 1</td><td class="num">2</td><td class="num">1</td><td class="num">2</td></tr>
+        <tr><td>IC in Sequence 2</td><td class="num">4</td><td class="num">1</td><td class="num">1</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Sequence 1:</strong> IC = 2+1+2 = 5</p>
+    <div class="formula">Clock Cycles <span class="op">=</span> (2×1) + (1×2) + (2×3) <span class="op">=</span> 2 + 2 + 6 <span class="op">= 10</span>
+Avg. CPI <span class="op">=</span> 10 / 5 <span class="op">= 2.0</span></div>
+    <p><strong>Sequence 2:</strong> IC = 4+1+1 = 6</p>
+    <div class="formula">Clock Cycles <span class="op">=</span> (4×1) + (1×2) + (1×3) <span class="op">=</span> 4 + 2 + 3 <span class="op">= 9</span>
+Avg. CPI <span class="op">=</span> 9 / 6 <span class="op">= 1.5</span></div>
+    <p><strong>Sequence 2 wins</strong> — fewer total clock cycles (9 vs 10) — <em>despite having a larger Instruction Count</em> (6 vs 5).</p>
+  </div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap — the "more instructions ≠ slower" fallacy</div>
+    <p>The worked example above is a deliberately designed trap: students see IC = 6 > IC = 5 and reflexively assume Sequence 2 is slower. It is not — because Sequence 2 leans more heavily on the cheap Class-A instructions (CPI = 1) and less on the expensive Class-C instructions (CPI = 3). <strong>Instruction count alone never tells you performance</strong> — you must always weigh instruction count against CPI together. This single insight is also the conceptual seed for why "MIPS as a metric" is a pitfall, discussed in the next section.</p>
+  </div>
+
+  <details class="quiz">
+    <summary>Computer X: Cycle Time = 400ps, CPI = 1.5. Computer Y: Cycle Time = 300ps, CPI = 2.2. Same ISA, same Instruction Count (IC). Which is faster, and by what factor?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>CPU Time<sub>X</sub> = IC × 1.5 × 400ps = 600·IC ps.<br>CPU Time<sub>Y</sub> = IC × 2.2 × 300ps = 660·IC ps.<br>Ratio Y/X = 660/600 = <strong>1.1</strong>. <strong>X is faster, by a factor of 1.1.</strong></p>
+    </div>
+  </details>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← Defining &amp; Measuring Performance</button>
+    <span class="pagecount">Page 9 of 10</span>
+    <button class="nav-arrow next" data-nav="next"><span class="lbl">Next</span>Pitfalls &amp; Concluding Remarks →</button>
+  </div>
+</section>
+
+<!-- ============ SECTION 10 ============ -->
+<section class="page" id="s10">
+  <div class="page-eyebrow">§1.9–1.10 · Concluding Remarks &amp; Fallacies/Pitfalls</div>
+  <h1 class="page-title">Pitfalls &amp; Concluding Remarks</h1>
+  <p class="page-sub">Where naïve performance reasoning breaks down — and a formula sheet to carry into the exam.</p>
+
+  <h3><span class="sec-no">1.6.9</span>Performance Summary — The Big Picture</h3>
+  <p>Performance depends on a chain of decisions, each affecting different terms in the CPU time equation:</p>
+  <table class="classic">
+    <thead><tr><th>Factor</th><th>Affects</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Algorithm</strong></td><td>Instruction Count, possibly CPI</td></tr>
+      <tr><td><strong>Programming language</strong></td><td>Instruction Count, CPI</td></tr>
+      <tr><td><strong>Compiler</strong></td><td>Instruction Count, CPI</td></tr>
+      <tr><td><strong>Instruction Set Architecture</strong></td><td>Instruction Count, CPI, <em>and</em> Clock Cycle Time (Tc)</td></tr>
+    </tbody>
+  </table>
+  <p>Only the ISA touches all three terms — a reminder of just how foundational ISA design decisions are to everything downstream.</p>
+
+  <h3><span class="sec-no">1.10.1</span>Pitfall: Amdahl's Law</h3>
+  <p>A dangerously intuitive but <strong>wrong</strong> assumption: improving one aspect of a computer proportionally improves overall performance by the same amount. <strong>It can't be done</strong> — the improvement is always capped by how much of the total execution time that aspect actually accounts for.</p>
+
+  <div class="formula">Speedup<sub>overall</sub> <span class="op">=</span> 1 / [ (1 − F<sub>enhanced</sub>) + F<sub>enhanced</sub>/Speedup<sub>enhanced</sub> ]</div>
+
+  <div class="box worked">
+    <div class="box-title">✓ Worked Example — The "5× Overall" Trap</div>
+    <p>In a 100-second program, <strong>multiply operations account for 80 seconds</strong> of that time (F = 0.8). How much would multiply performance need to improve to get a <strong>5× overall</strong> speedup?</p>
+    <div class="formula">5 <span class="op">=</span> 1 / [ (1 − 0.8) + 0.8/Speedup<sub>mult</sub> ]
+5 <span class="op">=</span> 1 / [ 0.2 + 0.8/Speedup<sub>mult</sub> ]
+0.2 + 0.8/Speedup<sub>mult</sub> <span class="op">=</span> 0.2
+0.8/Speedup<sub>mult</sub> <span class="op">= 0</span>  →  Speedup<sub>mult</sub> <span class="op">→ ∞</span></div>
+    <p><strong>It is impossible.</strong> The non-multiply portion alone already takes 20 seconds — so even if multiply took <em>zero</em> time (infinite speedup), the absolute best possible overall time is 20s, which is exactly a 100/20 = 5× speedup. You can only <em>approach</em> 5× as a limit; you can never exceed it by speeding up multiply alone. This is Amdahl's Law's core lesson, stated as a hard ceiling.</p>
+  </div>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap — the "ceiling" insight</div>
+    <p>The single most exam-relevant consequence of Amdahl's Law: <strong>the maximum possible speedup from improving only one component is bounded by 1 / (1 − F<sub>enhanced</sub>)</strong> — the reciprocal of the <em>un</em>-enhanced fraction. In the example above, 1/(1−0.8) = 1/0.2 = 5×, which is exactly the ceiling we derived. Memorize this shortcut — it lets you answer "what's the best possible speedup?" questions in one line, without solving the full equation.</p>
+  </div>
+
+  <p><strong>Corollary: make the common case fast.</strong> Amdahl's Law is precisely why this corollary matters — optimizing a component that's only active 5% of the time can never yield large overall gains, no matter how aggressively you optimize it.</p>
+
+  <h3><span class="sec-no">1.10.2</span>Pitfall: MIPS as a Performance Metric</h3>
+  <p><strong>MIPS</strong> (Millions of Instructions Per Second) looks like an intuitive speed metric, but it is a textbook pitfall because it fails to account for:</p>
+  <ul class="classic">
+    <li><strong>Differences in ISAs</strong> between computers — one instruction on Machine A might do the work of three instructions on Machine B, so raw instruction throughput isn't comparable across ISAs.</li>
+    <li><strong>Differences in instruction complexity</strong> — not all instructions do equal amounts of "work," so counting them equally is misleading.</li>
+    <li><strong>CPI variation between programs</strong> — even on the <em>same</em> CPU, different programs exercise different instruction mixes, so a single MIPS number can't characterize a machine's performance across all workloads.</li>
+  </ul>
+
+  <div class="box trap">
+    <div class="box-title">⚠ Exam Trap</div>
+    <p>A machine can post a <em>higher</em> MIPS number while executing a program more <em>slowly</em> in actual wall-clock time — if it does so using many more, simpler, low-CPI instructions instead of fewer, more powerful ones. Never assume "higher MIPS = faster" without checking what those instructions were actually accomplishing. This is exactly the same trap as the Sequence 1 vs Sequence 2 example from §1.6.8 — instruction-counting metrics without CPI context are always suspect.</p>
+  </div>
+
+  <h3><span class="sec-no">1.9</span>Concluding Remarks</h3>
+  <ul class="classic">
+    <li>Cost/performance continues to improve, driven by underlying technology development (Moore's Law).</li>
+    <li>Both hardware and software are organized as <strong>hierarchical layers of abstraction</strong> — the theme running through the entire chapter.</li>
+    <li>The <strong>Instruction Set Architecture</strong> is the critical hardware/software interface.</li>
+    <li><strong>Execution time is the best performance measure</strong> — prefer it over proxy metrics like MIPS.</li>
+    <li><strong>Power is a limiting factor</strong> in modern design — you can't simply add transistors and clock speed without a thermal/energy budget.</li>
+    <li>Modern architecture increasingly relies on <strong>parallelism</strong> to keep improving performance, since single-core clock scaling has slowed dramatically.</li>
+  </ul>
+
+  <h3>Quick Reference — Formula Sheet</h3>
+  <div class="box brainstorm">
+    <div class="box-title">✎ Chapter 1 Formula Sheet</div>
+    <div class="formula">Performance <span class="op">=</span> 1 / Execution Time
+n times faster <span class="op">=</span> Execution Time<sub>other</sub> / Execution Time<sub>reference</sub>
+Clock Period <span class="op">=</span> 1 / Clock Frequency
+CPU Time <span class="op">=</span> Instruction Count × CPI × Clock Cycle Time
+CPU Time <span class="op">=</span> (Instruction Count × CPI) / Clock Rate
+CPI<sub>avg</sub> <span class="op">=</span> Σᵢ (CPIᵢ × ICᵢ) / Instruction Count
+Speedup<sub>overall</sub> (Amdahl) <span class="op">=</span> 1 / [ (1−F) + F/Speedup<sub>enhanced</sub> ]
+Max possible speedup <span class="op">=</span> 1 / (1 − F<sub>enhanced</sub>)</div>
+  </div>
+
+  <details class="quiz">
+    <summary>Final self-check: In a program, I/O accounts for 30% of total execution time (F = 0.3). What is the theoretical maximum overall speedup achievable by optimizing I/O alone, no matter how much faster I/O gets?</summary>
+    <div class="answer">
+      <span class="a-label">Answer</span>
+      <p>Max speedup = 1 / (1 − 0.3) = 1/0.7 <strong>≈ 1.43×</strong>. Even infinitely fast I/O can only ever yield about a 1.43× overall speedup, because the remaining 70% of execution time is untouched by the optimization.</p>
+    </div>
+  </details>
+
+  <div class="box idea">
+    <div class="box-title">★ Looking Ahead</div>
+    <p>Chapter 1 gave you the vocabulary and the "why." Chapter 2 (MIPS ISA) will show you exactly what an Instruction Set Architecture looks like in practice — the concrete instructions, formats, and encodings that everything in this chapter was abstractly pointing toward. Every CPU Time / CPI calculation you just practiced will resurface throughout the rest of the course, especially once we reach pipelining and hazards.</p>
+  </div>
+
+  <div class="page-nav">
+    <button class="nav-arrow next" data-nav="prev"><span class="lbl">Previous</span>← The CPU Performance Equation</button>
+    <span class="pagecount">Page 10 of 10</span>
+    <button class="nav-arrow disabled next" data-nav="next"></button>
+  </div>
+</section>
+
+</div><!-- #main -->
+
+<script>
+(function(){
+  var order = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'];
+  var buttons = document.querySelectorAll('.nav-btn');
+  var pages = document.querySelectorAll('.page');
+  var main = document.getElementById('main');
+  var progressFill = document.getElementById('progressFill');
+
+  function activate(id){
+    pages.forEach(function(p){ p.classList.toggle('active', p.id === id); });
+    buttons.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-target') === id); });
+    var idx = order.indexOf(id);
+    progressFill.style.width = (((idx+1)/order.length) * 100) + '%';
+    main.scrollTo({ top: 0, behavior: 'instant' });
+    try { window.scrollTo(0,0); } catch(e){}
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      activate(b.getAttribute('data-target'));
+    });
+  });
+
+  document.querySelectorAll('[data-nav]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var current = document.querySelector('.page.active').id;
+      var idx = order.indexOf(current);
+      var dir = btn.getAttribute('data-nav');
+      var targetIdx = dir === 'next' ? idx+1 : idx-1;
+      if(targetIdx >= 0 && targetIdx < order.length){
+        activate(order[targetIdx]);
+      }
+    });
+  });
+
+  activate('s1');
+})();
+</script>
+
+</body>
+</html>

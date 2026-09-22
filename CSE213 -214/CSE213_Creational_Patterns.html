@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CSE213 · Creational Design Patterns</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#F3F4F6;color:#111;min-height:100vh}
+.topbar{background:#1E1E2E;color:#CDD6F4;padding:14px 24px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.4)}
+.topbar-inner{max-width:1020px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.topbar-title{font-weight:800;font-size:17px;color:#CBA6F7}
+.topbar-sub{font-size:12px;color:#6C7086;margin-top:2px}
+.tag{font-size:10px;background:#313244;color:#CDD6F4;border-radius:99px;padding:2px 9px}
+.nav{background:#fff;border-bottom:1px solid #E5E7EB;overflow-x:auto;position:sticky;top:58px;z-index:199}
+.nav-inner{max-width:1020px;margin:0 auto;display:flex}
+.nav-btn{padding:11px 14px;border:none;background:transparent;white-space:nowrap;border-bottom:3px solid transparent;color:#6B7280;font-weight:400;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
+.nav-btn.active{border-bottom-color:#2563EB;color:#2563EB;font-weight:700;background:#fff}
+.content{max-width:1020px;margin:0 auto;padding:24px 16px}
+.section{display:none}.section.active{display:block}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#1E1E2E 0%,#313244 100%);border-radius:16px;padding:28px;margin-bottom:24px;color:#CDD6F4}
+.hero-eyebrow{font-size:11px;color:#6C7086;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.hero-title{font-size:24px;font-weight:900;color:#CBA6F7;margin-bottom:8px}
+.hero-body{font-size:13px;color:#BAC2DE;line-height:1.75;max-width:640px;margin-bottom:18px}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.hero-btn{border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:600;font-size:13px;color:#fff}
+
+/* pattern card */
+.pat-card{border:2px solid;border-radius:16px;overflow:hidden;background:#fff;margin-bottom:24px}
+.pat-header{padding:18px 22px;border-bottom:1px solid}
+.pat-header-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.pat-emoji{font-size:30px}
+.pat-name{font-size:20px;font-weight:800}
+.pat-tag{font-size:11px;background:#fff;padding:2px 8px;border-radius:99px;border:1px solid #E5E7EB;color:#6B7280}
+.pat-intent{margin:0;font-size:13.5px;color:#374151;line-height:1.65;font-style:italic}
+
+/* inner tabs */
+.inner-tabs{display:flex;border-bottom:1px solid #E5E7EB;background:#FAFAFA;overflow-x:auto}
+.inner-btn{padding:10px 13px;border:none;background:transparent;white-space:nowrap;border-bottom:3px solid transparent;color:#6B7280;font-weight:400;cursor:pointer;font-size:13px;font-family:inherit}
+.inner-btn.active{background:#fff;font-weight:700}
+.tab-body{padding:20px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* analogy box */
+.analogy{background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;padding:14px;margin-bottom:18px}
+.analogy-title{font-weight:700;margin-bottom:6px;font-size:14px}
+.analogy-body{font-size:13.5px;color:#374151;line-height:1.7}
+
+/* UML pre */
+.uml-pre{background:#1E1E2E;color:#CDD6F4;padding:16px;border-radius:10px;font-size:12.5px;overflow-x:auto;line-height:1.9;white-space:pre}
+
+/* roles */
+.roles-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.role-row{display:flex;gap:12px;border-radius:8px;padding:10px 14px}
+.role-name{font-weight:700;font-size:13px;min-width:150px;flex-shrink:0}
+.role-desc{font-size:13px;color:#374151;line-height:1.55}
+
+/* pros/cons */
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.pros-cons ul{margin:0;padding-left:18px}
+.pros-cons li{font-size:13px;line-height:1.75;color:#374151;margin-bottom:3px}
+.when-box{border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.65}
+
+/* code block */
+.code-wrap{position:relative;margin-bottom:4px}
+.code-block{background:#1E1E2E;color:#CDD6F4;padding:16px 20px;border-radius:10px;font-size:12px;overflow-x:auto;line-height:1.85;white-space:pre;font-family:'Courier New',monospace}
+.code-line-comment{color:#6A9955}
+.copy-btn{position:absolute;top:10px;right:10px;background:#313244;color:#CDD6F4;border:none;border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;z-index:2}
+
+/* exam tips */
+.tip-list{display:flex;flex-direction:column;gap:8px}
+.tip-item{display:flex;gap:10px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px;padding:10px 14px;align-items:flex-start}
+.tip-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.tip-text{font-size:13.5px;line-height:1.65;color:#374151}
+
+/* slide accordion */
+.slide-item{margin-bottom:6px;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}
+.slide-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;background:#FAFAFA;user-select:none}
+.slide-hdr:hover{background:#F3F4F6}
+.slide-icon-big{font-size:20px}
+.slide-badge{font-size:10px;font-weight:700;color:#fff;border-radius:99px;padding:2px 8px}
+.slide-ttl{font-weight:700;font-size:13.5px;flex:1}
+.slide-chevron{color:#9CA3AF;font-size:16px;margin-left:auto}
+.slide-body{padding:14px 18px;border-top:1px solid #E5E7EB;background:#fff;display:none}
+.slide-body.open{display:block}
+.slide-content{font-size:13.5px;color:#374151;line-height:1.75;margin-bottom:12px}
+.slide-points{margin:0 0 12px;padding-left:18px}
+.slide-points li{font-size:13px;color:#374151;line-height:1.75;margin-bottom:3px}
+.slide-insight{background:#FFFBEB;border:1px solid #FCD34D;border-radius:7px;padding:9px 12px;font-size:13px;line-height:1.65;color:#374151}
+
+/* UML section */
+.uml-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:16px}
+.uml-card{border-radius:10px;padding:13px;border:2px solid}
+.uml-sym{font-family:monospace;font-size:17px;font-weight:700;margin-bottom:5px}
+.uml-name{font-weight:700;font-size:13px;margin-bottom:2px}
+.uml-sub{font-size:11.5px;color:#6B7280;margin-bottom:5px}
+.uml-eg{font-size:11px;background:#fff;border-radius:4px;padding:2px 7px;font-style:italic;display:inline-block}
+
+/* comparison table */
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px}
+.cmp-table th{padding:11px 13px;text-align:left;color:#fff;font-size:12px}
+.cmp-table td{padding:10px 13px;border-right:1px solid #E5E7EB;vertical-align:top;line-height:1.6;color:#374151}
+
+/* ── QUIZ STYLES ──────────────────────────────── */
+.quiz-wrap{padding:4px 0}
+.quiz-hero{background:linear-gradient(135deg,#1E1E2E,#313244);border-radius:14px;padding:24px;margin-bottom:22px;color:#CDD6F4}
+.quiz-hero-title{font-size:20px;font-weight:900;color:#CBA6F7;margin-bottom:6px}
+.quiz-hero-sub{font-size:13px;color:#BAC2DE;line-height:1.7}
+.quiz-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{padding:6px 14px;border-radius:99px;border:1.5px solid;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#fff;transition:all .15s}
+.filter-btn.on{color:#fff}
+.quiz-progress{background:#E5E7EB;border-radius:99px;height:5px;margin-bottom:6px}
+.quiz-progress-fill{height:5px;border-radius:99px;background:#7C3AED;transition:width .3s}
+.quiz-meta{display:flex;justify-content:space-between;font-size:12.5px;color:#6B7280;margin-bottom:14px}
+.q-scenario-card{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:14px;border-top:3px solid #7C3AED}
+.q-num-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#7C3AED;color:#fff;border-radius:6px;font-weight:800;font-size:12px;margin-right:8px;vertical-align:middle}
+.q-label-row{display:flex;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.q-diff{font-size:10px;border-radius:99px;padding:2px 8px;font-weight:700;border:1px solid}
+.q-scenario-text{font-size:14px;color:#1C1C2E;line-height:1.75;margin-bottom:8px}
+.q-ask{font-size:13.5px;font-weight:600;color:#374151;margin-bottom:12px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.opt{background:#fff;border:1.5px solid #E5E7EB;border-radius:9px;padding:10px 13px;cursor:pointer;text-align:left;font-size:13.5px;color:#374151;font-family:inherit;transition:background .12s,border-color .12s;line-height:1.45}
+.opt:hover:not(:disabled){background:#F3F4F6;border-color:#D1D5DB}
+.opt:disabled{cursor:default}
+.opt-letter{font-weight:700;color:#9CA3AF;margin-right:6px}
+.opt-name{font-weight:600}
+.opt-sub{display:block;font-size:11.5px;color:#9CA3AF;margin-top:2px}
+.opt.correct{background:#D1FAE5;border-color:#6EE7B7}
+.opt.correct .opt-name{color:#065F46}
+.opt.wrong{background:#FEE2E2;border-color:#FCA5A5}
+.opt.wrong .opt-name{color:#991B1B}
+.opt.dimmed{opacity:.38}
+.feedback{border-radius:9px;padding:12px 14px;margin-bottom:12px;display:none;font-size:13.5px;line-height:1.7}
+.feedback.show{display:block}
+.feedback.ok{background:#ECFDF5;border:1px solid #6EE7B7}
+.feedback.no{background:#FEF3C7;border:1px solid #FCD34D}
+.fb-head{font-weight:700;margin-bottom:4px}
+.fb-head.ok{color:#059669}.fb-head.no{color:#B45309}
+.fb-body{color:#374151;font-size:13px;margin-bottom:8px}
+.fb-keys{margin-top:8px}
+.fb-keys-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6B7280;margin-bottom:5px}
+.key-chip{display:inline-block;background:#fff;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;font-size:11.5px;color:#374151;margin:2px 3px 2px 0;font-style:italic}
+.next-btn{width:100%;padding:10px;font-size:13.5px;font-weight:600;border-radius:9px;border:1.5px solid #E5E7EB;background:#fff;color:#374151;cursor:pointer;font-family:inherit;display:none;margin-bottom:8px}
+.next-btn:hover{background:#F3F4F6}
+.result-screen{display:none;text-align:center;padding:32px 12px}
+.result-emoji{font-size:52px;margin-bottom:10px}
+.result-title{font-size:22px;font-weight:700;color:#1E1E2E;margin-bottom:6px}
+.result-sub{font-size:13.5px;color:#6B7280;line-height:1.65;margin-bottom:20px;max-width:460px;margin-left:auto;margin-right:auto}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;text-align:left}
+.result-card{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:9px;padding:11px 14px}
+.result-pat{font-size:13px;font-weight:600;color:#1E1E2E}
+.result-sc{font-size:12px;color:#6B7280;margin-top:2px}
+.retry-btn{background:#7C3AED;color:#fff;border:none;border-radius:9px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+
+@media(max-width:600px){
+  .options{grid-template-columns:1fr}
+  .pros-cons{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <div class="topbar-title">CSE213 · Software Engineering</div>
+      <div class="topbar-sub">Lecture 3 — Creational Design Patterns · 53 Slides Covered</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="tag">🏭 Factory</span>
+      <span class="tag">🏗️ Abstract</span>
+      <span class="tag">🔒 Singleton</span>
+      <span class="tag">🔨 Builder</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner" id="main-nav"></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ALL -->
+  <div id="sec-all" class="section active">
+    <div class="hero">
+      <div class="hero-eyebrow">Complete Lecture Coverage</div>
+      <div class="hero-title">Creational Design Patterns</div>
+      <div class="hero-body">Every slide explained + UML diagrams + full Java code + exam tips + interactive quizzes.
+        Creational patterns abstract the <strong style="color:#A6E3A1">object creation process</strong> — making your system independent of how objects are created and composed.</div>
+      <div class="hero-btns" id="hero-btns"></div>
+    </div>
+    <div id="all-uml"></div>
+    <div id="all-patterns"></div>
+    <div id="all-compare"></div>
+  </div>
+
+  <!-- UML -->
+  <div id="sec-uml" class="section">
+    <div id="uml-standalone"></div>
+  </div>
+
+  <!-- COMPARE -->
+  <div id="sec-compare" class="section">
+    <div id="compare-standalone"></div>
+  </div>
+
+  <!-- Pattern sections injected by JS -->
+  <div id="sec-factory"   class="section"></div>
+  <div id="sec-abstract"  class="section"></div>
+  <div id="sec-singleton" class="section"></div>
+  <div id="sec-builder"   class="section"></div>
+
+  <!-- QUIZ -->
+  <div id="sec-quiz" class="section">
+    <div class="quiz-wrap">
+      <div class="quiz-hero">
+        <div class="quiz-hero-title">🧠 Scenario Quiz — Identify the Pattern</div>
+        <div class="quiz-hero-sub">22 real-world scenarios covering all 4 creational patterns. No answers shown upfront — select an option and get instant feedback, explanation, and key identification tips.</div>
+      </div>
+      <div class="quiz-filters" id="quiz-filters"></div>
+      <div id="quiz-main">
+        <div class="quiz-meta">
+          <span id="q-meta-left">Question 1 of 22</span>
+          <span id="q-meta-right">Score: 0 / 0</span>
+        </div>
+        <div class="quiz-progress"><div class="quiz-progress-fill" id="q-prog" style="width:0%"></div></div>
+        <div class="q-scenario-card" id="q-card">
+          <div class="q-label-row">
+            <span class="q-num-badge" id="q-num">1</span>
+            <span id="q-set-label" style="font-size:12px;color:#9CA3AF"></span>
+            <span class="q-diff" id="q-diff"></span>
+          </div>
+          <div class="q-scenario-text" id="q-text"></div>
+          <div class="q-ask">Which creational design pattern best fits this scenario?</div>
+        </div>
+        <div class="options" id="q-options"></div>
+        <div class="feedback" id="q-feedback">
+          <div class="fb-head" id="fb-head"></div>
+          <div class="fb-body" id="fb-body"></div>
+          <div class="fb-keys" id="fb-keys"></div>
+        </div>
+        <button class="next-btn" id="q-next"></button>
+      </div>
+      <div class="result-screen" id="quiz-result">
+        <div class="result-emoji" id="r-emoji"></div>
+        <div class="result-title" id="r-title"></div>
+        <div class="result-sub" id="r-sub"></div>
+        <div class="result-grid" id="r-grid"></div>
+        <button class="retry-btn" onclick="startQuiz()">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════════
+const PAT = {
+  factory:{id:"factory",name:"Factory Method",emoji:"🏭",color:"#2563EB",bg:"#EFF6FF",border:"#BFDBFE",tag:"Slides 4–16",
+    intent:"Define an interface for creating an object, but let subclasses decide which class to instantiate. Factory Method lets a class defer instantiation to subclasses.",
+    analogy:{title:"🚚 The Logistics Company Analogy",body:"Imagine you built a logistics app that only supports Truck transport. Now clients want sea transport. If you add 'Ship' directly into main code, you'll need conditionals everywhere. The Factory Method says: define a 'transport' interface, and let each subclass decide how to create the vehicle."},
+    problem:"A framework needs to standardize the architectural model for a range of applications, but allow individual applications to define their own domain objects and provide for their instantiation.",
+    uml:`Creator (abstract)\n├── # factoryMethod(): Product   ← abstract / protected\n└── + anOperation()              ← calls factoryMethod() internally\n\nConcreteCreator extends Creator\n└── + factoryMethod(): Product   ← «create» ConcreteProduct`,
+    roles:[
+      {name:"Creator",desc:"Declares the factory method returning a Product. May define a default implementation."},
+      {name:"ConcreteCreator",desc:"Overrides factory method to return a ConcreteProduct instance."},
+      {name:"Product",desc:"Interface for objects the factory creates."},
+      {name:"ConcreteProduct",desc:"Implements the Product interface."},
+    ],
+    code:`// ── Product interface ──────────────────────\ninterface Shape {\n    void draw();\n}\n\n// ── Concrete Products ───────────────────────\nclass Circle implements Shape {\n    @Override\n    public void draw() {\n        System.out.println("Inside Circle::draw()");\n    }\n}\n// Rectangle and Square are implemented similarly\n\n// ── Factory (Creator) ───────────────────────\npublic class ShapeFactory {\n    // The factory method — decides which class to instantiate\n    public Shape getShape(String shapeType) {\n        if (shapeType == null) return null;\n        if (shapeType.equalsIgnoreCase("CIRCLE"))\n            return new Circle();\n        else if (shapeType.equalsIgnoreCase("RECTANGLE"))\n            return new Rectangle();\n        else if (shapeType.equalsIgnoreCase("SQUARE"))\n            return new Square();\n        return null;\n    }\n}\n\n// ── Client (Demo) ───────────────────────────\npublic class FactoryPatternDemo {\n    public static void main(String[] args) {\n        ShapeFactory shapeFactory = new ShapeFactory();\n        Shape shape1 = shapeFactory.getShape("CIRCLE");\n        shape1.draw(); // Inside Circle::draw()\n        Shape shape2 = shapeFactory.getShape("RECTANGLE");\n        shape2.draw();\n    }\n}`,
+    pros:["Avoids tight coupling between creator and concrete products","Single Responsibility Principle — product creation code in one place","Open/Closed Principle — add new products without breaking existing code"],
+    cons:["Code becomes more complex — many new subclasses needed","Best applied when introducing into an existing creator hierarchy"],
+    when:"Use when you don't know ahead of time what class you need to instantiate, or when you want subclasses to specify the objects they create.",
+    tips:["Factory Method uses INHERITANCE — subclasses override the factory method","The Creator class often has a non-abstract operation that CALLS the factory method","Key phrase: 'Creator defers instantiation to subclasses'","Don't confuse with Abstract Factory — Factory Method is ONE product type; Abstract Factory creates FAMILIES","Constructor in Factory is NOT private (unlike Singleton) — the factory just wraps 'new'","Exam favorite: ShapeFactory getShape() — know the if-else structure and return types"],
+    slides:[
+      {slide:"Slide 3",visual:"🗺️",title:"Creational Patterns Overview",content:"The lecture introduces 4 creational patterns: Factory Method, Abstract Factory, Builder, and Singleton. All 4 deal with OBJECT CREATION — how objects are made, not how they behave.",points:["Creational patterns abstract the instantiation process.","They make the system independent of HOW objects are created.","References: refactoring.guru, javatechonline.com, tutorialspoint.com, javatpoint.com"],insight:"💡 Think of creational patterns as 'smart ways to call new'. Instead of writing 'new Dog()' everywhere, you let a pattern handle it — making your code flexible and extensible."},
+      {slide:"Slide 4",visual:"🏭",title:"Factory Method — Intent & Problem",content:"The Factory Method pattern defines an interface for creating an object, but lets subclasses decide WHICH class to instantiate. The creator defers the decision to its subclasses.",points:["INTENT: Define interface for creating an object, defer instantiation to subclasses.","PROBLEM 1: A framework needs to standardize architecture but allow individual apps to define their own domain objects.","PROBLEM 2: Enable the creator to defer product creation to a subclass."],insight:"💡 Key phrase: 'defer instantiation to subclasses'. The parent class says 'I need a product, but I don't know which type — my subclass will decide.'"},
+      {slide:"Slide 5",visual:"📐",title:"Factory Method — UML Solution",content:"The diagram shows two parallel hierarchies: one for creators (Creator → ConcreteCreator) and one for products (Product → ConcreteProduct).",points:["Creator declares factoryMethod() as protected abstract — it uses the product but doesn't create it directly.","Creator also has anOperation() which calls factoryMethod() internally.","ConcreteCreator OVERRIDES factoryMethod() and returns a ConcreteProduct.","The dependency arrows show: Creator «use» Product, ConcreteCreator «create» ConcreteProduct."],insight:"💡 Notice the parallel structure: every Creator subclass has a matching Product subclass. Adding a new product = new ConcreteCreator + new ConcreteProduct, no changes to existing code."},
+      {slide:"Slide 6",visual:"🔵🟩",title:"Example: Shape Drawing — UML",content:"The Shape drawing example maps perfectly to the Factory Method structure. ShapeFactory is the Creator; Circle, Rectangle, Square are ConcreteProducts.",points:["Shape interface declares draw() — this is the Product.","Circle, Rectangle, Square all implement Shape (ConcreteProducts).","ShapeFactory has getShape(type): Shape — this is the factory method.","Client talks to ShapeFactory only — never to Circle/Rectangle/Square directly."],insight:"💡 The Client never writes 'new Circle()'. It just calls shapeFactory.getShape('CIRCLE') and gets back a Shape. If you add 'Triangle' later, Client code doesn't change at all."},
+      {slide:"Slide 7",visual:"💻",title:"Shape Example — Full Java Code",content:"The slide shows the complete implementation: Shape interface, Rectangle/Square/Circle classes, ShapeFactory, and the demo client.",points:["Shape interface: just void draw() — very simple product contract.","Rectangle implements Shape with its own draw() logic. Circle and Square are similar.","ShapeFactory.getShape(String type): uses if-else to decide which concrete class to instantiate.","FactoryPatternDemo: creates ShapeFactory, calls getShape('CIRCLE'), then calls draw() on result.","Key: the client only imports Shape and ShapeFactory — completely unaware of Circle/Rectangle internals."],insight:"💡 The if-else inside ShapeFactory is the ONLY place where 'new Circle()' appears. Every other part of the codebase just uses the Shape interface."},
+      {slide:"Slide 8",visual:"💳",title:"Example 2: Kiosk Payment System",content:"A kiosk needs to process payments via Cash, CreditCard, or Coupon. Factory Method cleanly handles this without if-else scattered across the kiosk logic.",points:["PaymentProcessor interface: processPayment() method — the Product.","Cash, CreditCard, Coupon all implement PaymentProcessor.","GetPayment factory: getProcessor(type): PaymentProcessor — the Creator/Factory.","Kiosk (Client) calls GetPayment.getProcessor('CASH') and gets a PaymentProcessor back."],insight:"💡 Real-world relevance! Payment systems in ATMs, POS terminals, and e-commerce checkouts all use this exact pattern to swap payment methods without changing core business logic."},
+      {slide:"Slides 9–11",visual:"⚡",title:"Electricity Plan Factory — Full Walkthrough",content:"A billing system that calculates electricity bills. Plan is an abstract class; DomesticPlan, CommercialPlan, InstitutionalPlan extend it. GetPlanFactory creates the right plan.",points:["Abstract class Plan: protected double rate; abstract getRate(); concrete calculateBill(int units) → prints units*rate.","DomesticPlan: getRate() sets rate=3.50. CommercialPlan: rate=7.50. InstitutionalPlan: rate=5.50.","GetPlanFactory.getPlan(String planType): returns the correct concrete Plan.","GenerateBill (client): reads plan name + units, calls planFactory.getPlan(), then p.getRate() + p.calculateBill(units).","Abstract class vs interface: Plan uses abstract class because it has shared concrete method (calculateBill)."],insight:"💡 Notice Plan is an ABSTRACT CLASS (not interface) because calculateBill() has a real implementation shared by all plans. Only getRate() is abstract."},
+      {slide:"Slide 12",visual:"🚢",title:"Real-World Use Case: Logistics App",content:"The canonical refactoring.guru example about a logistics company needing to add sea transport to an app originally built only for trucks.",points:["Problem: All code is coupled to Truck class. Adding Ship requires changing the entire codebase.","Without Factory Method: if-else scattered everywhere.","Solution: Create Transport interface. TruckLogistics and SeaLogistics each override createTransport().","Now adding AirLogistics = just one new class, zero changes to existing code."],insight:"💡 This is the Open/Closed Principle in action: Open for extension (new transport type), Closed for modification (existing code untouched)."},
+      {slide:"Slide 13",visual:"🖥️",title:"Cross-Platform Dialog Example",content:"Dialog as Creator and Button as Product, with WindowsDialog/WebDialog as ConcreteCreators.",points:["Dialog (abstract Creator): render() + abstract createButton(): Button.","WindowsDialog overrides createButton() → returns new WindowsButton().","WebDialog overrides createButton() → returns new HTMLButton().","Client code just calls dialog.render() — it doesn't know if it's Windows or Web."],insight:"💡 The Dialog class's render() method calls this.createButton() internally — the factory method. The Dialog doesn't know which button it'll get, and doesn't need to!"},
+      {slide:"Slide 14",visual:"🔧",title:"Extending Framework with Factory Method",content:"How Factory Method lets you extend a library/framework's internal components without modifying its source code.",points:["Scenario: Open-source UI framework provides square buttons. Your app needs round buttons.","Step 1: Create RoundButton extending Button.","Step 2: Create UIWithRoundButtons extending UIFramework, override createButton() to return RoundButton.","Step 3: Use UIWithRoundButtons instead of UIFramework — done! You never touched framework source code."],insight:"💡 This is exactly how plugins and extensions work in IDEs, browsers, and frameworks. The framework provides hooks (factory methods), and plugins fill them in."},
+      {slide:"Slides 15–16",visual:"⚖️",title:"Consequences, Pros and Cons",content:"Three core benefits and one key trade-off for the Factory Method pattern.",points:["✅ Avoid tight coupling between creator and concrete products.","✅ Single Responsibility Principle — product creation code in one place.","✅ Open/Closed Principle — new product types without breaking existing code.","❌ CON: Code gets more complex — need many new subclasses."],insight:"💡 The con is real — if you only have 2 product types and they won't grow, a simple if-else might be cleaner. Factory Method shines when the product family keeps expanding."},
+    ]
+  },
+  abstract:{id:"abstract",name:"Abstract Factory",emoji:"🏗️",color:"#7C3AED",bg:"#F5F3FF",border:"#DDD6FE",tag:"Slides 17–35",
+    intent:"Provide an interface for creating families of related or dependent objects without specifying their concrete classes.",
+    analogy:{title:"🛋️ The Furniture Shop Analogy",body:"Your furniture shop sells Victorian, Art Deco, and Modern styles. Each style has a Chair, Sofa, and CoffeeTable. If a customer orders Victorian, ALL items must be Victorian — a Modern sofa with a Victorian chair looks terrible! Abstract Factory guarantees the entire family is compatible."},
+    problem:"An application needs to work with various families of related products (multiple OS UI toolkits, multiple furniture styles) without being coupled to specific implementations.",
+    uml:`AbstractFactory (interface)\n├── CreateProductA(): AbstractProductA\n└── CreateProductB(): AbstractProductB\n\nConcreteFactory1                  ConcreteFactory2\n├── CreateProductA() → ProductA1   ├── CreateProductA() → ProductA2\n└── CreateProductB() → ProductB1   └── CreateProductB() → ProductB2\n\nAbstractProductA    AbstractProductB\n├── ProductA1       ├── ProductB1\n└── ProductA2       └── ProductB2\n\nClient → imports AbstractFactory + AbstractProduct only`,
+    roles:[
+      {name:"AbstractFactory",desc:"Interface declaring creation methods for each distinct product type in the family."},
+      {name:"ConcreteFactory",desc:"Implements ALL creation methods for one specific product family (e.g. WinFactory creates WinButton + WinCheckbox)."},
+      {name:"AbstractProduct",desc:"Interface for each type of product (Chair, Button, Engine…)."},
+      {name:"ConcreteProduct",desc:"Specific implementation belonging to ONE family (VictorianChair)."},
+      {name:"Client",desc:"Works only with abstract types — AbstractFactory and AbstractProduct interfaces."},
+    ],
+    code:`// ── Abstract Factory interface ──────────────\ninterface GUIFactory {\n    Button createButton();\n    Checkbox createCheckbox();\n}\n\n// ── Concrete Factory 1: Windows ─────────────\nclass WinFactory implements GUIFactory {\n    public Button createButton()     { return new WinButton(); }\n    public Checkbox createCheckbox() { return new WinCheckbox(); }\n}\n\n// ── Concrete Factory 2: Mac ─────────────────\nclass MacFactory implements GUIFactory {\n    public Button createButton()     { return new MacButton(); }\n    public Checkbox createCheckbox() { return new MacCheckbox(); }\n}\n\n// ── Client ──────────────────────────────────\nclass Application {\n    private GUIFactory factory;\n    private Button button;\n    Application(GUIFactory factory) { this.factory = factory; }\n    void createUI() {\n        // Never calls 'new WinButton()' — uses factory!\n        this.button = factory.createButton();\n    }\n    void paint() { button.paint(); }\n}\n\n// ── Configurator: picks factory at runtime ──\nif (config.OS == "Windows") factory = new WinFactory();\nelse if (config.OS == "Mac") factory = new MacFactory();\nApplication app = new Application(factory);`,
+    pros:["Products from a factory are guaranteed to be compatible with each other","Avoids tight coupling between concrete products and client code","Single Responsibility Principle — creation code centralised","Open/Closed Principle — add new product variants without breaking clients"],
+    cons:["Code becomes complex — many new interfaces and classes","Adding new PRODUCT TYPES is hard — requires changing AbstractFactory interface and ALL factories"],
+    when:"Use when your code must work with various families of related products, and you don't want it to depend on the concrete classes of those products.",
+    tips:["Abstract Factory = 'Factory of Factories'","Factory Method uses INHERITANCE; Abstract Factory uses COMPOSITION","Each ConcreteFactory corresponds to ONE product family — never mixes families","Client NEVER instantiates products directly — only through the abstract factory","Key difference from Factory Method: AF creates MULTIPLE related products; FM creates ONE","Adding new FAMILY = easy (new ConcreteFactory). Adding new PRODUCT TYPE = hard (change interface)"],
+    slides:[
+      {slide:"Slide 17",visual:"🏗️",title:"Abstract Factory — Intent & Problem",content:"Abstract Factory provides an interface for creating FAMILIES of related or dependent objects without specifying their concrete classes.",points:["INTENT: Create families of related objects — not just one product but a suite of compatible products.","PROBLEM 1: A portable app needs to encapsulate platform dependencies (Windows UI vs Mac UI).","PROBLEM 2: An application that supports multiple look-and-feels (themes).","PROBLEM 3: An application that must work with multiple types of DBMS."],insight:"💡 Key word: FAMILIES. If Factory Method creates one product, Abstract Factory creates a WHOLE SET of products that must work together."},
+      {slide:"Slide 18",visual:"📐",title:"Abstract Factory — UML Solution",content:"The most complex UML in the lecture. Two concrete factories, two abstract products, four concrete products — all connected.",points:["AbstractFactory interface: CreateProductA() + CreateProductB().","ConcreteFactory1 creates ProductA1 + ProductB1 (Family 1).","ConcreteFactory2 creates ProductA2 + ProductB2 (Family 2).","Client imports AbstractFactory and AbstractProducts only — never concrete classes.","Products within the same family (from same factory) are guaranteed compatible."],insight:"💡 The Client is completely isolated from concrete implementations. You can swap the entire product family (ConcreteFactory1 ↔ ConcreteFactory2) by changing one line."},
+      {slide:"Slides 19–20",visual:"🛋️",title:"Problem: Furniture Shop Simulator",content:"The furniture shop problem is the clearest illustration of WHY you need Abstract Factory. Three styles × three product types = nine concrete classes.",points:["Product TYPES: Chair, Sofa, CoffeeTable (3 abstract products).","Product FAMILIES: Art Deco, Victorian, Modern (3 families).","The problem: how do you ensure a Victorian Chair is always paired with a Victorian Sofa?","Without Abstract Factory, a bug could create a Modern Sofa + Victorian Chair combination."],insight:"💡 Abstract Factory prevents incompatible combinations at the architectural level — not just by convention."},
+      {slide:"Slides 21–22",visual:"🪑",title:"Solution: Product Interfaces + Concrete Factories",content:"Step 1: declare interfaces for EACH product type. Step 2: declare AbstractFactory interface + one ConcreteFactory per family.",points:["Chair interface: hasLegs() + sitOn(). VictorianChair and ModernChair both implement Chair.","FurnitureFactory interface: createChair() + createCoffeeTable() + createSofa().","VictorianFurnitureFactory creates all Victorian variants; ModernFurnitureFactory creates all Modern variants.","Each ConcreteFactory corresponds to exactly ONE product family."],insight:"💡 To add ArtDecoFurnitureFactory: create 3 ArtDeco product classes + 1 ArtDeco factory class. Zero changes to existing client code or existing factories."},
+      {slide:"Slides 23–29",visual:"🖥️",title:"Cross-Platform UI Example (GUIFactory)",content:"The GUI example concretely shows Abstract Factory with Windows vs Mac UI components — the most exam-relevant code in this section.",points:["GUIFactory interface: createButton() + createCheckbox().","WinFactory: createButton() → new WinButton(); createCheckbox() → new WinCheckbox().","MacFactory: createButton() → new MacButton(); createCheckbox() → new MacCheckbox().","Application class takes GUIFactory in constructor — calls factory.createButton() never 'new WinButton()'.","ApplicationConfigurator: reads config.OS, creates WinFactory or MacFactory, passes to Application."],insight:"💡 The Application class is completely platform-agnostic. Porting to Linux? Create LinuxFactory + LinuxButton + LinuxCheckbox. Application.java = zero changes."},
+      {slide:"Slides 30–33",visual:"🚗🎨",title:"Honda Factory & Shape+Color Examples",content:"Two more concrete examples of Abstract Factory from the slides.",points:["Honda: HondaFactory interface: createEngine() + createTrans(). CivicFactory and AccordFactory each produce compatible pairs.","Shape+Color: AbstractFactory (abstract class) has getColor() + getShape(). ShapeFactory and ColorFactory extend it.","FactoryProducer.getFactory('SHAPE') → new ShapeFactory() — a factory that produces factories."],insight:"💡 FactoryProducer itself acts like a Factory Method — it creates the right factory. This 'factory of factories' is the classic Abstract Factory description."},
+      {slide:"Slides 34–35",visual:"⚖️",title:"Consequences, Pros and Cons",content:"Six consequences + pros and cons of Abstract Factory.",points:["Isolates the concrete class — client never sees concrete product class names.","Makes exchanging product families easy — swap one factory reference, everything changes.","Promotes consistency among products — same factory = all products compatible.","⚠️ Supporting new PRODUCT TYPES is difficult — requires changing AbstractFactory interface AND all concrete factories.","✅ Open/Closed for new FAMILIES; ❌ Open/Closed violated for new PRODUCT TYPES."],insight:"💡 The big limitation: if you need to ADD a new product type (e.g. add 'Wardrobe' to furniture factory), you must update AbstractFactory interface AND all concrete factories."},
+    ]
+  },
+  singleton:{id:"singleton",name:"Singleton",emoji:"🔒",color:"#DC2626",bg:"#FEF2F2",border:"#FECACA",tag:"Slides 36–42",
+    intent:"Ensure a class has only one instance, and provide a global point of access to it. Encapsulates 'just-in-time initialization' or 'initialization on first use'.",
+    analogy:{title:"🏛️ The Government Analogy",body:"A country can have only ONE official government at a time. No matter how many citizens try to 'form' a new government, they all work with the same one. Singleton is exactly this — one instance, globally accessible, protected from re-creation."},
+    problem:"Application needs one, and only one, instance of an object (e.g., a database connection pool, a logging service). Lazy initialization and global access are also necessary.",
+    uml:`SingletonClass\n├── - instance: SingletonClass   ← private static (the one instance)\n├── - SingletonClass()           ← private constructor (no external 'new')\n└── + getInstance(): SingletonClass  ← public static (only access point)\n\n          ┌─ first call: instance == null ─→ create + store\ngetInstance()\n          └─ subsequent calls: instance != null ─→ return existing`,
+    roles:[
+      {name:"private static instance",desc:"Holds the single instance. Starts as null, assigned once on first getInstance() call."},
+      {name:"private constructor",desc:"Prevents any external code from calling 'new SingletonClass()' — compilation error if tried."},
+      {name:"public static getInstance()",desc:"The ONLY gateway. Creates instance on first call (lazy init), returns the same instance on all subsequent calls."},
+    ],
+    code:`public class DbConnection {\n    // ① Private static field — holds the ONE instance\n    private static DbConnection instance = null;\n    private SQLConnection connection;\n\n    // ② Private constructor — no one can call 'new DbConnection()'\n    private DbConnection() {\n        connection = connectToDatabase(dbUser, dbPassword, dbName);\n    }\n\n    // ③ Public static method — the ONLY way to get the instance\n    public static DbConnection getInstance() {\n        if (instance == null) {\n            // First call: create the instance (lazy initialization)\n            instance = new DbConnection();\n        }\n        // All subsequent calls: return the already-created instance\n        return instance;\n    }\n}\n\n// ── Usage ────────────────────────────────────\nDbConnection conn1 = DbConnection.getInstance();\nDbConnection conn2 = DbConnection.getInstance();\nDbConnection conn3 = DbConnection.getInstance();\n\nSystem.out.println(conn1 == conn2); // true  ← same object\nSystem.out.println(conn2 == conn3); // true  ← same object`,
+    pros:["Controlled access to the sole instance — one gateway only","Reduced namespace — no scattered global variables","Singleton guarantees one instance; global variables can be overwritten by any code","Lazy initialization — object created only when first needed, saving resources"],
+    cons:["Violates Single Responsibility Principle — manages both its job AND its own lifecycle","Makes unit testing difficult — shared state persists between tests","Basic Singleton is NOT thread-safe — needs 'synchronized' in multi-threaded environments"],
+    when:"Use when exactly one object must coordinate actions across the system — database connection manager, thread pool, configuration reader, logger, cache.",
+    tips:["THREE essentials: private static instance + private constructor + public static getInstance()","Lazy initialization: created on FIRST call, not when class loads","Singleton vs Global Variable: Singleton GUARANTEES one instance; globals can be overwritten","Thread safety: basic Singleton is NOT thread-safe — exam may ask about synchronized version","The constructor being private means subclassing is impossible (can't call super())","getInstance() must be STATIC so it can be called without an object reference"],
+    slides:[
+      {slide:"Slide 36",visual:"🔒",title:"Singleton — Intent & Problem",content:"Singleton ensures a class has only ONE instance and provides a global access point to it. It also encapsulates 'lazy initialization' — created only when first needed.",points:["INTENT: Ensure a class has only one instance + provide global access point.","Also called: 'just-in-time initialization' or 'initialization on first use'.","PROBLEM: Application needs ONE and only ONE instance — like a database connection or config manager.","Additionally: lazy initialization and global access must both be supported."],insight:"💡 Two requirements: (1) single instance, (2) globally accessible. A global variable gives you #2 but not #1 — anyone can overwrite it. Singleton gives you BOTH."},
+      {slide:"Slide 37",visual:"📐",title:"Singleton — UML Structure",content:"The simplest UML of all patterns — just ONE class with three key members.",points:["- instance: SingletonClass → private STATIC field that holds the one instance.","- SingletonClass() → private CONSTRUCTOR — prevents external 'new' calls.","+getInstance(): SingletonClass → public STATIC method — the only way to get the instance.","The class references itself (static field of its own type)."],insight:"💡 Three things must be memorized for exams: (1) private static instance field, (2) private constructor, (3) public static getInstance(). Miss any one = broken Singleton."},
+      {slide:"Slide 38",visual:"🗄️",title:"Example: Database Connection Manager",content:"DbConnection is the classic Singleton example — you only want ONE database connection pool in your application.",points:["private static DbConnection instance = null; → starts as null, created lazily.","private DbConnection() → constructor is PRIVATE. connectToDatabase() called here.","public static getDbConnection(): if instance is null → create it; always return instance.","Usage: DbConnection conn = DbConnection.getDbConnection(); — same object every time."],insight:"💡 Why is one DB connection manager important? Creating database connections is EXPENSIVE (network handshake, authentication, pooling setup). You do it ONCE and reuse it everywhere."},
+      {slide:"Slide 39",visual:"📋",title:"How to Implement Singleton — 5 Steps",content:"The slide gives a clear 5-step recipe for implementing Singleton from scratch.",points:["Step 1: Add a private static field for storing the singleton instance.","Step 2: Declare a public static creation method for getting the singleton instance.","Step 3: Implement 'lazy initialization' inside the static method — create on first call, always return same instance.","Step 4: Make the constructor PRIVATE.","Step 5: Replace all 'new ClassName()' in client code with calls to the static creation method."],insight:"💡 Step 5 is often forgotten. Existing code with 'new DbConnection()' calls will fail to compile once you make the constructor private — that's intentional!"},
+      {slide:"Slides 40–41",visual:"🌐",title:"Applicability — Single Instance + Global Access",content:"Slide 40–41 explain the two core problems Singleton solves simultaneously.",points:["Problem 1: Control access to a shared resource — database, file, thread pool.","Once created, any subsequent 'creation' attempt returns the SAME object.","Problem 2: Safe global access — unlike global variables, Singleton's instance can't be overwritten.","'Just like a global variable...but also protects that instance from being overwritten by other code.'"],insight:"💡 This is the fundamental insight: constructors can't return an existing object — they always create new. Static methods CAN check and return an existing instance."},
+      {slide:"Slide 42",visual:"📋",title:"Singleton — Consequences",content:"Three consequences listed in the lecture for Singleton.",points:["Controlled access to sole instance — only one gateway (getInstance()) to the object.","Reduced namespace — no need for global variables scattered across the codebase.","Permits variable number of instances — you can later modify Singleton to allow a fixed pool (e.g. max 3 instances) without changing client code."],insight:"💡 The third point is subtle but powerful: because ALL client code already calls getInstance(), you can later change that method to return from a pool of N instances, and zero client code changes."},
+    ]
+  },
+  builder:{id:"builder",name:"Builder",emoji:"🔨",color:"#059669",bg:"#ECFDF5",border:"#A7F3D0",tag:"Slides 43–53",
+    intent:"Separate the construction of a complex object from its representation so that the same construction process can create different representations.",
+    analogy:{title:"🍔 The Restaurant Analogy",body:"You (Client) order a kid's meal. The Cashier (Director) knows the exact steps: build burger → build drink → build dessert → build toy. The Restaurant Crew (ConcreteBuilder) actually assembles each item. The Cashier runs the same recipe every time — the Crew just executes it differently for a burger meal vs a salad meal."},
+    problem:"An application needs to create the elements of a complex aggregate step by step. The specification exists on secondary storage and one of many representations needs to be built in primary storage.",
+    uml:`Director\n└── + Construct(builder: IBuilder)\n    ├── builder.BuildBody()\n    ├── builder.InsertWheels()\n    └── builder.AddHeadlights()\n\nIBuilder (interface)\n├── BuildBody(): void\n├── InsertWheels(): void\n├── AddHeadlights(): void\n└── GetVehicle(): Product\n\nCar (ConcreteBuilder)          MotorCycle (ConcreteBuilder)\n├── BuildBody()  → car parts   ├── BuildBody()  → bike parts\n├── InsertWheels() → 4 wheels  ├── InsertWheels() → 2 wheels\n└── GetVehicle() → Product     └── GetVehicle() → Product\n\nProduct\n└── parts: LinkedList<String>`,
+    roles:[
+      {name:"Builder (IBuilder)",desc:"Interface specifying all construction steps (BuildBody, InsertWheels, AddHeadlights, GetVehicle)."},
+      {name:"ConcreteBuilder (Car/MotorCycle)",desc:"Implements each step with product-specific logic. Holds and returns the Product."},
+      {name:"Director",desc:"Orchestrates construction — calls builder steps in the correct order. Doesn't know HOW steps are done."},
+      {name:"Product",desc:"The complex object being assembled (contains a list of parts added by builder)."},
+    ],
+    code:`// ── Builder Interface ───────────────────────\ninterface IBuilder {\n    void BuildBody();\n    void InsertWheels();\n    void AddHeadlights();\n    Product GetVehicle();\n}\n\n// ── ConcreteBuilder 1: Car ──────────────────\nclass Car implements IBuilder {\n    private Product product = new Product();\n    public void BuildBody()     { product.Add("This is a body of a Car"); }\n    public void InsertWheels()  { product.Add("4 wheels are added"); }\n    public void AddHeadlights() { product.Add("2 Headlights are added"); }\n    public Product GetVehicle() { return product; }\n}\n\n// ── ConcreteBuilder 2: MotorCycle ───────────\nclass MotorCycle implements IBuilder {\n    private Product product = new Product();\n    public void BuildBody()     { product.Add("This is a body of a MotorCycle"); }\n    public void InsertWheels()  { product.Add("2 wheels are added"); }\n    public void AddHeadlights() { product.Add("1 Headlight is added"); }\n    public Product GetVehicle() { return product; }\n}\n\n// ── Director ────────────────────────────────\nclass Director {\n    public void Construct(IBuilder builder) {\n        builder.BuildBody();\n        builder.InsertWheels();\n        builder.AddHeadlights();\n    }\n}\n\n// ── Client ──────────────────────────────────\nDirector director = new Director();\nIBuilder carBuilder = new Car();\ndirector.Construct(carBuilder);        // same steps\nProduct p1 = carBuilder.GetVehicle();  // Car result\np1.Show();\nIBuilder motorBuilder = new MotorCycle();\ndirector.Construct(motorBuilder);      // same steps!\nProduct p2 = motorBuilder.GetVehicle();\np2.Show();`,
+    pros:["Vary product's internal representation — same director, different builders, different products","Isolates construction code from representation — clean separation of concerns","Finer control over the construction process — step-by-step","Same construction process can create different representations"],
+    cons:["Overall complexity increases — requires Director, Builder interface, multiple ConcreteBuilders, Product","Overkill for simple objects — use constructors or Factory for simple creation"],
+    when:"Use to construct complex objects step by step, especially when many optional components exist, or when the same construction steps should produce different representations.",
+    tips:["Director = WHAT steps and WHAT ORDER. Builder = HOW to execute each step.","Director is OPTIONAL — client can call builder steps directly if needed","Unlike Factory, Builder assembles ONE complex object part by part — not choosing between types","GetVehicle()/GetResult() is called ONCE after all steps complete","Same Director + different ConcreteBuilder = different Product — this is the power","Builder pattern has 4 participants: Builder, ConcreteBuilder, Director, Product"],
+    slides:[
+      {slide:"Slide 43",visual:"🔨",title:"Builder — Intent & Problem",content:"Builder separates the CONSTRUCTION of a complex object from its REPRESENTATION. The same construction process can produce different final objects.",points:["INTENT: Separate construction from representation — same process, different results.","Also: Parse a complex representation, create one of several targets.","PROBLEM: App needs to create elements of a complex aggregate (many parts assembled together)."],insight:"💡 Key distinction: Factory Method/Abstract Factory focus on WHAT to create. Builder focuses on HOW to assemble it step by step."},
+      {slide:"Slide 44",visual:"📐",title:"Builder — UML Solution",content:"The Builder UML introduces a new actor: the Director. Director orchestrates; Builder (interface) defines steps; ConcreteBuilder implements steps and holds the Product.",points:["Director: has Construct() method that calls builder.buildPart() for each step.","Director uses aggregation (◇) to hold a Builder reference.","Builder (interface/abstract): declares BuildPart() — the construction steps.","ConcreteBuilder: implements BuildPart() for specific product + GetResult() to return finished Product.","Product: the complex object being assembled."],insight:"💡 Director knows the RECIPE (what steps and in what order). Builder knows the TECHNIQUE (how to execute each step). ConcreteBuilder knows the INGREDIENTS for one specific product type."},
+      {slide:"Slide 45",visual:"🍔",title:"Examples — Restaurant & Computer",content:"Two real-world analogies make the Builder pattern immediately intuitive.",points:["Restaurant analogy: Customer (Client) → orders. Cashier (Director) → orchestrates steps. Restaurant Crew (Builder) → makes each item.","Kid's meal: Director calls Build(burger) → Build(drink) → Build(dessert) → Build(toy).","Computer assembly: Customer orders 500GB Intel OR 250GB AMD — different specs, same assembly process."],insight:"💡 The Cashier (Director) uses the same ordering process for every meal type. The Restaurant Crew (Builder) knows how to make each item differently. The customer just gets the meal at the end."},
+      {slide:"Slide 46",visual:"📋",title:"Builder — Consequences",content:"Three core consequences of using the Builder pattern.",points:["Lets you vary a product's internal representation — same director, different builders, different products.","Isolates construction and representation — Director doesn't know HOW parts are made.","Gives you finer control over the construction process — add validation or logging between steps."],insight:"💡 'Isolates construction and representation' is the core value. The Director can be reused with any Builder. The Builder can be reused with any Director."},
+      {slide:"Slides 47–49",visual:"🚗🏍️",title:"Vehicle Builder — Full Java Example",content:"The most complete code example in the lecture. IBuilder interface, Car and MotorCycle builders, Director, Product class, and BuilderPatternEx demo.",points:["IBuilder interface: BuildBody() + InsertWheels() + AddHeadlights() + GetVehicle(): Product.","Car implements IBuilder: product.Add('This is a body of a Car'), product.Add('4 wheels are added'), etc.","MotorCycle: same interface, different strings (2 wheels, 1 headlight).","Product class: LinkedList<String> parts; Add(String) appends; Show() prints all parts.","Director.Construct(IBuilder): calls steps BuildBody(), InsertWheels(), AddHeadlights() in order.","Client: director.Construct(carBuilder); Product p1 = carBuilder.GetVehicle(); p1.Show();"],insight:"💡 Same director.Construct() call produces a Car with 4 wheels OR a MotorCycle with 2 wheels — the Director code NEVER changes. Only the builder passed in changes."},
+      {slide:"Slides 50–53",visual:"💿",title:"CD Builder Example — UML & Code",content:"A CD builder example from javatpoint.com showing a more elaborate hierarchy with Packing interface, CD and Company abstract classes, Sony and Samsung concrete classes.",points:["Packing interface: pack(): String + price(): int.","CD (abstract) implements Packing: abstract pack() — provides the brand name.","Company (abstract) extends CD: abstract price() — provides the price.","Sony extends Company: pack()='Sony CD', price()=20. Samsung: price()=15.","CDType: holds ArrayList<Packing>, addItem(), getCost(), showItems().","CDBuilder: buildSonyCd() and buildSamsungCD() — creates CDType and adds items."],insight:"💡 Here CDBuilder plays BOTH Director and ConcreteBuilder roles — it knows the steps AND executes them. This 'Director-less' variant is common in real code."},
+    ]
+  }
+};
+
+const COMPARISON=[
+  {aspect:"Core Intent",factory:"Defer which class to instantiate to subclasses",abstract:"Create families of related objects",singleton:"Guarantee exactly one instance exists",builder:"Construct complex objects step by step"},
+  {aspect:"Mechanism",factory:"Inheritance / method override",abstract:"Composition / multiple factory methods",singleton:"Private constructor + static instance",builder:"Director orchestrates builder steps"},
+  {aspect:"Product Count",factory:"ONE product type, multiple variants",abstract:"MULTIPLE related product types (a family)",singleton:"ONE instance, one type, forever",builder:"ONE complex product assembled in steps"},
+  {aspect:"Key Class",factory:"ConcreteCreator overrides factoryMethod()",abstract:"ConcreteFactory creates all family members",singleton:"getInstance() is the gateway",builder:"Director calls Builder steps in order"},
+  {aspect:"Client Knows",factory:"Only the Product interface",abstract:"Only AbstractFactory + AbstractProduct",singleton:"Only the Singleton class itself",builder:"Director + Builder interface"},
+  {aspect:"Adding New Variant",factory:"Easy: new ConcreteCreator + ConcreteProduct",abstract:"Easy: new ConcreteFactory + ConcreteProducts",singleton:"N/A — only one instance by design",builder:"Easy: new ConcreteBuilder class"},
+  {aspect:"Real Example",factory:"ShapeFactory → Circle, Rectangle, Square",abstract:"GUIFactory → WinButton+WinCheckbox OR MacButton+MacCheckbox",singleton:"DbConnection.getDbConnection()",builder:"Director.Construct(carBuilder) or Construct(motorBuilder)"},
+];
+
+const QUIZ_QUESTIONS=[
+  {n:1,set:"Set 1",icon:"🎮",label:"Video Game Score",difficulty:"Easy",
+    scenario:"A video game needs to track the player's total score across all levels and screens. Any part of the game — enemies, power-ups, UI, leaderboards — must read and write to the exact same score counter. Whenever a new 'ScoreManager' is requested anywhere in the code, it must always return the same object.",
+    answer:"Singleton",
+    explanation:"Only one ScoreManager must ever exist and be globally accessible. Private constructor + static getInstance() ensures every call gets the same object. Creating a 'new ScoreManager()' in two places would give two separate counters, breaking the game.",
+    keys:['"must always return the same object"','"one score counter shared everywhere"','"any part of the game accesses the same"']},
+  {n:2,set:"Set 1",icon:"✈️",label:"Travel Booking API",difficulty:"Easy",
+    scenario:"A travel booking app supports flights, hotels, and car rentals. Each provider (Expedia, Booking.com, Kayak) has its own API client class. The app should be able to say 'give me a provider' and receive the correct API object — but the booking logic should never directly write 'new ExpediaClient()' anywhere.",
+    answer:"Factory Method",
+    explanation:"One product type (API client), multiple variants (Expedia, Booking, Kayak). A TravelClientFactory.getClient('EXPEDIA') delegates the 'new' to one place. The booking logic works only with a generic 'TravelClient' interface — never a concrete class.",
+    keys:['"give me a provider" → factory decides which class','"never write new ExpediaClient() directly"','"one interface, multiple provider variants"']},
+  {n:3,set:"Set 1",icon:"🍕",label:"Pizza Step-by-Step",difficulty:"Easy",
+    scenario:"A pizza ordering system lets customers build a pizza step by step: choose base → choose sauce → add cheese → add toppings → bake time. A thin-crust Margherita and a deep-dish Meat Feast go through the exact same ordering steps, but the result is a completely different pizza object with different parts assembled inside.",
+    answer:"Builder",
+    explanation:"Same construction process (base → sauce → cheese → toppings → bake), different representations (Margherita vs Meat Feast). Director calls the steps; ConcreteBuilder (MargheritaBuilder / MeatFeastBuilder) fills in the parts. Separation of construction from representation = Builder.",
+    keys:['"step by step"','"same ordering steps, different pizza object"','"different parts assembled — same process"']},
+  {n:4,set:"Set 1",icon:"🖥️",label:"Cross-Platform Desktop",difficulty:"Medium",
+    scenario:"A cross-platform desktop app must render a consistent UI on Windows and macOS. On Windows it uses WinButton, WinScrollbar, WinMenu. On Mac it uses MacButton, MacScrollbar, MacMenu. The app must NEVER mix a WinButton with a MacScrollbar — all widgets on screen must come from the same platform family.",
+    answer:"Abstract Factory",
+    explanation:"Multiple related product types (Button + Scrollbar + Menu) that must match within one platform family. WinFactory creates all Win widgets; MacFactory creates all Mac widgets. Mixing families is prevented by design — Abstract Factory.",
+    keys:['"NEVER mix across families"','"three product types must match"','"same platform family" — multiple compatible products']},
+  {n:5,set:"Set 1",icon:"📝",label:"Application Logger",difficulty:"Easy",
+    scenario:"An app writes logs to different destinations: a file, a cloud service, or the console. There is one logging system for the entire app. No matter which module calls 'get the logger', they all write to the same log stream. Creating a second Logger would cause duplicate or split logs.",
+    answer:"Singleton",
+    explanation:"Logger must be exactly one instance shared app-wide. Singleton's private constructor + static getInstance() guarantees this. Two Logger instances would split the log stream — a critical bug in any production system.",
+    keys:['"one logging system for entire app"','"all modules write to same stream"','"second Logger would cause split logs"']},
+  {n:6,set:"Set 1",icon:"🚗",label:"Car Configurator",difficulty:"Medium",
+    scenario:"A car configurator lets users spec a vehicle: choose engine type → choose transmission → choose interior trim → choose paint → choose wheels. Building a SportsCar follows the same configuration steps as building a FamilySUV, but each car type assembles completely different components under the hood.",
+    answer:"Builder",
+    explanation:"Same Director steps (engine → transmission → trim → paint → wheels). SportsCarBuilder and FamilySUVBuilder implement them differently. The result is two very different Product objects from the same construction sequence.",
+    keys:['"same configuration steps"','"completely different components assembled"','"step-by-step build pipeline"']},
+  {n:7,set:"Set 1",icon:"🔔",label:"Notification Service",difficulty:"Easy",
+    scenario:"A notification service must send alerts via SMS, Email, or Push notification. The business logic just calls 'send this alert' without caring how it's delivered. A factory method decides which channel object to create based on user preferences. Each channel is a separate class implementing the same 'Notifier' interface.",
+    answer:"Factory Method",
+    explanation:"One interface (Notifier), three concrete classes (SMSNotifier, EmailNotifier, PushNotifier). NotifierFactory.getNotifier(type) creates the right one. Business logic works only with Notifier — never with concrete classes. Classic Factory Method.",
+    keys:['"factory method decides which class"','"business logic does not care how delivered"','"common interface Notifier — never concrete class"']},
+  {n:8,set:"Set 1",icon:"🎮",label:"Game Visual Themes",difficulty:"Hard",
+    scenario:"A game has two complete visual themes: Fantasy and Sci-Fi. Each theme has its own Hero sprite, Enemy sprite, Background tile, and Sound pack. When Fantasy theme is active, ALL assets must be Fantasy. When Sci-Fi is active, ALL assets must be Sci-Fi. There must be no way to accidentally load a Fantasy hero with a Sci-Fi background.",
+    answer:"Abstract Factory",
+    explanation:"Multiple product types (Hero, Enemy, Background, Sound) must all come from one family. FantasyAssetFactory and SciFiAssetFactory each create all four consistent variants. Mixing is architecturally impossible — Abstract Factory.",
+    keys:['"ALL assets must be from same theme"','"no way to accidentally mix"','"four product types — must match within family"']},
+  {n:9,set:"Set 1",icon:"🏦",label:"Banking Payment Rails",difficulty:"Medium",
+    scenario:"A banking app processes transactions through different payment rails: SWIFT, SEPA, or local bank transfer. The transaction processing module calls a factory passing the transfer type as a string and receives back a 'PaymentRail' object it can call 'execute()' on. The factory is the only place where 'new SwiftRail()' ever appears.",
+    answer:"Factory Method",
+    explanation:"PaymentRailFactory.getRail('SWIFT') returns a SwiftRail, but the caller only holds a PaymentRail reference. All 'new XxxRail()' calls live inside the factory — one place to change when adding a new rail. Factory Method.",
+    keys:['"factory is the only place with new"','"receives back PaymentRail interface object"','"transfer type as a string"']},
+  {n:10,set:"Set 1",icon:"⚙️",label:"App Configuration",difficulty:"Easy",
+    scenario:"An application reads its database URL, API keys, environment name, and feature flags once at startup from a config file. Every service in the app — the user service, the payment service, the email service — must read from that exact same configuration object. Loading the config twice would be wasteful and potentially inconsistent.",
+    answer:"Singleton",
+    explanation:"AppConfig must be loaded once and shared globally. Singleton ensures getInstance() returns the same already-loaded config object every time. A second constructor call would re-read the file — slower and potentially inconsistent.",
+    keys:['"read once at startup"','"every service must read from same object"','"loading twice would be inconsistent"']},
+  {n:11,set:"Set 1",icon:"🛒",label:"E-Commerce Order Summary",difficulty:"Hard",
+    scenario:"An e-commerce system builds order summaries for display. Each summary is assembled from: customer details → ordered items list → applied discounts → shipping address → estimated delivery date. A 'Standard Order' summary and a 'Subscription Order' summary go through the same assembly steps but produce different summary objects with different fields populated.",
+    answer:"Builder",
+    explanation:"Director orchestrates: addCustomer() → addItems() → addDiscounts() → addShipping() → addDelivery(). StandardOrderBuilder and SubscriptionOrderBuilder implement each step differently, producing different Order objects. Builder isolates construction from representation.",
+    keys:['"assembled from multiple steps in sequence"','"same assembly steps"','"different summary objects — different fields"']},
+  {n:12,set:"Set 1",icon:"🗄️",label:"Database Backend",difficulty:"Hard",
+    scenario:"A web framework supports three database backends: MySQL, PostgreSQL, and MongoDB. For each backend, the framework needs a matching Connection object, a QueryBuilder object, and a ResultParser object. A MySQL connection should never be paired with a MongoDB QueryBuilder. The client code should work identically regardless of which database is chosen.",
+    answer:"Abstract Factory",
+    explanation:"Three product types that must be compatible within a database family. MySQLFactory creates MySQLConnection + MySQLQueryBuilder + MySQLResultParser. Abstract Factory guarantees family consistency and lets client code stay database-agnostic.",
+    keys:['"three product types must match within family"','"MySQL never paired with MongoDB QueryBuilder"','"client code works identically"']},
+  {n:13,set:"Set 2",icon:"🏥",label:"Hospital Patient Counter",difficulty:"Easy",
+    scenario:"A hospital management system needs a single counter that tracks total patients checked in across all departments. Every desk terminal reads from and writes to this same counter. If two terminals held separate counter objects, patient tallies would drift out of sync.",
+    answer:"Singleton",
+    explanation:"One shared counter, globally accessible, must not be duplicated. The private constructor stops any terminal from calling 'new PatientCounter()'. Every call to getInstance() returns the same object, so all departments always see the live total.",
+    keys:['"single counter across all departments"','"separate objects would drift out of sync"','"every terminal same object"']},
+  {n:14,set:"Set 2",icon:"📊",label:"Report Generator",difficulty:"Easy",
+    scenario:"A report generator produces three types of reports: PDF, HTML, and CSV. All three reports pull from the same data, but the output format is completely different. The report-generation module asks for a 'Report' object by passing the desired format as a string, and a separate class handles the 'new PdfReport()' decision. The module never references any concrete report class directly.",
+    answer:"Factory Method",
+    explanation:"ReportFactory.getReport('PDF') returns a PdfReport but the caller holds a Report reference. All concrete instantiation lives inside the factory. Adding a new format = one new class + one new case — zero other changes.",
+    keys:['"passing format as a string"','"module never references concrete class"','"separate class handles instantiation"']},
+  {n:15,set:"Set 2",icon:"🚀",label:"Space Strategy Game",difficulty:"Hard",
+    scenario:"A space-strategy game has two civilisations: Human and Alien. Each civilisation needs a Spaceship, a SpaceStation, and a DefenseTurret — all mechanically consistent within that civilisation. A Human SpaceStation should never be built alongside an Alien DefenseTurret, because their docking ports are incompatible.",
+    answer:"Abstract Factory",
+    explanation:"Three product types (Spaceship, SpaceStation, DefenseTurret) must match within one family (Human or Alien). HumanCivilisationFactory and AlienCivilisationFactory each produce all three compatible variants. Mixing families is prevented by design.",
+    keys:['"three product types must be consistent"','"Human Station never with Alien Turret"','"incompatible if mixed across families"']},
+  {n:16,set:"Set 2",icon:"📄",label:"Insurance Policy Document",difficulty:"Medium",
+    scenario:"An insurance company generates policy documents assembled in stages: add policyholder details → add coverage clauses → add exclusion list → add premium schedule → add signature block. A 'Life Insurance' document and a 'Vehicle Insurance' document go through the same five stages, but each stage fills in completely different content.",
+    answer:"Builder",
+    explanation:"Same Director steps (policyholder → clauses → exclusions → premium → signature). LifeInsuranceBuilder and VehicleInsuranceBuilder implement each step with different content. Same construction process, different representations = Builder.",
+    keys:['"assembled in stages"','"same five stages"','"completely different content per stage"']},
+  {n:17,set:"Set 2",icon:"🔐",label:"API Gateway Token Validator",difficulty:"Medium",
+    scenario:"A microservice architecture uses a single API gateway to authenticate all incoming requests. The gateway holds one authentication token validator shared across all services. Instantiating a second validator would create a second in-memory token cache, causing valid tokens to appear expired on some requests.",
+    answer:"Singleton",
+    explanation:"One in-memory token cache must exist. Two TokenValidator instances = two caches = inconsistent authentication results. Singleton ensures the entire microservice cluster uses one validator object.",
+    keys:['"second instance creates second cache"','"valid tokens appear expired"','"one shared across all services"']},
+  {n:18,set:"Set 2",icon:"🎵",label:"Music Streaming App",difficulty:"Easy",
+    scenario:"A music streaming app can connect to Spotify, Apple Music, or YouTube Music as its backend. The connection logic calls a factory, passes the service name, and gets back a 'MusicProvider' object with methods like search() and play(). The rest of the app never imports Spotify or Apple Music classes — only the MusicProvider interface.",
+    answer:"Factory Method",
+    explanation:"MusicProviderFactory.getProvider('SPOTIFY') returns a SpotifyProvider, but the app only holds a MusicProvider reference. All concrete class references are confined to the factory. Adding a new service = one new class + one branch. Factory Method.",
+    keys:['"never imports Spotify or Apple Music classes"','"only the MusicProvider interface"','"factory owns all instantiation"']},
+  {n:19,set:"Set 2",icon:"🏨",label:"Hotel Booking UI",difficulty:"Hard",
+    scenario:"A hotel booking platform supports two booking experiences: Budget and Luxury. Each experience needs a consistent set of three components — a RoomCard UI, a PricingWidget, and a ReviewSection. Mixing a Luxury PricingWidget into a Budget experience would look broken and confuse users.",
+    answer:"Abstract Factory",
+    explanation:"Three related UI product types (RoomCard, PricingWidget, ReviewSection) must match within one tier (Budget or Luxury). BudgetUIFactory and LuxuryUIFactory each create all three consistent components. Mixing across tiers is prevented architecturally.",
+    keys:['"three components must be consistent"','"mixing across tiers would look broken"','"Budget vs Luxury family"']},
+  {n:20,set:"Set 2",icon:"🤖",label:"Robotics Simulator",difficulty:"Medium",
+    scenario:"A robotics simulator lets you assemble different robots: a Welding Robot and a Painting Robot. Both go through the same build pipeline: attach frame → mount arms → install sensors → load software → run calibration. But each step results in completely different physical components — Welding Arms vs Painting Arms, proximity sensors vs colour sensors.",
+    answer:"Builder",
+    explanation:"Director runs: attachFrame() → mountArms() → installSensors() → loadSoftware() → calibrate(). WeldingRobotBuilder and PaintingRobotBuilder implement each step with their specific parts. One Director, two builders, two different Robot products.",
+    keys:['"same build pipeline"','"completely different physical components"','"step-by-step assembly — same steps different result"']},
+  {n:21,set:"Set 2",icon:"💬",label:"Customer Support Bot",difficulty:"Easy",
+    scenario:"A customer support platform routes chats to different bots depending on query type: a BillingBot, a TechSupportBot, or a SalesBot. A BotDispatcher class receives the query category and returns the appropriate bot object. The routing logic never calls 'new BillingBot()' itself — it delegates that decision entirely to BotDispatcher.",
+    answer:"Factory Method",
+    explanation:"BotDispatcher.getBot('BILLING') returns a BillingBot, but the routing logic only sees a SupportBot interface. Instantiation of concrete bot classes is confined to BotDispatcher — exactly one place to update when adding a new bot. Factory Method.",
+    keys:['"routing logic never calls new BillingBot()"','"delegates to BotDispatcher"','"common SupportBot interface"']},
+  {n:22,set:"Set 2",icon:"🌙",label:"Mobile App Themes",difficulty:"Medium",
+    scenario:"A mobile app offers two complete UI themes: Light Mode and Dark Mode. Each theme specifies a ButtonStyle, a CardStyle, a TextStyle, and an IconSet. When Dark Mode is active, all four components must use dark variants — a dark CardStyle with a light ButtonStyle would look inconsistent. The app switches themes by swapping a single factory object at runtime.",
+    answer:"Abstract Factory",
+    explanation:"Four product types (ButtonStyle, CardStyle, TextStyle, IconSet) must be compatible within one theme family. LightThemeFactory and DarkThemeFactory each produce all four consistent variants. Swapping the factory at runtime changes the entire theme. Abstract Factory.",
+    keys:['"four components must use same theme"','"dark CardStyle with light ButtonStyle inconsistent"','"swapping single factory switches everything"']},
+];
+
+const PAT_ORDER=['factory','abstract','singleton','builder'];
+const DIFF_COLORS={Easy:{bg:"#D1FAE5",bd:"#6EE7B7",c:"#065F46"},Medium:{bg:"#FEF3C7",bd:"#FCD34D",c:"#92400E"},Hard:{bg:"#FEE2E2",bd:"#FCA5A5",c:"#991B1B"}};
+
+// ══════════════════════════════════════════════════════════
+//  BUILD UI
+// ══════════════════════════════════════════════════════════
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function codeHTML(c){
+  return c.split('\n').map(line=>{
+    const safe=esc(line);
+    const trim=line.trim();
+    if(trim.startsWith('//')||trim.startsWith('/*')||trim.startsWith('*'))
+      return `<span class="code-line-comment">${safe}</span>\n`;
+    return safe+'\n';
+  }).join('');
+}
+
+function slideAccordionHTML(slides,pid){
+  return slides.map((s,i)=>{
+    const aid=`slide-${pid}-${i}`;
+    return `<div class="slide-item">
+      <div class="slide-hdr" onclick="toggleSlide('${aid}')">
+        <span class="slide-icon-big">${s.visual}</span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span class="slide-badge" style="background:${PAT[pid]?.color||'#374151'}">${s.slide}</span>
+            <span class="slide-ttl">${s.title}</span>
+          </div>
+        </div>
+        <span class="slide-chevron" id="chev-${aid}">▼</span>
+      </div>
+      <div class="slide-body" id="${aid}">
+        <p class="slide-content">${s.content}</p>
+        <ul class="slide-points">${s.points.map(p=>`<li>${p}</li>`).join('')}</ul>
+        <div class="slide-insight">${s.insight}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSlide(id){
+  const el=document.getElementById(id);
+  const chev=document.getElementById('chev-'+id);
+  const open=el.classList.toggle('open');
+  if(chev)chev.textContent=open?'▲':'▼';
+}
+
+function patternCardHTML(p){
+  const rolesHTML=p.roles.map(r=>`
+    <div class="role-row" style="background:${p.bg}">
+      <span class="role-name" style="color:${p.color}">${r.name}</span>
+      <span class="role-desc">${r.desc}</span>
+    </div>`).join('');
+  const prosHTML=p.pros.map(x=>`<li>${x}</li>`).join('');
+  const consHTML=p.cons.map(x=>`<li>${x}</li>`).join('');
+  const tipsHTML=p.tips.map((t,i)=>`
+    <div class="tip-item">
+      <span class="tip-num" style="background:${p.color}">${i+1}</span>
+      <span class="tip-text">${t}</span>
+    </div>`).join('');
+  const tabIds=['slides','overview','code','tips'];
+  const tabLabels=['📖 Slide Walkthrough','🗺️ Overview','💻 Code','🎯 Exam Tips'];
+
+  return `<div class="pat-card" style="border-color:${p.border}">
+    <div class="pat-header" style="background:${p.bg};border-bottom-color:${p.border}">
+      <div class="pat-header-top">
+        <span class="pat-emoji">${p.emoji}</span>
+        <div>
+          <div class="pat-name" style="color:${p.color}">${p.name} Pattern</div>
+          <span class="pat-tag">${p.tag}</span>
+        </div>
+      </div>
+      <p class="pat-intent">${p.intent}</p>
+    </div>
+    <div class="inner-tabs" id="itabs-${p.id}">
+      ${tabLabels.map((l,i)=>`<button class="inner-btn${i===0?' active':''}" style="${i===0?`border-bottom-color:${p.color};color:${p.color}`:''}" onclick="switchInnerTab('${p.id}','${tabIds[i]}',this,'${p.color}')">${l}</button>`).join('')}
+    </div>
+    <div class="tab-body">
+      <div class="tab-pane active" id="tp-${p.id}-slides">
+        <p style="color:#6B7280;font-size:13px;margin-bottom:12px">Click any slide to expand its explanation.</p>
+        ${slideAccordionHTML(p.slides,p.id)}
+      </div>
+      <div class="tab-pane" id="tp-${p.id}-overview">
+        <div class="analogy"><div class="analogy-title">${p.analogy.title}</div><div class="analogy-body">${p.analogy.body}</div></div>
+        <h3 style="font-size:15px;margin-bottom:8px">🔴 Problem Statement</h3>
+        <p style="font-size:13.5px;color:#374151;line-height:1.7;margin-bottom:16px">${p.problem}</p>
+        <h3 style="font-size:15px;margin-bottom:8px">📐 Structure (UML)</h3>
+        <div class="uml-pre" style="margin-bottom:16px">${esc(p.uml)}</div>
+        <h3 style="font-size:15px;margin-bottom:10px">🎭 Key Roles</h3>
+        <div class="roles-grid" style="margin-bottom:18px">${rolesHTML}</div>
+        <div class="pros-cons">
+          <div><h3 style="font-size:14px;color:#059669;margin-bottom:8px">✅ Pros</h3><ul>${prosHTML}</ul></div>
+          <div><h3 style="font-size:14px;color:#DC2626;margin-bottom:8px">❌ Cons</h3><ul>${consHTML}</ul></div>
+        </div>
+        <div class="when-box" style="background:#F0FDF4;border:1px solid #BBF7D0;margin-top:14px">
+          <span style="font-weight:700;color:#059669">📌 When to use: </span>${p.when}
+        </div>
+      </div>
+      <div class="tab-pane" id="tp-${p.id}-code">
+        <h3 style="font-size:15px;margin-bottom:10px">💻 Full Implementation</h3>
+        <div class="code-wrap">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre class="code-block">${codeHTML(p.code)}</pre>
+        </div>
+      </div>
+      <div class="tab-pane" id="tp-${p.id}-tips">
+        <h3 style="font-size:15px;margin-bottom:4px">🎯 Exam Tips & Critical Points</h3>
+        <p style="font-size:13px;color:#6B7280;margin-bottom:14px">These are the most commonly tested concepts — memorise all of them.</p>
+        <div class="tip-list">${tipsHTML}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function switchInnerTab(pid,tid,btn,color){
+  document.querySelectorAll(`#itabs-${pid} .inner-btn`).forEach(b=>{
+    b.classList.remove('active');
+    b.style.borderBottomColor='transparent';
+    b.style.color='#6B7280';
+    b.style.fontWeight='400';
+    b.style.background='transparent';
+  });
+  btn.classList.add('active');
+  btn.style.borderBottomColor=color;
+  btn.style.color=color;
+  btn.style.fontWeight='700';
+  btn.style.background='#fff';
+  document.querySelectorAll(`[id^="tp-${pid}-"]`).forEach(p=>p.classList.remove('active'));
+  document.getElementById(`tp-${pid}-${tid}`).classList.add('active');
+}
+
+function copyCode(btn){
+  const pre=btn.nextElementSibling;
+  navigator.clipboard?.writeText(pre.textContent).catch(()=>{});
+  btn.textContent='✓ Copied';
+  setTimeout(()=>btn.textContent='Copy',1800);
+}
+
+function umlSectionHTML(){
+  const slides=[{slide:"Slide 2",visual:"📐",title:"UML Revisited — 4 Relationships",content:"Before diving into patterns, the lecture reminds us of 4 UML arrows we'll see constantly in every design pattern diagram.",points:["Generalization (solid line + hollow triangle) — inheritance. Rectangle IS-A Shape.","Dependency / Realization (dashed arrow) — 'uses' or 'implements'. Lottery USES Random.","Aggregation (hollow diamond) — 'is part of'. Engine is part of Car, but Engine can exist without Car.","Composition (filled diamond) — 'is entirely made of'. Pages are entirely made of Book — pages can't exist without it."],insight:"💡 Memory trick: Filled diamond = stronger bond (composition, part dies with whole). Hollow diamond = weaker bond (aggregation, part survives). Dashed arrow = uses/implements. Solid with triangle = extends."}];
+  const cards=[
+    {sym:"——▷",name:"Generalization",sub:"Inheritance (extends)",color:"#2563EB",eg:"Rectangle extends RectangularShape"},
+    {sym:"- - ▷",name:"Dependency/Realization",sub:"Uses / implements",color:"#7C3AED",eg:"Lottery uses Random"},
+    {sym:"——◇",name:"Aggregation",sub:"'is part of'",color:"#059669",eg:"Engine ◇ part of Car"},
+    {sym:"——◆",name:"Composition",sub:"'is entirely made of'",color:"#DC2626",eg:"Page ◆ made of Book"},
+  ];
+  return `<div style="border:2px solid #E5E7EB;border-radius:16px;overflow:hidden;background:#fff;margin-bottom:24px">
+    <div style="background:#F8FAFC;padding:18px 22px;border-bottom:1px solid #E5E7EB">
+      <h2 style="font-size:19px;font-weight:800;margin-bottom:4px">📐 UML Revisited — Slide 2</h2>
+      <p style="font-size:13.5px;color:#6B7280">Four UML relationships you must know for every design pattern diagram</p>
+    </div>
+    <div style="padding:20px">
+      ${slideAccordionHTML(slides,'uml')}
+      <div class="uml-cards">
+        ${cards.map(c=>`<div class="uml-card" style="border-color:${c.color}30;background:${c.color}06">
+          <div class="uml-sym" style="color:${c.color}">${c.sym}</div>
+          <div class="uml-name">${c.name}</div>
+          <div class="uml-sub">${c.sub}</div>
+          <div class="uml-eg" style="color:${c.color}">${c.eg}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function compareHTML(){
+  const pats=PAT_ORDER.map(k=>PAT[k]);
+  const thCells=pats.map(p=>`<th style="background:${p.color}">${p.emoji} ${p.name}</th>`).join('');
+  const rows=COMPARISON.map((row,i)=>{
+    const bg=i%2===0?'#F9FAFB':'#fff';
+    const cells=pats.map(p=>`<td style="background:${bg}">${row[p.id]}</td>`).join('');
+    return `<tr><td style="font-weight:700;color:#374151;background:${bg};border-right:1px solid #E5E7EB">${row.aspect}</td>${cells}</tr>`;
+  }).join('');
+  return `<div style="border:2px solid #E5E7EB;border-radius:16px;overflow:hidden;background:#fff;margin-bottom:24px">
+    <div style="background:#F8FAFC;padding:18px 22px;border-bottom:1px solid #E5E7EB">
+      <h2 style="font-size:19px;font-weight:800;margin-bottom:4px">📊 Pattern Comparison Table</h2>
+      <p style="font-size:13.5px;color:#6B7280">Side-by-side comparison — essential for exam revision</p>
+    </div>
+    <div style="padding:20px;overflow-x:auto">
+      <table class="cmp-table">
+        <thead><tr><th style="background:#1E1E2E;min-width:100px">Aspect</th>${thCells}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Render all static sections ────────────────────────────
+function renderAll(){
+  // nav
+  const nav=document.getElementById('main-nav');
+  const navItems=[
+    {id:'all',label:'📚 All'},
+    {id:'uml',label:'📐 UML'},
+    {id:'compare',label:'📊 Compare'},
+    ...PAT_ORDER.map(k=>({id:k,label:`${PAT[k].emoji} ${PAT[k].name}`})),
+    {id:'quiz',label:'🧠 Quiz'},
+  ];
+  nav.innerHTML=navItems.map(n=>`<button class="nav-btn${n.id==='all'?' active':''}" onclick="showSection('${n.id}',this)">${n.label}</button>`).join('');
+
+  // hero buttons
+  document.getElementById('hero-btns').innerHTML=PAT_ORDER.map(k=>`<button class="hero-btn" style="background:${PAT[k].color}" onclick="showSection('${k}',document.querySelector('.nav-btn[data-id=\\'${k}\\']'))">${PAT[k].emoji} ${PAT[k].name}</button>`).join('');
+
+  const uml=umlSectionHTML();
+  const cmp=compareHTML();
+  const patsHTML=PAT_ORDER.map(k=>patternCardHTML(PAT[k])).join('');
+
+  // all section
+  document.getElementById('all-uml').innerHTML=uml;
+  document.getElementById('all-patterns').innerHTML=patsHTML;
+  document.getElementById('all-compare').innerHTML=cmp;
+
+  // standalone sections
+  document.getElementById('uml-standalone').innerHTML=uml;
+  document.getElementById('compare-standalone').innerHTML=cmp;
+  PAT_ORDER.forEach(k=>{document.getElementById(`sec-${k}`).innerHTML=patternCardHTML(PAT[k]);});
+}
+
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  // find correct nav btn
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.trim()===btn?.textContent?.trim()||b===btn)b.classList.add('active');});
+  // fix: find by onclick content
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    if(b.getAttribute('onclick')===`showSection('${id}',this)`)b.classList.add('active');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  QUIZ ENGINE
+// ══════════════════════════════════════════════════════════
+const OPTS=[
+  {id:"Factory Method",  emoji:"🏭",sub:"Defer instantiation to subclasses"},
+  {id:"Abstract Factory",emoji:"🏗️",sub:"Families of compatible objects"},
+  {id:"Singleton",       emoji:"🔒",sub:"One global instance only"},
+  {id:"Builder",         emoji:"🔨",sub:"Step-by-step complex construction"},
+];
+
+let qList=[],qIdx=0,score=0,answered=false;
+let patScores={};
+let filterDiff='All';
+
+function buildFilterBtns(){
+  const wrap=document.getElementById('quiz-filters');
+  ['All','Easy','Medium','Hard'].forEach(d=>{
+    const btn=document.createElement('button');
+    btn.className='filter-btn'+(d==='All'?' on':'');
+    btn.textContent=d==='All'?'All Difficulties':d;
+    btn.style.borderColor=d==='All'?'#7C3AED':'#E5E7EB';
+    if(d==='All')btn.style.background='#7C3AED',btn.style.color='#fff';
+    btn.onclick=()=>{
+      filterDiff=d;
+      document.querySelectorAll('.filter-btn').forEach(b=>{
+        b.classList.remove('on');
+        b.style.background='#fff';b.style.color='#374151';b.style.borderColor='#E5E7EB';
+      });
+      btn.classList.add('on');
+      btn.style.background='#7C3AED';btn.style.color='#fff';btn.style.borderColor='#7C3AED';
+      startQuiz();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+function startQuiz(){
+  const pool=filterDiff==='All'?QUIZ_QUESTIONS:QUIZ_QUESTIONS.filter(q=>q.difficulty===filterDiff);
+  qList=shuffle(pool);
+  qIdx=0;score=0;answered=false;
+  patScores={};
+  OPTS.forEach(o=>patScores[o.id]=[0,0]);
+  document.getElementById('quiz-main').style.display='block';
+  document.getElementById('quiz-result').style.display='none';
+  renderQ();
+}
+
+function renderQ(){
+  answered=false;
+  const q=qList[qIdx];
+  const total=qList.length;
+  document.getElementById('q-meta-left').textContent=`Question ${qIdx+1} of ${total}`;
+  document.getElementById('q-meta-right').textContent=`Score: ${score} / ${qIdx}`;
+  document.getElementById('q-prog').style.width=`${(qIdx/total)*100}%`;
+  document.getElementById('q-num').textContent=q.n;
+  document.getElementById('q-set-label').textContent=`${q.set} · ${q.icon} ${q.label}`;
+  const dc=DIFF_COLORS[q.difficulty];
+  document.getElementById('q-diff').textContent=q.difficulty;
+  document.getElementById('q-diff').style.cssText=`background:${dc.bg};border-color:${dc.bd};color:${dc.c};font-size:10px;border-radius:99px;padding:2px 8px;font-weight:700;border:1px solid;`;
+  document.getElementById('q-text').textContent=q.scenario;
+
+  const og=document.getElementById('q-options');
+  og.innerHTML='';
+  shuffle(OPTS).forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.dataset.id=opt.id;
+    btn.innerHTML=`<span class="opt-letter">${String.fromCharCode(65+i)}.</span><span class="opt-name">${opt.emoji} ${opt.id}</span><span class="opt-sub">${opt.sub}</span>`;
+    btn.onclick=()=>pickAnswer(opt.id);
+    og.appendChild(btn);
+  });
+
+  const fb=document.getElementById('q-feedback');
+  fb.className='feedback';fb.style.display='none';
+  document.getElementById('q-next').style.display='none';
+}
+
+function pickAnswer(chosen){
+  if(answered)return;
+  answered=true;
+  const q=qList[qIdx];
+  const correct=chosen===q.answer;
+  if(correct)score++;
+  patScores[q.answer][1]++;
+  if(correct)patScores[q.answer][0]++;
+  document.getElementById('q-meta-right').textContent=`Score: ${score} / ${qIdx+1}`;
+
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;
+    const id=b.dataset.id;
+    if(id===q.answer)b.classList.add('correct');
+    else if(id===chosen&&!correct)b.classList.add('wrong');
+    else b.classList.add('dimmed');
+  });
+
+  const fb=document.getElementById('q-feedback');
+  const ans=OPTS.find(o=>o.id===q.answer);
+  fb.className='feedback show '+(correct?'ok':'no');
+  document.getElementById('fb-head').className='fb-head '+(correct?'ok':'no');
+  document.getElementById('fb-head').textContent=correct?'✅ Correct!':`❌ Not quite — the answer is ${ans.emoji} ${ans.id}`;
+  document.getElementById('fb-body').textContent=q.explanation;
+  document.getElementById('fb-keys').innerHTML=`<div class="fb-keys-label">Key trigger phrases to look for:</div>${q.keys.map(k=>`<span class="key-chip">${k}</span>`).join('')}`;
+
+  const nb=document.getElementById('q-next');
+  nb.style.display='block';
+  nb.textContent=qIdx+1<qList.length?'Next Question →':'See Results';
+  nb.onclick=()=>{
+    qIdx++;
+    if(qIdx>=qList.length)showResults();
+    else renderQ();
+  };
+}
+
+function showResults(){
+  document.getElementById('quiz-main').style.display='none';
+  const rs=document.getElementById('quiz-result');
+  rs.style.display='block';
+  const pct=Math.round((score/qList.length)*100);
+  document.getElementById('r-emoji').textContent=pct===100?'🏆':pct>=80?'✅':pct>=50?'📚':'💡';
+  document.getElementById('r-title').textContent=`${score} / ${qList.length} correct (${pct}%)`;
+  document.getElementById('r-sub').textContent=
+    pct===100?'Perfect! You can spot every pattern cold.':
+    pct>=80?'Excellent — a quick review of missed ones and you\'re exam-ready.':
+    pct>=50?'Solid start. Focus on the patterns you missed and retry.':
+    'Keep going — review the slide walkthroughs then retry.';
+  const pg={'Factory Method':'🏭','Abstract Factory':'🏗️','Singleton':'🔒','Builder':'🔨'};
+  document.getElementById('r-grid').innerHTML=Object.entries(patScores)
+    .filter(([,v])=>v[1]>0)
+    .map(([id,[g,t]])=>`<div class="result-card">
+      <div class="result-pat">${pg[id]} ${id}</div>
+      <div class="result-sc">${g} of ${t} correct</div>
+    </div>`).join('');
+}
+
+// ── Init ──────────────────────────────────────────────────
+renderAll();
+buildFilterBtns();
+startQuiz();
+</script>
+</body>
+</html>

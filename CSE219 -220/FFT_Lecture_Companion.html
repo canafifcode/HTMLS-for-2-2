@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Fast Fourier Transform — CSE 219 Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --paper:#F1ECDF;
+    --paper-2:#E9E2CF;
+    --paper-3:#DFD5BB;
+    --charcoal:#232019;
+    --charcoal-2:#2E2A21;
+    --ink:#18160F;
+    --brass:#A9812F;
+    --brass-light:#C9A45C;
+    --brass-dark:#7C5D1F;
+    --rust:#8C4A2F;
+    --rust-light:#B36A46;
+    --line:#C9BC9C;
+    --line-dark:#4A4535;
+    --paper-text:#E7DFC9;
+    --paper-text-dim:#B9AF92;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:16px;
+    line-height:1.65;
+  }
+  h1,h2,h3,h4{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 0.4em 0;
+    letter-spacing:0.01em;
+  }
+  h1{font-size:2.6rem; line-height:1.1;}
+  h2{font-size:2rem; line-height:1.18;}
+  h3{font-size:1.5rem; line-height:1.25; color:var(--brass-dark);}
+  h4{font-size:1.15rem; font-weight:600; color:var(--charcoal-2); font-family:'IBM Plex Sans',sans-serif; text-transform:none;}
+  p{margin:0 0 1em 0;}
+  a{color:var(--brass-dark);}
+  code, .mono{font-family:'IBM Plex Mono', monospace;}
+  .app{display:flex; min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:288px; flex-shrink:0;
+    background:var(--charcoal);
+    color:var(--paper-text);
+    position:fixed; top:0; left:0; bottom:0;
+    overflow-y:auto;
+    padding:0 0 40px 0;
+    border-right:1px solid var(--line-dark);
+  }
+  .sidebar-head{
+    padding:28px 26px 20px 26px;
+    border-bottom:1px solid var(--line-dark);
+  }
+  .sidebar-head .eyebrow{
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.12em;
+    color:var(--brass-light); margin-bottom:8px;
+  }
+  .sidebar-head h1{
+    font-size:1.55rem; color:var(--paper-text); margin-bottom:6px; line-height:1.15;
+  }
+  .sidebar-head .sub{
+    font-size:12.5px; color:var(--paper-text-dim); line-height:1.5;
+  }
+  .nav-group{padding:18px 0 4px 0;}
+  .nav-group-label{
+    font-family:'IBM Plex Mono'; font-size:10.5px; letter-spacing:0.14em;
+    color:var(--brass-light); opacity:0.85;
+    padding:0 26px; margin-bottom:6px;
+  }
+  .nav-item{
+    display:block; width:100%; text-align:left;
+    background:none; border:none; cursor:pointer;
+    color:var(--paper-text-dim);
+    font-family:'IBM Plex Sans'; font-size:14px;
+    padding:9px 26px 9px 22px;
+    border-left:3px solid transparent;
+    line-height:1.35;
+  }
+  .nav-item:hover{color:var(--paper-text); background:rgba(255,255,255,0.03);}
+  .nav-item.active{
+    color:var(--paper-text); border-left-color:var(--brass);
+    background:rgba(169,129,47,0.13); font-weight:500;
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{margin-left:288px; padding:56px 68px 120px 68px; max-width:900px;}
+  .panel{display:none;}
+  .panel.active{display:block; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .kicker{
+    font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:0.12em;
+    color:var(--brass-dark); margin-bottom:10px;
+  }
+  .lead{font-size:1.15rem; color:var(--charcoal-2); max-width:640px;}
+
+  hr.rule{border:none; border-top:1px solid var(--line); margin:38px 0;}
+
+  /* ---------- SPEC PLATE CARD ---------- */
+  .plate{
+    position:relative;
+    border:1px solid var(--line);
+    background:var(--paper-2);
+    padding:26px 30px;
+    margin:26px 0;
+  }
+  .plate .corner{position:absolute; width:13px; height:13px; border-color:var(--brass);}
+  .plate .corner.tl{top:-1px; left:-1px; border-top:2px solid; border-left:2px solid;}
+  .plate .corner.tr{top:-1px; right:-1px; border-top:2px solid; border-right:2px solid;}
+  .plate .corner.bl{bottom:-1px; left:-1px; border-bottom:2px solid; border-left:2px solid;}
+  .plate .corner.br{bottom:-1px; right:-1px; border-bottom:2px solid; border-right:2px solid;}
+  .plate .tag{
+    position:absolute; top:-10px; left:20px;
+    background:var(--paper-2); padding:0 8px;
+    font-family:'IBM Plex Mono'; font-size:10.5px; letter-spacing:0.09em;
+    color:var(--brass-dark);
+  }
+  .plate.dark{background:var(--charcoal); color:var(--paper-text); border-color:var(--line-dark);}
+  .plate.dark .tag{background:var(--charcoal); color:var(--brass-light);}
+  .plate.dark h4{color:var(--paper-text);}
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-left:3px solid var(--brass);
+    background:var(--paper-2);
+    padding:16px 22px;
+    margin:22px 0;
+    font-size:14.5px;
+  }
+  .callout .label{
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em;
+    color:var(--brass-dark); margin-bottom:6px; display:block;
+  }
+  .callout.brainstorm{border-left-color:var(--rust);}
+  .callout.brainstorm .label{color:var(--rust);}
+  .callout.alert{border-left-color:#7a2e2e; background:#EFE2DA;}
+  .callout.alert .label{color:#7a2e2e;}
+
+  /* ---------- TABLES ---------- */
+  table{border-collapse:collapse; width:100%; margin:20px 0; font-size:14.5px;}
+  th,td{border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--paper-3); font-family:'IBM Plex Mono'; font-size:11.5px; letter-spacing:0.04em; font-weight:500;}
+  tr:nth-child(even) td{background:rgba(0,0,0,0.015);}
+  td.num, th.num{text-align:center; font-family:'IBM Plex Mono'; font-size:13.5px;}
+
+  /* ---------- CODE BLOCK ---------- */
+  pre.code{
+    background:var(--ink); color:var(--paper-text);
+    padding:20px 24px; overflow-x:auto;
+    font-family:'IBM Plex Mono'; font-size:13px; line-height:1.6;
+    border-left:3px solid var(--brass);
+    margin:20px 0;
+  }
+  pre.code .cmt{color:var(--brass-light); opacity:0.85;}
+
+  /* ---------- BUTTONS / CONTROLS ---------- */
+  .btn-row{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0;}
+  button.pill{
+    font-family:'IBM Plex Mono'; font-size:12.5px;
+    background:var(--paper); border:1px solid var(--line-dark);
+    color:var(--charcoal-2); padding:7px 16px; cursor:pointer;
+  }
+  button.pill:hover{background:var(--paper-3);}
+  button.pill.active{background:var(--charcoal); color:var(--paper-text); border-color:var(--charcoal);}
+
+  /* ---------- ACCORDION (worked example / quiz) ---------- */
+  .step{border:1px solid var(--line); margin:10px 0; background:var(--paper-2);}
+  .step-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 20px; cursor:pointer; font-family:'IBM Plex Mono'; font-size:13.5px;
+    color:var(--charcoal-2);
+  }
+  .step-head:hover{background:var(--paper-3);}
+  .step-head .chev{transition:transform .2s; color:var(--brass-dark);}
+  .step.open .step-head .chev{transform:rotate(90deg);}
+  .step-body{display:none; padding:0 22px 20px 22px; font-size:14.5px;}
+  .step.open .step-body{display:block;}
+
+  /* ---------- BUTTERFLY SVG ---------- */
+  .fft-diagram-wrap{margin:22px 0; overflow-x:auto;}
+  .fft-svg{display:block; margin:0 auto;}
+  .edge{stroke:var(--charcoal-2); stroke-width:1; opacity:0.5;}
+  .edge-neg{stroke:var(--rust); stroke-width:1; stroke-dasharray:3,2; opacity:0.85;}
+  .node-dot{fill:var(--brass-dark);}
+  .node-label{font-family:'IBM Plex Mono'; font-size:11px; fill:var(--charcoal);}
+  .tw-label{font-family:'IBM Plex Mono'; font-size:9.5px; fill:var(--brass-dark);}
+  .neg-label{font-family:'IBM Plex Mono'; font-size:9px; fill:var(--rust);}
+  .stage-label{font-family:'IBM Plex Mono'; font-size:10.5px; fill:var(--charcoal-2); opacity:0.7;}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-q{border:1px solid var(--line); background:var(--paper-2); padding:20px 24px; margin:18px 0;}
+  .quiz-q .qtext{font-weight:500; margin-bottom:12px;}
+  .quiz-opts{display:flex; flex-direction:column; gap:8px;}
+  .quiz-opt{
+    text-align:left; padding:10px 16px; border:1px solid var(--line-dark);
+    background:var(--paper); cursor:pointer; font-family:'IBM Plex Sans'; font-size:14px;
+  }
+  .quiz-opt:hover{background:var(--paper-3);}
+  .quiz-opt.correct{background:#DDE7C8; border-color:#5B7A3A;}
+  .quiz-opt.incorrect{background:#EFD3CC; border-color:#8C4A2F;}
+  .quiz-explain{display:none; margin-top:12px; padding:12px 16px; background:var(--paper); border-left:3px solid var(--brass); font-size:13.5px;}
+  .quiz-explain.show{display:block;}
+  .quiz-score{font-family:'IBM Plex Mono'; font-size:14px; margin-top:20px; padding:14px 20px; background:var(--charcoal); color:var(--paper-text);}
+
+  /* ---------- MISC ---------- */
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .stat-block{text-align:left;}
+  .stat-num{font-family:'Cormorant Garamond'; font-size:2.6rem; font-weight:600; color:var(--brass-dark); line-height:1;}
+  .stat-label{font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--charcoal-2); margin-top:4px;}
+  .bar-row{margin:10px 0;}
+  .bar-label{font-family:'IBM Plex Mono'; font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between;}
+  .bar-track{height:22px; background:var(--paper-3); position:relative;}
+  .bar-fill{height:100%; background:var(--brass); transition:width .4s ease;}
+  .bar-fill.rust{background:var(--rust);}
+  .timeline{position:relative; margin:34px 0 20px 0; padding-left:8px;}
+  .timeline::before{content:''; position:absolute; left:8px; top:8px; bottom:8px; width:2px; background:var(--line-dark);}
+  .tl-item{position:relative; padding:0 0 30px 34px;}
+  .tl-item::before{content:''; position:absolute; left:2px; top:3px; width:13px; height:13px; border-radius:50%; background:var(--brass); border:2px solid var(--paper);}
+  .tl-year{font-family:'IBM Plex Mono'; font-size:12px; color:var(--brass-dark); letter-spacing:0.05em;}
+  .footnote{font-size:13px; color:var(--charcoal-2); opacity:0.8;}
+  ::selection{background:var(--brass-light); color:var(--ink);}
+
+  @media (max-width:900px){
+    .sidebar{position:static; width:100%; height:auto; max-height:220px;}
+    .content{margin-left:0; padding:32px 24px;}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="sidebar">
+    <div class="sidebar-head">
+      <div class="eyebrow">CSE 219 — SIGNALS &amp; LINEAR SYSTEMS</div>
+      <h1>The Fast<br>Fourier Transform</h1>
+      <div class="sub">Lecture companion, following Ashrafur Rahman's slide deck. Built for exam-grade mastery.</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">ORIENTATION</div>
+      <button class="nav-item" data-target="sec-hero">Why this lecture matters</button>
+      <button class="nav-item" data-target="sec-recap">Recap: two views of the DFT</button>
+      <button class="nav-item" data-target="sec-speed">The need for speed</button>
+      <button class="nav-item" data-target="sec-history">A brief history</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">THE COOLEY&#8211;TUKEY IDEA</div>
+      <button class="nav-item" data-target="sec-idea">Splitting the DFT in two</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">DECIMATION IN TIME</div>
+      <button class="nav-item" data-target="sec-dit-derive">Deriving the DIT butterfly</button>
+      <button class="nav-item" data-target="sec-dit-diagrams">Butterfly structures, N = 2, 4, 8</button>
+      <button class="nav-item" data-target="sec-bitrev">Bit-reversed order</button>
+      <button class="nav-item" data-target="sec-dit-algo">Pseudocode &amp; complexity</button>
+      <button class="nav-item" data-target="sec-worked">Worked example (click-through)</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">DECIMATION IN FREQUENCY</div>
+      <button class="nav-item" data-target="sec-dif-derive">Deriving the DIF butterfly</button>
+      <button class="nav-item" data-target="sec-dif-diagrams">DIF butterfly structure</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">SYNTHESIS</div>
+      <button class="nav-item" data-target="sec-compare">DIT vs. DIF at a glance</button>
+      <button class="nav-item" data-target="sec-zeropad">Zero-padding</button>
+      <button class="nav-item" data-target="sec-examalerts">Exam alerts, consolidated</button>
+      <button class="nav-item" data-target="sec-quiz">Self-check quiz</button>
+    </div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============ HERO ============ -->
+    <section id="sec-hero" class="panel active">
+      <div class="kicker">FIG. 00 — ORIENTATION</div>
+      <h1>Same numbers. Radically fewer operations.</h1>
+      <p class="lead">The FFT does not compute anything new. It computes exactly the DFT you already know — the same <span class="mono">X[k]</span> values — but it gets there by exploiting a symmetry hiding inside the twiddle factor <span class="mono">W<sub>N</sub></span>. That symmetry turns an <span class="mono">O(N&sup2;)</span> brute-force sum into an <span class="mono">O(N log N)</span> algorithm, and that difference is the reason spectral analysis, audio compression, and wireless communication are computationally possible at all.</p>
+
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="tag">SPEC — SCALE OF THE PROBLEM</span>
+        <div class="two-col">
+          <div class="stat-block">
+            <div class="stat-num">2 &times; 10&#8309;</div>
+            <div class="stat-label">NAIVE DFT OPERATIONS FOR 1s OF 44.1kHz AUDIO</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-num">&asymp; 7 &times; 10&#8309;</div>
+            <div class="stat-label">SAME COMPUTATION, VIA FFT (N log&#8322;N)</div>
+          </div>
+        </div>
+      </div>
+
+      <p>This companion follows Ashrafur Rahman's FFT slide deck section by section, but goes further where it helps: full derivations, worked numeric examples, exam-pattern alerts, and interactive diagrams you can click through. Use the sidebar to jump anywhere — you don't need to read top to bottom.</p>
+
+      <div class="callout brainstorm">
+        <span class="label">BEFORE YOU START — A QUESTION TO SIT WITH</span>
+        If the FFT computes the exact same numbers as the DFT, where does the speed-up actually come from? Is it a different formula, a different order of arithmetic, or something else entirely? Keep this question in mind — by the end of the Cooley&#8211;Tukey section you should be able to answer it precisely, not just intuitively.
+      </div>
+    </section>
+
+    <!-- ============ RECAP ============ -->
+    <section id="sec-recap" class="panel">
+      <div class="kicker">FIG. 01 — RECAP OF LAST CLASS</div>
+      <h2>Two views of the DFT</h2>
+      <p class="lead">Before speeding anything up, let's make sure the object we're speeding up is solid in your mind. Last class, the DFT was framed from two different angles.</p>
+
+      <h3>Periodic signals</h3>
+      <ul>
+        <li>The DFT can be seen as evaluating the <strong>Fourier series coefficients</strong> of a sampled periodic signal.</li>
+        <li>Equivalently, it gives the <strong>N unique values</strong> of the Fourier series of a discrete-time periodic signal (discrete-time Fourier series is itself periodic with period N, so only N values are ever independent).</li>
+      </ul>
+
+      <h3>Aperiodic signals</h3>
+      <ul>
+        <li>The DFT can be seen as <strong>samples of the continuous-time Fourier transform</strong> of a sampled aperiodic signal.</li>
+        <li>Equivalently, it gives <strong>samples of the discrete-time Fourier transform (DTFT)</strong> of a finite-length sequence.</li>
+      </ul>
+
+      <p>And a preview you'll meet properly later in the course: if the original continuous-time signal is <strong>bandlimited</strong>, the original signal can be fully reconstructed from its DFT samples — sampling doesn't throw information away, provided you sampled fast enough.</p>
+
+      <div class="callout">
+        <span class="label">WHY THIS MATTERS FOR TODAY</span>
+        Every one of these four viewpoints describes the <em>same</em> N complex numbers <span class="mono">X[0], X[1], &hellip;, X[N&minus;1]</span>. The FFT is not a new transform living alongside the DFT — it is a computational shortcut for producing these same numbers. Keep this distinction razor-sharp: it is a favourite conceptual exam question.
+      </div>
+    </section>
+
+    <!-- ============ NEED FOR SPEED ============ -->
+    <section id="sec-speed" class="panel">
+      <div class="kicker">FIG. 02 — THE NEED FOR SPEED</div>
+      <h2>Naive evaluation of the DFT</h2>
+      <p class="lead">Let's put a number on how expensive the direct definition actually is.</p>
+
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="tag">DEFINITION</span>
+        <div class="math" data-display="true">X[k] = \sum_{n=0}^{N-1} x[n] W_N^{kn}, \qquad W_N = e^{-j\frac{2\pi}{N}}</div>
+      </div>
+
+      <p>For <em>each</em> of the N values of <span class="mono">k</span>, computing the sum directly costs:</p>
+      <ul>
+        <li><strong>N complex multiplications</strong> — one per term <span class="mono">x[n]W<sub>N</sub><sup>kn</sup></span></li>
+        <li><strong>N &minus; 1 complex additions</strong> — to sum the N terms</li>
+      </ul>
+      <p>Multiply that by N values of <span class="mono">k</span>, and computing the <em>entire</em> spectrum <span class="mono">X[0..N&minus;1]</span> costs <strong>O(N&sup2;) operations</strong>.</p>
+
+      <div class="callout alert">
+        <span class="label">EDGE CASE — DON'T CONFUSE "PER-k COST" WITH "TOTAL COST"</span>
+        A very common exam slip: writing O(N) as the answer because you only counted the cost for a <em>single</em> k. The question almost always asks for the cost of computing the <em>whole</em> DFT array, which multiplies the per-k cost by N again.
+      </div>
+
+      <h3>Why this is a real problem</h3>
+      <p>Consider one second of audio sampled at 44.1&nbsp;kHz — a completely ordinary sample rate. Here <span class="mono">N = 44,100</span>, and the naive DFT needs roughly <span class="mono">N&sup2; &asymp; 2 &times; 10&#8309;</span> operations. That would make real-time spectral analysis, and everything built on it, hopelessly slow.</p>
+
+      <h4>Interactive: how bad does O(N&sup2;) actually get?</h4>
+      <p class="footnote">Pick a value of N below and watch the naive-DFT cost pull away from the FFT cost.</p>
+      <div class="btn-row" id="speedButtons">
+        <button class="pill" data-n="8">N = 8</button>
+        <button class="pill" data-n="64">N = 64</button>
+        <button class="pill active" data-n="1024">N = 1,024</button>
+        <button class="pill" data-n="44100">N = 44,100 (audio)</button>
+        <button class="pill" data-n="1048576">N = 2&sup2;&#8304; (1M)</button>
+      </div>
+      <div id="speedOutput"></div>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM</span>
+        If you double N, the naive DFT's cost roughly <em>quadruples</em>. What happens to the FFT's cost when you double N? Work it out from <span class="mono">N log&#8322;N</span> before checking the widget above — this asymmetry between "doubling the input" and "cost growth" is exactly what makes O(N log N) algorithms so prized in computer science generally, not just in signal processing.
+      </div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="sec-history" class="panel">
+      <div class="kicker">FIG. 03 — A BRIEF HISTORY OF THE FFT</div>
+      <h2>Discovered, forgotten, rediscovered</h2>
+      <p class="lead">The algorithm's history is a good reminder that "new" results in mathematics sometimes aren't new at all.</p>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">1805</div>
+          <h4>Carl Friedrich Gauss</h4>
+          <p>Developed the radix-2 algorithm to interpolate asteroid orbits — a purely computational trick to speed up trigonometric interpolation. This <strong>predates Joseph Fourier's own work on harmonic analysis by over a decade</strong>. Gauss left it as an unpublished note, and it sat essentially unnoticed for a century and a half.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">1965</div>
+          <h4>James W. Cooley &amp; John W. Tukey</h4>
+          <p>Independently rediscovered the algorithm while working at IBM and Princeton. Their landmark paper launched the modern field of Digital Signal Processing (DSP) and is why the algorithm we study today is named the <strong>Cooley&ndash;Tukey FFT</strong>.</p>
+        </div>
+      </div>
+
+      <p>Many other FFT variants have been developed since — split-radix, prime-factor, Bluestein's algorithm, and more — but Cooley&ndash;Tukey is the right place to build your intuition, and it's what we study first.</p>
+
+      <div class="callout">
+        <span class="label">WHY THE HISTORY IS WORTH KNOWING</span>
+        It's a genuinely common (and fair) short-answer exam question: <em>"Who is credited with the FFT, and why is that attribution slightly misleading?"</em> The honest answer references Gauss predating Fourier's own harmonic-analysis work by a decade, with Cooley and Tukey providing the 1965 rediscovery that made it famous.
+      </div>
+    </section>
+
+    <!-- ============ THE IDEA ============ -->
+    <section id="sec-idea" class="panel">
+      <div class="kicker">FIG. 04 — THE COOLEY&#8211;TUKEY ALGORITHM</div>
+      <h2>Splitting the DFT in two</h2>
+      <p class="lead">The Cooley&ndash;Tukey FFT is an elegant O(N log N) algorithm for computing the DFT by exploiting the symmetry and periodicity built into <span class="mono">W<sub>N</sub></span>.</p>
+
+      <p>We'll study the <strong>radix-2</strong> version, which:</p>
+      <ul>
+        <li>Successively splits an N-point DFT into <strong>two N/2-point DFTs</strong>, then recurses.</li>
+        <li>Assumes N is a power of 2 (if it isn't, we zero-pad up to the next power of 2 — covered later).</li>
+      </ul>
+
+      <p>There are <strong>two variants</strong>, distinguished by which domain gets split by parity:</p>
+      <div class="two-col">
+        <div class="plate">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <span class="tag">VARIANT A</span>
+          <h4>Decimation-in-Time (DIT)</h4>
+          <p style="margin-bottom:0">Splits the <strong>input</strong> (time-domain) sequence into even- and odd-indexed samples.</p>
+        </div>
+        <div class="plate">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <span class="tag">VARIANT B</span>
+          <h4>Decimation-in-Frequency (DIF)</h4>
+          <p style="margin-bottom:0">Splits the <strong>output</strong> (frequency-domain) index into even- and odd-valued k.</p>
+        </div>
+      </div>
+
+      <h3>The two symmetry facts everything rests on</h3>
+      <p>Both derivations you're about to see lean on exactly two properties of the twiddle factor. Memorize these — they resurface constantly.</p>
+      <table>
+        <tr><th style="width:38%">Property</th><th>Statement</th><th>Where it's used</th></tr>
+        <tr>
+          <td class="mono">Halving symmetry</td>
+          <td class="math">W_N^{\,k+N/2} = -W_N^{\,k}</td>
+          <td>Lets us write the second half of the output using the <em>same</em> half-size DFTs as the first half, with only a sign flip — this is what collapses two separate computations into one shared one.</td>
+        </tr>
+        <tr>
+          <td class="mono">Exponent reduction</td>
+          <td class="math">W_N^{2} = W_{N/2}</td>
+          <td>Converts the exponent structure of the original N-point sum into a genuine N/2-point DFT expression, which is what makes the recursive split legal in the first place.</td>
+        </tr>
+      </table>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM</span>
+        The name "decimation in time" sounds destructive, but nothing is discarded. Why do you think this operation is called "decimation" at all? (Hint: think about what physically happens to the sequence's index set at each stage — it's being <em>thinned out</em> by a factor of 2, not deleted.)
+      </div>
+    </section>
+
+    <!-- ============ DIT DERIVATION ============ -->
+    <section id="sec-dit-derive" class="panel">
+      <div class="kicker">FIG. 05 — DECIMATION-IN-TIME</div>
+      <h2>Deriving the DIT butterfly</h2>
+      <p class="lead">Follow the algebra slowly here — every later diagram is just a picture of these five lines.</p>
+
+      <h4>Step 1 — split the sum by parity of n</h4>
+      <div class="math" data-display="true">
+        X[k] = \sum_{n=0}^{N-1} x[n] W_N^{kn} = \sum_{r=0}^{N/2-1} x[2r] W_N^{2rk} + \sum_{r=0}^{N/2-1} x[2r+1] W_N^{(2r+1)k}
+      </div>
+
+      <h4>Step 2 — apply the exponent-reduction property</h4>
+      <p>Since <span class="math">W_N^{2rk} = e^{-j\frac{2\pi}{N}\cdot 2rk} = e^{-j\frac{2\pi}{N/2}\cdot rk} = W_{N/2}^{rk}</span>, the even-indexed sum becomes a genuine N/2-point DFT. Pulling the constant factor <span class="mono">W<sub>N</sub><sup>k</sup></span> out of the odd sum:</p>
+      <div class="math" data-display="true">
+        X[k] = \underbrace{\sum_{r=0}^{N/2-1} x[2r]\, W_{N/2}^{rk}}_{\text{N/2-point DFT of evens}} \;+\; W_N^{k}\underbrace{\sum_{r=0}^{N/2-1} x[2r+1]\, W_{N/2}^{rk}}_{\text{N/2-point DFT of odds}}
+      </div>
+      <p>One N-point DFT is now expressed using <strong>two N/2-point DFTs</strong>. That's the entire trick, in embryo. What remains is bookkeeping: we need a way to stretch these two N/2-length results back out to cover all N output indices.</p>
+
+      <h4>Step 3 — name them, and notice periodicity</h4>
+      <div class="math" data-display="true">
+        G[k] = \sum_{r=0}^{N/2-1} x[2r]\,W_{N/2}^{rk}, \qquad H[k] = \sum_{r=0}^{N/2-1} x[2r+1]\,W_{N/2}^{rk}
+      </div>
+      <p><span class="mono">G[k]</span> and <span class="mono">H[k]</span> are only directly defined for <span class="mono">0 &le; k &lt; N/2</span> — that's the size of an N/2-point DFT. But because any N/2-point DFT is periodic with period N/2:</p>
+      <div class="math" data-display="true">G[k + N/2] = G[k], \qquad H[k+N/2] = H[k]</div>
+      <p>So the naive approach would be: copy the first half of <span class="mono">G</span> and <span class="mono">H</span> into the second half (a periodic extension), then write <span class="math">X[k] = G[k] + W_N^k H[k]</span> for the full range <span class="mono">0 &le; k &lt; N</span>. This already works — but it recomputes the twiddle multiplication redundantly, and it hides a much cheaper structure. We can do better.</p>
+
+      <h4>Step 4 — exploit the halving symmetry for k &ge; N/2</h4>
+      <p>For the second half of the spectrum, using <span class="math">W_N^{k+N/2} = W_N^k e^{-j\pi} = -W_N^k</span>:</p>
+      <div class="math" data-display="true">
+        X[k+N/2] = G[k+N/2] + W_N^{k+N/2}H[k+N/2] = G[k] - W_N^k H[k], \qquad N/2 \le k < N
+      </div>
+
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="tag">RESULT — RADIX-2 DECIMATION-IN-TIME FFT</span>
+        <p style="margin-bottom:6px">For <span class="mono">0 &le; k &lt; N/2</span>:</p>
+        <div class="math" data-display="true">X[k] = G[k] + W_N^{k}H[k] \qquad\qquad X[k+N/2] = G[k] - W_N^{k}H[k]</div>
+      </div>
+
+      <p>This is the punchline: once you have the N/2-point DFTs of the even and odd parts, you get <em>all N</em> output values using nothing more than additions, subtractions, and <strong>one complex multiplication per output pair</strong> (the "twiddle factor" multiply). No redundant recomputation, no wasted work.</p>
+
+      <div class="callout">
+        <span class="label">EXAM ALERT — THE INSIGHT EXAMINERS WANT TO SEE</span>
+        If asked to derive the DIT formula, the score-bearing moment is not the algebra manipulation — it's recognizing <em>why</em> periodicity of G and H, combined with the sign-flip property of W<sub>N</sub>, means you never need to separately compute the second half. Say this explicitly in your answer, don't just arrive at the final formula silently.
+      </div>
+    </section>
+
+    <!-- ============ DIT DIAGRAMS ============ -->
+    <section id="sec-dit-diagrams" class="panel">
+      <div class="kicker">FIG. 06 — DIT BUTTERFLY STRUCTURES</div>
+      <h2>From formula to flow graph</h2>
+      <p class="lead">Let's build the picture up in stages, exactly as the slides do: N = 2 first, then N = 4, then the fully expanded N = 8 network.</p>
+
+      <h3>N = 2 — the fundamental butterfly</h3>
+      <p>The atomic operation of the entire algorithm is the 2-point DFT, nicknamed the "butterfly" for the shape its crossing lines make. Since <span class="math">W_2^0 = 1</span>:</p>
+      <div class="math" data-display="true">X[0] = x[0] + x[1]W_2^0 = x[0]+x[1] \qquad\qquad X[1] = x[0] - x[1]W_2^0 = x[0]-x[1]</div>
+      <div class="fft-diagram-wrap"><div id="dit-n2"></div></div>
+
+      <h3>N = 4 — two butterflies feeding a combine stage</h3>
+      <p>A 4-point DFT is built from two 2-point DFTs. The outputs <span class="mono">G[k]</span> and <span class="mono">H[k]</span> of stage 1 are combined using twiddle factors <span class="mono">W<sub>4</sub><sup>k</sup></span>:</p>
+      <div class="math" data-display="true">
+        X[0]=G[0]+W_4^0H[0] \quad X[1]=G[1]+W_4^1H[1] \quad X[2]=G[0]-W_4^0H[0] \quad X[3]=G[1]-W_4^1H[1]
+      </div>
+      <div class="fft-diagram-wrap"><div id="dit-n4"></div></div>
+
+      <h3>N = 8 — first iteration, viewed as two boxes</h3>
+      <p>Before fully expanding, it's worth seeing the N = 8 case as two 4-point DFT "black boxes" whose outputs <span class="mono">G(k)</span> and <span class="mono">H(k)</span> get combined exactly the same way as before, just with M = 8 twiddles:</p>
+      <div class="math" data-display="true">X[k] = G(k) + W_8^{k}H(k), \qquad X(k+4) = G(k) - W_8^{k}H(k), \quad k=0,\dots,3</div>
+      <div class="fft-diagram-wrap"><div id="dit-n8-boxes"></div></div>
+
+      <h3>N = 8 — the full algorithm, fully expanded</h3>
+      <p>Expanding all the 4-point and 2-point DFTs into their own butterflies yields the complete network below. Two things to notice immediately:</p>
+      <ul>
+        <li>The <strong>inputs</strong> arrive in <strong>bit-reversed order</strong>.</li>
+        <li>The <strong>outputs</strong> emerge in <strong>natural order</strong>.</li>
+      </ul>
+      <div class="fft-diagram-wrap"><div id="dit-n8-full"></div></div>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM</span>
+        Count the butterflies in the N = 8 diagram: 3 stages &times; 4 butterflies per stage = 12 butterflies, each costing one complex multiply and two complex adds. Compare that to the naive DFT's cost for N = 8 (from the earlier section). The saving already shows up clearly even at this tiny size — it only gets more dramatic as N grows.
+      </div>
+    </section>
+
+    <!-- ============ BIT REVERSAL ============ -->
+    <section id="sec-bitrev" class="panel">
+      <div class="kicker">FIG. 07 — UNDERSTANDING BIT-REVERSED ORDER</div>
+      <h2>Why the inputs land where they do</h2>
+      <p class="lead">Bit-reversal isn't a mysterious extra step bolted onto the algorithm — it falls straight out of how the recursive even/odd split reorganizes the index set.</p>
+
+      <p>For N = 8, the physical reshuffling happens across three stages:</p>
+      <ol>
+        <li><strong>Stage 1:</strong> Even indices (0, 2, 4, 6) grouped before odd indices (1, 3, 5, 7).</li>
+        <li><strong>Stage 2:</strong> Even-even (0, 4), odd-even (2, 6), even-odd (1, 5), odd-odd (3, 7).</li>
+        <li><strong>Stage 3:</strong> Fully separated into single elements: x[0], x[4], x[2], x[6], x[1], x[5], x[3], x[7].</li>
+      </ol>
+
+      <p>Putting even before odd is the same operation as <strong>sorting by the rightmost (least-significant) bit</strong>. Putting even-even before odd-even is sorting by the <strong>second-rightmost bit</strong>, and so on. Do this for every stage, and you've sorted the input sequence by the <strong>bit-reversal</strong> of each index's binary representation.</p>
+
+      <h4>Interactive bit-reversal table</h4>
+      <p class="footnote">Choose N below to generate the index &rarr; binary &rarr; bit-reversed &rarr; new position table live.</p>
+      <div class="btn-row" id="bitrevButtons">
+        <button class="pill" data-n="4">N = 4</button>
+        <button class="pill active" data-n="8">N = 8</button>
+        <button class="pill" data-n="16">N = 16</button>
+      </div>
+      <div id="bitrevTable"></div>
+
+      <div class="callout alert">
+        <span class="label">EXAM ALERT — THE MOST COMMON MISTAKE HERE</span>
+        Students frequently reverse the <em>decimal digits</em> (turning 12 into 21) instead of reversing the <strong>fixed-width binary representation</strong>. Bit-reversal always operates on a binary string whose width equals <span class="mono">log&#8322;N</span> bits — for N = 8 that's 3 bits, so index 1 (<span class="mono">001</span>) reverses to <span class="mono">100</span> = 4, not to "1" reversed as a decimal digit. Always write out the binary first, with leading zeros to the correct width.
+      </div>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM — TRY BEFORE YOU CHECK</span>
+        For N = 16, work out the bit-reversed position of index 5 by hand (binary: 4 bits) before clicking the N = 16 button above to verify.
+      </div>
+    </section>
+
+    <!-- ============ DIT ALGO ============ -->
+    <section id="sec-dit-algo" class="panel">
+      <div class="kicker">FIG. 08 — RADIX-2 DIT FFT: PSEUDOCODE &amp; COMPLEXITY</div>
+      <h2>From flow graph to algorithm</h2>
+      <p class="lead">The diagrams you just built map directly onto this iterative, in-place algorithm.</p>
+
+      <pre class="code"><span class="cmt">// Iterative Radix-2 DIT FFT</span>
+Bit-reverse array x of length N (N = 2^v)
+for s = 1 to log2(N):              <span class="cmt">// for each stage</span>
+    M = 2^s                        <span class="cmt">// 2, 4, 8, ..., N</span>
+    W_M = e^(-j*2*pi/M)
+    for l = 0 to N-M step M:       <span class="cmt">// M-point DFT blocks in this stage</span>
+        W = 1                      <span class="cmt">// running twiddle factor</span>
+        for k = 0 to M/2 - 1:      <span class="cmt">// butterfly operation</span>
+            g = x[l+k]                       <span class="cmt">// G[k]</span>
+            h = W * x[l+k+M/2]                <span class="cmt">// W_M^k * H[k]</span>
+            x[l+k]     = g + h                <span class="cmt">// X[k]</span>
+            x[l+k+M/2] = g - h                <span class="cmt">// X[k+M/2]</span>
+            W = W * W_M</pre>
+
+      <table>
+        <tr><th style="width:32%">Piece of code</th><th>What it corresponds to</th></tr>
+        <tr><td>Bit-reversal pass</td><td>Puts the input into the order the fully expanded flow graph expects, so the algorithm can proceed <strong>in place</strong> — no auxiliary array needed.</td></tr>
+        <tr><td>Outer loop over <span class="mono">s</span></td><td>Walks through the <span class="mono">log&#8322;N</span> stages of the flow graph, left to right.</td></tr>
+        <tr><td>Loop over <span class="mono">l</span></td><td>Steps across the independent M-point DFT blocks that exist side by side within a stage.</td></tr>
+        <tr><td>Loop over <span class="mono">k</span></td><td>Runs the M/2 butterflies inside a single block — this is literally the "for 0 &le; k &lt; N/2" from the derivation.</td></tr>
+      </table>
+
+      <h3>Complexity analysis</h3>
+      <ul>
+        <li><strong>Bit-reversal:</strong> O(N) — each element is swapped with its bit-reversed partner at most once.</li>
+        <li><strong>Outer loop:</strong> runs <span class="mono">log&#8322;N</span> times (one pass per stage).</li>
+        <li><strong>Inner loops, combined:</strong> at every stage, all N elements participate in exactly N/2 butterflies.</li>
+        <li><strong>Total:</strong> <span class="mono">log&#8322;N</span> stages &times; N/2 butterflies per stage &times; O(1) work per butterfly = <strong>O(N log&#8322;N)</strong> complex multiplications and additions.</li>
+      </ul>
+
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="tag">WHY THE RECURRENCE GIVES N LOG N</span>
+        <p>The same result falls out of a divide-and-conquer recurrence — the identical shape you'll see again in merge sort:</p>
+        <div class="math" data-display="true">T(N) = 2\,T(N/2) + O(N)</div>
+        <p style="margin-bottom:0">Two half-size subproblems, plus O(N) work to combine them (the butterfly stage). Expanding this recurrence level by level (or invoking the Master Theorem, case 2) gives <span class="math">T(N) = O(N\log_2 N)</span>. If an exam asks you to <em>prove</em> the complexity rather than just state it, this recurrence — expanded explicitly — is exactly what's expected.</p>
+      </div>
+
+      <h4>How the numbers actually compare</h4>
+      <table>
+        <tr><th class="num">N</th><th class="num">N&sup2; (naive)</th><th class="num">N log&#8322;N (FFT)</th><th class="num">Speed-up factor</th></tr>
+        <tr><td class="num">8</td><td class="num">64</td><td class="num">24</td><td class="num">&asymp; 2.7&times;</td></tr>
+        <tr><td class="num">64</td><td class="num">4,096</td><td class="num">384</td><td class="num">&asymp; 10.7&times;</td></tr>
+        <tr><td class="num">1,024</td><td class="num">1,048,576</td><td class="num">10,240</td><td class="num">&asymp; 102&times;</td></tr>
+        <tr><td class="num">44,100</td><td class="num">&asymp; 1.94&times;10&#8313;</td><td class="num">&asymp; 6.75&times;10&#8309;</td><td class="num">&asymp; 288&times;</td></tr>
+      </table>
+
+      <div class="callout">
+        <span class="label">EXAM ALERT — MULTIPLIES VS. ADDS, PRECISELY</span>
+        "O(N log N)" is the right asymptotic answer, but if a question wants an exact operation count: each butterfly costs <strong>1 complex multiply</strong> and <strong>2 complex adds</strong>. With N/2 butterflies per stage and log&#8322;N stages, that's <span class="math">\tfrac{N}{2}\log_2 N</span> complex multiplications and <span class="math">N\log_2 N</span> complex additions. Don't round both to the same "N log N" if the question is asking for a precise count.
+      </div>
+    </section>
+
+    <!-- ============ WORKED EXAMPLE ============ -->
+    <section id="sec-worked" class="panel">
+      <div class="kicker">FIG. 09 — WORKED EXAMPLE</div>
+      <h2>Computing a 4-point DIT FFT by hand</h2>
+      <p class="lead">Let's run the whole machine on real numbers: <span class="math">x = [1,\,2,\,3,\,4]</span>. Click each step to reveal it — try computing it yourself first.</p>
+
+      <div class="step" id="step1">
+        <div class="step-head" onclick="toggleStep('step1')"><span>Step 1 &mdash; split into evens and odds</span><span class="chev">&#9656;</span></div>
+        <div class="step-body">
+          <p>Evens: <span class="math">x[0]=1,\ x[2]=3</span> &nbsp;&nbsp; Odds: <span class="math">x[1]=2,\ x[3]=4</span></p>
+        </div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-head" onclick="toggleStep('step2')"><span>Step 2 &mdash; compute G[k], the 2-point DFT of the evens</span><span class="chev">&#9656;</span></div>
+        <div class="step-body">
+          <div class="math" data-display="true">G[0] = 1+3 = 4 \qquad G[1] = 1-3 = -2</div>
+        </div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-head" onclick="toggleStep('step3')"><span>Step 3 &mdash; compute H[k], the 2-point DFT of the odds</span><span class="chev">&#9656;</span></div>
+        <div class="step-body">
+          <div class="math" data-display="true">H[0] = 2+4 = 6 \qquad H[1] = 2-4 = -2</div>
+        </div>
+      </div>
+      <div class="step" id="step4">
+        <div class="step-head" onclick="toggleStep('step4')"><span>Step 4 &mdash; combine with twiddle factors W&#8324;&#8304; = 1, W&#8324;&sup1; = &minus;j</span><span class="chev">&#9656;</span></div>
+        <div class="step-body">
+          <div class="math" data-display="true">
+            X[0]=G[0]+W_4^0H[0]=4+1(6)=10 \qquad\qquad X[2]=G[0]-W_4^0H[0]=4-6=-2
+          </div>
+          <div class="math" data-display="true">
+            X[1]=G[1]+W_4^1H[1]=-2+(-j)(-2)=-2+2j \qquad X[3]=G[1]-W_4^1H[1]=-2-(-j)(-2)=-2-2j
+          </div>
+        </div>
+      </div>
+      <div class="step" id="step5">
+        <div class="step-head" onclick="toggleStep('step5')"><span>Step 5 &mdash; sanity check against the direct DFT sum</span><span class="chev">&#9656;</span></div>
+        <div class="step-body">
+          <p>Direct definition: <span class="math">X[k] = \sum_{n=0}^{3} x[n]W_4^{kn}</span> with <span class="mono">x = [1,2,3,4]</span>.</p>
+          <div class="math" data-display="true">X[0]=1+2+3+4=10 \qquad X[1]=1-2j-3+4j=-2+2j</div>
+          <div class="math" data-display="true">X[2]=1-2+3-4=-2 \qquad X[3]=1+2j-3-4j=-2-2j</div>
+          <p style="margin-bottom:0">Matches exactly. This cross-check habit — verifying the fast method against the slow definition on a small case — is exactly what you should do on any exam question that gives you time to spare.</p>
+        </div>
+      </div>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM</span>
+        Redo this worked example with <span class="math">x=[1,0,-1,0]</span> — a signal that's already purely "even-symmetric" looking. Notice how many of the intermediate values come out purely real. Can you connect this to the even/odd-symmetry properties of the Fourier transform you studied for continuous signals?
+      </div>
+    </section>
+
+    <!-- ============ DIF DERIVATION ============ -->
+    <section id="sec-dif-derive" class="panel">
+      <div class="kicker">FIG. 10 — DECIMATION-IN-FREQUENCY</div>
+      <h2>Deriving the DIF butterfly</h2>
+      <p class="lead">DIF takes the mirror-image approach: instead of splitting which <em>input samples</em> we use, it splits the sum by time range first, then separates by the parity of the <em>output</em> index k.</p>
+
+      <h4>Step 1 &mdash; split the sum into first-half and second-half time indices</h4>
+      <div class="math" data-display="true">
+        X[k] = \sum_{n=0}^{N/2-1}x[n]W_N^{kn} + \sum_{n=0}^{N/2-1}x[n+N/2]W_N^{k(n+N/2)}
+      </div>
+
+      <p>Using <span class="math">W_N^{kN/2} = e^{-j\frac{2\pi}{N}k\frac{N}{2}} = e^{-j\pi k} = (-1)^k</span>:</p>
+      <div class="math" data-display="true">
+        X[k] = \sum_{n=0}^{N/2-1}\big(x[n] + (-1)^k x[n+N/2]\big)W_N^{kn}
+      </div>
+
+      <p>Now, rather than splitting the input, we <strong>decimate the frequency index k</strong> by evaluating even and odd k separately — this is the source of the name "decimation in frequency."</p>
+
+      <h4>Step 2 &mdash; even k = 2m</h4>
+      <p>Since <span class="math">(-1)^{2m}=1</span> and <span class="math">W_N^{2mn}=W_{N/2}^{mn}</span>:</p>
+      <div class="math" data-display="true">
+        X[2m] = \sum_{n=0}^{N/2-1}\underbrace{\big(x[n]+x[n+N/2]\big)}_{a(n)}W_{N/2}^{mn} = \mathrm{DFT}_{N/2}\{a(n)\}
+      </div>
+
+      <h4>Step 3 &mdash; odd k = 2m+1</h4>
+      <p>Since <span class="math">(-1)^{2m+1}=-1</span> and <span class="math">W_N^{(2m+1)n}=W_N^n W_N^{2mn}=W_N^n W_{N/2}^{mn}</span>:</p>
+      <div class="math" data-display="true">
+        X[2m+1] = \sum_{n=0}^{N/2-1}\underbrace{\big(x[n]-x[n+N/2]\big)W_N^n}_{b(n)}W_{N/2}^{mn} = \mathrm{DFT}_{N/2}\{b(n)\}
+      </div>
+
+      <div class="callout">
+        <span class="label">THE KEY STRUCTURAL DIFFERENCE FROM DIT</span>
+        Look closely at where the twiddle factor <span class="mono">W<sub>N</sub><sup>n</sup></span> sits in <span class="mono">b(n)</span>: it's applied <strong>after</strong> the subtraction, not before. In DIT, the twiddle multiplies H[k] <em>before</em> it's added or subtracted from G[k]. In DIF, the sum and difference happen <em>first</em>, and only the difference branch then gets twiddled before being handed to the next-stage N/2-point DFT. This ordering flip is the single most exam-tested distinction between the two variants.
+      </div>
+
+      <p>So the DIT-style even/odd input split has become a DIF-style even/odd <em>output</em> split — both variants land on the same underlying "two N/2-point DFTs" structure, just approached from opposite directions.</p>
+    </section>
+
+    <!-- ============ DIF DIAGRAMS ============ -->
+    <section id="sec-dif-diagrams" class="panel">
+      <div class="kicker">FIG. 11 — DIF BUTTERFLY STRUCTURE</div>
+      <h2>The DIF flow graph</h2>
+      <p class="lead">The fundamental DIF butterfly performs the addition/subtraction <em>before</em> multiplying by the twiddle factor <span class="mono">W<sub>N</sub><sup>n</sup></span> — the reverse order from DIT.</p>
+
+      <h3>N = 8 &mdash; first iteration, as two boxes</h3>
+      <p>Inputs stay in natural order. The sum branch <span class="mono">a(n)</span> feeds one 4-point DFT box directly; the difference branch <span class="mono">b(n)</span> is twiddled by <span class="mono">W<sub>8</sub><sup>n</sup></span> first, then feeds a second 4-point DFT box.</p>
+      <div class="fft-diagram-wrap"><div id="dif-n8-boxes"></div></div>
+
+      <h3>N = 8 &mdash; the full algorithm, fully expanded</h3>
+      <p>Expanding the layers gives the complete network. Notice the mirror-image relationship to the DIT diagram from earlier:</p>
+      <ul>
+        <li><strong>Inputs</strong> are in <strong>natural</strong> order.</li>
+        <li><strong>Outputs</strong> emerge in <strong>bit-reversed</strong> order.</li>
+      </ul>
+      <div class="fft-diagram-wrap"><div id="dif-n8-full"></div></div>
+
+      <div class="callout brainstorm">
+        <span class="label">BRAINSTORM</span>
+        The DIT and DIF flow graphs are literally <strong>transposes</strong> of one another — reverse every arrow's direction and swap the roles of "input" and "output," and one turns into the other. This is an instance of a general result in signal-flow-graph theory called the <strong>transposition theorem</strong>. Can you see, just by looking at the two diagrams, why reversing DIT's arrows would relocate the bit-reversal from the input side to the output side?
+      </div>
+    </section>
+
+    <!-- ============ COMPARE ============ -->
+    <section id="sec-compare" class="panel">
+      <div class="kicker">FIG. 12 — SYNTHESIS</div>
+      <h2>DIT vs. DIF at a glance</h2>
+      <p class="lead">Both variants compute the identical DFT at identical asymptotic cost. Everything below is about <em>structure</em>, not speed.</p>
+
+      <table>
+        <tr><th style="width:26%">Property</th><th>Decimation-in-Time (DIT)</th><th>Decimation-in-Frequency (DIF)</th></tr>
+        <tr><td>What gets split by parity</td><td>The <strong>time-domain input</strong> index n</td><td>The <strong>frequency-domain output</strong> index k</td></tr>
+        <tr><td>Input order</td><td>Bit-reversed</td><td>Natural</td></tr>
+        <tr><td>Output order</td><td>Natural</td><td>Bit-reversed</td></tr>
+        <tr><td>Where the twiddle multiply happens</td><td><strong>Before</strong> the add/subtract, on the H branch</td><td><strong>After</strong> the subtract, on the difference branch</td></tr>
+        <tr><td>Number of butterflies</td><td>N/2 per stage, log&#8322;N stages</td><td>Identical</td></tr>
+        <tr><td>Asymptotic cost</td><td>O(N log&#8322;N)</td><td>O(N log&#8322;N) &mdash; identical</td></tr>
+        <tr><td>Practical choice driver</td><td colspan="2">Usually decided by which ordering (input or output) is more convenient for the surrounding system — e.g., whether you need natural-order results immediately, or can tolerate a bit-reversal permutation pass at either end.</td></tr>
+      </table>
+
+      <div class="callout alert">
+        <span class="label">EXAM ALERT — DO NOT MIX UP WHICH SIDE IS BIT-REVERSED</span>
+        This is the single most commonly reversed fact on exams covering this topic. A reliable mnemonic: <strong>D</strong>ecimation-in-<strong>T</strong>ime scrambles the <strong>T</strong>ime-domain <strong>i</strong>nput (bit-reversed in), while <strong>D</strong>ecimation-in-<strong>F</strong>requency scrambles the <strong>F</strong>requency-domain output (bit-reversed out).
+      </div>
+    </section>
+
+    <!-- ============ ZERO PADDING ============ -->
+    <section id="sec-zeropad" class="panel">
+      <div class="kicker">FIG. 13 — WHY ZERO-PAD? THE PRACTICAL NECESSITY</div>
+      <h2>Zero-padding</h2>
+
+      <div class="plate">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="tag">THE RADIX-2 REQUIREMENT</span>
+        <p style="margin-bottom:0">Radix-2 FFT algorithms require the sequence length N to be exactly a power of 2: <span class="math">N = 2^m</span>.</p>
+      </div>
+
+      <h3>The problem</h3>
+      <p>Real-world data almost never arrives with a sample count that happens to be a power of 2. Call that length M. If we insist on using exactly those M samples, we're stuck falling back to the slow O(M&sup2;) naive DFT — the entire point of this lecture evaporates.</p>
+
+      <h3>The solution</h3>
+      <p>Append zeros until the sequence reaches the next power of 2: <span class="math">N = 2^{\lceil \log_2 M \rceil}</span>.</p>
+
+      <ul>
+        <li><strong>Bonus:</strong> zero-padding <strong>interpolates the spectrum</strong> — it gives a smoother-looking, more finely sampled visualization <em>without altering the true underlying frequency content</em> <span class="math">X(e^{j\omega})</span>. This works because the DTFT of a finite-length sequence is completely unchanged by appending zeros (the sum over nonzero terms is identical); you're simply sampling that same, unchanged continuous spectrum at a denser set of points.</li>
+        <li><strong>Caveat:</strong> if the signal being processed is genuinely periodic, zero-padding <strong>changes the assumed period and shape</strong> of that periodic signal — you're effectively inserting artificial silence into what the DFT will treat as one period of an infinitely repeating pattern, distorting the analysis.</li>
+      </ul>
+
+      <div class="callout alert">
+        <span class="label">EXAM ALERT — THE #1 CONCEPTUAL TRAP</span>
+        Zero-padding does <strong>not</strong> improve the true frequency resolution of your data. Resolution is set by how long you actually observed the signal (i.e., by M, the real sample count), not by how many zeros you tack on afterward. Zero-padding only makes the <em>existing</em> spectral shape look smoother by sampling it more densely — it cannot separate two closely-spaced frequencies that weren't already distinguishable in the original M-sample observation window.
+      </div>
+
+      <div class="callout brainstorm">
+        <span class="label">CLIFFHANGER — CAN WE DO FFT WITHOUT ZERO-PADDING?</span>
+        The slides end on exactly this open question. Beyond what's covered here, a few real answers worth knowing for enrichment (and for connecting this course to what you'll see in practice):
+        <ul style="margin-bottom:0">
+          <li><strong>Mixed-radix FFT</strong> &mdash; generalizes Cooley&ndash;Tukey to any N that factors into small primes (not just powers of 2), splitting into N&#8321; &times; N&#8322; sub-DFTs instead of always halving.</li>
+          <li><strong>Rader's algorithm</strong> &mdash; handles prime-length N by converting the DFT into a cyclic convolution of length N&minus;1.</li>
+          <li><strong>Bluestein's algorithm (chirp-z transform)</strong> &mdash; handles <em>any</em> N whatsoever, including primes, by rewriting the DFT as a convolution, which can then itself be computed fast using zero-padded FFTs internally. This is the general-purpose trick most production FFT libraries fall back on.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ EXAM ALERTS ============ -->
+    <section id="sec-examalerts" class="panel">
+      <div class="kicker">FIG. 14 — CONSOLIDATED REVIEW</div>
+      <h2>Exam alerts &amp; common pitfalls</h2>
+      <p class="lead">Every pitfall flagged throughout this companion, gathered in one place for last-minute review.</p>
+
+      <table>
+        <tr><th style="width:34%">Pitfall</th><th>Fix</th></tr>
+        <tr><td>Reporting per-k cost instead of total cost for the naive DFT</td><td>Total cost is N times the per-k cost &mdash; O(N&sup2;), not O(N).</td></tr>
+        <tr><td>Reversing decimal digits instead of fixed-width binary during bit-reversal</td><td>Always write the index in exactly log&#8322;N binary digits first, then reverse that bit string.</td></tr>
+        <tr><td>Mixing up which side (input/output) is bit-reversed in DIT vs. DIF</td><td>DIT = Time-domain input scrambled. DIF = Frequency-domain output scrambled.</td></tr>
+        <tr><td>Sign error in the twiddle factor's exponent</td><td>Convention used throughout: <span class="math">W_N = e^{-j2\pi/N}</span> &mdash; negative exponent.</td></tr>
+        <tr><td>Forgetting where the twiddle multiply happens in DIF</td><td>After the subtraction (on the difference branch), unlike DIT where it's before the add/subtract.</td></tr>
+        <tr><td>Stating "O(N log N)" complexity without being able to derive it</td><td>Know the recurrence <span class="math">T(N)=2T(N/2)+O(N)</span> and be able to expand it, not just cite the result.</td></tr>
+        <tr><td>Believing zero-padding increases true frequency resolution</td><td>It only interpolates the existing spectrum more densely &mdash; true resolution is set by the original observation length.</td></tr>
+        <tr><td>Applying zero-padding to a genuinely periodic signal without caveat</td><td>State that this changes the assumed period/shape of the periodic signal.</td></tr>
+        <tr><td>Assuming radix-2 works for any N</td><td>Requires N to be an exact power of 2 &mdash; otherwise zero-pad, or use mixed-radix / Bluestein's for arbitrary N.</td></tr>
+      </table>
+
+      <h3>Ranked list of likely exam question types</h3>
+      <ol>
+        <li><strong>Derive</strong> the DIT or DIF butterfly equations starting from the DFT definition (very high yield &mdash; expect this).</li>
+        <li><strong>Draw the flow graph</strong> for a specific N (commonly 4 or 8), correctly labeling bit-reversed order and twiddle factors.</li>
+        <li><strong>Compute an FFT by hand</strong> for a small sequence and verify against the direct DFT sum.</li>
+        <li><strong>Derive the O(N log N) complexity</strong> from the recurrence relation, not just state it.</li>
+        <li><strong>Compare DIT and DIF</strong> structurally &mdash; ordering, where the twiddle sits, naming logic.</li>
+        <li><strong>Explain zero-padding</strong>: why it's needed, and what it does (and doesn't) do to the spectrum.</li>
+      </ol>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section id="sec-quiz" class="panel">
+      <div class="kicker">FIG. 15 — SELF-CHECK</div>
+      <h2>Quiz: are you exam-ready?</h2>
+      <p class="lead">Eight questions covering the full lecture. Click an option to check your answer.</p>
+      <div id="quizContainer"></div>
+      <div class="quiz-score" id="quizScore" style="display:none"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ================= NAV LOGIC ================= */
+const navItems = document.querySelectorAll('.nav-item');
+const panels = document.querySelectorAll('.panel');
+navItems.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    navItems.forEach(b=>b.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+    document.querySelector('.content').scrollTo({top:0, behavior:'instant'});
+    window.scrollTo({top:0, behavior:'instant'});
+  });
+});
+navItems[0].classList.add('active');
+
+/* ================= KATEX RENDER ================= */
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.math').forEach(el=>{
+    try{
+      katex.render(el.textContent, el, {displayMode: el.dataset.display === 'true', throwOnError:false});
+    }catch(e){ console.error(e); }
+  });
+});
+
+/* ================= STEP ACCORDION ================= */
+function toggleStep(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+/* ================= COMPLEXITY WIDGET ================= */
+const speedBtns = document.querySelectorAll('#speedButtons .pill');
+function log2(x){ return Math.log(x)/Math.log(2); }
+function fmt(x){
+  if(x >= 1e6) return x.toExponential(2).replace('e+','\u00d710^');
+  return x.toLocaleString();
+}
+function renderSpeed(n){
+  const naive = n*n;
+  const fft = n*log2(n);
+  const speedup = naive/fft;
+  const maxLog = Math.log10(naive);
+  const naiveW = 100;
+  const fftW = Math.max(2, (Math.log10(fft)/maxLog)*100);
+  document.getElementById('speedOutput').innerHTML = `
+    <div class="plate" style="margin-top:16px">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <span class="tag">N = ${n.toLocaleString()}</span>
+      <div class="bar-row">
+        <div class="bar-label"><span>Naive DFT &mdash; O(N&sup2;)</span><span>${fmt(naive)} ops</span></div>
+        <div class="bar-track"><div class="bar-fill rust" style="width:${naiveW}%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>FFT &mdash; O(N log&#8322;N)</span><span>${fmt(Math.round(fft))} ops</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${fftW}%"></div></div>
+      </div>
+      <p style="margin:14px 0 0 0; font-family:'IBM Plex Mono'; font-size:13px;">Speed-up factor: <strong>&asymp; ${speedup < 10 ? speedup.toFixed(1) : Math.round(speedup).toLocaleString()}&times;</strong></p>
+    </div>`;
+}
+speedBtns.forEach(b=>{
+  b.addEventListener('click', ()=>{
+    speedBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderSpeed(parseInt(b.dataset.n));
+  });
+});
+renderSpeed(1024);
+
+/* ================= BIT-REVERSAL WIDGET ================= */
+function bitReverseVal(num, bits){
+  let rev = 0;
+  for(let i=0;i<bits;i++){ rev = (rev<<1) | (num & 1); num >>= 1; }
+  return rev;
+}
+function toBin(num, bits){ return num.toString(2).padStart(bits,'0'); }
+function renderBitrevTable(n){
+  const bits = log2(n);
+  let rows = '';
+  for(let i=0;i<n;i++){
+    const rev = bitReverseVal(i, bits);
+    rows += `<tr><td class="num">${i}</td><td class="num mono">${toBin(i,bits)}</td><td class="num mono">${toBin(rev,bits)}</td><td class="num">${rev}</td></tr>`;
+  }
+  document.getElementById('bitrevTable').innerHTML = `
+    <table>
+      <tr><th class="num">Original index</th><th class="num">Binary</th><th class="num">Bit-reversed binary</th><th class="num">New position</th></tr>
+      ${rows}
+    </table>`;
+}
+const bitrevBtns = document.querySelectorAll('#bitrevButtons .pill');
+bitrevBtns.forEach(b=>{
+  b.addEventListener('click', ()=>{
+    bitrevBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderBitrevTable(parseInt(b.dataset.n));
+  });
+});
+renderBitrevTable(8);
+
+/* ================= BUTTERFLY NETWORK GENERATOR ================= */
+const SVG_NS = "http://www.w3.org/2000/svg";
+function sup(n){
+  const map={'0':'\u2070','1':'\u00b9','2':'\u00b2','3':'\u00b3','4':'\u2074','5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079'};
+  return String(n).split('').map(c=>map[c]||c).join('');
+}
+function sub(n){
+  const map={'0':'\u2080','1':'\u2081','2':'\u2082','3':'\u2083','4':'\u2084','5':'\u2085','6':'\u2086','7':'\u2087','8':'\u2088','9':'\u2089'};
+  return String(n).split('').map(c=>map[c]||c).join('');
+}
+function twLabel(M,k){ return 'W'+sub(M)+sup(k); }
+
+function drawFFTNetwork(containerId, N, variant){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const v = Math.log2(N);
+  const rowGap = N<=4 ? 70 : (N<=8 ? 46 : 34);
+  const colGap = 118;
+  const padX = 96, padY = 30;
+  const width = padX*2 + colGap*v;
+  const height = padY*2 + rowGap*(N-1);
+  const svg = document.createElementNS(SVG_NS,'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('class','fft-svg');
+  svg.setAttribute('width', Math.min(width, 720));
+
+  function Xc(c){ return padX + c*colGap; }
+  function Yc(r){ return padY + r*rowGap; }
+
+  function drawLine(x1,y1,x2,y2,neg){
+    const l=document.createElementNS(SVG_NS,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+    l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('class', neg ? 'edge-neg':'edge');
+    svg.appendChild(l);
+  }
+  function drawDot(x,y){
+    const c=document.createElementNS(SVG_NS,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',2.4);
+    c.setAttribute('class','node-dot');
+    svg.appendChild(c);
+  }
+  function drawText(x,y,str,cls,anchor){
+    const t=document.createElementNS(SVG_NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y);
+    t.setAttribute('class', cls);
+    if(anchor) t.setAttribute('text-anchor',anchor);
+    t.textContent = str;
+    svg.appendChild(t);
+  }
+  function bitrev(n,bits){
+    let r=0;
+    for(let i=0;i<bits;i++){ r=(r<<1)|(n&1); n>>=1; }
+    return r;
+  }
+
+  // stage labels
+  for(let s=0;s<=v;s++){
+    let lbl = s===0 ? 'input' : (s===v ? 'output' : 'stage '+s);
+    drawText(Xc(s), 14, lbl, 'stage-label', 'middle');
+  }
+
+  // input/output node labels
+  for(let r=0;r<N;r++){
+    let inLabel, outLabel;
+    if(variant==='DIT'){ inLabel='x('+bitrev(r,v)+')'; outLabel='X('+r+')'; }
+    else { inLabel='x('+r+')'; outLabel='X('+bitrev(r,v)+')'; }
+    drawText(Xc(0)-10, Yc(r)+4, inLabel, 'node-label', 'end');
+    drawText(Xc(v)+10, Yc(r)+4, outLabel, 'node-label', 'start');
+  }
+
+  if(variant==='DIT'){
+    for(let s=1;s<=v;s++){
+      const M=Math.pow(2,s), half=M/2;
+      const xa=Xc(s-1), xb=Xc(s);
+      for(let l=0;l<N;l+=M){
+        for(let k=0;k<half;k++){
+          const r1=l+k, r2=l+k+half;
+          drawLine(xa,Yc(r1),xb,Yc(r1),false);
+          drawLine(xa,Yc(r1),xb,Yc(r2),false);
+          drawLine(xa,Yc(r2),xb,Yc(r1),false);
+          drawLine(xa,Yc(r2),xb,Yc(r2),true);
+          if(M>2){
+            const mx=(xa+xb)/2;
+            drawText(mx, Yc(r2)-6, twLabel(M,k), 'tw-label', 'middle');
+          }
+          drawText(xb-10, Yc(r2)-8, '\u22121', 'neg-label', 'end');
+        }
+      }
+    }
+  } else {
+    for(let s=1;s<=v;s++){
+      const M = N/Math.pow(2,s-1), half=M/2;
+      const xa=Xc(s-1), xb=Xc(s);
+      for(let l=0;l<N;l+=M){
+        for(let k=0;k<half;k++){
+          const r1=l+k, r2=l+k+half;
+          drawLine(xa,Yc(r1),xb,Yc(r1),false);
+          drawLine(xa,Yc(r2),xb,Yc(r1),false);
+          drawLine(xa,Yc(r1),xb,Yc(r2),false);
+          drawLine(xa,Yc(r2),xb,Yc(r2),true);
+          drawText(xb-10, Yc(r2)-8, '\u22121', 'neg-label', 'end');
+          if(M>2){
+            drawText((xa+xb)/2, Yc(r2)+16, twLabel(M,k), 'tw-label', 'middle');
+          }
+        }
+      }
+    }
+  }
+
+  // dots on every column
+  for(let s=0;s<=v;s++){
+    for(let r=0;r<N;r++){ drawDot(Xc(s),Yc(r)); }
+  }
+
+  container.appendChild(svg);
+}
+
+drawFFTNetwork('dit-n2', 2, 'DIT');
+drawFFTNetwork('dit-n4', 4, 'DIT');
+drawFFTNetwork('dit-n8-full', 8, 'DIT');
+drawFFTNetwork('dif-n8-full', 8, 'DIF');
+
+/* ---- Box-level diagrams (N=8 "first iteration" views) ---- */
+function drawBoxDiagram(containerId, variant){
+  const container = document.getElementById(containerId);
+  const svg = document.createElementNS(SVG_NS,'svg');
+  const width = 620, height = 300;
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('class','fft-svg');
+  svg.setAttribute('width', width);
+
+  function rect(x,y,w,h,label){
+    const r=document.createElementNS(SVG_NS,'rect');
+    r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',w); r.setAttribute('height',h);
+    r.setAttribute('fill','none'); r.setAttribute('stroke','var(--charcoal-2)'); r.setAttribute('stroke-width','1');
+    svg.appendChild(r);
+    const t=document.createElementNS(SVG_NS,'text');
+    t.setAttribute('x',x+w/2); t.setAttribute('y',y+h/2+4); t.setAttribute('text-anchor','middle');
+    t.setAttribute('class','node-label'); t.textContent = label;
+    svg.appendChild(t);
+  }
+  function line(x1,y1,x2,y2,neg){
+    const l=document.createElementNS(SVG_NS,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('class', neg ? 'edge-neg':'edge');
+    svg.appendChild(l);
+  }
+  function txt(x,y,str,anchor,cls){
+    const t=document.createElementNS(SVG_NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('text-anchor',anchor||'start');
+    t.setAttribute('class', cls||'node-label'); t.textContent = str;
+    svg.appendChild(t);
+  }
+  function dot(x,y){
+    const c=document.createElementNS(SVG_NS,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',2.4); c.setAttribute('class','node-dot');
+    svg.appendChild(c);
+  }
+
+  if(variant==='DIT'){
+    const inputsEven=[0,2,4,6], inputsOdd=[1,3,5,7];
+    const boxX=170, boxW=110;
+    const topY=30, botY=170, boxH=100;
+    rect(boxX, topY, boxW, boxH, '4-point DFT');
+    rect(boxX, botY, boxW, boxH, '4-point DFT');
+    for(let i=0;i<4;i++){
+      const y = topY + 16 + i*22;
+      txt(20, y+4, 'x('+inputsEven[i]+')', 'start');
+      line(90, y, boxX, y, false);
+      dot(90,y);
+      txt(boxX+boxW+14, y+4, 'G('+i+')', 'start');
+    }
+    for(let i=0;i<4;i++){
+      const y = botY + 16 + i*22;
+      txt(20, y+4, 'x('+inputsOdd[i]+')', 'start');
+      line(90, y, boxX, y, false);
+      dot(90,y);
+      txt(boxX+boxW+14, y+4, 'H('+i+')  '+twLabel(8,i), 'start');
+    }
+    const outX = 470;
+    for(let i=0;i<4;i++){
+      const gY = topY + 16 + i*22;
+      const hY = botY + 16 + i*22;
+      const outTopY = 40 + i*22;
+      const outBotY = 190 + i*22;
+      line(boxX+boxW+70, gY, outX, outTopY, false);
+      line(boxX+boxW+70, gY, outX, outBotY, false);
+      line(boxX+boxW+70, hY, outX, outTopY, false);
+      line(boxX+boxW+70, hY, outX, outBotY, true);
+      txt(outX+10, outTopY+4, 'X('+i+')', 'start');
+      txt(outX+10, outBotY+4, 'X('+(i+4)+')', 'start');
+      dot(outX, outTopY); dot(outX, outBotY);
+    }
+  } else {
+    const boxX=340, boxW=110;
+    const topY=30, botY=170, boxH=100;
+    rect(boxX, topY, boxW, boxH, 'N/2-point DFT');
+    rect(boxX, botY, boxW, boxH, 'N/2-point DFT');
+    const inX = 40, midX=200;
+    for(let i=0;i<4;i++){
+      const yTop = 30 + i*22 + 14;
+      const yBot = 170 + i*22 + 14;
+      txt(inX-20, yTop+4, 'x('+i+')', 'start');
+      txt(inX-20, yBot+4, 'x('+(i+4)+')', 'start');
+      dot(inX, yTop); dot(inX, yBot);
+      line(inX, yTop, midX, yTop-8, false);
+      line(inX, yBot, midX, yTop-8, false);
+      line(inX, yTop, midX, yBot-8, false);
+      line(inX, yBot, midX, yBot-8, true);
+      dot(midX, yTop-8); dot(midX, yBot-8);
+      txt(midX+8, yTop-12, 'a('+i+')', 'start', 'tw-label');
+      txt(midX+8, yBot-4, 'b('+i+')  '+twLabel(8,i), 'start', 'tw-label');
+      line(midX, yTop-8, boxX, topY+14+i*22, false);
+      line(midX, yBot-8, boxX, botY+14+i*22, false);
+    }
+    for(let i=0;i<4;i++){
+      const evenIdx = i*2, oddIdx = i*2+1;
+      txt(boxX+boxW+16, topY+14+i*22+4, 'X('+evenIdx+')', 'start');
+      txt(boxX+boxW+16, botY+14+i*22+4, 'X('+oddIdx+')', 'start');
+      line(boxX+boxW, topY+14+i*22, boxX+boxW+70, topY+14+i*22, false);
+      line(boxX+boxW, botY+14+i*22, boxX+boxW+70, botY+14+i*22, false);
+    }
+  }
+  container.appendChild(svg);
+}
+drawBoxDiagram('dit-n8-boxes','DIT');
+drawBoxDiagram('dif-n8-boxes','DIF');
+
+/* ================= QUIZ ================= */
+const quizData = [
+  {q:"What is the time complexity of the naive DFT computation for N points?",
+   opts:["O(N)","O(N log N)","O(N\u00b2)","O(2^N)"], correct:2,
+   explain:"Each of the N output values requires O(N) multiply-adds, giving O(N\u00b2) total &mdash; not just the per-value cost."},
+  {q:"Radix-2 Decimation-in-Time FFT requires that N be:",
+   opts:["Even","A power of 2","Prime","A multiple of 10"], correct:1,
+   explain:"The recursive even/odd split needs to bottom out cleanly, which requires N = 2^v. Any other N needs zero-padding or a different algorithm variant."},
+  {q:"In the standard radix-2 DIT flow graph, the inputs are arranged in:",
+   opts:["Natural order","Bit-reversed order","Random order","Sorted by magnitude"], correct:1,
+   explain:"Each recursive even/odd split sorts the index set by increasingly significant bits, landing on bit-reversed order at the input."},
+  {q:"The twiddle factor is defined as:",
+   opts:["e^{+j2\u03c0/N}","e^{\u2212j2\u03c0/N}","cos(2\u03c0/N)","j times the N-th root of unity"], correct:1,
+   explain:"W_N = e^{\u2212j2\u03c0/N} &mdash; the negative exponent is the convention used throughout this course."},
+  {q:"In Decimation-in-Frequency, the twiddle factor multiplication happens:",
+   opts:["Before the add/subtract","After the subtract, on the difference term","Only on even-indexed outputs","DIF has no twiddle factors"], correct:1,
+   explain:"b(n) = x[n] \u2212 x[n+N/2] is formed first, and only then multiplied by W_N^n &mdash; the reverse order from DIT."},
+  {q:"The primary reason to zero-pad before a radix-2 FFT is to:",
+   opts:["Increase the true frequency resolution","Make the sequence length a power of 2","Remove noise from the signal","Force the signal to be periodic"], correct:1,
+   explain:"Radix-2 needs N = 2^m. Zero-padding pads M real samples up to the next power of 2 so radix-2 can be used &mdash; it does not improve true resolution, only interpolates the existing spectrum."},
+  {q:"For an 8-point FFT (v = 3 bits), what is the bit-reversed position of input index 3 (binary 011)?",
+   opts:["3","6","5","7"], correct:1,
+   explain:"Reverse the 3-bit binary of 3 (011) to get 110, which is 6 in decimal."},
+  {q:"The recurrence T(N) = 2T(N/2) + O(N) resolves to which complexity class?",
+   opts:["O(N)","O(N log N)","O(N\u00b2)","O(N\u221aN)"], correct:1,
+   explain:"This is the classic divide-and-conquer recurrence (same shape as merge sort). Expanding it level by level gives \u0398(N log N)."}
+];
+
+function renderQuiz(){
+  const container = document.getElementById('quizContainer');
+  let score = 0, answered = 0;
+  quizData.forEach((item, idx)=>{
+    const qDiv = document.createElement('div');
+    qDiv.className = 'quiz-q';
+    qDiv.innerHTML = `<div class="qtext">${idx+1}. ${item.q}</div>
+      <div class="quiz-opts" id="opts-${idx}"></div>
+      <div class="quiz-explain" id="explain-${idx}"></div>`;
+    container.appendChild(qDiv);
+    const optsDiv = qDiv.querySelector(`#opts-${idx}`);
+    item.opts.forEach((opt, oi)=>{
+      const btn = document.createElement('button');
+      btn.className = 'quiz-opt';
+      btn.textContent = opt;
+      btn.addEventListener('click', ()=>{
+        if(qDiv.dataset.answered) return;
+        qDiv.dataset.answered = 'true';
+        answered++;
+        const allOpts = optsDiv.querySelectorAll('.quiz-opt');
+        allOpts.forEach((b2,oi2)=>{
+          if(oi2===item.correct) b2.classList.add('correct');
+          else if(oi2===oi) b2.classList.add('incorrect');
+        });
+        if(oi===item.correct) score++;
+        const ex = qDiv.querySelector(`#explain-${idx}`);
+        ex.textContent = item.explain;
+        ex.classList.add('show');
+        if(answered===quizData.length){
+          const scoreDiv = document.getElementById('quizScore');
+          scoreDiv.style.display='block';
+          scoreDiv.textContent = `Final score: ${score} / ${quizData.length}`;
+        }
+      });
+      optsDiv.appendChild(btn);
+    });
+  });
+}
+renderQuiz();
+
+/* ================= AUTO-RENDER FALLBACK (ensures all .math nodes caught) ================= */
+window.addEventListener('load', function(){
+  if(typeof renderMathInElement === 'function'){
+    document.querySelectorAll('.math').forEach(el=>{
+      if(!el.querySelector('.katex')){
+        try{ katex.render(el.textContent, el, {displayMode: el.dataset.display==='true', throwOnError:false}); }catch(e){}
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>

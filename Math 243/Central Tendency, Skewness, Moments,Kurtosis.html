@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATH 243 · Statistics &amp; Probability — Central Tendency, Skewness, Moments &amp; Kurtosis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#EAE4D3;
+  --paper-2:#E1D9C2;
+  --paper-3:#D9CFB4;
+  --grid-line:rgba(33,29,24,0.09);
+  --ink:#201C16;
+  --ink-soft:#5C5546;
+  --charcoal:#1B211E;
+  --charcoal-2:#242B27;
+  --charcoal-3:#2D3531;
+  --charcoal-line:rgba(237,231,217,0.09);
+  --cream:#EDE7D9;
+  --cream-dim:rgba(237,231,217,0.62);
+  --brass:#B8863B;
+  --brass-light:#D9AD5D;
+  --brass-dim:rgba(184,134,59,0.16);
+  --rust:#A64B2A;
+  --rust-dim:rgba(166,75,42,0.14);
+  --teal:#2F6E63;
+  --teal-dim:rgba(47,110,99,0.14);
+  --serif:'Source Serif 4', Georgia, serif;
+  --sans:'Inter', -apple-system, sans-serif;
+  --mono:'JetBrains Mono', 'Courier New', monospace;
+  --sidebar-w:308px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--paper);
+  line-height:1.6;
+  font-size:15.5px;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ===== layout shell ===== */
+.app{display:flex; min-height:100vh;}
+
+/* ===== sidebar ===== */
+.sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:
+    linear-gradient(180deg, var(--charcoal) 0%, var(--charcoal) 100%);
+  background-image:
+    linear-gradient(var(--charcoal-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--charcoal-line) 1px, transparent 1px);
+  background-size:22px 22px;
+  background-color:var(--charcoal);
+  color:var(--cream);
+  height:100vh;
+  position:sticky;
+  top:0;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  z-index:40;
+  border-right:1px solid var(--charcoal-line);
+}
+.sidebar::-webkit-scrollbar{width:8px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--charcoal-3); border-radius:4px;}
+
+.sb-header{
+  padding:26px 22px 18px;
+  border-bottom:1px solid var(--charcoal-line);
+}
+.sb-eyebrow{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.14em;
+  color:var(--brass-light);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.sb-title{
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:600;
+  line-height:1.25;
+  color:var(--cream);
+}
+.sb-sub{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--cream-dim);
+  margin-top:8px;
+  letter-spacing:0.03em;
+}
+
+.sb-nav{flex:1; padding:14px 12px 10px;}
+.sb-group-label{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--brass-light);
+  padding:16px 12px 8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.sb-group-label::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:var(--charcoal-line);
+}
+.sb-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  color:var(--cream-dim);
+  font-family:var(--sans);
+  font-size:13.5px;
+  padding:9px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:background 0.15s, color 0.15s;
+  position:relative;
+}
+.sb-item:hover{background:var(--charcoal-2); color:var(--cream);}
+.sb-item.active{background:var(--brass-dim); color:var(--brass-light); font-weight:600;}
+.sb-item.active::before{
+  content:"";
+  position:absolute; left:0; top:8px; bottom:8px; width:3px;
+  background:var(--brass); border-radius:2px;
+}
+.sb-num{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-soft);
+  color:rgba(237,231,217,0.4);
+  min-width:26px;
+}
+.sb-item.active .sb-num{color:var(--brass);}
+.sb-check{
+  margin-left:auto;
+  width:14px; height:14px;
+  border-radius:50%;
+  border:1.5px solid rgba(237,231,217,0.28);
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.sb-item.visited .sb-check{background:var(--brass); border-color:var(--brass);}
+.sb-item.visited .sb-check::after{
+  content:"✓"; font-size:9px; color:var(--charcoal); font-weight:700;
+}
+
+.sb-footer{
+  padding:18px 22px 24px;
+  border-top:1px solid var(--charcoal-line);
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.gauge{position:relative; width:54px; height:54px; flex-shrink:0;}
+.gauge svg{transform:rotate(-90deg);}
+.gauge-track{fill:none; stroke:var(--charcoal-3); stroke-width:5;}
+.gauge-fill{fill:none; stroke:var(--brass); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset 0.4s ease;}
+.gauge-label{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:10px; color:var(--cream);
+}
+.sb-footer-text{font-family:var(--mono); font-size:10.5px; color:var(--cream-dim); line-height:1.5;}
+.sb-footer-text b{color:var(--brass-light); font-weight:600;}
+
+/* mobile toggle */
+.sb-toggle{
+  display:none;
+  position:fixed; top:14px; left:14px; z-index:60;
+  background:var(--charcoal); color:var(--cream);
+  border:1px solid var(--charcoal-line);
+  border-radius:8px;
+  width:42px; height:42px;
+  align-items:center; justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+}
+.sb-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:35;}
+
+/* ===== main content ===== */
+.content{
+  flex:1;
+  min-width:0;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:28px 28px;
+}
+.content-inner{
+  max-width:840px;
+  margin:0 auto;
+  padding:44px 40px 100px;
+}
+.breadcrumb{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-soft);
+  letter-spacing:0.04em;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.breadcrumb .sep{opacity:0.5;}
+.breadcrumb .cur{color:var(--rust); font-weight:600;}
+
+.topic{display:none;}
+.topic.active{display:block; animation:fadein 0.35s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.topic-head{margin-bottom:28px; padding-bottom:20px; border-bottom:2px solid var(--ink);}
+.topic-kicker{
+  font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--rust); margin-bottom:10px; font-weight:600;
+}
+.topic-title{
+  font-family:var(--serif); font-size:34px; font-weight:600; line-height:1.15; color:var(--ink);
+}
+.topic-dek{font-family:var(--sans); font-size:15px; color:var(--ink-soft); margin-top:10px; max-width:60ch;}
+
+h3.section-h{
+  font-family:var(--serif); font-size:19px; font-weight:600; color:var(--ink);
+  margin:34px 0 12px; display:flex; align-items:baseline; gap:10px;
+}
+h3.section-h .tag{
+  font-family:var(--mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--ink-soft); background:var(--paper-3); padding:2px 8px; border-radius:3px;
+}
+p{margin-bottom:12px; color:var(--ink);}
+strong{font-weight:600;}
+ul.plain{margin:8px 0 14px 20px;}
+ul.plain li{margin-bottom:6px;}
+
+/* cards */
+.card{
+  background:#F4F0E4;
+  border:1px solid var(--paper-3);
+  border-radius:8px;
+  padding:20px 22px;
+  margin:16px 0;
+  box-shadow:0 1px 0 rgba(0,0,0,0.03);
+}
+.card-label{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+  font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;
+}
+.card-label::before{content:""; width:8px; height:8px; border-radius:2px; display:inline-block;}
+
+.key-points{border-left:3px solid var(--brass);}
+.key-points .card-label{color:var(--brass);}
+.key-points .card-label::before{background:var(--brass);}
+.key-points ul{margin-left:18px;}
+.key-points li{margin-bottom:7px;}
+
+.formula-box{border-left:3px solid var(--ink); background:var(--charcoal); color:var(--cream);}
+.formula-box .card-label{color:var(--brass-light);}
+.formula-box .card-label::before{background:var(--brass-light);}
+.formula-box .katex{color:var(--cream); font-size:1.05em;}
+.formula-box .katex-display{margin:10px 0;}
+.formula-note{font-family:var(--mono); font-size:12px; color:var(--cream-dim); margin-top:8px; line-height:1.6;}
+.formula-note b{color:var(--brass-light);}
+
+.example-box{border-left:3px solid var(--teal);}
+.example-box .card-label{color:var(--teal);}
+.example-box .card-label::before{background:var(--teal);}
+.example-box table{width:100%; border-collapse:collapse; margin:12px 0; font-family:var(--mono); font-size:12.5px;}
+.example-box table th, .example-box table td{
+  border:1px solid var(--paper-3); padding:6px 8px; text-align:center;
+}
+.example-box table th{background:var(--teal-dim); font-weight:700;}
+.example-box .steps{margin-top:10px;}
+.example-box .steps p{font-size:14px;}
+.answer-line{
+  font-family:var(--mono); font-weight:700; background:var(--teal-dim);
+  padding:8px 12px; border-radius:5px; margin-top:10px; display:inline-block;
+}
+
+.exam-box{border-left:3px solid var(--rust); background:var(--rust-dim);}
+.exam-box .card-label{color:var(--rust);}
+.exam-box .card-label::before{background:var(--rust);}
+.exam-box ol{margin-left:20px;}
+.exam-box li{margin-bottom:8px;}
+
+.brainstorm-box{border-left:3px solid var(--ink-soft); background:transparent; border-style:dashed; border-width:1px 1px 1px 3px; border-left-style:solid;}
+.brainstorm-box .card-label{color:var(--ink-soft);}
+.brainstorm-box .card-label::before{background:var(--ink-soft); border-radius:50%;}
+.brainstorm-box p{font-style:italic; color:var(--ink-soft); margin-bottom:0;}
+
+/* svg diagram frame — "instrument" styling */
+.instrument{
+  background:var(--charcoal);
+  border-radius:8px;
+  padding:18px 18px 14px;
+  margin:18px 0;
+  border:1px solid var(--charcoal-line);
+}
+.instrument-head{
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
+}
+.instrument-title{font-family:var(--mono); font-size:11px; color:var(--brass-light); letter-spacing:0.06em; text-transform:uppercase;}
+.instrument-readout{font-family:var(--mono); font-size:11.5px; color:var(--cream);}
+.instrument svg{width:100%; height:auto; display:block;}
+.instrument-controls{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+.btn{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:0.03em;
+  background:var(--charcoal-2); color:var(--cream-dim); border:1px solid var(--charcoal-line);
+  padding:7px 14px; border-radius:5px; cursor:pointer; transition:all 0.15s;
+}
+.btn:hover{border-color:var(--brass);}
+.btn.on{background:var(--brass); color:var(--charcoal); font-weight:700; border-color:var(--brass);}
+.instrument .slider-row{display:flex; align-items:center; gap:12px; margin-top:12px;}
+.instrument input[type=range]{
+  flex:1; accent-color:var(--brass); height:4px;
+}
+.instrument .slider-label{font-family:var(--mono); font-size:11px; color:var(--cream-dim); min-width:88px;}
+
+/* quiz */
+.quiz-q{margin:22px 0; padding:18px 20px; background:#F4F0E4; border:1px solid var(--paper-3); border-radius:8px;}
+.quiz-q-title{font-family:var(--sans); font-weight:600; margin-bottom:12px; font-size:14.5px;}
+.quiz-opt{
+  display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--paper-3);
+  border-radius:6px; padding:9px 14px; margin-bottom:8px; cursor:pointer; font-family:var(--sans); font-size:13.5px;
+  color:var(--ink); transition:all 0.15s;
+}
+.quiz-opt:hover{border-color:var(--brass);}
+.quiz-opt.correct{background:var(--teal-dim); border-color:var(--teal); font-weight:600;}
+.quiz-opt.wrong{background:var(--rust-dim); border-color:var(--rust);}
+.quiz-opt[disabled]{cursor:default;}
+.quiz-explain{
+  display:none; margin-top:10px; font-family:var(--mono); font-size:12px; color:var(--ink-soft);
+  background:var(--paper-2); padding:10px 12px; border-radius:5px; border-left:3px solid var(--brass);
+}
+.quiz-explain.show{display:block;}
+
+/* formula sheet */
+.sheet-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px;}
+@media (max-width:640px){.sheet-grid{grid-template-columns:1fr;}}
+.sheet-card{background:var(--charcoal); color:var(--cream); border-radius:8px; padding:16px 18px;}
+.sheet-card h4{font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--brass-light); margin-bottom:10px;}
+.sheet-card .katex{color:var(--cream); font-size:0.95em;}
+.sheet-card .katex-display{margin:8px 0;}
+
+/* nav footer */
+.topic-foot{
+  display:flex; justify-content:space-between; align-items:center; margin-top:44px; padding-top:20px;
+  border-top:1px solid var(--paper-3); gap:14px;
+}
+.nav-btn{
+  font-family:var(--mono); font-size:12px; background:var(--ink); color:var(--cream);
+  padding:11px 18px; border-radius:6px; border:none; cursor:pointer; display:flex; align-items:center; gap:8px;
+}
+.nav-btn:hover{background:var(--rust);}
+.nav-btn.ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--paper-3);}
+.nav-btn.ghost:hover{border-color:var(--ink); color:var(--ink); background:transparent;}
+
+/* overview page */
+.hero{margin-bottom:30px;}
+.hero-kicker{font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--rust); font-weight:700; margin-bottom:12px;}
+.hero h1{font-family:var(--serif); font-size:42px; font-weight:700; line-height:1.1; margin-bottom:14px;}
+.hero p.lead{font-size:16px; color:var(--ink-soft); max-width:58ch;}
+.chip-row{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
+.chip{font-family:var(--mono); font-size:11px; background:var(--ink); color:var(--cream); padding:6px 12px; border-radius:20px;}
+.overview-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:30px;}
+@media (max-width:640px){.overview-grid{grid-template-columns:1fr;}}
+.ov-card{
+  background:#F4F0E4; border:1px solid var(--paper-3); border-radius:8px; padding:22px;
+  cursor:pointer; transition:transform 0.15s, border-color 0.15s;
+}
+.ov-card:hover{transform:translateY(-2px); border-color:var(--brass);}
+.ov-card .n{font-family:var(--mono); color:var(--brass); font-size:11px; letter-spacing:0.08em;}
+.ov-card h3{font-family:var(--serif); font-size:20px; margin:8px 0 6px;}
+.ov-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:0;}
+
+/* responsive */
+@media (max-width:920px){
+  .sidebar{
+    position:fixed; left:0; top:0; height:100vh; transform:translateX(-100%);
+    transition:transform 0.25s ease; box-shadow:8px 0 30px rgba(0,0,0,0.3);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sb-toggle{display:flex;}
+  .sb-overlay.show{display:block;}
+  .content-inner{padding:80px 20px 80px;}
+  .topic-title{font-size:27px;}
+  .hero h1{font-size:30px;}
+  .overview-grid{grid-template-columns:1fr;}
+}
+:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+</style>
+</head>
+<body>
+
+<button class="sb-toggle" id="sbToggle" aria-label="Toggle menu">☰</button>
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-eyebrow">MATH 243 · Course Index</div>
+      <div class="sb-title">Statistics &amp; Probability</div>
+      <div class="sb-sub">Descriptive Statistics — Shape &amp; Center</div>
+    </div>
+
+    <nav class="sb-nav" id="sbNav">
+      <button class="sb-item" data-target="overview"><span class="sb-num">—</span><span>Course Overview</span><span class="sb-check"></span></button>
+
+      <div class="sb-group-label">Ch.1 · Central Tendency</div>
+      <button class="sb-item" data-target="ct-intro"><span class="sb-num">1.1</span><span>Introduction</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-mean"><span class="sb-num">1.2</span><span>Arithmetic Mean</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-median"><span class="sb-num">1.3</span><span>Median</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-quartiles"><span class="sb-num">1.4</span><span>Quartiles, Deciles, %iles</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-mode"><span class="sb-num">1.5</span><span>Mode</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-gmhm"><span class="sb-num">1.6</span><span>Geometric &amp; Harmonic Mean</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-empirical"><span class="sb-num">1.7</span><span>Empirical Relation</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="ct-quiz"><span class="sb-num">1.8</span><span>Self-Check Quiz</span><span class="sb-check"></span></button>
+
+      <div class="sb-group-label">Ch.2 · Skewness, Moments &amp; Kurtosis</div>
+      <button class="sb-item" data-target="skm-intro"><span class="sb-num">2.1</span><span>Introduction &amp; Shape</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-skewness"><span class="sb-num">2.2</span><span>Measures of Skewness</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-moments"><span class="sb-num">2.3</span><span>Moments</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-relation"><span class="sb-num">2.4</span><span>Raw ↔ Central Moments</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-kurtosis"><span class="sb-num">2.5</span><span>Kurtosis</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-measures"><span class="sb-num">2.6</span><span>β, γ Coefficients</span><span class="sb-check"></span></button>
+      <button class="sb-item" data-target="skm-quiz"><span class="sb-num">2.7</span><span>Self-Check Quiz</span><span class="sb-check"></span></button>
+
+      <div class="sb-group-label">Reference</div>
+      <button class="sb-item" data-target="formulas"><span class="sb-num">§</span><span>Formula Sheet</span><span class="sb-check"></span></button>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="gauge">
+        <svg viewBox="0 0 54 54" width="54" height="54">
+          <circle class="gauge-track" cx="27" cy="27" r="22"></circle>
+          <circle class="gauge-fill" id="gaugeFill" cx="27" cy="27" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2"></circle>
+        </svg>
+        <div class="gauge-label" id="gaugeLabel">0/15</div>
+      </div>
+      <div class="sb-footer-text">Course<br><b>progress</b> gauge</div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="content">
+    <div class="content-inner">
+      <div class="breadcrumb" id="breadcrumb"><span>MATH 243</span><span class="sep">/</span><span class="cur" id="crumbCur">Course Overview</span></div>
+
+      <!-- ========================================================= -->
+      <!-- OVERVIEW -->
+      <!-- ========================================================= -->
+      <section class="topic active" id="topic-overview" data-title="Course Overview">
+        <div class="hero">
+          <div class="hero-kicker">Welcome, statistician</div>
+          <h1>Center &amp; Shape of a Distribution</h1>
+          <p class="lead">I'm your professor for this unit. We'll build up, from first principles, how a pile of raw numbers collapses into a handful of honest summary values — where the data <em>sits</em> (central tendency) and what <em>shape</em> it takes (skewness &amp; kurtosis). Every formula here traces back to your lecture slides, worked example by worked example.</p>
+          <div class="chip-row">
+            <span class="chip">15 topics</span>
+            <span class="chip">12 worked examples</span>
+            <span class="chip">2 live instruments</span>
+            <span class="chip">22 exam-style questions</span>
+          </div>
+        </div>
+
+        <h3 class="section-h">Where we're headed <span class="tag">roadmap</span></h3>
+        <div class="overview-grid">
+          <div class="ov-card" data-target="ct-intro">
+            <div class="n">CHAPTER 1</div>
+            <h3>Measures of Central Tendency</h3>
+            <p>Mean, median, mode, quartiles, geometric &amp; harmonic mean — five ways to answer "what's typical?", each with its own blind spot.</p>
+          </div>
+          <div class="ov-card" data-target="skm-intro">
+            <div class="n">CHAPTER 2</div>
+            <h3>Skewness, Moments &amp; Kurtosis</h3>
+            <p>Center alone can't describe a distribution's shape. Moments give us a systematic toolkit for asymmetry and peakedness.</p>
+          </div>
+        </div>
+
+        <h3 class="section-h">How to use this artifact <span class="tag">guide</span></h3>
+        <div class="card key-points">
+          <div class="card-label">Reading the page</div>
+          <ul>
+            <li><strong>Left sidebar</strong> is your table of contents — click any topic to jump straight there. A dot fills in once you've visited a section.</li>
+            <li>Every section carries the same instrument panel: <strong style="color:var(--brass)">Background</strong> → <strong style="color:var(--brass)">Key Points</strong> → <strong style="color:var(--teal)">Worked Example</strong> → <strong style="color:var(--rust)">Exam Radar</strong> → <em>Brainstorm</em>.</li>
+            <li>Dark instrument panels are <strong>interactive</strong> — drag sliders, click buttons, watch the curve respond.</li>
+            <li>End of each chapter has a <strong>self-check quiz</strong>. Answer, then read the explanation — that's where the exam insight lives.</li>
+          </ul>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">A thought to start with</div>
+          <p>Bangladesh's per-capita income and its median household income tell two different stories about the same economy. By the end of Chapter 2, you'll be able to say precisely why — and put a number on how different those stories are.</p>
+        </div>
+
+        <div class="topic-foot">
+          <span></span>
+          <button class="nav-btn" data-goto="ct-intro">Start Chapter 1 →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.1 INTRODUCTION -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-intro" data-title="1.1 Introduction to Central Tendency">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.1 &nbsp;Introduction</h2>
+          <p class="topic-dek">Why do we need a single number to describe a whole dataset — and which number should it be?</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>Measures of central tendency show the tendency of some central value around which data tends to converge. Instead of staring at hundreds of raw observations, we collapse them into one representative figure that speaks for the whole mass of data. Think of it as the "center of gravity" of your dataset.</p>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li><strong>Objective 1:</strong> obtain one single value that describes the characteristics of the entire dataset.</li>
+            <li><strong>Objective 2:</strong> make it easy to compare two or more datasets at a glance.</li>
+            <li>There are five classical measures: <strong>Arithmetic Mean, Median, Mode, Geometric Mean, Harmonic Mean.</strong></li>
+            <li>Central tendency tells you <em>where</em> the data sits — it says nothing about <em>how spread out</em> it is (that's dispersion) or <em>what shape</em> it has (that's Chapter 2).</li>
+            <li>No single measure is "best" universally — the right choice depends on data type and whether outliers are present.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-h">Visual: three ways of finding "the middle" <span class="tag">diagram</span></h3>
+        <div class="instrument">
+          <div class="instrument-head">
+            <div class="instrument-title">Instrument · Three Averages on One Dataset</div>
+          </div>
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+            <line x1="30" y1="180" x2="690" y2="180" stroke="#3a423e" stroke-width="1"/>
+            <!-- dots representing a right-skewed dataset -->
+            <g fill="#D9AD5D">
+              <circle cx="70" cy="170" r="5"/><circle cx="100" cy="170" r="5"/><circle cx="130" cy="170" r="5"/>
+              <circle cx="160" cy="170" r="5"/><circle cx="190" cy="170" r="5"/><circle cx="220" cy="170" r="5"/>
+              <circle cx="250" cy="170" r="5"/><circle cx="280" cy="170" r="5"/><circle cx="310" cy="170" r="5"/>
+              <circle cx="340" cy="170" r="5"/><circle cx="380" cy="170" r="5"/><circle cx="430" cy="170" r="5"/>
+              <circle cx="490" cy="170" r="5"/><circle cx="580" cy="170" r="5"/><circle cx="660" cy="170" r="5"/>
+            </g>
+            <line x1="245" y1="60" x2="245" y2="180" stroke="#2F6E63" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="245" y="50" fill="#8fd6c6" font-family="JetBrains Mono" font-size="11" text-anchor="middle">Mode 245</text>
+            <line x1="310" y1="80" x2="310" y2="180" stroke="#D9AD5D" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="310" y="70" fill="#D9AD5D" font-family="JetBrains Mono" font-size="11" text-anchor="middle">Median 310</text>
+            <line x1="380" y1="100" x2="380" y2="180" stroke="#c8674a" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="380" y="120" fill="#e0947e" font-family="JetBrains Mono" font-size="11" text-anchor="middle">Mean 380</text>
+          </svg>
+          <div class="instrument-controls" style="margin-top:2px;">
+            <span style="font-family:var(--mono); font-size:11px; color:var(--cream-dim);">A single right-skewed sample — notice the mean is dragged toward the long tail, mode stays at the crowd, median sits between.</span>
+          </div>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Define central tendency and state its two main objectives.</li>
+            <li>Name and briefly distinguish the five measures of central tendency.</li>
+            <li>"Central tendency and dispersion measure the same thing." True or false — justify.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>A job posting says "average salary: $95,000." Two candidates picture very different pay. What's missing from that sentence, and which measure of central tendency would close the gap?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="overview">← Overview</button>
+          <button class="nav-btn" data-goto="ct-mean">Next: Arithmetic Mean →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.2 MEAN -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-mean" data-title="1.2 Arithmetic Mean">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.2 &nbsp;Arithmetic Mean</h2>
+          <p class="topic-dek">The workhorse average — total the values, divide by the count.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>The arithmetic mean, often just called "the mean," is the total of all observed values divided by how many observations there are. It's the measure most people mean when they say "average," and it uses <em>every single data point</em> — which is both its strength (efficient use of information) and its weakness (sensitive to outliers).</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Formula — Ungrouped Data</div>
+          <div class="kx">$$\bar{x} = \dfrac{1}{N}\sum_{i=1}^{N} X_i = \dfrac{\sum X}{N}$$</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Formula — Grouped / Frequency Data</div>
+          <div class="kx">$$\bar{x} = \dfrac{\sum f X}{\sum f} = \dfrac{\sum fX}{N}$$</div>
+          <div class="formula-note">N = total frequency = Σf</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Short-cut (Step-Deviation) Method — for grouped data</div>
+          <div class="kx">$$\bar{x} = A + \left(\dfrac{\sum fd}{N}\right)\times h \qquad d = \dfrac{X-A}{h}$$</div>
+          <div class="formula-note"><b>A</b> = assumed mean (pick the mid-value of a central class) &nbsp;·&nbsp; <b>h</b> = class width &nbsp;·&nbsp; <b>d</b> = step deviation</div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Direct method is fine for a handful of classes; the <strong>short-cut method</strong> saves arithmetic when values are large or classes are numerous — and gives an identical answer.</li>
+            <li>The mean uses <em>every</em> observation, so one extreme outlier can pull it noticeably off-center.</li>
+            <li>Mean is the natural choice for symmetric, roughly bell-shaped data without extreme outliers.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-h">Worked Example <span class="tag">short-cut method</span></h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Calculate the mean for the grouped data below using the short-cut method.</p>
+          <table>
+            <tr><th>Class</th><td>0–10</td><td>10–20</td><td>20–30</td><td>30–40</td><td>40–50</td></tr>
+            <tr><th>Frequency</th><td>7</td><td>8</td><td>20</td><td>10</td><td>5</td></tr>
+          </table>
+          <div class="steps">
+            <p>Take <span class="kx">$A=25$</span> (mid-value of 20–30, so its deviation is zero) and <span class="kx">$h=10$</span>.</p>
+            <table>
+              <tr><th>Class</th><th>Mid (X)</th><th>f</th><th>d=(X−A)/h</th><th>fd</th></tr>
+              <tr><td>0–10</td><td>5</td><td>7</td><td>−2</td><td>−14</td></tr>
+              <tr><td>10–20</td><td>15</td><td>8</td><td>−1</td><td>−8</td></tr>
+              <tr><td>20–30</td><td>25</td><td>20</td><td>0</td><td>0</td></tr>
+              <tr><td>30–40</td><td>35</td><td>10</td><td>+1</td><td>+10</td></tr>
+              <tr><td>40–50</td><td>45</td><td>5</td><td>+2</td><td>+10</td></tr>
+              <tr><td colspan="2"><b>N = 50</b></td><td></td><td></td><td><b>Σfd = −2</b></td></tr>
+            </table>
+            <p><span class="kx">$$\bar{x}=25+\left(\dfrac{-2}{50}\right)\times 10 = 25-0.4$$</span></p>
+            <div class="answer-line">Mean x̄ = 24.6</div>
+          </div>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Compute the mean of a grouped dataset by <strong>both</strong> the direct and short-cut methods, and show they agree.</li>
+            <li>When is the short-cut method preferable to the direct method — and why does the choice of assumed mean A not affect the final answer?</li>
+            <li>If a single very large value is added to a dataset, describe (with reasoning) what happens to the mean.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Ten employees earn close to $4,500/month, but the CEO earns $400,000. Recompute the "average" salary in your head with and without the CEO. What does that tell you about when the mean stops being a fair summary?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-intro">← Introduction</button>
+          <button class="nav-btn" data-goto="ct-median">Next: Median →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.3 MEDIAN -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-median" data-title="1.3 Median">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.3 &nbsp;Median</h2>
+          <p class="topic-dek">The value that sits exactly in the middle once the data is sorted — immune to outliers.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>The median is the middle value of a dataset arranged in ascending (or descending) order. Unlike the mean, it doesn't care <em>how</em> extreme the tail values are — only how many observations lie above and below it. That single property makes it the go-to measure whenever a distribution is skewed or contains outliers (income, house prices, wait times).</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Ungrouped Data</div>
+          <p style="color:var(--cream); font-family:var(--mono); font-size:13px; margin-bottom:6px;">Sort the data first, then count N observations:</p>
+          <div class="kx">$$N \text{ odd:}\quad \text{Median}=\left(\dfrac{N+1}{2}\right)^{\text{th}} \text{observation}$$</div>
+          <div class="kx">$$N \text{ even:}\quad \text{Median}=\dfrac{\left(\frac{N}{2}\right)^{\text{th}}+\left(\frac{N}{2}+1\right)^{\text{th}}}{2}$$</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Grouped Data</div>
+          <div class="kx">$$\text{Median} = L + \left(\dfrac{\frac{N}{2}-c.f.}{f}\right)\times h$$</div>
+          <div class="formula-note">
+            <b>L</b> = lower boundary of the median class (the class containing the (N/2)th observation)<br>
+            <b>c.f.</b> = cumulative frequency <em>just before</em> the median class<br>
+            <b>f</b> = frequency of the median class &nbsp;·&nbsp; <b>h</b> = class width
+          </div>
+        </div>
+
+        <h3 class="section-h">Worked Example</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Weights of 150 students are distributed as below. Find the median.</p>
+          <table>
+            <tr><th>Weight</th><td>30–40</td><td>40–50</td><td>50–60</td><td>60–70</td><td>70–80</td><td>80–90</td></tr>
+            <tr><th>Frequency</th><td>18</td><td>37</td><td>45</td><td>27</td><td>15</td><td>8</td></tr>
+            <tr><th>Cum. Freq.</th><td>18</td><td>55</td><td>100</td><td>127</td><td>142</td><td>150</td></tr>
+          </table>
+          <div class="steps">
+            <p><span class="kx">$N/2 = 75$</span>. The 75th observation falls in class <strong>50–60</strong> (cumulative reaches 100 there, having been 55 just before) — this is the median class.</p>
+            <p>So <span class="kx">$L=50,\; c.f.=55,\; f=45,\; h=10$</span>:</p>
+            <p><span class="kx">$$\text{Median}=50+\left(\dfrac{75-55}{45}\right)\times 10 = 50+4.44$$</span></p>
+            <div class="answer-line">Median ≈ 54.44 kg</div>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Median is <strong>robust</strong> — a single huge outlier barely nudges it.</li>
+            <li>Best choice for describing "typical" income, house price, or exam score when the distribution is skewed.</li>
+            <li>The median is also called the <strong>second quartile (Q₂)</strong> and the <strong>50th percentile (P₅₀)</strong> — a preview of the next topic.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Locate the median class for a given grouped frequency table and compute the median.</li>
+            <li>Explain why the median is preferred over the mean for income or house-price data.</li>
+            <li>For odd vs. even N in ungrouped data, state the correct median rule and apply it.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>A neighborhood has nine $200,000 homes and one $5,000,000 mansion. Compute the mean and median by estimation. Which one would you trust to answer "what does a house cost here?"</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-mean">← Arithmetic Mean</button>
+          <button class="nav-btn" data-goto="ct-quartiles">Next: Quartiles, Deciles &amp; Percentiles →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.4 QUARTILES -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-quartiles" data-title="1.4 Quartiles, Deciles, Percentiles">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.4 &nbsp;Quartiles, Deciles &amp; Percentiles</h2>
+          <p class="topic-dek">The median cuts data in half — these cut it into finer slices.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>If the median splits ordered data into two equal halves, why stop there? <strong>Quartiles</strong> split it into four parts, <strong>deciles</strong> into ten, and <strong>percentiles</strong> into a hundred. All three are members of the same family — "partition values" — and they share one general formula, just with a different divisor.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">General Formula — Grouped Data</div>
+          <div class="kx">$$Q_i = L+\left(\dfrac{\frac{iN}{4}-c.f.}{f}\right)h \;\; (i=1,2,3) \qquad D_i = L+\left(\dfrac{\frac{iN}{10}-c.f.}{f}\right)h \;\; (i=1..9)$$</div>
+          <div class="kx">$$P_i = L+\left(\dfrac{\frac{iN}{100}-c.f.}{f}\right)h \;\; (i=1..99)$$</div>
+          <div class="formula-note">Same L, c.f., f, h meaning as the median formula — only the target rank (iN/4, iN/10, iN/100) changes. <b>Q₂ = D₅ = P₅₀ = Median.</b></div>
+        </div>
+
+        <h3 class="section-h">Worked Example</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Profits (in lakhs) earned by 100 companies. Find Q₁, Median (Q₂), and Q₃.</p>
+          <table>
+            <tr><th>Profit</th><td>20–30</td><td>30–40</td><td>40–50</td><td>50–60</td><td>60–70</td><td>70–80</td><td>80–90</td><td>90–100</td></tr>
+            <tr><th>No. Companies</th><td>4</td><td>8</td><td>18</td><td>30</td><td>15</td><td>10</td><td>8</td><td>7</td></tr>
+            <tr><th>Cum. Freq.</th><td>4</td><td>12</td><td>30</td><td>60</td><td>75</td><td>85</td><td>93</td><td>100</td></tr>
+          </table>
+          <div class="steps">
+            <p><b>Q₁:</b> target = N/4 = 25th obs → class 40–50 (L=40, c.f.=12, f=18, h=10)<br>
+            <span class="kx">$Q_1 = 40+\left(\frac{25-12}{18}\right)10 = 47.22$</span></p>
+            <p><b>Median:</b> target = N/2 = 50th obs → class 50–60 (L=50, c.f.=30, f=30, h=10)<br>
+            <span class="kx">$Q_2 = 50+\left(\frac{50-30}{30}\right)10 = 56.67$</span></p>
+            <p><b>Q₃:</b> target = 3N/4 = 75th obs → class 60–70 (L=60, c.f.=60, f=15, h=10)<br>
+            <span class="kx">$Q_3 = 60+\left(\frac{75-60}{15}\right)10 = 70$</span></p>
+            <div class="answer-line">Q₁ = 47.22 &nbsp; Q₂ = 56.67 &nbsp; Q₃ = 70 (lakhs)</div>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Quartiles/deciles/percentiles are essential for <strong>grading, ranking, and standardized scoring</strong> — "you scored in the 90th percentile" is a percentile statement.</li>
+            <li>The <strong>interquartile range Q₃−Q₁</strong> (met again in dispersion) captures the spread of the "middle 50%" of the data, ignoring extreme tails.</li>
+            <li>These same values feed directly into <strong>Bowley's coefficient of skewness</strong> in Chapter 2.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Compute Q₁ and Q₃ (or a specified decile/percentile) for a grouped frequency table.</li>
+            <li>Which percentile is numerically identical to the median? Justify.</li>
+            <li>Distinguish clearly between a quartile, a decile, and a percentile.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Your exam result places you at the 85th percentile. Without knowing the mean or median, what can you already say about your rank among classmates?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-median">← Median</button>
+          <button class="nav-btn" data-goto="ct-mode">Next: Mode →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.5 MODE -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-mode" data-title="1.5 Mode">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.5 &nbsp;Mode</h2>
+          <p class="topic-dek">The most crowded value — the only average that works on categories, not just numbers.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>The mode is simply the value that occurs most frequently — the peak of the crowd. For ungrouped data you can often spot it by eye; for grouped data, we locate the "modal class" (the class with highest frequency) and interpolate using the crowding on either side of it.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Grouped Data</div>
+          <div class="kx">$$\text{Mode} = L + \left(\dfrac{f_1}{f_1+f_2}\right)\times h$$</div>
+          <div class="formula-note">
+            <b>L</b> = lower boundary of the modal class (highest frequency)<br>
+            <b>f₁</b> = (modal freq.) − (frequency of preceding class)<br>
+            <b>f₂</b> = (modal freq.) − (frequency of following class)<br>
+            <b>h</b> = class width
+          </div>
+        </div>
+
+        <h3 class="section-h">Worked Example</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Same 150-student weight table as before — find the mode.</p>
+          <table>
+            <tr><th>Weight</th><td>30–40</td><td>40–50</td><td><b>50–60</b></td><td>60–70</td><td>70–80</td><td>80–90</td></tr>
+            <tr><th>Frequency</th><td>18</td><td>37</td><td><b>45</b></td><td>27</td><td>15</td><td>8</td></tr>
+          </table>
+          <div class="steps">
+            <p>Highest frequency = 45, in class <strong>50–60</strong> → modal class. <span class="kx">$L=50,\;h=10$</span></p>
+            <p><span class="kx">$f_1 = 45-37 = 8 \qquad f_2 = 45-27=18$</span></p>
+            <p><span class="kx">$$\text{Mode}=50+\left(\dfrac{8}{8+18}\right)\times 10 = 50+3.08$$</span></p>
+            <div class="answer-line">Mode ≈ 53.08 kg</div>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Mode can be <strong>non-unique</strong> — a bimodal distribution often hints at two underlying subgroups mixed together (e.g. men's and women's shoe sizes combined).</li>
+            <li>It's the <strong>only</strong> central tendency measure that works on purely categorical/nominal data (e.g. "most popular product color").</li>
+            <li>Can be undefined if every value appears with equal frequency.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-h">Visual: locating the mode geometrically <span class="tag">diagram</span></h3>
+        <div class="instrument">
+          <div class="instrument-head"><div class="instrument-title">Instrument · Modal-Class Triangulation</div></div>
+          <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+            <line x1="40" y1="200" x2="600" y2="200" stroke="#3a423e"/>
+            <rect x="60" y="150" width="90" height="50" fill="#2D3531" stroke="#4a544e"/>
+            <rect x="150" y="80" width="90" height="120" fill="#B8863B" fill-opacity="0.85" stroke="#D9AD5D"/>
+            <rect x="240" y="140" width="90" height="60" fill="#2D3531" stroke="#4a544e"/>
+            <text x="105" y="215" fill="#cfc9ba" font-family="JetBrains Mono" font-size="10" text-anchor="middle">pre-class</text>
+            <text x="195" y="70" fill="#D9AD5D" font-family="JetBrains Mono" font-size="11" text-anchor="middle">modal class (f_m)</text>
+            <text x="285" y="215" fill="#cfc9ba" font-family="JetBrains Mono" font-size="10" text-anchor="middle">post-class</text>
+            <line x1="150" y1="150" x2="240" y2="80" stroke="#e07a5f" stroke-width="1.5"/>
+            <line x1="150" y1="80" x2="240" y2="140" stroke="#e07a5f" stroke-width="1.5"/>
+            <circle cx="187" cy="107" r="4" fill="#e07a5f"/>
+            <text x="187" y="95" fill="#e07a5f" font-family="JetBrains Mono" font-size="10" text-anchor="middle">Mode</text>
+            <text x="150" y="220" fill="#8a8378" font-family="JetBrains Mono" font-size="10" text-anchor="middle">L</text>
+          </svg>
+          <div class="instrument-controls"><span style="font-family:var(--mono); font-size:11px; color:var(--cream-dim);">The two diagonals from the modal bar's top corners to its neighbors' heights cross exactly at the mode — a geometric shortcut for the same formula above.</span></div>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Identify the modal class and compute the mode for a grouped table.</li>
+            <li>What does a bimodal distribution suggest about the population being sampled?</li>
+            <li>Why is mode the only usable "average" for nominal/categorical data?</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>A shoe retailer wants to know which single size to stock the most units of. Mean size would give a nonsensical number like "8.3." Which average should they use — and why does mean fail here structurally, not just practically?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-quartiles">← Quartiles</button>
+          <button class="nav-btn" data-goto="ct-gmhm">Next: Geometric &amp; Harmonic Mean →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.6 GM & HM -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-gmhm" data-title="1.6 Geometric & Harmonic Mean">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.6 &nbsp;Geometric &amp; Harmonic Mean</h2>
+          <p class="topic-dek">Two specialist averages — one for growth rates, one for rates and speeds.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>The arithmetic mean assumes values combine by <em>addition</em>. Some real quantities don't — growth rates compound <em>multiplicatively</em>, and speeds over fixed distances average <em>reciprocally</em>. Geometric Mean (GM) and Harmonic Mean (HM) are built for exactly those situations.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Geometric Mean</div>
+          <div class="kx">$$GM = \text{Antilog}\left(\dfrac{\sum \log X}{N}\right) \quad\text{(ungrouped)} \qquad GM=\text{Antilog}\left(\dfrac{\sum f\log X}{N}\right)\quad\text{(grouped)}$$</div>
+        </div>
+        <div class="formula-box card">
+          <div class="card-label">Harmonic Mean</div>
+          <div class="kx">$$HM = \dfrac{N}{\sum\left(\frac{1}{X}\right)} \quad\text{(ungrouped)} \qquad HM=\dfrac{N}{\sum\left(\frac{f}{X}\right)}\quad\text{(grouped)}$$</div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li><strong>GM</strong> is the right tool for average growth rates, ratios, and index numbers — anything that compounds.</li>
+            <li><strong>HM</strong> is the right tool for averaging <strong>rates</strong> (speed, price-per-unit) when the "other side" (distance, quantity) is held equal.</li>
+            <li>The classical inequality: <span class="kx" style="display:inline;">$AM \ge GM \ge HM$</span>, with equality only when all values are identical.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>State a real scenario where GM is preferred over AM, and explain why.</li>
+            <li>A car covers equal distances at two different speeds — compute the correct "average speed" and explain why it isn't the simple arithmetic mean.</li>
+            <li>State the AM–GM–HM inequality and the condition for equality.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>A car drives the first half of a trip at 40 km/h and the second half (equal distance) at 60 km/h. Most people instinctively guess the average speed is 50 km/h. Work through why it's actually the <em>harmonic</em> mean (≈48 km/h) — and where the intuition goes wrong.</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-mode">← Mode</button>
+          <button class="nav-btn" data-goto="ct-empirical">Next: Empirical Relation →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.7 EMPIRICAL RELATION -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-empirical" data-title="1.7 Empirical Relation">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.7 &nbsp;Empirical Relation Between Mean, Median &amp; Mode</h2>
+          <p class="topic-dek">A shortcut that lets you back out any one of the three averages from the other two.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>For moderately skewed, unimodal distributions, an empirical (observation-based, not derived from first principles) relationship links the three central-tendency measures tightly enough to be genuinely useful — especially when computing one of them directly is inconvenient.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">The Relation</div>
+          <div class="kx">$$\text{Mode} = 3\,\text{Median} - 2\,\text{Mean}$$</div>
+          <div class="formula-note">Rearranged forms: <b>Mean = (3·Median − Mode)/2</b> &nbsp;·&nbsp; <b>Median = (2·Mean + Mode)/3</b></div>
+        </div>
+
+        <div class="example-box card">
+          <div class="card-label">Worked Example — applying the relation</div>
+          <p>From the weight distribution used earlier, we found <strong>Median ≈ 54.44</strong> and <strong>Mode ≈ 53.08</strong>. Estimate the mean using the empirical relation instead of recomputing Σfd from scratch.</p>
+          <div class="steps">
+            <p><span class="kx">$$\text{Mean}=\dfrac{3(54.44)-53.08}{2}=\dfrac{163.32-53.08}{2}=\dfrac{110.24}{2}$$</span></p>
+            <div class="answer-line">Estimated Mean ≈ 55.12 kg</div>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>This is an <strong>approximation</strong>, not an identity — exact only for perfectly symmetric distributions (where all three collapse to one value) and reasonably accurate for mild skew.</li>
+            <li>It breaks down for heavily skewed or multimodal data — don't lean on it there.</li>
+            <li>Handy in exams as a cross-check: compute mean and median directly, then verify the mode you calculated is in the right ballpark.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>State the empirical relation and use it to find the missing measure given the other two.</li>
+            <li>For a perfectly symmetric distribution, show the empirical relation holds trivially.</li>
+            <li>Under what conditions does this relation become unreliable?</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>If Mean = Median = Mode for a dataset, what does that already tell you about its skewness — before you've computed anything in Chapter 2?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-gmhm">← Geometric &amp; Harmonic Mean</button>
+          <button class="nav-btn" data-goto="ct-quiz">Next: Chapter 1 Quiz →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 1.8 QUIZ -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-ct-quiz" data-title="1.8 Chapter 1 Self-Check">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 1 · Central Tendency</div>
+          <h2 class="topic-title">1.8 &nbsp;Self-Check Quiz</h2>
+          <p class="topic-dek">Five quick questions. Click an option, read the explanation — that's where the exam-day insight is.</p>
+        </div>
+
+        <div class="quiz-q" data-q="1">
+          <div class="quiz-q-title">1. A dataset of household incomes is strongly right-skewed by a few billionaires. Which measure of central tendency best represents "the typical household"?</div>
+          <button class="quiz-opt">Arithmetic Mean</button>
+          <button class="quiz-opt" data-correct="true">Median</button>
+          <button class="quiz-opt">Geometric Mean</button>
+          <button class="quiz-opt">Mode</button>
+          <div class="quiz-explain">Median ignores how extreme the tail values are — only their rank matters — so the billionaires can't drag it away from where most households actually sit.</div>
+        </div>
+
+        <div class="quiz-q" data-q="2">
+          <div class="quiz-q-title">2. In the short-cut method for the mean, changing the assumed mean A to a different class...</div>
+          <button class="quiz-opt">Changes the final answer</button>
+          <button class="quiz-opt" data-correct="true">Does not change the final answer</button>
+          <button class="quiz-opt">Only works if A is the smallest value</button>
+          <button class="quiz-opt">Requires recomputing h</button>
+          <div class="quiz-explain">A is just a computational anchor — the algebra guarantees the same x̄ regardless of which class you assume as zero-deviation.</div>
+        </div>
+
+        <div class="quiz-q" data-q="3">
+          <div class="quiz-q-title">3. For grouped data, the modal class is defined as:</div>
+          <button class="quiz-opt">The class containing the mean</button>
+          <button class="quiz-opt">The first class in the table</button>
+          <button class="quiz-opt" data-correct="true">The class with the highest frequency</button>
+          <button class="quiz-opt">The class with the widest interval</button>
+          <div class="quiz-explain">Mode is about crowding — wherever the frequency peaks is where the mode is interpolated from.</div>
+        </div>
+
+        <div class="quiz-q" data-q="4">
+          <div class="quiz-q-title">4. A car travels equal distances at 40 km/h and 60 km/h. The true average speed for the whole trip is closest to:</div>
+          <button class="quiz-opt">50 km/h</button>
+          <button class="quiz-opt" data-correct="true">48 km/h</button>
+          <button class="quiz-opt">55 km/h</button>
+          <button class="quiz-opt">45 km/h</button>
+          <div class="quiz-explain">Equal distances at different speeds average harmonically: HM = 2/((1/40)+(1/60)) ≈ 48 km/h — not the arithmetic 50.</div>
+        </div>
+
+        <div class="quiz-q" data-q="5">
+          <div class="quiz-q-title">5. Using the empirical relation, if Mean = 60 and Median = 58, the estimated Mode is:</div>
+          <button class="quiz-opt">62</button>
+          <button class="quiz-opt" data-correct="true">54</button>
+          <button class="quiz-opt">58</button>
+          <button class="quiz-opt">56</button>
+          <div class="quiz-explain">Mode = 3(Median) − 2(Mean) = 3(58) − 2(60) = 174 − 120 = 54.</div>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-empirical">← Empirical Relation</button>
+          <button class="nav-btn" data-goto="skm-intro">Start Chapter 2: Skewness, Moments &amp; Kurtosis →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.1 SKM INTRO -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-intro" data-title="2.1 Introduction & Shape">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.1 &nbsp;Introduction: Beyond Center and Spread</h2>
+          <p class="topic-dek">Central tendency tells you where. Dispersion tells you how spread out. Neither tells you the shape.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>Central tendency gives us the central value; dispersion gives us the amount of variation. Neither one tells us how that variation is <em>arranged</em> around the center. Two distributions can share the same mean and the same standard deviation yet look completely different — one symmetric, one lopsided. That's the gap skewness fills. <strong>Measures of variation tell us the amount of variation; measures of skewness tell us the direction of variation.</strong></p>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points — the three shape signatures</div>
+          <ul>
+            <li><strong>Symmetrical distribution:</strong> Mean = Median = Mode.</li>
+            <li><strong>Positively skewed</strong> (tail stretches right): Mean &gt; Median &gt; Mode.</li>
+            <li><strong>Negatively skewed</strong> (tail stretches left): Mean &lt; Median &lt; Mode.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-h">Live instrument: symmetric vs. skewed <span class="tag">interactive</span></h3>
+        <div class="instrument">
+          <div class="instrument-head">
+            <div class="instrument-title">Instrument · Distribution Shape Selector</div>
+            <div class="instrument-readout" id="skewReadout">x̄ = Me = Mo</div>
+          </div>
+          <svg id="skewSvg" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+            <line x1="30" y1="220" x2="610" y2="220" stroke="#3a423e"/>
+            <path id="skewPath" d="" fill="none" stroke="#D9AD5D" stroke-width="2.5"/>
+            <line id="skMeanLine" x1="0" y1="0" x2="0" y2="220" stroke="#c8674a" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <line id="skMedLine" x1="0" y1="0" x2="0" y2="220" stroke="#D9AD5D" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <line id="skModeLine" x1="0" y1="0" x2="0" y2="220" stroke="#5aa596" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text id="skMeanLbl" fill="#e0947e" font-family="JetBrains Mono" font-size="11" text-anchor="middle"></text>
+            <text id="skMedLbl" fill="#D9AD5D" font-family="JetBrains Mono" font-size="11" text-anchor="middle"></text>
+            <text id="skModeLbl" fill="#8fd6c6" font-family="JetBrains Mono" font-size="11" text-anchor="middle"></text>
+          </svg>
+          <div class="instrument-controls">
+            <button class="btn on" data-shape="symmetric">Symmetric</button>
+            <button class="btn" data-shape="positive">Positively Skewed</button>
+            <button class="btn" data-shape="negative">Negatively Skewed</button>
+          </div>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Sketch and label a positively skewed distribution, marking mean, median and mode.</li>
+            <li>For a right-skewed dataset, order Mean, Median, Mode from largest to smallest.</li>
+            <li>Distinguish "measures of variation" from "measures of skewness" in one sentence each.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Household income is famously right-skewed almost everywhere. Sketch what that implies about the gap between the "average income" reported in the news and what most people actually take home.</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="ct-quiz">← Chapter 1 Quiz</button>
+          <button class="nav-btn" data-goto="skm-skewness">Next: Measures of Skewness →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.2 SKEWNESS MEASURES -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-skewness" data-title="2.2 Measures of Skewness">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.2 &nbsp;Measures of Skewness</h2>
+          <p class="topic-dek">Three ways to put a number — sign and magnitude — on asymmetry.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>Knowing a distribution is "skewed" is qualitative. To compare skewness across datasets, or to say precisely <em>how</em> skewed, we need a coefficient: a signed number that's zero for symmetry, positive for a right tail, negative for a left tail.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Karl Pearson's Coefficient of Skewness</div>
+          <div class="kx">$$S_k = \dfrac{\text{Mean}-\text{Mode}}{S.D.} \qquad \text{(alt., when mode is ill-defined)} \quad S_k = \dfrac{3(\text{Mean}-\text{Median})}{S.D.}$$</div>
+          <div class="formula-note">S_k &gt; 0 → positively skewed &nbsp;·&nbsp; S_k &lt; 0 → negatively skewed &nbsp;·&nbsp; S_k ≈ 0 → symmetric</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Bowley's (Quartile) Coefficient of Skewness</div>
+          <div class="kx">$$S_k = \dfrac{Q_3+Q_1-2\,\text{Median}}{Q_3-Q_1}$$</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Kelly's (Percentile) Coefficient of Skewness</div>
+          <div class="kx">$$S_k = \dfrac{P_{90}+P_{10}-2\,P_{50}}{P_{90}-P_{10}}$$</div>
+        </div>
+
+        <h3 class="section-h">Worked Example</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Profits of 1000 companies. Calculate Karl Pearson's coefficient of skewness.</p>
+          <table>
+            <tr><th>Profit (Lakhs)</th><td>100–120</td><td>120–140</td><td>140–160</td><td>160–180</td><td>180–200</td><td>200–220</td><td>220–240</td></tr>
+            <tr><th>Companies</th><td>17</td><td>53</td><td>199</td><td>194</td><td>327</td><td>208</td><td>2</td></tr>
+          </table>
+          <div class="steps">
+            <p>Using A = 170, h = 20, N = 1000: Σfd = 393, Σfd² = 1741.</p>
+            <p><span class="kx">$$\text{Mean}=170+\left(\dfrac{393}{1000}\right)20 = 177.86$$</span></p>
+            <p>Modal class 180–200 (highest freq. 327): L=180, f₁=327−194=133, f₂=327−208=119, h=20<br>
+            <span class="kx">$$\text{Mode}=180+\left(\dfrac{133}{252}\right)20 = 190.56$$</span></p>
+            <p><span class="kx">$$S.D.=h\sqrt{\dfrac{\sum fd^2}{N}-\left(\dfrac{\sum fd}{N}\right)^2}=20\sqrt{1.741-0.154}=25.20$$</span></p>
+            <p><span class="kx">$$S_k = \dfrac{177.86-190.56}{25.20}=\dfrac{-12.70}{25.20}$$</span></p>
+            <div class="answer-line">Sₖ ≈ −0.50</div>
+            <p style="margin-top:10px;">The mode exceeds the mean by about 50% of one standard deviation — a <strong>moderately negatively skewed</strong> distribution.</p>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>All three coefficients are <strong>unit-free</strong> — that's what makes them comparable across datasets measured in different units.</li>
+            <li>Rule of thumb: |Sₖ| under ~0.5 → mild skew; 0.5–1 → moderate; above 1 → strong skew.</li>
+            <li>Pearson's version needs the mode (can be unreliable if the modal class is ambiguous); Bowley's and Kelly's sidestep that by using only ranked positions.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Compute Karl Pearson's coefficient of skewness given mean, mode (or median) and standard deviation.</li>
+            <li>Compute Bowley's coefficient given Q₁, Q₂, Q₃ and interpret its sign.</li>
+            <li>Why do we need three different formulas for skewness instead of one universal one?</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Two datasets both have Sₖ = 0.3. One uses Pearson's formula, the other Bowley's. Can you compare these two numbers directly? What would you need to check first?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-intro">← Introduction &amp; Shape</button>
+          <button class="nav-btn" data-goto="skm-moments">Next: Moments →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.3 MOMENTS -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-moments" data-title="2.3 Moments">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.3 &nbsp;Moments</h2>
+          <p class="topic-dek">One unifying family of quantities that ultimately produces mean, variance, skewness AND kurtosis.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>A moment is a descriptive measure that, taken together with others in the family, characterizes a distribution's shape uniquely. Rather than treating mean, variance, skewness and kurtosis as four unrelated formulas, moments reveal them as the <strong>1st, 2nd, 3rd and 4th moments</strong> of the same underlying idea.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Raw Moments (about an assumed value A)</div>
+          <div class="kx">$$m_r' = \dfrac{1}{N}\sum X^{'r} \;\text{(ungrouped)} \qquad m_r' = \dfrac{1}{N}\sum f X^{'r} \;\text{(grouped)}, \quad r=1,2,3,4$$</div>
+          <div class="formula-note">For grouped data via step-deviation: compute <b>Σfdʳ/N</b> in d-units first, then convert to original units by multiplying by <b>hʳ</b>.</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Central Moments (about the mean x̄)</div>
+          <div class="kx">$$\mu_r = \dfrac{1}{N}\sum f(X-\bar{x})^r, \quad r=1,2,3,4$$</div>
+          <div class="formula-note">
+            <b>μ₁ = 0</b> always (deviations from the mean cancel out)<br>
+            <b>μ₂ = Variance (σ²)</b> — the familiar spread measure<br>
+            <b>μ₃</b> → feeds the skewness coefficient<br>
+            <b>μ₄</b> → feeds the kurtosis coefficient
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Raw moments about an assumed value are just a <strong>computational stepping-stone</strong> — like the step-deviation trick from Section 1.2 — not meaningful on their own.</li>
+            <li>Central moments are what actually describe <strong>shape</strong>: μ₂ = spread, μ₃ = asymmetry, μ₄ = peakedness.</li>
+            <li>This is why moments matter: the same machinery that gave you the mean, extended one step further, hands you skewness and kurtosis for free.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Define raw moments and central moments, and state why μ₁ is always zero.</li>
+            <li>What familiar quantity does the 2nd central moment μ₂ represent?</li>
+            <li>Why do we compute moments about an assumed mean first, rather than the true mean directly?</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>μ₂ is literally variance with a new name. If μ₃ measures asymmetry and μ₄ measures peakedness, what pattern do you notice about odd vs. even-order moments and what they detect?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-skewness">← Measures of Skewness</button>
+          <button class="nav-btn" data-goto="skm-relation">Next: Raw ↔ Central Moments →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.4 RELATION RAW/CENTRAL -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-relation" data-title="2.4 Raw ↔ Central Moments">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.4 &nbsp;Relation Between Raw and Central Moments</h2>
+          <p class="topic-dek">The conversion formulas that turn "moments about A" into "moments about the mean."</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>We compute raw moments m₁′, m₂′, m₃′, m₄′ about an assumed mean A because it's arithmetically convenient (exactly the step-deviation logic from Section 1.2). Binomial expansion of (X−x̄) in terms of (X−A) gives clean conversion formulas to get from raw moments to the central moments we actually want.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Conversion Formulas</div>
+          <div class="kx">$$\mu_2 = m_2' - (m_1')^2$$</div>
+          <div class="kx">$$\mu_3 = m_3' - 3m_1'm_2' + 2(m_1')^3$$</div>
+          <div class="kx">$$\mu_4 = m_4' - 4m_1'm_3' + 6(m_1')^2 m_2' - 3(m_1')^4$$</div>
+        </div>
+
+        <h3 class="section-h">Worked Example — full pipeline</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Profits of companies below. Find the first four moments about the assumed mean, then convert to central moments.</p>
+          <table>
+            <tr><th>Profit</th><td>10–20</td><td>20–30</td><td>30–40</td><td>40–50</td><td>50–60</td></tr>
+            <tr><th>Companies</th><td>18</td><td>20</td><td>30</td><td>22</td><td>10</td></tr>
+          </table>
+          <div class="steps">
+            <p>A = 35, h = 10, N = 100:</p>
+            <table>
+              <tr><th>Mid X</th><th>f</th><th>d</th><th>fd</th><th>fd²</th><th>fd³</th><th>fd⁴</th></tr>
+              <tr><td>15</td><td>18</td><td>−2</td><td>−36</td><td>72</td><td>−144</td><td>288</td></tr>
+              <tr><td>25</td><td>20</td><td>−1</td><td>−20</td><td>20</td><td>−20</td><td>20</td></tr>
+              <tr><td>35</td><td>30</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>45</td><td>22</td><td>+1</td><td>22</td><td>22</td><td>22</td><td>22</td></tr>
+              <tr><td>55</td><td>10</td><td>+2</td><td>40</td><td>40</td><td>80</td><td>160</td></tr>
+              <tr><td colspan="3"><b>Σ</b></td><td><b>−14</b></td><td><b>154</b></td><td><b>−62</b></td><td><b>490</b></td></tr>
+            </table>
+            <p><b>Step-deviation raw moments:</b> m₁′(d)=−0.14, m₂′(d)=1.54, m₃′(d)=−0.62, m₄′(d)=4.90</p>
+            <p><b>Converted to original units</b> (multiply by h, h², h³, h⁴):<br>
+            m₁′=−1.4, m₂′=154, m₃′=−620, m₄′=49000</p>
+            <p><b>Central moments:</b></p>
+            <p><span class="kx">$$\mu_2=154-(-1.4)^2=152.04$$</span></p>
+            <p><span class="kx">$$\mu_3=-620-3(-1.4)(154)+2(-1.4)^3=21.31$$</span></p>
+            <p><span class="kx">$$\mu_4=49000-4(-1.4)(-620)+6(-1.4)^2(154)-3(-1.4)^4=47327.52$$</span></p>
+            <div class="answer-line">μ₂ ≈ 152.04 &nbsp; μ₃ ≈ 21.31 &nbsp; μ₄ ≈ 47327.52</div>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>Always compute Σfd, Σfd², Σfd³, Σfd⁴ <strong>in step-deviation units first</strong>, then scale by h, h², h³, h⁴ respectively before applying the conversion formulas.</li>
+            <li>These μ₂, μ₃, μ₄ values feed directly into β₁, γ₁, β₂, γ₂ in Section 2.6 — this is the computational engine behind moment-based skewness and kurtosis.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>State the conversion formulas for μ₂, μ₃, and μ₄ from raw moments.</li>
+            <li>Given Σfd, Σfd², Σfd³, Σfd⁴, N and h, compute all four central moments.</li>
+            <li>Explain, in one line, why the μ₃ and μ₄ conversion formulas contain more terms than μ₂'s.</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>The μ₂ conversion formula is μ₂ = m₂′ − (m₁′)². Does this remind you of any variance formula you've already used in this course? (Hint: Section 2.2's standard deviation shortcut.)</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-moments">← Moments</button>
+          <button class="nav-btn" data-goto="skm-kurtosis">Next: Kurtosis →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.5 KURTOSIS -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-kurtosis" data-title="2.5 Kurtosis">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.5 &nbsp;Kurtosis</h2>
+          <p class="topic-dek">How peaked, or how flat, is the distribution compared to the normal curve?</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>Kurtosis refers to the degree of flatness or peakedness in the region about the mode of a frequency curve, measured relative to the bell-shaped normal curve. It's an entirely separate question from skewness — a distribution can be perfectly symmetric and still be unusually peaked or unusually flat.</p>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points — three kurtosis types</div>
+          <ul>
+            <li><strong>Mesokurtic</strong> — same peakedness as the normal curve ("meso" = middle). This is the baseline.</li>
+            <li><strong>Leptokurtic</strong> — more peaked, with heavier tails than normal ("lepto" = slender/narrow). Think: a tall, narrow mountain.</li>
+            <li><strong>Platykurtic</strong> — flatter and more spread out than normal ("platy" = broad). Think: a wide, flat plateau.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-h">Live instrument: reshape the curve <span class="tag">interactive</span></h3>
+        <div class="instrument">
+          <div class="instrument-head">
+            <div class="instrument-title">Instrument · Kurtosis Explorer</div>
+            <div class="instrument-readout" id="kurtReadout">Mesokurtic</div>
+          </div>
+          <svg id="kurtSvg" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+            <line x1="30" y1="190" x2="610" y2="190" stroke="#3a423e"/>
+            <path id="kurtNormal" d="" fill="none" stroke="#4a544e" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <path id="kurtPath" d="" fill="none" stroke="#D9AD5D" stroke-width="2.5"/>
+          </svg>
+          <div class="slider-row">
+            <span class="slider-label">Peakedness</span>
+            <input type="range" id="kurtSlider" min="-10" max="10" value="0" step="1">
+          </div>
+          <div class="instrument-controls"><span style="font-family:var(--mono); font-size:11px; color:var(--cream-dim);">Grey dashed = normal (mesokurtic) baseline for comparison. Drag to explore leptokurtic ↔ platykurtic.</span></div>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Sketch leptokurtic, mesokurtic, and platykurtic curves on one set of axes and label each.</li>
+            <li>Define kurtosis and explain what "relative to the normal curve" means here.</li>
+            <li>Why does kurtosis matter to a financial risk manager more than to someone computing an average return?</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Stock market returns are famously leptokurtic — "fat tails." An investor who assumes normal (mesokurtic) returns will underestimate how often extreme days happen. Why is that dangerous specifically for risk management, even if the <em>average</em> return estimate is perfectly fine?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-relation">← Raw ↔ Central Moments</button>
+          <button class="nav-btn" data-goto="skm-measures">Next: β, γ Coefficients →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.6 BETA GAMMA MEASURES -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-measures" data-title="2.6 β, γ Coefficients">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.6 &nbsp;Measuring Skewness &amp; Kurtosis Using Moments</h2>
+          <p class="topic-dek">Where μ₃ and μ₄ finally cash out into precise, comparable numbers.</p>
+        </div>
+
+        <h3 class="section-h">Background</h3>
+        <p>Central moments μ₃ and μ₄ carry shape information, but they aren't unit-free — their scale depends on the units of X. β and γ coefficients standardize them by dividing out powers of μ₂ (the variance), making them comparable across any dataset.</p>
+
+        <div class="formula-box card">
+          <div class="card-label">Skewness Coefficients</div>
+          <div class="kx">$$\beta_1 = \dfrac{\mu_3^2}{\mu_2^3} \qquad \gamma_1 = \sqrt{\beta_1} = \dfrac{\mu_3}{\mu_2^{3/2}}$$</div>
+          <div class="formula-note">β₁ is always ≥ 0 (magnitude only, no direction — it's squared). <b>γ₁</b> carries the sign of μ₃: γ₁ = 0 → symmetric, γ₁ &gt; 0 → positively skewed, γ₁ &lt; 0 → negatively skewed.</div>
+        </div>
+
+        <div class="formula-box card">
+          <div class="card-label">Kurtosis Coefficients</div>
+          <div class="kx">$$\beta_2 = \dfrac{\mu_4}{\mu_2^2} \qquad \gamma_2 = \beta_2 - 3$$</div>
+          <div class="formula-note">The normal curve has β₂ = 3 exactly, which is why γ₂ ("excess kurtosis") is centered at zero. <b>γ₂ &gt; 0 → leptokurtic, γ₂ = 0 → mesokurtic, γ₂ &lt; 0 → platykurtic.</b></div>
+        </div>
+
+        <h3 class="section-h">Worked Example — the full capstone calculation</h3>
+        <div class="example-box card">
+          <div class="card-label">Problem</div>
+          <p>Weekly earnings (tk) of employees. Find the first four moments, convert to central moments, then compute γ₁ and γ₂ and comment.</p>
+          <table>
+            <tr><th>Earnings</th><td>50–70</td><td>70–90</td><td>90–110</td><td>110–130</td><td>130–150</td><td>150–170</td><td>170–190</td></tr>
+            <tr><th>Employees</th><td>4</td><td>8</td><td>12</td><td>20</td><td>6</td><td>7</td><td>3</td></tr>
+          </table>
+          <div class="steps">
+            <p>A = 120, h = 20, N = 60. Step-deviation sums: Σfd = −11, Σfd² = 141, Σfd³ = −41, Σfd⁴ = 825.</p>
+            <p>Raw moments (original units): m₁′ = −3.667, m₂′ = 940, m₃′ = −5466.67, m₄′ = 2,200,000</p>
+            <p><span class="kx">$$\mu_2 = 940-(-3.667)^2 = 926.56$$</span></p>
+            <p><span class="kx">$$\mu_3 = -5466.67-3(-3.667)(940)+2(-3.667)^3 = 4774.84$$</span></p>
+            <p><span class="kx">$$\mu_4 = 2200000-4(-3.667)(-5466.67)+6(-3.667)^2(940)-3(-3.667)^4 \approx 2{,}195{,}104$$</span></p>
+            <p><span class="kx">$$\gamma_1 = \dfrac{4774.84}{926.56^{1.5}} \approx 0.17 \qquad \gamma_2 = \dfrac{2{,}195{,}104}{926.56^2}-3 \approx -0.44$$</span></p>
+            <div class="answer-line">γ₁ ≈ +0.17 (mild positive skew) &nbsp; γ₂ ≈ −0.44 (platykurtic)</div>
+            <p style="margin-top:10px;">The distribution is <strong>slightly skewed to the right</strong> — not perfectly symmetric — and, since γ₂ &lt; 0, it is <strong>platykurtic</strong> (flatter than the normal curve).</p>
+          </div>
+        </div>
+
+        <div class="card key-points">
+          <div class="card-label">Key Points</div>
+          <ul>
+            <li>γ₁ (not β₁) is the one you report when direction matters — β₁ can't distinguish left-skew from right-skew.</li>
+            <li>γ₂ = 0 is the normal-curve benchmark; report γ₂ (excess kurtosis), not raw β₂, unless asked specifically.</li>
+            <li>This is the same μ₂, μ₃, μ₄ pipeline from Section 2.4 — moments aren't a side-topic, they're the engine behind every shape statistic in this chapter.</li>
+          </ul>
+        </div>
+
+        <div class="exam-box card">
+          <div class="card-label">Exam Radar — likely questions</div>
+          <ol>
+            <li>Compute β₁, γ₁, β₂, γ₂ from given central moments and interpret each.</li>
+            <li>Why is β₁ alone insufficient to describe skewness direction?</li>
+            <li>Full end-to-end problem: raw data → moments → central moments → γ₁, γ₂ → written interpretation (this is the classic capstone exam question for this chapter).</li>
+          </ol>
+        </div>
+
+        <div class="brainstorm-box card">
+          <div class="card-label">Brainstorm</div>
+          <p>Why does the normal distribution get assigned β₂ = 3 exactly, rather than 0? What does subtracting 3 (to get γ₂) buy us conceptually that raw β₂ doesn't?</p>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-kurtosis">← Kurtosis</button>
+          <button class="nav-btn" data-goto="skm-quiz">Next: Chapter 2 Quiz →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- 2.7 SKM QUIZ -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-skm-quiz" data-title="2.7 Chapter 2 Self-Check">
+        <div class="topic-head">
+          <div class="topic-kicker">Chapter 2 · Skewness, Moments &amp; Kurtosis</div>
+          <h2 class="topic-title">2.7 &nbsp;Self-Check Quiz</h2>
+          <p class="topic-dek">Five more questions to lock in the chapter before the formula sheet.</p>
+        </div>
+
+        <div class="quiz-q" data-q="1">
+          <div class="quiz-q-title">1. Karl Pearson's coefficient of skewness is computed as −0.62. This indicates:</div>
+          <button class="quiz-opt" data-correct="true">A negatively skewed distribution</button>
+          <button class="quiz-opt">A positively skewed distribution</button>
+          <button class="quiz-opt">A perfectly symmetric distribution</button>
+          <button class="quiz-opt">A leptokurtic distribution</button>
+          <div class="quiz-explain">Negative Sₖ means Mean &lt; Mode, i.e. the tail stretches to the left — negatively skewed.</div>
+        </div>
+
+        <div class="quiz-q" data-q="2">
+          <div class="quiz-q-title">2. Which central moment is ALWAYS equal to zero?</div>
+          <button class="quiz-opt">μ₂</button>
+          <button class="quiz-opt" data-correct="true">μ₁</button>
+          <button class="quiz-opt">μ₃</button>
+          <button class="quiz-opt">μ₄</button>
+          <div class="quiz-explain">μ₁ = (1/N)Σf(X−x̄) — deviations from the mean always sum to zero by definition of the mean.</div>
+        </div>
+
+        <div class="quiz-q" data-q="3">
+          <div class="quiz-q-title">3. A distribution has γ₂ (excess kurtosis) = +0.8. It is:</div>
+          <button class="quiz-opt">Platykurtic</button>
+          <button class="quiz-opt" data-correct="true">Leptokurtic</button>
+          <button class="quiz-opt">Mesokurtic</button>
+          <button class="quiz-opt">Symmetric</button>
+          <div class="quiz-explain">γ₂ &gt; 0 means β₂ &gt; 3 — more peaked with heavier tails than normal, i.e. leptokurtic.</div>
+        </div>
+
+        <div class="quiz-q" data-q="4">
+          <div class="quiz-q-title">4. Why is β₁ = μ₃²/μ₂³ alone not enough to describe skewness?</div>
+          <button class="quiz-opt">It's always negative</button>
+          <button class="quiz-opt" data-correct="true">Squaring μ₃ removes its sign, so direction is lost</button>
+          <button class="quiz-opt">It depends on N, not the data</button>
+          <button class="quiz-opt">It's only valid for grouped data</button>
+          <div class="quiz-explain">β₁ tells you magnitude of asymmetry but not which way it points — you need γ₁ = √β₁ signed by μ₃'s sign for direction.</div>
+        </div>
+
+        <div class="quiz-q" data-q="5">
+          <div class="quiz-q-title">5. Bowley's coefficient of skewness uses:</div>
+          <button class="quiz-opt">Mean, Mode, S.D.</button>
+          <button class="quiz-opt" data-correct="true">Q₁, Median, Q₃</button>
+          <button class="quiz-opt">μ₃ and μ₂</button>
+          <button class="quiz-opt">P₁₀ and P₉₀ only</button>
+          <div class="quiz-explain">Bowley's formula is (Q₃+Q₁−2·Median)/(Q₃−Q₁) — purely quartile-based, no mean or mode needed.</div>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-measures">← β, γ Coefficients</button>
+          <button class="nav-btn" data-goto="formulas">View Formula Sheet →</button>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- FORMULA SHEET -->
+      <!-- ========================================================= -->
+      <section class="topic" id="topic-formulas" data-title="Formula Sheet">
+        <div class="topic-head">
+          <div class="topic-kicker">Reference</div>
+          <h2 class="topic-title">Formula Sheet</h2>
+          <p class="topic-dek">Everything from both chapters, one screen — good for a final pre-exam pass.</p>
+        </div>
+
+        <div class="sheet-grid">
+          <div class="sheet-card">
+            <h4>Arithmetic Mean</h4>
+            <div class="kx">$$\bar{x}=\dfrac{\sum fX}{N}$$</div>
+            <div class="kx">$$\bar{x}=A+\dfrac{\sum fd}{N}h,\; d=\dfrac{X-A}{h}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Median (grouped)</h4>
+            <div class="kx">$$Me=L+\dfrac{\frac{N}{2}-c.f.}{f}h$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Mode (grouped)</h4>
+            <div class="kx">$$Mo=L+\dfrac{f_1}{f_1+f_2}h$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Quartile / Decile / Percentile</h4>
+            <div class="kx">$$Q_i=L+\dfrac{\frac{iN}{4}-c.f.}{f}h$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Geometric &amp; Harmonic Mean</h4>
+            <div class="kx">$$GM=\text{Antilog}\left(\dfrac{\sum f\log X}{N}\right)$$</div>
+            <div class="kx">$$HM=\dfrac{N}{\sum(f/X)}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Empirical Relation</h4>
+            <div class="kx">$$Mo = 3\,Me-2\bar{x}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Karl Pearson's Skewness</h4>
+            <div class="kx">$$S_k=\dfrac{\bar{x}-Mo}{S.D.}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Bowley's Skewness</h4>
+            <div class="kx">$$S_k=\dfrac{Q_3+Q_1-2Me}{Q_3-Q_1}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Raw &amp; Central Moments</h4>
+            <div class="kx">$$m_r'=\dfrac{\sum fd^r}{N}\times h^r \qquad \mu_r=\dfrac{\sum f(X-\bar{x})^r}{N}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Raw → Central Conversion</h4>
+            <div class="kx">$$\mu_2=m_2'-(m_1')^2$$</div>
+            <div class="kx">$$\mu_3=m_3'-3m_1'm_2'+2(m_1')^3$$</div>
+            <div class="kx">$$\mu_4=m_4'-4m_1'm_3'+6(m_1')^2m_2'-3(m_1')^4$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Moment Skewness</h4>
+            <div class="kx">$$\beta_1=\dfrac{\mu_3^2}{\mu_2^3} \qquad \gamma_1=\dfrac{\mu_3}{\mu_2^{3/2}}$$</div>
+          </div>
+          <div class="sheet-card">
+            <h4>Moment Kurtosis</h4>
+            <div class="kx">$$\beta_2=\dfrac{\mu_4}{\mu_2^2} \qquad \gamma_2=\beta_2-3$$</div>
+          </div>
+        </div>
+
+        <div class="card key-points" style="margin-top:26px;">
+          <div class="card-label">Last-minute sanity checks</div>
+          <ul>
+            <li>μ₁ is always 0. If yours isn't, recheck your mean.</li>
+            <li>AM ≥ GM ≥ HM — if this order breaks, recheck your arithmetic.</li>
+            <li>Normal curve: γ₁ = 0, γ₂ = 0 (β₂ = 3). Any dataset "close to normal" should hover near these.</li>
+            <li>Q₂ = D₅ = P₅₀ = Median — always, by definition.</li>
+          </ul>
+        </div>
+
+        <div class="topic-foot">
+          <button class="nav-btn ghost" data-goto="skm-quiz">← Chapter 2 Quiz</button>
+          <button class="nav-btn" data-goto="overview">Back to Overview</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ---------- KaTeX render ----------
+function renderMath(){
+  document.querySelectorAll('.kx').forEach(function(el){
+    if(el.dataset.rendered) return;
+    try{
+      var raw = el.textContent;
+      renderMathInElement(el, {
+        delimiters:[{left:'$$', right:'$$', display:true},{left:'$', right:'$', display:false}],
+        throwOnError:false
+      });
+      el.dataset.rendered = '1';
+    }catch(e){}
+  });
+}
+window.addEventListener('load', renderMath);
+
+// ---------- Navigation ----------
+var titleMap = {};
+document.querySelectorAll('.topic').forEach(function(t){
+  titleMap[t.id.replace('topic-','')] = t.dataset.title;
+});
+var order = ['overview','ct-intro','ct-mean','ct-median','ct-quartiles','ct-mode','ct-gmhm','ct-empirical','ct-quiz',
+             'skm-intro','skm-skewness','skm-moments','skm-relation','skm-kurtosis','skm-measures','skm-quiz','formulas'];
+var chapterTopics = ['ct-intro','ct-mean','ct-median','ct-quartiles','ct-mode','ct-gmhm','ct-empirical','ct-quiz',
+                      'skm-intro','skm-skewness','skm-moments','skm-relation','skm-kurtosis','skm-measures','skm-quiz'];
+var visited = {};
+
+function goTo(id){
+  document.querySelectorAll('.topic').forEach(function(t){t.classList.remove('active');});
+  var target = document.getElementById('topic-'+id);
+  if(!target) return;
+  target.classList.add('active');
+
+  document.querySelectorAll('.sb-item').forEach(function(b){
+    b.classList.toggle('active', b.dataset.target===id);
+  });
+
+  document.getElementById('crumbCur').textContent = titleMap[id] || id;
+
+  visited[id]=true;
+  var item = document.querySelector('.sb-item[data-target="'+id+'"]');
+  if(item) item.classList.add('visited');
+  updateGauge();
+
+  window.scrollTo({top:0, behavior:'smooth'});
+  renderMath();
+
+  // close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
+
+document.querySelectorAll('.sb-item, .ov-card, [data-goto]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var id = el.dataset.target || el.dataset.goto;
+    if(id) goTo(id);
+  });
+});
+
+function updateGauge(){
+  var count=0;
+  chapterTopics.forEach(function(id){ if(visited[id]) count++; });
+  var total = chapterTopics.length;
+  var pct = count/total;
+  var circumference = 138.2;
+  var offset = circumference*(1-pct);
+  document.getElementById('gaugeFill').style.strokeDashoffset = offset;
+  document.getElementById('gaugeLabel').textContent = count+'/'+total;
+}
+// mark overview visited on load
+visited['overview']=true;
+
+// ---------- mobile sidebar toggle ----------
+document.getElementById('sbToggle').addEventListener('click', function(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sbOverlay').classList.toggle('show');
+});
+document.getElementById('sbOverlay').addEventListener('click', function(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('show');
+});
+
+// ---------- Quiz logic ----------
+document.querySelectorAll('.quiz-q').forEach(function(q){
+  var opts = q.querySelectorAll('.quiz-opt');
+  var explain = q.querySelector('.quiz-explain');
+  opts.forEach(function(opt){
+    opt.addEventListener('click', function(){
+      if(q.dataset.answered) return;
+      q.dataset.answered = '1';
+      opts.forEach(function(o){
+        o.disabled = true;
+        if(o.dataset.correct==='true') o.classList.add('correct');
+        else if(o===opt) o.classList.add('wrong');
+      });
+      explain.classList.add('show');
+    });
+  });
+});
+
+// ---------- Skewness live instrument ----------
+var skewShapes = {
+  symmetric: {
+    path:"M40,220 C120,220 150,50 245,50 C340,50 370,220 450,220",
+    mean:245, med:245, mode:245,
+    readout:"x̄ = Me = Mo  (symmetric)"
+  },
+  positive: {
+    path:"M40,220 C100,220 130,60 200,55 C280,50 330,120 460,220",
+    mean:330, med:280, mode:210,
+    readout:"x̄ > Me > Mo  (positively skewed)"
+  },
+  negative: {
+    path:"M40,220 C170,220 220,120 300,50 C370,55 400,60 460,220",
+    mean:180, med:230, mode:300,
+    readout:"x̄ < Me < Mo  (negatively skewed)"
+  }
+};
+function setSkew(shape){
+  var s = skewShapes[shape];
+  document.getElementById('skewPath').setAttribute('d', s.path);
+  document.getElementById('skewReadout').textContent = s.readout;
+  var lines = [
+    {id:'skMeanLine', lbl:'skMeanLbl', x:s.mean, text:'Mean', color:'#e0947e'},
+    {id:'skMedLine', lbl:'skMedLbl', x:s.med, text:'Median', color:'#D9AD5D'},
+    {id:'skModeLine', lbl:'skModeLbl', x:s.mode, text:'Mode', color:'#8fd6c6'}
+  ];
+  lines.forEach(function(l){
+    var line = document.getElementById(l.id);
+    line.setAttribute('x1', l.x); line.setAttribute('x2', l.x);
+    line.setAttribute('y1', 30); line.setAttribute('y2', 220);
+    var lbl = document.getElementById(l.lbl);
+    lbl.setAttribute('x', l.x); lbl.setAttribute('y', 22);
+    lbl.textContent = l.text;
+  });
+  document.querySelectorAll('[data-shape]').forEach(function(b){
+    b.classList.toggle('on', b.dataset.shape===shape);
+  });
+}
+document.querySelectorAll('[data-shape]').forEach(function(b){
+  b.addEventListener('click', function(){ setSkew(b.dataset.shape); });
+});
+setSkew('symmetric');
+
+// ---------- Kurtosis live instrument ----------
+function bellPath(peakHeight, spread){
+  // Build a smooth bell curve using cubic beziers across viewBox 0-640,0-220
+  var cx=320, baseY=190, topY=190-peakHeight;
+  var w = spread;
+  var x0=cx-w, x1=cx-w*0.42, x2=cx+w*0.42, x3=cx+w;
+  return "M"+x0+","+baseY+" C"+(cx-w*0.75)+","+baseY+" "+(cx-w*0.28)+","+topY+" "+cx+","+topY+
+         " C"+(cx+w*0.28)+","+topY+" "+(cx+w*0.75)+","+baseY+" "+x3+","+baseY;
+}
+document.getElementById('kurtNormal').setAttribute('d', bellPath(120,190));
+var kurtSlider = document.getElementById('kurtSlider');
+function updateKurt(){
+  var v = parseInt(kurtSlider.value,10); // -10 .. 10
+  var peak = 120 + v*7;      // more peaked as v increases
+  var spread = 190 - v*6;    // narrower as v increases
+  document.getElementById('kurtPath').setAttribute('d', bellPath(peak, spread));
+  var label = 'Mesokurtic';
+  if(v>=3) label='Leptokurtic';
+  else if(v<=-3) label='Platykurtic';
+  document.getElementById('kurtReadout').textContent = label + '  (γ₂ ≈ ' + (v/10*1.2).toFixed(2) + ')';
+}
+kurtSlider.addEventListener('input', updateKurt);
+updateKurt();
+
+updateGauge();
+</script>
+</body>
+</html>

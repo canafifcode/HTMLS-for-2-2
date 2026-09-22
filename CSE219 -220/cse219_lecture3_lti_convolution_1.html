@@ -1,0 +1,1142 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSE 219 — Lecture 3: LTI Systems and Convolution</title>
+<style>
+  :root{
+    --paper:#f6f2e9;
+    --paper-2:#fffdf8;
+    --ink:#23211d;
+    --ink-soft:#57534b;
+    --rule:#cfc7b6;
+    --navy:#1e4557;
+    --brick:#8c3b2e;
+    --olive:#5d6b3a;
+    --gold:#a8802b;
+    --shadow:0 1px 0 rgba(0,0,0,.06), 0 8px 22px rgba(35,33,29,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    font-size:17px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1140px;margin:0 auto;padding:0 20px 80px}
+  .layout{display:grid;grid-template-columns:216px 1fr;gap:44px;align-items:start}
+  main#panels{min-width:0;max-width:790px}
+
+  /* ---------- masthead ---------- */
+  header.mast{
+    border-bottom:3px double var(--rule);
+    padding:34px 0 18px;margin-bottom:0;
+  }
+  .eyebrow{
+    font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--brick);margin:0 0 10px;
+  }
+  h1.title{
+    font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 8px;
+    font-weight:600;letter-spacing:-.01em;
+  }
+  .byline{color:var(--ink-soft);font-size:15px;font-style:italic;margin:0}
+
+  /* ---------- sidebar nav ---------- */
+  aside.sidebar{position:sticky;top:26px;padding-top:34px}
+  .nav-head{
+    font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-soft);padding:0 0 9px 12px;margin:0 0 8px;
+    border-bottom:1px solid var(--rule);
+  }
+  .navtoggle{display:none}
+  .tabstrip{display:flex;flex-direction:column;border-left:1px solid var(--rule)}
+  .tab{
+    background:none;border:none;cursor:pointer;text-align:left;
+    font-family:inherit;font-size:14px;color:var(--ink-soft);line-height:1.35;
+    padding:8px 10px 8px 13px;margin-left:-1px;
+    border-left:2px solid transparent;
+    transition:color .15s,border-color .15s;
+  }
+  .tab .num{
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;
+    color:var(--gold);margin-right:7px;
+  }
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--navy);border-left-color:var(--brick);font-weight:600}
+  .tab[aria-selected="true"] .num{color:var(--brick)}
+  .tab:focus-visible{outline:2px solid var(--navy);outline-offset:-2px}
+
+  /* ---------- sections ---------- */
+  section[role="tabpanel"]{display:none;animation:fade .25s ease}
+  section[role="tabpanel"].on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  h2{font-size:27px;margin:0 0 6px;font-weight:600;letter-spacing:-.01em}
+  .sub{color:var(--ink-soft);font-style:italic;margin:0 0 26px;font-size:16px}
+  h3{font-size:20px;margin:34px 0 10px;font-weight:600}
+  h4{font-size:16px;margin:22px 0 6px;font-weight:600;color:var(--navy)}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 14px;padding-left:22px}
+  li{margin:5px 0}
+  code,.m{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;
+    background:rgba(30,69,87,.07);padding:1px 5px;border-radius:3px}
+  .eq{
+    display:block;text-align:center;font-family:"Palatino Linotype",Palatino,Georgia,serif;
+    font-size:19px;margin:18px auto;padding:14px 10px;
+    background:var(--paper-2);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  }
+  .eq em{font-style:italic}
+
+  .card{
+    background:var(--paper-2);border:1px solid var(--rule);border-radius:2px;
+    padding:20px 22px;margin:20px 0;box-shadow:var(--shadow);
+  }
+  .card.tight{padding:14px 18px}
+  .tag{
+    display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    padding:3px 8px;border-radius:2px;margin-bottom:10px;
+  }
+  .t-think{background:rgba(93,107,58,.13);color:var(--olive)}
+  .t-exam{background:rgba(140,59,46,.12);color:var(--brick)}
+  .t-edge{background:rgba(168,128,43,.15);color:#7a5c17}
+  .t-key{background:rgba(30,69,87,.11);color:var(--navy)}
+
+  blockquote{
+    margin:18px 0;padding:2px 0 2px 18px;border-left:3px solid var(--brick);
+    font-style:italic;color:var(--ink-soft);
+  }
+
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:15px}
+  th,td{border-bottom:1px solid var(--rule);padding:9px 10px;text-align:left;vertical-align:top}
+  th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  td.mono,th.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px}
+  .yes{color:var(--olive);font-weight:700}
+  .no{color:var(--brick);font-weight:700}
+
+  figure{margin:22px 0;text-align:center}
+  figcaption{font-size:13.5px;color:var(--ink-soft);font-style:italic;margin-top:8px}
+  svg{max-width:100%;height:auto}
+
+  /* ---------- interactive bits ---------- */
+  .lab{
+    background:var(--paper-2);border:1px solid var(--rule);border-radius:2px;
+    padding:18px;margin:24px 0;box-shadow:var(--shadow);
+  }
+  .lab-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:14px;gap:10px;flex-wrap:wrap;
+  }
+  .lab-title{font-weight:600;font-size:16px}
+  .lab-note{font-size:12.5px;color:var(--ink-soft);font-style:italic}
+  .ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+  .ctrl label{font-size:13.5px;color:var(--ink-soft)}
+  input[type=range]{accent-color:var(--navy);flex:1;min-width:150px}
+  button.btn{
+    font-family:inherit;font-size:14px;background:var(--navy);color:#fff;
+    border:none;padding:7px 15px;border-radius:2px;cursor:pointer;
+  }
+  button.btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
+  button.btn:hover{opacity:.88}
+  button.btn:focus-visible{outline:2px solid var(--brick);outline-offset:2px}
+  .readout{
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;
+    background:rgba(30,69,87,.06);padding:10px 12px;border-radius:2px;margin-top:12px;
+    overflow-x:auto;white-space:nowrap;
+  }
+  .scrollx{overflow-x:auto}
+
+  /* quiz */
+  .q{border-top:1px solid var(--rule);padding:16px 0}
+  .q:first-of-type{border-top:none}
+  .q p.stem{font-weight:600;margin:0 0 10px}
+  .opt{
+    display:block;width:100%;text-align:left;font-family:inherit;font-size:15px;
+    background:var(--paper);border:1px solid var(--rule);border-radius:2px;
+    padding:9px 12px;margin:6px 0;cursor:pointer;transition:.13s;
+  }
+  .opt:hover{border-color:var(--navy)}
+  .opt.right{background:rgba(93,107,58,.14);border-color:var(--olive)}
+  .opt.wrong{background:rgba(140,59,46,.11);border-color:var(--brick)}
+  .expl{font-size:14.5px;color:var(--ink-soft);margin-top:8px;display:none;padding-left:2px;border-left:2px solid var(--gold);padding:6px 0 6px 10px}
+  .expl.show{display:block}
+  #score{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;color:var(--navy)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  @media (max-width:860px){
+    .layout{display:block}
+    main#panels{max-width:none}
+    aside.sidebar{
+      position:sticky;top:0;z-index:40;background:var(--paper);
+      padding:0;margin:0 0 26px;border-bottom:1px solid var(--rule);
+    }
+    .nav-head{display:none}
+    .navtoggle{
+      display:block;width:100%;text-align:left;font-family:inherit;font-size:14px;
+      background:none;border:none;border-bottom:1px solid var(--rule);
+      color:var(--navy);padding:12px 2px;cursor:pointer;font-weight:600;
+    }
+    .navtoggle::after{content:" ▾";color:var(--gold)}
+    .navtoggle[aria-expanded="true"]::after{content:" ▴"}
+    .tabstrip{display:none;border-left:none;padding:6px 0 10px}
+    .tabstrip.open{display:flex}
+    .tab{padding:9px 4px;border-left:none;border-bottom:1px solid rgba(207,199,182,.5)}
+    .tab[aria-selected="true"]{border-left:none}
+  }
+
+  @media (max-width:600px){
+    body{font-size:16px}
+    .card,.lab{padding:15px}
+    .eq{font-size:16px}
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="eyebrow">CSE 219 · Signals and Linear Systems · BUET</p>
+    <h1 class="title">Lecture 3 — Linear Time-Invariant Systems<br>and Convolution</h1>
+    <p class="byline">Course lecturer: Anik Saha &nbsp;·&nbsp; A worked, interactive companion to the slides</p>
+  </header>
+</div>
+
+<div class="wrap layout">
+
+<aside class="sidebar">
+  <button class="navtoggle" id="navToggle" aria-expanded="false">Contents</button>
+  <p class="nav-head">Contents</p>
+  <div class="tabstrip" role="tablist" id="tabs"></div>
+</aside>
+
+<main id="panels">
+
+<!-- ================= 1 ================= -->
+<section role="tabpanel" data-title="What is a system">
+  <h2>Systems: signals go in, signals come out</h2>
+  <p class="sub">The single mental shift this lecture demands of you.</p>
+
+  <p>An ordinary function eats <em>one number</em> and returns <em>one number</em>. A <strong>system</strong> eats an <em>entire signal</em> and returns an <em>entire signal</em>. That is a genuinely bigger object: the input is a whole function of time, not a sample.</p>
+
+  <span class="eq">x(t) &nbsp;⟶&nbsp; <strong>S</strong> &nbsp;⟶&nbsp; y(t) &nbsp;&nbsp;&nbsp; x[n] &nbsp;⟶&nbsp; <strong>S</strong> &nbsp;⟶&nbsp; y[n]</span>
+
+  <figure id="fig-sysbox"></figure>
+
+  <div class="card">
+    <span class="tag t-key">Why the distinction matters</span>
+    <p>Because a system may look at times other than "now". A moving average <span class="m">y[n] = (x[n] + x[n−1])/2</span> needs the past. An ideal differentiator needs neighbouring instants. If you keep thinking "one number in, one number out", every one of these looks impossible.</p>
+  </div>
+
+  <h3>The mathematical notation you'll see</h3>
+  <p>We write <span class="m">y(t) = S{x(t)}</span> or <span class="m">x(t) → y(t)</span>. The arrow is <em>not</em> an equality — it means "this input produces that output through the given system." Writing <span class="m">y(t) = S{x(t)}</span> and then substituting <span class="m">t → t−t₀</span> carelessly is the single most common source of errors in time-invariance proofs, and we'll handle it very carefully in section 3.</p>
+
+  <h3>Some example systems to keep in your head</h3>
+  <table>
+    <tr><th>System</th><th>Rule</th><th>Plain description</th></tr>
+    <tr><td>Amplifier</td><td class="mono">y[n] = 3x[n]</td><td>Scales everything by 3</td></tr>
+    <tr><td>Delay</td><td class="mono">y[n] = x[n−3]</td><td>Shifts the whole signal right</td></tr>
+    <tr><td>Accumulator</td><td class="mono">y[n] = Σ<sub>k≤n</sub> x[k]</td><td>Running sum; discrete integrator</td></tr>
+    <tr><td>Squarer</td><td class="mono">y[n] = x[n]²</td><td>Pointwise square</td></tr>
+    <tr><td>Time scaler</td><td class="mono">y[n] = x[2n]</td><td>Downsamples (throws away odd samples)</td></tr>
+  </table>
+
+  <div class="card">
+    <span class="tag t-think">Brainstorm</span>
+    <p>Of the five above, which do you expect to be "well behaved" in the sense this lecture will define? Hold your guesses — by the end of section 4 you'll have a mechanical test that settles each one in two lines.</p>
+  </div>
+</section>
+
+<!-- ================= 2 ================= -->
+<section role="tabpanel" data-title="Linearity">
+  <h2>Linearity</h2>
+  <p class="sub">Scaling the input scales the output; adding inputs adds outputs.</p>
+
+  <p>Linearity is two promises bundled together.</p>
+
+  <div class="card">
+    <span class="tag t-key">Definition</span>
+    <p><strong>Homogeneity (scaling):</strong> if <span class="m">x(t) → y(t)</span>, then <span class="m">a·x(t) → a·y(t)</span> for every constant <em>a</em>.</p>
+    <p><strong>Additivity (superposition):</strong> if <span class="m">x₁ → y₁</span> and <span class="m">x₂ → y₂</span>, then <span class="m">x₁ + x₂ → y₁ + y₂</span>.</p>
+    <p>Combined into one statement — the form you should actually use in exams:</p>
+    <span class="eq">a·x₁(t) + b·x₂(t) &nbsp;⟶&nbsp; a·y₁(t) + b·y₂(t)</span>
+  </div>
+
+  <figure id="fig-lin"></figure>
+
+  <h3>The zero-in, zero-out corollary</h3>
+  <p>Put <span class="m">a = 0</span> in homogeneity: a zero input must give a zero output. This gives you a <strong>free instant disqualifier</strong>. If a system produces something out of nothing, it is not linear, and you need not write another line.</p>
+
+  <div class="card">
+    <span class="tag t-edge">Edge case that traps everyone</span>
+    <p><span class="m">y(t) = 2x(t) + 3</span> is <strong>not linear</strong>, despite looking like the equation of a straight line. Zero in gives 3 out. Systems of this shape are called <em>incrementally linear</em>: the deviation from a fixed offset behaves linearly. Examiners love this one precisely because "linear" in the everyday sense misleads you.</p>
+    <p>Careful though — zero-in-zero-out is <em>necessary, not sufficient</em>. <span class="m">y[n] = x[n]²</span> passes it and is still nonlinear (check: <span class="m">(x₁+x₂)² ≠ x₁² + x₂²</span>).</p>
+  </div>
+
+  <h3>How to actually test linearity — the two-column method</h3>
+  <ol>
+    <li>Let <span class="m">x₁ → y₁</span> and <span class="m">x₂ → y₂</span>, writing both outputs explicitly from the system rule.</li>
+    <li>Form <span class="m">x₃ = a x₁ + b x₂</span> and push it through the rule to get <span class="m">y₃</span>.</li>
+    <li>Separately form <span class="m">a y₁ + b y₂</span>.</li>
+    <li>If steps 2 and 3 agree <em>for all a, b, x₁, x₂</em> → linear. Otherwise produce one concrete counterexample.</li>
+  </ol>
+
+  <div class="card">
+    <span class="tag t-exam">Worked: is the accumulator linear?</span>
+    <p><span class="m">y[n] = Σ<sub>k=−∞</sub><sup>n</sup> x[k]</span>. Then</p>
+    <span class="eq">Σ<sub>k≤n</sub> (a x₁[k] + b x₂[k]) = a Σ<sub>k≤n</sub> x₁[k] + b Σ<sub>k≤n</sub> x₂[k] = a y₁[n] + b y₂[n] ✓</span>
+    <p>Linear, because summation itself is a linear operation. The same argument makes integration, differentiation and delay all linear.</p>
+  </div>
+
+  <div class="card">
+    <span class="tag t-think">Brainstorm</span>
+    <p>Is <span class="m">y(t) = t·x(t)</span> linear? Multiply-by-<em>t</em> looks time-dependent and suspicious — but linearity says nothing about <em>t</em>-dependence. Check: <span class="m">t(a x₁ + b x₂) = a·t x₁ + b·t x₂</span>. Yes, linear. (It fails time-invariance instead — section 3.) Keeping these two properties in separate mental boxes is half the battle.</p>
+  </div>
+</section>
+
+<!-- ================= 3 ================= -->
+<section role="tabpanel" data-title="Time-invariance">
+  <h2>Time-invariance</h2>
+  <p class="sub">Delay the input, and the only thing that changes is that the output is equally delayed.</p>
+
+  <p>A time-invariant system has no clock of its own. It does not care whether you run the experiment now or tomorrow — the shape of the response is identical, just moved along the time axis.</p>
+
+  <span class="eq">If &nbsp; x(t) ⟶ y(t), &nbsp; then &nbsp; x(t − t₀) ⟶ y(t − t₀) &nbsp; for every t₀</span>
+
+  <figure id="fig-ti"></figure>
+  <p style="text-align:center;font-size:14px;color:var(--ink-soft);font-style:italic;margin-top:-6px">
+    The slide's Mr. Bean panels make exactly this point: shift the film reel, and the processed film is the same film, shifted.</p>
+
+  <h3>The airtight test (write it this way every time)</h3>
+  <div class="card">
+    <p><strong>Path A — delay the output.</strong> Compute <span class="m">y(t)</span> from the rule, then replace every free <em>t</em> by <span class="m">t − t₀</span>. Call it <span class="m">y(t − t₀)</span>.</p>
+    <p><strong>Path B — delay the input.</strong> Define <span class="m">x₁(t) = x(t − t₀)</span>, feed <em>x₁</em> into the rule, and get <span class="m">y₁(t)</span>.</p>
+    <p><strong>Verdict.</strong> Time-invariant ⟺ <span class="m">y₁(t) = y(t − t₀)</span> identically.</p>
+  </div>
+
+  <h4>Worked example 1 — <span class="m">y(t) = t·x(t)</span></h4>
+  <p>Path A: <span class="m">y(t − t₀) = (t − t₀)·x(t − t₀)</span>. Path B: <span class="m">y₁(t) = t·x₁(t) = t·x(t − t₀)</span>. These differ (the multiplier is <em>t</em>, not <em>t − t₀</em>). <span class="no">Not time-invariant.</span> The system has an explicit clock built in.</p>
+
+  <h4>Worked example 2 — <span class="m">y[n] = x[2n]</span></h4>
+  <p>Path A: <span class="m">y[n − n₀] = x[2(n − n₀)] = x[2n − 2n₀]</span>. Path B: <span class="m">y₁[n] = x₁[2n] = x[2n − n₀]</span>. A delay of <em>n₀</em> at the input becomes a delay of <em>n₀</em>, but the output-delayed version wants <em>2n₀</em>. <span class="no">Not time-invariant.</span></p>
+
+  <div class="card">
+    <span class="tag t-edge">Edge cases worth memorising</span>
+    <ul>
+      <li><span class="m">y(t) = x(−t)</span> (time reversal): linear <span class="yes">✓</span>, time-invariant <span class="no">✗</span>.</li>
+      <li><span class="m">y[n] = n·x[n]</span>: linear <span class="yes">✓</span>, TI <span class="no">✗</span>.</li>
+      <li><span class="m">y[n] = x[n]²</span>: linear <span class="no">✗</span>, TI <span class="yes">✓</span>.</li>
+      <li><span class="m">y(t) = x(t) + 3</span>: linear <span class="no">✗</span>, TI <span class="yes">✓</span>.</li>
+      <li><span class="m">y[n] = x[n−3]</span>: linear <span class="yes">✓</span>, TI <span class="yes">✓</span> — an LTI system.</li>
+    </ul>
+    <p>The two properties are <em>logically independent</em>. Any of the four combinations can occur. Never infer one from the other.</p>
+  </div>
+</section>
+
+<!-- ================= 4 ================= -->
+<section role="tabpanel" data-title="LTI test bench">
+  <h2>Putting them together: LTI</h2>
+  <p class="sub">Two modest-looking properties that will hand us the output for <em>every</em> input.</p>
+
+  <p>A system that is both <strong>L</strong>inear and <strong>T</strong>ime-<strong>I</strong>nvariant is called <strong>LTI</strong>. The payoff, which the rest of this lecture builds toward:</p>
+
+  <blockquote>For an LTI system, one single measurement — the response to one impulse — determines the response to every input signal that will ever be applied.</blockquote>
+
+  <p>That is an extraordinary claim. There are infinitely many possible inputs; we are saying one number-sequence characterises the whole system. Sections 6–9 prove it.</p>
+
+  <div class="lab">
+    <div class="lab-head">
+      <span class="lab-title">Test bench: classify the system</span>
+      <span class="lab-note">Decide first, then reveal</span>
+    </div>
+    <div id="bench"></div>
+    <div class="ctrl"><button class="btn ghost" id="benchReset">Hide all answers</button></div>
+  </div>
+
+  <div class="card">
+    <span class="tag t-exam">Exam tactic</span>
+    <p>To <em>disprove</em> a property, one concrete counterexample is a complete answer and is far faster than symbol-pushing. To <em>prove</em> it, you must argue for arbitrary <em>a, b, x₁, x₂, t₀</em>. Marks are routinely lost by "proving" linearity with one specific pair of signals.</p>
+  </div>
+</section>
+
+<!-- ================= 5 ================= -->
+<section role="tabpanel" data-title="Convolution from polynomials">
+  <h2>A detour: where convolution comes from</h2>
+  <p class="sub">Before we need it, let's meet it in a place you already know — multiplying polynomials.</p>
+
+  <p>Given two sequences you can add them, subtract them, multiply them pointwise. Convolution is a fourth, stranger kind of mixing — and it appears the moment you multiply two polynomials.</p>
+
+  <div class="card">
+    <p><strong>A</strong>(z) = 1 + 3z + 2z² + 5z³ + 4z⁴ &nbsp;→&nbsp; a = <span class="m">{1, 3, 2, 5, 4}</span></p>
+    <p><strong>B</strong>(z) = 2 − z + 4z² + z³ + 3z⁴ &nbsp;→&nbsp; b = <span class="m">{2, −1, 4, 1, 3}</span></p>
+    <p><strong>Question:</strong> what is the coefficient of z⁴ in A(z)·B(z)?</p>
+  </div>
+
+  <p>You collect every product whose powers add to 4 — the criss-crossed pairings <span class="m">a₀b₄, a₁b₃, a₂b₂, a₃b₁, a₄b₀</span>:</p>
+  <span class="eq">c[4] = 1·3 + 3·1 + 2·4 + 5·(−1) + 4·2 = 3 + 3 + 8 − 5 + 8 = <strong>17</strong></span>
+
+  <figure id="fig-crisscross"></figure>
+
+  <p>In general the coefficient of zⁿ is</p>
+  <span class="eq">c[n] = Σ<sub>k</sub> a[k]·b[n − k]</span>
+
+  <h3>The key reading of <span class="m">b[n − k]</span></h3>
+  <p>Look at that index. As a function of <em>k</em>, the expression <span class="m">n − k</span> does two things: the minus sign <strong>reflects</strong> the sequence, and the <em>n</em> <strong>shifts</strong> the reflected copy to the right by <em>n</em>. Reflection is what converts awkward criss-crossed pairings into tidy <em>vertical</em> pairings. That is the whole trick.</p>
+
+  <table>
+    <tr><th>Index expression</th><th>Effect on b</th></tr>
+    <tr><td class="mono">b[k]</td><td>original</td></tr>
+    <tr><td class="mono">b[−k]</td><td>reflected about k = 0</td></tr>
+    <tr><td class="mono">b[n − k]</td><td>reflected, then shifted right by n</td></tr>
+  </table>
+
+  <p>Check it against the slides: at <span class="m">n = 0</span> only one pair overlaps, giving <span class="m">c[0] = 1·2 = 2</span>. At <span class="m">n = 2</span>, three pairs overlap: <span class="m">1·4 + 3·(−1) + 2·2 = 5</span>. At <span class="m">n = 4</span> all five line up and reproduce <strong>17</strong>. Same number, obtained by sliding instead of criss-crossing.</p>
+
+  <div class="card">
+    <span class="tag t-key">The recipe (worth writing on the inside of your eyelids)</span>
+    <p><strong>Keep the first signal as it is. Reflect the second. Slide it rightward. At each position, multiply the overlapping values and add them.</strong></p>
+  </div>
+
+  <span class="eq">c[n] = (a ∗ b)[n] = Σ<sub>k = −∞</sub><sup>∞</sup> a[k]·b[n − k]</span>
+
+  <div class="card">
+    <span class="tag t-think">Why this identity is more than a curiosity</span>
+    <p>Polynomial multiplication = convolution of coefficient sequences. This is why long multiplication of ordinary numbers is also a convolution (with carries), why the z-transform will later turn convolution into plain multiplication, and why fast polynomial multiplication (FFT) is the same algorithm as fast convolution. You are meeting a very deep operation in a very friendly costume.</p>
+  </div>
+</section>
+
+<!-- ================= 6 ================= -->
+<section role="tabpanel" data-title="The sliding bench">
+  <h2>Doing convolution by hand</h2>
+  <p class="sub">The slide's worked example, made draggable. This is the section to actually play with.</p>
+
+  <p>Take the two sequences from the slides:</p>
+  <p><span class="m">x[n] = {1, 2, 1, 1}</span> for n = 0…3 &nbsp;&nbsp;and&nbsp;&nbsp; <span class="m">h[n] = {1, 1, −1, 2}</span> for n = 0…3.</p>
+  <p>We compute <span class="m">y[n] = Σ<sub>k</sub> x[k]·h[n − k]</span>. Drag the slider to move the reflected-and-shifted copy of <em>h</em> across <em>x</em>. Overlapping columns are highlighted; their products are summed to give one output sample.</p>
+
+  <div class="lab">
+    <div class="lab-head">
+      <span class="lab-title">Convolution bench &nbsp;·&nbsp; y[n] = (x ∗ h)[n]</span>
+      <span class="lab-note">reflect → shift → multiply → add</span>
+    </div>
+    <div class="ctrl">
+      <label for="nSlider">shift n =</label>
+      <input type="range" id="nSlider" min="-1" max="7" value="0" step="1">
+      <strong id="nVal" style="font-family:ui-monospace,monospace">0</strong>
+      <button class="btn" id="playConv">Animate</button>
+    </div>
+    <div class="scrollx" id="convGrid"></div>
+    <div class="readout" id="convCalc"></div>
+    <figure id="convOut" style="margin:16px 0 0"></figure>
+  </div>
+
+  <h3>The answer, and three checks you should always run</h3>
+  <span class="eq">y[n] = {1, 3, 2, 2, 4, 1, 2}, &nbsp; n = 0 … 6</span>
+
+  <div class="card">
+    <span class="tag t-exam">Three-second sanity checks</span>
+    <ol>
+      <li><strong>Length.</strong> A length-<em>N</em> sequence convolved with a length-<em>M</em> sequence has length <span class="m">N + M − 1</span>. Here 4 + 4 − 1 = 7 ✓</li>
+      <li><strong>Support / start index.</strong> If x starts at <em>n₁</em> and h at <em>n₂</em>, then y starts at <span class="m">n₁ + n₂</span> and ends at (end of x)+(end of h). Here 0+0 = 0 to 3+3 = 6 ✓</li>
+      <li><strong>Sum test.</strong> <span class="m">Σy = (Σx)(Σh)</span>. Here Σx = 5, Σh = 3, and Σy = 1+3+2+2+4+1+2 = 15 = 5×3 ✓ <em>(This follows from setting z = 1 in the polynomial picture.)</em></li>
+    </ol>
+    <p>These three catch the overwhelming majority of arithmetic slips, and they cost you almost nothing.</p>
+  </div>
+
+  <h3>Does the order matter?</h3>
+  <p>No. <span class="m">a ∗ b = b ∗ a</span>. The polynomial view makes this obvious: <span class="m">A(z)B(z) = B(z)A(z)</span>, and the coefficients cannot know which polynomial you wrote first. Formally, substitute <span class="m">m = n − k</span> in the sum and it turns into the other one.</p>
+
+  <table>
+    <tr><th>Property</th><th class="mono">Statement</th><th>Meaning for systems</th></tr>
+    <tr><td>Commutative</td><td class="mono">x ∗ h = h ∗ x</td><td>You may reflect whichever sequence is easier — reflect the <em>shorter</em> one.</td></tr>
+    <tr><td>Associative</td><td class="mono">(x∗h₁)∗h₂ = x∗(h₁∗h₂)</td><td>Two LTI systems in <strong>cascade</strong> = one system with h₁∗h₂.</td></tr>
+    <tr><td>Distributive</td><td class="mono">x∗(h₁+h₂) = x∗h₁ + x∗h₂</td><td>Two LTI systems in <strong>parallel</strong> = one system with h₁+h₂.</td></tr>
+    <tr><td>Identity</td><td class="mono">x ∗ δ = x</td><td>δ[n] is the do-nothing system.</td></tr>
+    <tr><td>Shift</td><td class="mono">x ∗ δ[n−n₀] = x[n−n₀]</td><td>Convolving with a shifted impulse just shifts.</td></tr>
+  </table>
+
+  <div class="card">
+    <span class="tag t-edge">Practical tip</span>
+    <p>Because convolution is commutative, in a hand computation always reflect and slide the <em>shorter</em> sequence — fewer terms per column, fewer chances to slip. Cascade order is also free: for <span class="m">h₁ ∗ h₂ ∗ h₃</span> you may pick whichever grouping is least painful.</p>
+  </div>
+</section>
+
+<!-- ================= 7 ================= -->
+<section role="tabpanel" data-title="Divide and conquer">
+  <h2>Why we needed convolution at all</h2>
+  <p class="sub">The strategy: solve the simplest input, decompose everything else into copies of it.</p>
+
+  <p>The ambitious problem is: given an LTI system and <em>any</em> input <span class="m">x(t)</span>, find <span class="m">y(t)</span> — systematically, without re-deriving from scratch each time.</p>
+
+  <h3>A number-theory rehearsal</h3>
+  <p>The slides warm up with: <em>how many positive factors does 72 have?</em> Testing 1…72 works but is dumb. Instead:</p>
+  <span class="eq">72 = 2³ · 3² &nbsp;⟹&nbsp; (3+1)(2+1) = 4 × 3 = <strong>12</strong> factors</span>
+  <p>The powers of 2 available are <span class="m">2⁰,2¹,2²,2³</span> — four choices; the powers of 3 are <span class="m">3⁰,3¹,3²</span> — three choices. Every factor is one choice of each.</p>
+
+  <div class="card">
+    <span class="tag t-key">The philosophy, in three lines</span>
+    <ol>
+      <li>Solve the problem for the <strong>simplest possible pieces</strong>.</li>
+      <li><strong>Break</strong> any complicated object into those pieces.</li>
+      <li><strong>Combine</strong> the small answers.</li>
+    </ol>
+  </div>
+
+  <p>Step 3 is exactly where linearity earns its keep: it is the licence to combine. Step 2 needs a decomposition; step 1 needs a "simplest input". Both are about to be supplied by the impulse.</p>
+
+  <div class="card">
+    <span class="tag t-think">Brainstorm</span>
+    <p>The same three-line philosophy is coming back twice more in this course. In Lecture 5 (Fourier series) the "simple pieces" are complex exponentials instead of impulses, and the combination is a sum of harmonics. Later, the Laplace/z-transforms swap the basis again. <em>Different basis, identical strategy.</em> If you internalise it here, those lectures become re-runs.</p>
+  </div>
+</section>
+
+<!-- ================= 8 ================= -->
+<section role="tabpanel" data-title="The impulse response">
+  <h2>The impulse and the impulse response</h2>
+  <p class="sub">Poke the system once. Watch what it does. That's the whole system.</p>
+
+  <p>The discrete-time unit impulse is zero everywhere except a single instant:</p>
+  <span class="eq">δ[n] = 1 if n = 0, &nbsp; 0 otherwise</span>
+
+  <figure id="fig-delta"></figure>
+
+  <p>Feed it into the system. Whatever comes out is called the <strong>impulse response</strong>, written <span class="m">h[n]</span>:</p>
+  <span class="eq">δ[n] &nbsp;⟶&nbsp; <strong>S</strong> &nbsp;⟶&nbsp; h[n]</span>
+
+  <p>The slides use a lovely image: poking a sleeping cat. One sharp, instantaneous input; a long, elaborate, system-specific response. That response <em>is</em> the system's signature.</p>
+
+  <h3>Example A — the toy echo room</h3>
+  <p>Shout one short "hello" in a hard-walled room; you hear it repeated, and in the idealised toy version each echo is equally loud and they never stop:</p>
+  <span class="eq">h[n] = u[n]</span>
+  <figure id="fig-echo-u"></figure>
+  <p>Note what kind of system this is: an <strong>accumulator</strong>. Convolving with <span class="m">u[n]</span> is the same as taking a running sum — which we'll see in a moment.</p>
+
+  <h3>Example B — fading echoes</h3>
+  <p>Real rooms absorb energy. Let a fraction α of the sound survive each reflection:</p>
+  <span class="eq">h[n] = αⁿ·u[n], &nbsp; 0 &lt; α &lt; 1 &nbsp;&nbsp;⟹&nbsp;&nbsp; 1, α, α², α³, …</span>
+
+  <div class="lab">
+    <div class="lab-head">
+      <span class="lab-title">Echo decay: what does α actually control?</span>
+      <span class="lab-note">α is the survival fraction per reflection</span>
+    </div>
+    <div class="ctrl">
+      <label for="alphaS">α =</label>
+      <input type="range" id="alphaS" min="5" max="98" value="70" step="1">
+      <strong id="alphaV" style="font-family:ui-monospace,monospace">0.70</strong>
+    </div>
+    <figure id="alphaFig" style="margin:6px 0"></figure>
+    <div class="readout" id="alphaRead"></div>
+  </div>
+
+  <div class="card">
+    <span class="tag t-edge">Edge cases in α — a favourite exam probe</span>
+    <ul>
+      <li><span class="m">α = 0</span>: h[n] = δ[n]. Anechoic — the do-nothing system.</li>
+      <li><span class="m">0 &lt; α &lt; 1</span>: decaying echoes. Σ|h[n]| = 1/(1−α), finite → <strong>stable</strong>.</li>
+      <li><span class="m">α = 1</span>: h[n] = u[n]. Echoes never die. Σ|h[n]| = ∞ → <strong>not</strong> BIBO stable (feed it a constant input and the output grows without bound).</li>
+      <li><span class="m">α &gt; 1</span>: echoes grow louder — an unstable, howling room.</li>
+      <li><span class="m">α &lt; 0</span>: alternating signs. Each reflection flips polarity.</li>
+    </ul>
+    <p>So the innocent toy echo system with <span class="m">h = u[n]</span> sits exactly on the stability boundary. Lecture 4 makes this precise.</p>
+  </div>
+
+  <h3>Example C — pure delay</h3>
+  <p>Suppose <span class="m">y[n] = x[n − 3]</span>. What is its impulse response? Put <span class="m">x = δ</span>: out comes <span class="m">δ[n − 3]</span>.</p>
+  <span class="eq">h[n] = δ[n − 3] &nbsp;&nbsp;&nbsp; (continuous-time: h(t) = δ(t − 3))</span>
+
+  <div class="card">
+    <span class="tag t-key">Reading a system off its h[n]</span>
+    <table style="margin-top:6px">
+      <tr><th>If h[n] is…</th><th>then the system is…</th></tr>
+      <tr><td class="mono">c·δ[n]</td><td>memoryless (a pure gain) — and these are the <em>only</em> memoryless LTI systems</td></tr>
+      <tr><td class="mono">δ[n−n₀], n₀&gt;0</td><td>a pure delay</td></tr>
+      <tr><td class="mono">zero for all n &lt; 0</td><td>causal</td></tr>
+      <tr><td class="mono">absolutely summable</td><td>BIBO stable (Lecture 4)</td></tr>
+      <tr><td class="mono">finite length</td><td>an FIR filter</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 9 ================= -->
+<section role="tabpanel" data-title="Building the bridge">
+  <h2>The bridge: from one impulse to any input</h2>
+  <p class="sub">Where convolution stops being a curiosity and becomes the input–output law of LTI systems.</p>
+
+  <h3>Step 1 — decompose the input</h3>
+  <p>Any discrete-time signal is a stack of scaled, shifted impulses. The sample value <span class="m">x[k]</span> becomes the height of an impulse sitting at <span class="m">n = k</span>:</p>
+  <span class="eq">x[n] = Σ<sub>k = −∞</sub><sup>∞</sup> x[k]·δ[n − k]</span>
+
+  <p>This identity is the <strong>sifting property</strong> read backwards, and it is exact, not an approximation. Verify it at one point: on the right-hand side, every term with <span class="m">k ≠ n</span> has <span class="m">δ[n−k] = 0</span>, so only the <span class="m">k = n</span> term survives and gives <span class="m">x[n]</span>. ✓</p>
+
+  <figure id="fig-decomp"></figure>
+
+  <h3>Step 2 — LTI tells us each piece's output</h3>
+  <div class="card">
+    <p><strong>Time-invariance:</strong> &nbsp; δ[n] → h[n] &nbsp;⟹&nbsp; δ[n − k] → h[n − k]</p>
+    <p><strong>Linearity (scaling):</strong> &nbsp; x[k]·δ[n − k] → x[k]·h[n − k]</p>
+    <p><strong>Linearity (adding):</strong> &nbsp; the sum of the pieces produces the sum of the responses.</p>
+  </div>
+
+  <h3>Step 3 — add everything up</h3>
+  <span class="eq">y[n] = Σ<sub>k = −∞</sub><sup>∞</sup> x[k]·h[n − k] = (x ∗ h)[n]</span>
+
+  <p>And there it is — the very same sliding multiply-and-add we met in polynomial multiplication, now derived as the universal input–output relation for every LTI system in existence.</p>
+
+  <h3>The lecture's concrete demonstration</h3>
+  <p>Send a four-sample input into the toy echo room (<span class="m">h = u[n]</span>):</p>
+  <span class="eq">x[n] = δ[n] + 2δ[n−1] − δ[n−2] + δ[n−3]</span>
+  <p>Each input sample launches its own scaled, shifted copy of the impulse response — four staircases — and the output is their sum:</p>
+  <span class="eq">y[n] = u[n] + 2u[n−1] − u[n−2] + u[n−3]</span>
+
+  <div class="lab">
+    <div class="lab-head">
+      <span class="lab-title">Superposition, one piece at a time</span>
+      <span class="lab-note">watch the four staircases accumulate</span>
+    </div>
+    <div class="ctrl">
+      <label for="supS">pieces included:</label>
+      <input type="range" id="supS" min="0" max="4" value="0" step="1">
+      <strong id="supV" style="font-family:ui-monospace,monospace">0</strong>
+    </div>
+    <figure id="supFig" style="margin:6px 0"></figure>
+    <div class="readout" id="supRead"></div>
+  </div>
+
+  <p>The output settles at 3 for all <span class="m">n ≥ 3</span> — which is just <span class="m">1 + 2 − 1 + 1</span>, the total of the input. Convolving with <span class="m">u[n]</span> gives the running sum, exactly as promised.</p>
+
+  <div class="card">
+    <span class="tag t-key">The bridge, in one frame</span>
+    <ol>
+      <li>Find the response to the simplest input: &nbsp;<span class="m">δ[n] → h[n]</span>.</li>
+      <li>Break any input into shifted impulses: &nbsp;<span class="m">x[n] = Σ x[k]δ[n−k]</span>.</li>
+      <li>Shift, scale, add the impulse responses: &nbsp;<span class="m">y[n] = Σ x[k]h[n−k] = (x∗h)[n]</span>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <span class="tag t-edge">Where the argument would break</span>
+    <p>Every step used exactly one property. Drop <strong>time-invariance</strong> and step 2 collapses: the response to <span class="m">δ[n−k]</span> would be some new function <span class="m">h<sub>k</sub>[n]</span> depending on <em>k</em>, and the best you get is <span class="m">y[n] = Σ x[k]h<sub>k</sub>[n]</span> — a superposition sum, not a convolution. Drop <strong>linearity</strong> and step 3 collapses entirely; there is then no formula at all. Convolution is not a general fact about systems. It is precisely the privilege of being LTI.</p>
+  </div>
+</section>
+
+<!-- ================= 10 ================= -->
+<section role="tabpanel" data-title="Continuous time">
+  <h2>The continuous-time version</h2>
+  <p class="sub">Same three steps, with the sum becoming an integral.</p>
+
+  <p>Slice a continuous signal into narrow rectangles of width Δ. Each slice is roughly an impulse of area <span class="m">x(kΔ)·Δ</span>. Let Δ → 0 and the sum becomes an integral:</p>
+  <span class="eq">x(t) = ∫<sub>−∞</sub><sup>∞</sup> x(τ)·δ(t − τ) dτ &nbsp;&nbsp;⟹&nbsp;&nbsp; y(t) = ∫<sub>−∞</sub><sup>∞</sup> x(τ)·h(t − τ) dτ</span>
+
+  <p>The procedure is unchanged — reflect <span class="m">h(τ) → h(−τ)</span>, shift it to <em>t</em>, multiply, and now <em>integrate</em> the overlap instead of summing it. The only new difficulty is bookkeeping: the limits of integration change as the sliding window enters, fully covers, and leaves the other signal, so you must split the answer into <strong>ranges of t</strong>.</p>
+
+  <div class="card">
+    <span class="tag t-exam">Canonical example — rect ∗ rect = triangle</span>
+    <p>Let <span class="m">x(t) = h(t) = 1</span> on [0, 1] and 0 elsewhere. Then:</p>
+    <ul>
+      <li><span class="m">t &lt; 0</span>: no overlap → <span class="m">y = 0</span></li>
+      <li><span class="m">0 ≤ t &lt; 1</span>: overlap length <em>t</em> → <span class="m">y = t</span></li>
+      <li><span class="m">1 ≤ t &lt; 2</span>: overlap length <span class="m">2 − t</span> → <span class="m">y = 2 − t</span></li>
+      <li><span class="m">t ≥ 2</span>: no overlap → <span class="m">y = 0</span></li>
+    </ul>
+    <p>A triangle of width 2, peak 1 at <span class="m">t = 1</span>. Note the width added (1 + 1 = 2) — the continuous analogue of the <span class="m">N+M−1</span> length rule.</p>
+  </div>
+
+  <figure id="fig-rect"></figure>
+
+  <div class="card">
+    <span class="tag t-exam">Second canonical example — step into an RC-like system</span>
+    <p><span class="m">x(t) = u(t)</span>, <span class="m">h(t) = e<sup>−t</sup>u(t)</span>. For <span class="m">t ≥ 0</span>:</p>
+    <span class="eq">y(t) = ∫<sub>0</sub><sup>t</sup> 1·e<sup>−(t−τ)</sup> dτ = e<sup>−t</sup>∫<sub>0</sub><sup>t</sup> e<sup>τ</sup> dτ = 1 − e<sup>−t</sup></span>
+    <p>The classic charging curve. This is the continuous cousin of the geometric-decay echo of section 8, and the reason <span class="m">αⁿu[n]</span> and <span class="m">e<sup>−at</sup>u(t)</span> should feel like the same animal to you.</p>
+  </div>
+
+  <div class="card">
+    <span class="tag t-edge">Two traps in continuous convolution</span>
+    <ul>
+      <li>The integration variable is <strong>τ</strong>, not <em>t</em>. Inside the integral <em>t</em> is a constant. Students routinely integrate <span class="m">e<sup>−t</sup></span> with respect to <em>t</em> and lose everything.</li>
+      <li>The limits are set by the <em>overlap</em>, not by the formula's own limits. Draw the two pictures — <span class="m">x(τ)</span> and <span class="m">h(t−τ)</span> on a τ-axis — before writing any integral. Every mark in these questions lives in that sketch.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 11 ================= -->
+<section role="tabpanel" data-title="Exam corner">
+  <h2>Exam corner</h2>
+  <p class="sub">The questions this lecture generates, and how they're marked.</p>
+
+  <h3>Question types, ranked by frequency</h3>
+  <table>
+    <tr><th>Type</th><th>What to write</th></tr>
+    <tr><td>"Determine whether the system is linear / time-invariant / both."</td><td>Two-column test for linearity; Path A vs Path B for TI. Counterexample if it fails.</td></tr>
+    <tr><td>"Compute y[n] = x[n] ∗ h[n] for the given sequences."</td><td>Table or sliding method; then run all three sanity checks and state them.</td></tr>
+    <tr><td>"Find the impulse response of the described system."</td><td>Set x = δ and read off the output.</td></tr>
+    <tr><td>"Two systems in cascade / parallel — find the overall h."</td><td>Cascade: h₁∗h₂. Parallel: h₁+h₂.</td></tr>
+    <tr><td>"Evaluate a continuous convolution."</td><td>Sketch x(τ) and h(t−τ); split into ranges of t; integrate each.</td></tr>
+    <tr><td>"Prove convolution is commutative / associative."</td><td>Substitute m = n−k and re-index.</td></tr>
+  </table>
+
+  <h3>The ten mistakes that cost marks</h3>
+  <ol>
+    <li>Calling <span class="m">y = 2x + 3</span> linear.</li>
+    <li>Proving linearity with one specific pair of signals instead of arbitrary ones.</li>
+    <li>Forgetting to reflect before sliding — computing correlation instead of convolution.</li>
+    <li>Getting the output's <em>start index</em> wrong. If x starts at −2 and h at 1, y starts at −1, not 0.</li>
+    <li>Producing an output of the wrong length (should be <span class="m">N + M − 1</span>).</li>
+    <li>Substituting <span class="m">t → t − t₀</span> in only some of the places <em>t</em> appears.</li>
+    <li>Assuming linear ⟹ time-invariant (or the reverse). They are independent.</li>
+    <li>Integrating over <em>t</em> instead of <em>τ</em> in continuous convolution.</li>
+    <li>Using a single set of integration limits across all ranges of <em>t</em>.</li>
+    <li>Applying convolution to a non-LTI system. The formula simply does not hold there.</li>
+  </ol>
+
+  <div class="card">
+    <span class="tag t-think">Deeper questions to chew on</span>
+    <ul>
+      <li>Convolution smears things out; can an LTI system ever <em>sharpen</em> a signal? (Consider <span class="m">h = {1, −1}</span> — a differencing filter. Yes, but only by cancellation.)</li>
+      <li>Is there an LTI system that undoes a given one? That would need <span class="m">h ∗ h<sub>inv</sub> = δ</span> — an <em>inverse system</em>. Try it for the delay (easy) and then for <span class="m">h = u[n]</span> (answer: the differencer <span class="m">δ[n] − δ[n−1]</span>).</li>
+      <li>Why does the impulse work as a probe at all? Because it contains "all frequencies equally" — a claim you can only really justify after Fourier, in Lecture 5. Keep the question warm.</li>
+      <li>Convolving two length-<em>N</em> sequences costs <span class="m">O(N²)</span> multiplications. The FFT will reduce this to <span class="m">O(N log N)</span> — one of the most consequential algorithms of the twentieth century, and it exists precisely because of the polynomial identity in section 5.</li>
+    </ul>
+  </div>
+
+  <h3>One-line summary of the lecture</h3>
+  <blockquote>An LTI system is completely described by its impulse response, and the output for any input is the convolution of the input with that impulse response.</blockquote>
+</section>
+
+<!-- ================= 12 ================= -->
+<section role="tabpanel" data-title="Self-check">
+  <h2>Self-check</h2>
+  <p class="sub">Twelve questions. Answer before revealing; the explanation matters more than the score.</p>
+  <p id="score">0 answered · 0 correct</p>
+  <div id="quiz"></div>
+  <div class="ctrl"><button class="btn ghost" id="quizReset">Reset quiz</button></div>
+</section>
+
+</main>
+</div>
+
+<script>
+/* ============ tiny SVG helpers ============ */
+const NS = "http://www.w3.org/2000/svg";
+const C = {ink:"#23211d", soft:"#57534b", rule:"#cfc7b6", navy:"#1e4557",
+           brick:"#8c3b2e", olive:"#5d6b3a", gold:"#a8802b", paper:"#fffdf8"};
+
+function stemPlot(data, o){
+  o = Object.assign({w:640,h:190,pad:34,color:C.navy,label:"",showVals:false,
+                     ymin:null,ymax:null,dashed:false}, o||{});
+  const ns = data.map(d=>d.n);
+  const vs = data.map(d=>d.v);
+  const nMin = Math.min(...ns), nMax = Math.max(...ns);
+  let vMax = o.ymax!==null?o.ymax:Math.max(0.001, ...vs, 0);
+  let vMin = o.ymin!==null?o.ymin:Math.min(0, ...vs);
+  if(vMax===vMin) vMax = vMin+1;
+  const W=o.w,H=o.h,P=o.pad;
+  const X = n => P + (n-nMin)/(Math.max(1,nMax-nMin))*(W-2*P);
+  const pad = (vMax-vMin)*0.15;
+  const Y = v => (H-24) - (v-(vMin-pad))/((vMax+pad)-(vMin-pad))*(H-44);
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" font-family="ui-monospace,Menlo,monospace" font-size="11">`;
+  s += `<line x1="${P-12}" y1="${Y(0)}" x2="${W-P+12}" y2="${Y(0)}" stroke="${C.rule}" stroke-width="1.2"/>`;
+  for(let n=nMin;n<=nMax;n++){
+    s += `<text x="${X(n)}" y="${H-6}" fill="${C.soft}" text-anchor="middle">${n}</text>`;
+    s += `<line x1="${X(n)}" y1="${Y(0)-3}" x2="${X(n)}" y2="${Y(0)+3}" stroke="${C.rule}"/>`;
+  }
+  data.forEach(d=>{
+    if(Math.abs(d.v)<1e-9) return;
+    const col = d.color || o.color;
+    s += `<line x1="${X(d.n)}" y1="${Y(0)}" x2="${X(d.n)}" y2="${Y(d.v)}" stroke="${col}" stroke-width="2"${o.dashed?' stroke-dasharray="3 3"':''}/>`;
+    s += `<circle cx="${X(d.n)}" cy="${Y(d.v)}" r="3.6" fill="${col}"/>`;
+    if(o.showVals) s += `<text x="${X(d.n)}" y="${Y(d.v)+(d.v>=0?-8:15)}" fill="${col}" text-anchor="middle" font-size="10.5">${(+d.v.toFixed(2))}</text>`;
+  });
+  if(o.label) s += `<text x="${P-14}" y="16" fill="${C.soft}" font-style="italic" font-size="12">${o.label}</text>`;
+  s += `</svg>`;
+  return s;
+}
+
+/* ============ static figures ============ */
+document.getElementById('fig-sysbox').innerHTML = `
+<svg viewBox="0 0 660 150" xmlns="${NS}" font-family="Georgia,serif" font-size="13">
+  <text x="60" y="20" fill="${C.soft}" font-style="italic" text-anchor="middle">whole input signal</text>
+  <path d="M10 100 L40 100 L40 60 L75 60 L75 100 L110 100" fill="none" stroke="${C.navy}" stroke-width="2"/>
+  <line x1="5" y1="100" x2="115" y2="100" stroke="${C.rule}"/>
+  <path d="M130 80 L185 80" stroke="${C.ink}" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="195" y="52" width="110" height="56" fill="${C.paper}" stroke="${C.ink}" stroke-width="1.6"/>
+  <text x="250" y="78" text-anchor="middle" font-size="19" font-style="italic">S</text>
+  <text x="250" y="96" text-anchor="middle" font-size="11" fill="${C.soft}">system</text>
+  <path d="M315 80 L370 80" stroke="${C.ink}" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="480" y="20" fill="${C.soft}" font-style="italic" text-anchor="middle">whole output signal</text>
+  <path d="M390 100 Q420 100 432 74 Q444 48 462 62 Q480 76 500 96 Q520 112 560 100" fill="none" stroke="${C.brick}" stroke-width="2"/>
+  <line x1="385" y1="100" x2="565" y2="100" stroke="${C.rule}"/>
+  <text x="60" y="128" text-anchor="middle" font-style="italic">x(t)</text>
+  <text x="475" y="128" text-anchor="middle" font-style="italic">y(t)</text>
+  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+    <path d="M0,0 L8,3 L0,6 z" fill="${C.ink}"/></marker></defs>
+</svg>`;
+
+document.getElementById('fig-lin').innerHTML = `
+<svg viewBox="0 0 660 210" xmlns="${NS}" font-family="Georgia,serif" font-size="12.5">
+  <g>
+    <text x="10" y="18" fill="${C.soft}" font-style="italic">scaling</text>
+    <text x="45" y="52" text-anchor="middle">x(t)</text>
+    <path d="M75 47 L130 47" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <rect x="140" y="30" width="52" height="34" fill="${C.paper}" stroke="${C.ink}"/><text x="166" y="53" text-anchor="middle" font-style="italic">S</text>
+    <path d="M202 47 L257 47" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <text x="290" y="52" text-anchor="middle">y(t)</text>
+    <text x="45" y="112" text-anchor="middle" fill="${C.brick}">2x(t)</text>
+    <path d="M85 107 L130 107" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <rect x="140" y="90" width="52" height="34" fill="${C.paper}" stroke="${C.ink}"/><text x="166" y="113" text-anchor="middle" font-style="italic">S</text>
+    <path d="M202 107 L257 107" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <text x="292" y="112" text-anchor="middle" fill="${C.brick}">2y(t)</text>
+  </g>
+  <line x1="345" y1="10" x2="345" y2="200" stroke="${C.rule}"/>
+  <g transform="translate(370,0)">
+    <text x="5" y="18" fill="${C.soft}" font-style="italic">superposition</text>
+    <text x="45" y="52" text-anchor="middle">x₁+x₂</text>
+    <path d="M92 47 L140 47" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <rect x="150" y="30" width="52" height="34" fill="${C.paper}" stroke="${C.ink}"/><text x="176" y="53" text-anchor="middle" font-style="italic">S</text>
+    <path d="M212 47 L255 47" stroke="${C.ink}" marker-end="url(#a2)"/>
+    <text x="278" y="52" text-anchor="middle" fill="${C.olive}">y₁+y₂</text>
+    <text x="140" y="105" text-anchor="middle" fill="${C.soft}" font-style="italic" font-size="12">the pieces never interact:</text>
+    <text x="140" y="126" text-anchor="middle" font-size="12.5">x₁ → y₁ &#160;&#160; and &#160;&#160; x₂ → y₂</text>
+    <text x="140" y="150" text-anchor="middle" font-size="12.5">separately, then just add</text>
+  </g>
+  <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="2.7" orient="auto">
+    <path d="M0,0 L7,2.7 L0,5.4 z" fill="${C.ink}"/></marker></defs>
+</svg>`;
+
+document.getElementById('fig-ti').innerHTML = `
+<svg viewBox="0 0 660 200" xmlns="${NS}" font-family="Georgia,serif" font-size="12.5">
+  <line x1="30" y1="70" x2="290" y2="70" stroke="${C.rule}"/>
+  <path d="M60 70 L60 34 L90 34 L90 70" fill="none" stroke="${C.navy}" stroke-width="2"/>
+  <text x="30" y="90" fill="${C.soft}" font-size="11">x(t)</text>
+  <line x1="30" y1="160" x2="290" y2="160" stroke="${C.rule}"/>
+  <path d="M150 160 L150 124 L180 124 L180 160" fill="none" stroke="${C.navy}" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="30" y="180" fill="${C.soft}" font-size="11">x(t − t₀)</text>
+  <path d="M75 78 L75 116" stroke="${C.gold}" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <path d="M75 116 L160 116" stroke="${C.gold}" stroke-width="1.2" marker-end="url(#a3)"/>
+  <text x="118" y="110" fill="${C.gold}" font-size="11" text-anchor="middle">delay t₀</text>
+  <rect x="310" y="88" width="46" height="34" fill="${C.paper}" stroke="${C.ink}"/><text x="333" y="111" text-anchor="middle" font-style="italic">S</text>
+  <path d="M292 60 L308 92" stroke="${C.ink}" marker-end="url(#a3)"/>
+  <path d="M292 152 L308 120" stroke="${C.ink}" marker-end="url(#a3)"/>
+  <path d="M358 96 L378 66" stroke="${C.ink}" marker-end="url(#a3)"/>
+  <path d="M358 116 L378 146" stroke="${C.ink}" marker-end="url(#a3)"/>
+  <line x1="390" y1="70" x2="640" y2="70" stroke="${C.rule}"/>
+  <path d="M410 70 Q425 32 445 52 Q462 68 490 70" fill="none" stroke="${C.brick}" stroke-width="2"/>
+  <text x="600" y="60" fill="${C.soft}" font-size="11" text-anchor="end">y(t)</text>
+  <line x1="390" y1="160" x2="640" y2="160" stroke="${C.rule}"/>
+  <path d="M500 160 Q515 122 535 142 Q552 158 580 160" fill="none" stroke="${C.brick}" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="620" y="150" fill="${C.soft}" font-size="11" text-anchor="end">y(t − t₀)</text>
+  <text x="470" y="192" fill="${C.olive}" font-size="12" font-style="italic" text-anchor="middle">same shape — only the position moved</text>
+  <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="7" refY="2.7" orient="auto">
+    <path d="M0,0 L7,2.7 L0,5.4 z" fill="${C.ink}"/></marker></defs>
+</svg>`;
+
+/* criss-cross figure */
+(function(){
+  const a=[1,3,2,5,4], b=[2,-1,4,1,3];
+  const X=i=>70+i*110;
+  let s=`<svg viewBox="0 0 660 200" xmlns="${NS}" font-family="ui-monospace,Menlo,monospace" font-size="13">`;
+  s+=`<text x="12" y="48" fill="${C.soft}" font-family="Georgia,serif" font-style="italic">a[k]</text>`;
+  s+=`<text x="12" y="150" fill="${C.soft}" font-family="Georgia,serif" font-style="italic">b[k]</text>`;
+  a.forEach((v,i)=>{ s+=`<rect x="${X(i)-22}" y="26" width="44" height="30" fill="${C.paper}" stroke="${C.navy}"/><text x="${X(i)}" y="47" text-anchor="middle" fill="${C.navy}">${v}</text><text x="${X(i)}" y="70" text-anchor="middle" fill="${C.soft}" font-size="10.5">a${i}</text>`;});
+  b.forEach((v,i)=>{ s+=`<rect x="${X(i)-22}" y="128" width="44" height="30" fill="${C.paper}" stroke="${C.brick}"/><text x="${X(i)}" y="149" text-anchor="middle" fill="${C.brick}">${v}</text><text x="${X(i)}" y="174" text-anchor="middle" fill="${C.soft}" font-size="10.5">b${i}</text>`;});
+  for(let i=0;i<5;i++){ s+=`<line x1="${X(i)}" y1="60" x2="${X(4-i)}" y2="124" stroke="${C.gold}" stroke-width="1.1" opacity=".85"/>`;}
+  s+=`<text x="330" y="16" text-anchor="middle" fill="${C.gold}" font-family="Georgia,serif" font-style="italic" font-size="12.5">every line joins a pair of indices summing to 4</text>`;
+  s+=`</svg>`;
+  document.getElementById('fig-crisscross').innerHTML = s;
+  document.getElementById('fig-crisscross').insertAdjacentHTML('beforeend',
+    '<figcaption>The five criss-crossed pairings that build the z⁴ coefficient.</figcaption>');
+})();
+
+document.getElementById('fig-delta').innerHTML =
+  stemPlot([-5,-4,-3,-2,-1,0,1,2,3,4,5].map(n=>({n, v:n===0?1:0})),
+           {h:150,label:"δ[n]",showVals:false}) +
+  '<figcaption>Zero everywhere except one instant — the simplest possible non-trivial signal.</figcaption>';
+
+document.getElementById('fig-echo-u').innerHTML =
+  stemPlot([-4,-3,-2,-1,0,1,2,3,4,5,6].map(n=>({n, v:n>=0?1:0})),
+           {h:150,label:"h[n] = u[n]",color:C.brick}) +
+  '<figcaption>One short "hello" produces endless equal echoes — the idealised toy room.</figcaption>';
+
+/* decomposition figure */
+(function(){
+  const x=[1,2,-1,1];
+  let s = `<svg viewBox="0 0 660 210" xmlns="${NS}" font-family="Georgia,serif" font-size="12">`;
+  const bx=(i)=>25+i*160;
+  x.forEach((v,i)=>{
+    s+=`<g transform="translate(${bx(i)},0)">`;
+    s+=`<line x1="0" y1="120" x2="130" y2="120" stroke="${C.rule}"/>`;
+    const px=20+i*24, py=120-v*38;
+    s+=`<line x1="${px}" y1="120" x2="${px}" y2="${py}" stroke="${C.navy}" stroke-width="2"/><circle cx="${px}" cy="${py}" r="3.6" fill="${C.navy}"/>`;
+    const lbl = (v===1? '' : (v===-1?'−':v)) + `δ[n${i?'−'+i:''}]`;
+    s+=`<text x="65" y="150" text-anchor="middle" fill="${C.soft}" font-style="italic">${lbl}</text>`;
+    s+=`</g>`;
+  });
+  s+=`<text x="330" y="182" text-anchor="middle" fill="${C.olive}" font-style="italic">stack them and you recover x[n] exactly</text>`;
+  s+=`</svg>`;
+  document.getElementById('fig-decomp').innerHTML = s +
+    '<figcaption>Any sequence is a sum of scaled, shifted impulses — one per sample.</figcaption>';
+})();
+
+/* rect * rect figure */
+(function(){
+  const W=660,H=180;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" font-family="Georgia,serif" font-size="12">`;
+  s+=`<g transform="translate(20,0)">
+    <line x1="0" y1="110" x2="170" y2="110" stroke="${C.rule}"/>
+    <path d="M30 110 L30 55 L90 55 L90 110" fill="none" stroke="${C.navy}" stroke-width="2"/>
+    <text x="85" y="140" text-anchor="middle" fill="${C.soft}" font-style="italic">x(t) = rect on [0,1]</text>
+    <text x="26" y="126" fill="${C.soft}" font-size="10.5">0</text><text x="86" y="126" fill="${C.soft}" font-size="10.5">1</text></g>`;
+  s+=`<text x="215" y="88" font-size="22">∗</text>`;
+  s+=`<g transform="translate(240,0)">
+    <line x1="0" y1="110" x2="170" y2="110" stroke="${C.rule}"/>
+    <path d="M30 110 L30 55 L90 55 L90 110" fill="none" stroke="${C.brick}" stroke-width="2"/>
+    <text x="85" y="140" text-anchor="middle" fill="${C.soft}" font-style="italic">h(t) = rect on [0,1]</text>
+    <text x="26" y="126" fill="${C.soft}" font-size="10.5">0</text><text x="86" y="126" fill="${C.soft}" font-size="10.5">1</text></g>`;
+  s+=`<text x="435" y="88" font-size="20">=</text>`;
+  s+=`<g transform="translate(460,0)">
+    <line x1="0" y1="110" x2="180" y2="110" stroke="${C.rule}"/>
+    <path d="M25 110 L85 55 L145 110" fill="none" stroke="${C.olive}" stroke-width="2.2"/>
+    <text x="85" y="140" text-anchor="middle" fill="${C.soft}" font-style="italic">triangle, width 2</text>
+    <text x="21" y="126" fill="${C.soft}" font-size="10.5">0</text><text x="82" y="126" fill="${C.soft}" font-size="10.5">1</text><text x="142" y="126" fill="${C.soft}" font-size="10.5">2</text>
+    <text x="92" y="50" fill="${C.olive}" font-size="10.5">peak 1</text></g>`;
+  s+=`</svg>`;
+  document.getElementById('fig-rect').innerHTML = s +
+    '<figcaption>Overlap grows linearly, then shrinks linearly. Widths add: 1 + 1 = 2.</figcaption>';
+})();
+
+/* ============ system classification bench ============ */
+const BENCH = [
+  {r:"y[n] = 3x[n] − 2x[n−1]", L:1, T:1, why:"Every term is a constant multiple of a shifted input. Linear and time-invariant — an LTI (FIR) filter."},
+  {r:"y(t) = 2x(t) + 3", L:0, T:1, why:"Zero input gives 3 — homogeneity fails. Shifting the input does shift the output, so it is time-invariant. Incrementally linear."},
+  {r:"y[n] = x[n]²", L:0, T:1, why:"(x₁+x₂)² ≠ x₁²+x₂². Nonlinear. But the rule contains no explicit n, so it is time-invariant."},
+  {r:"y(t) = t·x(t)", L:1, T:0, why:"Linear (t factors out of any combination) but the multiplier is anchored to absolute time: (t−t₀)x(t−t₀) ≠ t·x(t−t₀)."},
+  {r:"y[n] = x[2n]", L:1, T:0, why:"Linear, but delaying the input by n₀ delays the output by only n₀ while the output-delayed version needs 2n₀. Time-scaling always breaks TI."},
+  {r:"y(t) = x(−t)", L:1, T:0, why:"Linear. Reflection is not time-invariant: reflecting a delayed signal gives an advance, not a delay."},
+  {r:"y[n] = Σ<sub>k≤n</sub> x[k]", L:1, T:1, why:"The accumulator. Summation is linear; no explicit n appears. LTI, with h[n] = u[n] — our toy echo room."},
+  {r:"y(t) = cos(x(t))", L:0, T:1, why:"Zero in gives 1 out; also cos is nonlinear. Time-invariant, since the rule has no explicit t."},
+  {r:"y[n] = x[n]·cos(2πn/8)", L:1, T:0, why:"Linear (multiplication by a fixed sequence). Not TI — the modulating cosine is locked to absolute n. This is a modulator."},
+  {r:"y[n] = x[n−2] + x[n+2]", L:1, T:1, why:"LTI, and non-causal: it uses future samples. Note that LTI says nothing about causality."}
+];
+(function(){
+  const el = document.getElementById('bench');
+  el.innerHTML = BENCH.map((b,i)=>`
+    <div style="border-top:1px solid var(--rule);padding:11px 0">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+        <span class="m" style="font-size:14px">${b.r}</span>
+        <button class="btn ghost" data-b="${i}" style="font-size:12.5px;padding:4px 10px">Reveal</button>
+      </div>
+      <div class="expl" id="bx${i}">
+        <strong>Linear:</strong> <span class="${b.L?'yes':'no'}">${b.L?'yes ✓':'no ✗'}</span> &nbsp;·&nbsp;
+        <strong>Time-invariant:</strong> <span class="${b.T?'yes':'no'}">${b.T?'yes ✓':'no ✗'}</span> &nbsp;·&nbsp;
+        <strong>${b.L&&b.T?'LTI':'not LTI'}</strong><br>${b.why}
+      </div>
+    </div>`).join('');
+  el.addEventListener('click', e=>{
+    const i = e.target.dataset.b; if(i===undefined) return;
+    document.getElementById('bx'+i).classList.toggle('show');
+  });
+  document.getElementById('benchReset').onclick = ()=>
+    el.querySelectorAll('.expl').forEach(x=>x.classList.remove('show'));
+})();
+
+/* ============ convolution bench ============ */
+const xs=[1,2,1,1], hs=[1,1,-1,2];
+const kMin=-3, kMax=6;
+function renderConv(n){
+  const cell=52, left=54;
+  const W = left + (kMax-kMin+1)*cell + 16;
+  let s=`<svg viewBox="0 0 ${W} 188" width="${W}" xmlns="${NS}" font-family="ui-monospace,Menlo,monospace" font-size="13">`;
+  s+=`<text x="6" y="24" fill="${C.soft}" font-size="11">k</text>`;
+  for(let k=kMin;k<=kMax;k++){
+    const cx = left+(k-kMin)*cell+cell/2;
+    s+=`<text x="${cx}" y="24" text-anchor="middle" fill="${C.soft}" font-size="11">${k}</text>`;
+  }
+  s+=`<text x="6" y="60" fill="${C.navy}" font-size="12">x[k]</text>`;
+  s+=`<text x="6" y="112" fill="${C.brick}" font-size="12">h[${n}−k]</text>`;
+  let terms=[], total=0;
+  for(let k=kMin;k<=kMax;k++){
+    const cx = left+(k-kMin)*cell+cell/2;
+    const xv = (k>=0&&k<4)? xs[k] : null;
+    const hi = n-k;
+    const hv = (hi>=0&&hi<4)? hs[hi] : null;
+    const both = xv!==null && hv!==null;
+    if(both){
+      s+=`<rect x="${cx-cell/2+2}" y="34" width="${cell-4}" height="94" fill="${C.gold}" opacity=".13"/>`;
+      terms.push(`${xv}·(${hv})`); total += xv*hv;
+    }
+    if(xv!==null){
+      s+=`<rect x="${cx-20}" y="40" width="40" height="28" fill="${C.paper}" stroke="${C.navy}" stroke-width="${both?1.8:1}"/>`;
+      s+=`<text x="${cx}" y="60" text-anchor="middle" fill="${C.navy}">${xv}</text>`;
+    }
+    if(hv!==null){
+      s+=`<rect x="${cx-20}" y="92" width="40" height="28" fill="${C.paper}" stroke="${C.brick}" stroke-width="${both?1.8:1}"/>`;
+      s+=`<text x="${cx}" y="112" text-anchor="middle" fill="${C.brick}">${hv}</text>`;
+    }
+    if(both){
+      s+=`<text x="${cx}" y="146" text-anchor="middle" fill="${C.gold}" font-size="12">${xv*hv}</text>`;
+    }
+  }
+  s+=`<text x="6" y="146" fill="${C.gold}" font-size="11">×</text>`;
+  s+=`<line x1="${left-6}" y1="158" x2="${W-8}" y2="158" stroke="${C.rule}"/>`;
+  s+=`<text x="${left-6}" y="178" fill="${C.ink}" font-size="13">y[${n}] = ${terms.length? total : 0}</text>`;
+  s+=`</svg>`;
+  document.getElementById('convGrid').innerHTML = s;
+  document.getElementById('convCalc').textContent =
+    terms.length ? `y[${n}] = ${terms.join(' + ').replace(/\+ (\d+)·\(-/g,'+ $1·(-')} = ${total}`
+                 : `y[${n}] = 0   (no overlap — the reflected h has not reached x yet, or has passed it)`;
+  const full=[];
+  for(let m=0;m<=6;m++){
+    let t=0; for(let k=0;k<4;k++){ const j=m-k; if(j>=0&&j<4) t+=xs[k]*hs[j]; }
+    full.push({n:m, v:t, color: m===n? C.brick : C.navy});
+  }
+  const shown = full.map(d=> (d.n<=n? d : {n:d.n, v:0}));
+  document.getElementById('convOut').innerHTML =
+    stemPlot(shown, {h:170, showVals:true, ymin:-0.5, ymax:4.5,
+      label:`y[n] computed up to n = ${n}`}) +
+    '<figcaption>Output samples appear one at a time as the reflected copy slides through.</figcaption>';
+  document.getElementById('nVal').textContent = n;
+}
+const nSlider=document.getElementById('nSlider');
+nSlider.addEventListener('input', ()=>renderConv(+nSlider.value));
+renderConv(0);
+let timer=null;
+document.getElementById('playConv').onclick = function(){
+  if(timer){clearInterval(timer); timer=null; this.textContent='Animate'; return;}
+  this.textContent='Stop';
+  let n=-1; nSlider.value=n; renderConv(n);
+  timer=setInterval(()=>{
+    n++; if(n>7){ clearInterval(timer); timer=null;
+      document.getElementById('playConv').textContent='Animate'; return; }
+    nSlider.value=n; renderConv(n);
+  }, 850);
+};
+
+/* ============ alpha echo lab ============ */
+const aS=document.getElementById('alphaS');
+function renderAlpha(){
+  const a = +aS.value/100;
+  document.getElementById('alphaV').textContent = a.toFixed(2);
+  const d=[]; for(let n=-1;n<=12;n++) d.push({n, v: n>=0? Math.pow(a,n):0});
+  document.getElementById('alphaFig').innerHTML =
+    stemPlot(d,{h:180,color:C.brick,showVals:false,ymin:0,ymax:1,label:`h[n] = αⁿ u[n]`});
+  const sum = 1/(1-a);
+  const half = Math.log(0.5)/Math.log(a);
+  document.getElementById('alphaRead').textContent =
+    `Σ|h[n]| = 1/(1−α) = ${sum.toFixed(2)}   ·   echo falls to half strength after ≈ ${half.toFixed(1)} reflections   ·   ${a<1?'stable':'unstable'}`;
+}
+aS.addEventListener('input', renderAlpha); renderAlpha();
+
+/* ============ superposition lab ============ */
+const supS=document.getElementById('supS');
+const pieces=[{k:0,a:1},{k:1,a:2},{k:2,a:-1},{k:3,a:1}];
+function renderSup(){
+  const m=+supS.value;
+  document.getElementById('supV').textContent = m;
+  const d=[];
+  for(let n=-1;n<=7;n++){
+    let v=0;
+    for(let i=0;i<m;i++){ if(n>=pieces[i].k) v+=pieces[i].a; }
+    d.push({n,v});
+  }
+  document.getElementById('supFig').innerHTML =
+    stemPlot(d,{h:180,showVals:true,ymin:-1.2,ymax:3.6,color:C.olive,
+      label: m===0? 'nothing added yet' : `y[n] after adding ${m} of 4 staircase${m>1?'s':''}`});
+  const names=['u[n]','2u[n−1]','−u[n−2]','u[n−3]'];
+  document.getElementById('supRead').textContent =
+    m===0 ? 'y[n] = 0   ·   move the slider to add one scaled, shifted impulse response at a time'
+          : 'y[n] = ' + names.slice(0,m).join(' + ').replace(/\+ −/g,'− ');
+}
+supS.addEventListener('input', renderSup); renderSup();
+
+/* ============ quiz ============ */
+const QS=[
+ {q:"Is y(t) = 5x(t) + 2 a linear system?", o:["Yes — it is an affine (straight-line) rule","No — zero input does not give zero output","Yes, but only for positive inputs","Cannot be determined"], a:1,
+  e:"Homogeneity with a = 0 demands zero-in ⟹ zero-out. Here 0 in gives 2 out. It is incrementally linear, not linear."},
+ {q:"y[n] = n·x[n]. Which is true?", o:["Linear and time-invariant","Linear, not time-invariant","Time-invariant, not linear","Neither"], a:1,
+  e:"Linear: n factors out of any combination. Not TI: delaying the input gives n·x[n−n₀], while delaying the output gives (n−n₀)·x[n−n₀]."},
+ {q:"x[n] has length 6 and h[n] has length 9. How many samples does y = x∗h have?", o:["15","14","54","9"], a:1,
+  e:"N + M − 1 = 6 + 9 − 1 = 14."},
+ {q:"x[n] is nonzero on 2 ≤ n ≤ 5, h[n] on −1 ≤ n ≤ 1. The support of y is:", o:["2 ≤ n ≤ 5","1 ≤ n ≤ 6","−1 ≤ n ≤ 5","0 ≤ n ≤ 6"], a:1,
+  e:"Start indices add (2 + (−1) = 1), end indices add (5 + 1 = 6). Length 6 = 4 + 3 − 1 ✓"},
+ {q:"What is x[n] ∗ δ[n − 4]?", o:["x[n]","x[n−4]","x[n+4]","4x[n]"], a:1,
+  e:"Convolving with a shifted impulse shifts the signal by the same amount. This also confirms h[n] = δ[n−4] describes a pure 4-sample delay."},
+ {q:"Two LTI systems with impulse responses h₁ and h₂ are connected in cascade. The overall impulse response is:", o:["h₁ + h₂","h₁ ∗ h₂","h₁ · h₂","h₁ / h₂"], a:1,
+  e:"Cascade ⟹ convolve (by associativity). Parallel ⟹ add (by distributivity). Do not confuse the two."},
+ {q:"Σx[n] = 4 and Σh[n] = −3. Then Σy[n] equals:", o:["1","−12","−3","cannot be found without the full sequences"], a:1,
+  e:"Setting z = 1 in the polynomial picture: the total of a convolution is the product of the totals. 4 × (−3) = −12. A free sanity check on every hand computation."},
+ {q:"An LTI system has h[n] = δ[n] − δ[n−1]. What does it do?", o:["Accumulates the input","Takes the first difference of the input","Delays by one sample","Doubles the input"], a:1,
+  e:"y[n] = x[n] − x[n−1] — the discrete differentiator. It is exactly the inverse of the accumulator h = u[n]: convolving them gives δ[n]."},
+ {q:"Which impulse response corresponds to a memoryless LTI system?", o:["h[n] = u[n]","h[n] = c·δ[n]","h[n] = δ[n−1]","h[n] = 0.5ⁿ u[n]"], a:1,
+  e:"y[n] must depend on x[n] alone, so h must be concentrated at n = 0. c·δ[n] gives y[n] = c·x[n] — and these are the only memoryless LTI systems."},
+ {q:"Why is the convolution formula valid only for LTI systems?", o:["It holds for all systems, LTI is just convenient","Time-invariance makes the response to δ[n−k] a shifted h, and linearity lets the pieces be added","Only causal systems admit an impulse response","Because δ[n] is not defined for nonlinear systems"], a:1,
+  e:"Both properties are used exactly once. Without TI you get y[n] = Σ x[k]h_k[n] — a superposition sum, not a convolution. Without linearity you get no formula at all."},
+ {q:"In the continuous convolution ∫x(τ)h(t−τ)dτ, the variable t is:", o:["The variable of integration","A constant during the integration; the limits depend on it","Always equal to τ","Irrelevant to the limits"], a:1,
+  e:"τ is integrated over; t is a parameter that positions the reflected h and therefore determines the overlap — which is exactly what sets the limits."},
+ {q:"Convolving rect on [0,1] with rect on [0,2] gives a shape of total width:", o:["2","3","1","4"], a:1,
+  e:"Widths add: 1 + 2 = 3. The result is a trapezoid (flat top of length 1), not a triangle — a triangle only appears when the two widths are equal."}
+];
+(function(){
+  let answered=0, correct=0;
+  const el=document.getElementById('quiz');
+  function draw(){
+    el.innerHTML = QS.map((q,i)=>`
+      <div class="q" data-q="${i}">
+        <p class="stem">${i+1}. ${q.q}</p>
+        ${q.o.map((o,j)=>`<button class="opt" data-i="${i}" data-j="${j}">${String.fromCharCode(65+j)}. ${o}</button>`).join('')}
+        <div class="expl" id="qe${i}">${q.e}</div>
+      </div>`).join('');
+  }
+  draw();
+  el.addEventListener('click', e=>{
+    const b=e.target.closest('.opt'); if(!b) return;
+    const i=+b.dataset.i, j=+b.dataset.j;
+    const box=el.querySelector(`.q[data-q="${i}"]`);
+    if(box.dataset.done) return;
+    box.dataset.done="1"; answered++;
+    if(j===QS[i].a) correct++;
+    box.querySelectorAll('.opt').forEach((o,k)=>{
+      if(k===QS[i].a) o.classList.add('right');
+      else if(k===j) o.classList.add('wrong');
+    });
+    document.getElementById('qe'+i).classList.add('show');
+    document.getElementById('score').textContent =
+      `${answered} answered · ${correct} correct`;
+  });
+  document.getElementById('quizReset').onclick=()=>{
+    answered=0;correct=0;draw();
+    document.getElementById('score').textContent='0 answered · 0 correct';
+  };
+})();
+
+/* ============ tabs ============ */
+(function(){
+  const panels=[...document.querySelectorAll('section[role="tabpanel"]')];
+  const strip=document.getElementById('tabs');
+  panels.forEach((p,i)=>{
+    p.id='p'+i;
+    const b=document.createElement('button');
+    b.className='tab'; b.setAttribute('role','tab'); b.id='t'+i;
+    b.setAttribute('aria-controls','p'+i);
+    b.innerHTML=`<span class="num">${String(i+1).padStart(2,'0')}</span>${p.dataset.title}`;
+    b.onclick=()=>select(i);
+    strip.appendChild(b);
+  });
+  const toggle=document.getElementById('navToggle');
+  const mobile=()=>window.matchMedia('(max-width:860px)').matches;
+  toggle.onclick=()=>{
+    const open=strip.classList.toggle('open');
+    toggle.setAttribute('aria-expanded',open);
+  };
+  function select(i){
+    panels.forEach((p,k)=>p.classList.toggle('on',k===i));
+    strip.querySelectorAll('.tab').forEach((t,k)=>t.setAttribute('aria-selected',k===i));
+    toggle.textContent = panels[i].dataset.title;
+    if(mobile()){ strip.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); }
+    else strip.children[i].scrollIntoView({block:'nearest',inline:'nearest'});
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  select(0);
+})();
+</script>

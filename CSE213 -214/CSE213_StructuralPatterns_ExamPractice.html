@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE-214 · Structural Patterns · Exam Practice</title>
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#fffdf8; --ink:#1f2430; --ink-soft:#4a5163;
+    --line:#e4ddcd; --accent:#4f46e5; --accent-soft:#eef0ff; --accent2:#7c3aed;
+    --amber:#b45309; --amber-bg:#fdf3e3; --amber-line:#f0d9b0;
+    --rose:#be123c; --rose-bg:#fdeef1; --rose-line:#f3c6d1;
+    --teal:#0f766e; --teal-bg:#e7f6f3; --teal-line:#bfe3dd;
+    --sky:#1e5fb4; --sky-bg:#eaf2fd; --sky-line:#c3dbf5;
+    --green:#15803d; --code-bg:#161b2c; --code-ink:#e6e9f2;
+    --shadow:0 10px 30px -12px rgba(20,25,45,.22);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,'Times New Roman',serif;
+    font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:34px 30px 100px}
+  h1{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:2rem;line-height:1.15;margin:.2em 0 .15em;letter-spacing:-.01em}
+  h2{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:1.35rem;margin:1.6em 0 .5em;letter-spacing:-.01em;
+    padding-bottom:.25em;border-bottom:2px solid var(--line)}
+  p{margin:.6em 0}
+  code.inl{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:.85em;background:#eeeadd;
+    padding:1.5px 6px;border-radius:5px;color:#5a2ca0}
+  .eyebrow{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;display:flex;align-items:center;gap:9px}
+  .eyebrow::before{content:"";width:24px;height:2px;background:var(--accent);display:inline-block;border-radius:2px}
+  .lead{font-size:1.08rem;color:var(--ink-soft)}
+
+  /* Top tab switcher */
+  .toptabs{position:sticky;top:0;z-index:30;background:var(--paper);padding:14px 0 10px;
+    border-bottom:1px solid var(--line);margin-bottom:6px}
+  .toptabs-in{max-width:880px;margin:0 auto;padding:0 30px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .ttab{font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:.92rem;background:var(--paper2);
+    border:1.5px solid var(--line);color:var(--ink-soft);padding:10px 18px;border-radius:11px;cursor:pointer;
+    transition:.15s;box-shadow:var(--shadow)}
+  .ttab:hover{border-color:var(--accent)}
+  .ttab.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+  .ttab .cnt{font-size:.72rem;opacity:.85;font-weight:400}
+  .progmini{margin-left:auto;font-family:'Trebuchet MS',sans-serif;font-size:.78rem;color:var(--ink-soft);
+    display:flex;align-items:center;gap:8px}
+  .progbar{width:110px;height:6px;background:#e9e3d3;border-radius:99px;overflow:hidden}
+  .progbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#7c3aed);transition:.35s}
+
+  .tabpage{display:none}
+  .tabpage.show{display:block;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Legend / cheat strip */
+  .legend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:1.2em 0}
+  .legend .lg{border-radius:12px;padding:11px 13px;font-size:.82rem;border:1px solid}
+  .lg.dec{background:var(--accent-soft);border-color:#d9dcff;color:#3b34a8}
+  .lg.comp{background:var(--teal-bg);border-color:var(--teal-line);color:var(--teal)}
+  .lg.ada{background:var(--amber-bg);border-color:var(--amber-line);color:var(--amber)}
+  .lg.bri{background:var(--sky-bg);border-color:var(--sky-line);color:var(--sky)}
+  .legend .lg b{display:block;font-family:'Trebuchet MS',sans-serif;font-size:.88rem;margin-bottom:2px}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:1.2em 0;flex-wrap:wrap}
+  .smallbtn{font-family:'Trebuchet MS',sans-serif;font-size:.78rem;background:var(--paper2);border:1px solid var(--line);
+    color:var(--ink-soft);padding:7px 13px;border-radius:9px;cursor:pointer}
+  .smallbtn:hover{border-color:var(--rose);color:var(--rose)}
+
+  /* Practice question card */
+  .pq{background:var(--paper2);border:1px solid var(--line);border-radius:15px;padding:19px 21px;margin:16px 0;
+    box-shadow:var(--shadow);position:relative}
+  .pq.answered{border-color:#c9cdf5}
+  .pq-num{font-family:'Trebuchet MS',sans-serif;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent2);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .pq-num .tag{background:var(--accent-soft);padding:2px 8px;border-radius:99px;font-size:.68rem}
+  .pq-text{font-size:.99rem;margin:.2em 0 .9em}
+  .pq-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .popt{font-family:'Trebuchet MS',sans-serif;font-size:.85rem;background:#fff;border:1.5px solid var(--line);
+    border-radius:9px;padding:8px 14px;cursor:pointer;transition:.15s;color:var(--ink)}
+  .popt:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .popt.selected{background:linear-gradient(90deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;font-weight:700}
+  .popt.correct{background:#e9f8ef;border-color:var(--green);color:#0f5c2e;font-weight:700}
+  .popt.correct::after{content:" ✓";font-weight:700}
+  .popt.wrong{background:var(--rose-bg);border-color:var(--rose);color:#8a0e2c;font-weight:700}
+  .popt.wrong::after{content:" ✗";font-weight:700}
+  .popt.dim{opacity:.48}
+  .popt:disabled{cursor:default}
+  .pnote{width:100%;min-height:44px;font-family:'Iowan Old Style',Georgia,serif;font-size:.88rem;color:var(--ink-soft);
+    background:#faf8f2;border:1px dashed var(--line);border-radius:9px;padding:9px 11px;resize:vertical}
+  .pnote:focus{outline:none;border-color:var(--accent)}
+
+  .pq-explain{margin-top:12px;padding:13px 15px;border-radius:11px;font-size:.9rem;line-height:1.55;display:none}
+  .pq-explain.show{display:block;animation:fade .25s ease}
+  .pq-explain.isok{background:#e9f8ef;border:1px solid #bfe3cb}
+  .pq-explain.isbad{background:var(--rose-bg);border:1px solid var(--rose-line)}
+  .pq-explain .verdict{font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:.86rem;margin-bottom:6px}
+  .pq-explain.isok .verdict{color:var(--green)}
+  .pq-explain.isbad .verdict{color:var(--rose)}
+  .pq-explain .why{margin:.3em 0 .6em}
+  .pq-explain .kp{margin:0;padding-left:1.2em;font-size:.87rem;color:var(--ink-soft)}
+  .pq-explain .kp li{margin:.22em 0}
+  .pq-explain .kp-label{font-family:'Trebuchet MS',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent2);font-weight:700;margin:.5em 0 .3em}
+
+  /* Answer key */
+  .qcard{background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:22px 0;
+    box-shadow:var(--shadow)}
+  .qcard h3{font-family:'Trebuchet MS',sans-serif;font-size:1.22rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .qcode{background:#20263a;color:#fff;font-size:.72rem;padding:3px 10px;border-radius:8px;font-family:'JetBrains Mono',monospace}
+  .patbadge{font-family:'Trebuchet MS',sans-serif;font-size:.72rem;font-weight:700;padding:3px 11px;border-radius:99px;letter-spacing:.03em}
+  .patbadge.Decorator{background:var(--accent-soft);color:#3b34a8}
+  .patbadge.Composite{background:var(--teal-bg);color:var(--teal)}
+  .patbadge.Adapter{background:var(--amber-bg);color:var(--amber)}
+  .patbadge.Bridge{background:var(--sky-bg);color:var(--sky)}
+  .recap{font-size:.9rem;color:var(--ink-soft);font-style:italic;margin:.3em 0 1em;padding-left:12px;border-left:3px solid var(--line)}
+  .whybox{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:1em 0}
+  .whybox .w{border-radius:11px;padding:12px 14px;font-size:.87rem;border:1px solid}
+  .whybox .yes{background:#e6f6ec;border-color:#bfe3cb}
+  .whybox .no{background:var(--rose-bg);border-color:var(--rose-line)}
+  .whybox .w b{display:block;font-family:'Trebuchet MS',sans-serif;font-size:.72rem;text-transform:uppercase;
+    letter-spacing:.08em;margin-bottom:5px}
+  .whybox .yes b{color:var(--green)} .whybox .no b{color:var(--rose)}
+  .whybox ul{margin:0;padding-left:1.1em}
+  .whybox li{margin:.25em 0}
+
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:15px 17px;overflow-x:auto;
+    font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:.79rem;line-height:1.58;margin:.9em 0;
+    box-shadow:var(--shadow);border:1px solid #262c42}
+  pre .cap{display:block;color:#7f8bb0;font-size:.7rem;letter-spacing:.06em;margin-bottom:8px;
+    font-family:'Trebuchet MS',sans-serif;text-transform:uppercase}
+  .k{color:#c792ea}.t{color:#82aaff}.s{color:#c3e88d}.c{color:#5c6785;font-style:italic}.n{color:#f78c6c}
+
+  .miniidx{display:flex;gap:8px;flex-wrap:wrap;margin:1em 0 1.6em}
+  .miniidx button{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--paper2);
+    border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--ink-soft)}
+  .miniidx button:hover{border-color:var(--accent);color:var(--accent)}
+
+  .footnote{font-size:.8rem;color:var(--ink-soft);margin-top:36px;padding-top:14px;border-top:1px solid var(--line)}
+  @media(max-width:720px){
+    .wrap{padding:22px 16px 80px}.legend{grid-template-columns:1fr 1fr}.whybox{grid-template-columns:1fr}
+    .toptabs-in{padding:0 16px}.progmini{width:100%;margin-left:0;order:3}
+  }
+</style>
+</head>
+<body>
+
+<div class="toptabs">
+  <div class="toptabs-in">
+    <button class="ttab active" data-tab="quiz">🎯 Practice Quiz <span class="cnt">22 scenarios · instant feedback</span></button>
+    <button class="ttab" data-tab="key">📘 Answer Key <span class="cnt">your 6 exam Qs, full code</span></button>
+    <div class="progmini" id="progmini">
+      <span id="progtext">0 / 22 answered · 0 correct</span>
+      <div class="progbar"><i id="progfill"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ TAB 1: QUIZ ============ -->
+  <section class="tabpage show" id="tab-quiz">
+    <div class="eyebrow">Self-test · Instant feedback</div>
+    <h1>Structural Pattern Drill — 22 Scenarios</h1>
+    <p class="lead">For each scenario, decide which pattern fits best and click it. You'll immediately see whether you're right, plus the correct pattern, why it's correct, and the key clue-phrases to watch for — every time, right or wrong. Your picks and notes are saved automatically in this browser, so you can leave and come back.</p>
+
+    <div class="legend">
+      <div class="lg dec"><b>Decorator</b>add behaviour dynamically, stackable, same interface</div>
+      <div class="lg comp"><b>Composite</b>part-whole tree, uniform ops on node or leaf</div>
+      <div class="lg ada"><b>Adapter</b>reconcile an incompatible/legacy/third-party interface</div>
+      <div class="lg bri"><b>Bridge</b>two independent dimensions, avoid N×M explosion</div>
+    </div>
+
+    <div class="toolbar">
+      <span style="font-size:.85rem;color:var(--ink-soft)">Click a pattern — you'll see instantly if it's right, with the full explanation below. Click a different option anytime to change your answer.</span>
+      <button class="smallbtn" id="resetAll">↺ Reset all my answers</button>
+    </div>
+
+    <div id="quizList"></div>
+
+    <p class="footnote">These 22 are original practice scenarios — deliberately different from your uploaded exam sheet so you can test pattern-recognition skill, not memory. Come back anytime; your picks persist.</p>
+  </section>
+
+  <!-- ============ TAB 2: ANSWER KEY ============ -->
+  <section class="tabpage" id="tab-key">
+    <div class="eyebrow">Worked solutions</div>
+    <h1>Answer Key — Your CSE-214 Exam Sheet</h1>
+    <p class="lead">Pattern identification, justification, and a complete minimal Java implementation for each of the six questions from <em>CSE-214 Online-2/3 (Structural Design Pattern)</em>.</p>
+
+    <div class="miniidx" id="miniidx"></div>
+
+    <div id="keyList"></div>
+
+    <p class="footnote">Code is written to demonstrate structure and intent clearly for exam purposes — trimmed of boilerplate (getters/setters on trivial fields, full validation, etc.) that a real production system would include.</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  /* ---------------- Tab switching ---------------- */
+  var tabs = document.querySelectorAll('.ttab');
+  var pages = document.querySelectorAll('.tabpage');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.classList.remove('active');});
+      pages.forEach(function(x){x.classList.remove('show');});
+      t.classList.add('active');
+      document.getElementById('tab-'+t.dataset.tab).classList.add('show');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+
+  /* ---------------- Storage helpers (personal, non-shared) ---------------- */
+  var hasStorage = (typeof window.storage !== 'undefined');
+  var STATE_KEY = 'sdp-quiz-answers-v1';
+  var state = {}; // { "1": {pattern:"Bridge", note:"..."} , ... }
+
+  function loadState(cb){
+    if(!hasStorage){ cb(); return; }
+    window.storage.get(STATE_KEY, false).then(function(res){
+      try{ state = res && res.value ? JSON.parse(res.value) : {}; }catch(e){ state = {}; }
+      cb();
+    }).catch(function(){ state = {}; cb(); });
+  }
+  function saveState(){
+    if(!hasStorage) return;
+    try{
+      window.storage.set(STATE_KEY, JSON.stringify(state), false).catch(function(){});
+    }catch(e){}
+  }
+
+  /* ---------------- 22 practice scenarios (with answer + explanation) ---------------- */
+  var scenarios = [
+    { text:"A ride-hailing app has fare tiers (Economy, Premium, Pool) each with its own pricing logic, and vehicle types (Sedan, Bike, Auto-rickshaw, and soon Electric Scooter) each with its own dispatch and tracking logic. Management wants to add new fare tiers or new vehicle types independently, without a class per tier-vehicle combination.",
+      pattern:"Bridge",
+      why:"Two independent dimensions — fare tier and vehicle type — must each be extendable without touching the other. Bridge splits this into an Abstraction (fare tier) and an Implementation (vehicle dispatch) connected by a reference, so growth in either axis stays additive instead of multiplicative.",
+      points:["Two variables that both keep growing (tiers AND vehicles)","Explicit warning against 'a class per tier-vehicle combination' → avoiding N×M","Nothing here is incompatible/legacy, so it isn't Adapter"] },
+    { text:"A fitness app's dashboard expects every wearable to implement getSteps() and getHeartRate(). A newly-partnered smartwatch brand's SDK only exposes fetchStepCount() and pollPulseSensor(), and the SDK's source code cannot be modified.",
+      pattern:"Adapter",
+      why:"The app already has a fixed target interface (getSteps/getHeartRate) and a third-party SDK exposes different method names doing the same job. Since you can't change the SDK, you wrap it in an Adapter that translates fetchStepCount()→getSteps() and pollPulseSensor()→getHeartRate().",
+      points:["A fixed 'expected' interface already in use by the app","A third-party/uneditable class with mismatched method names","No optional behaviour being added — just a translation layer"] },
+    { text:"A photo-sharing app lets a user apply optional touches to a photo before posting — grayscale filter, watermark, location tag — in any order and any combination, chosen at the moment of posting, without altering the original photo class.",
+      pattern:"Decorator",
+      why:"Grayscale, watermark, and location tag are optional, stackable, chosen at run time, in any combination — the exact shape of Decorator. Each filter wraps the photo and adds its own touch without altering the base Photo class.",
+      points:["'in any order and any combination' is a strong Decorator signal","Base photo class must stay untouched (Open/Closed)","One photo being progressively wrapped, not a group — so not Composite"] },
+    { text:"A university course catalog groups individual courses into 'Programs' (e.g. a Minor), and Programs can themselves be bundled into larger 'Majors' that include other Programs and standalone courses. The registrar needs total credit-hours for any node in this structure with one method call.",
+      pattern:"Composite",
+      why:"Programs contain courses and other Programs; Majors contain Programs and courses — a part-whole tree where 'total credit hours' must work identically on a leaf course or an entire nested branch. That uniform treatment of node vs. leaf is Composite.",
+      points:["Explicit nesting: groups containing groups","One method call must work the same on a single item or a whole subtree","No second independent dimension, so it isn't Bridge"] },
+    { text:"A game studio renders the same character models (Warrior, Mage, Archer) across three different rendering engines (2D sprite, 3D mesh, VR avatar). New character classes and new rendering engines are both expected to keep arriving, and the studio wants to avoid a class for every character-engine pair.",
+      pattern:"Bridge",
+      why:"Character classes and rendering engines are two hierarchies that both keep expanding. Bridge decouples them: characters (abstraction) hold a reference to a renderer (implementation), so a new character or a new engine is one new class, not a redraw of the whole matrix.",
+      points:["'Both...keep arriving' = two independently growing axes","Explicit goal: avoid a class per character-engine pair","Compare with the other Bridge scenarios in this set — same shape, different domain"] },
+    { text:"An accounting system expects every payment provider to implement charge(double amount). The company just signed a regional payment gateway whose only entry point is submitTransaction(int amountInCents, String currencyCode), and that vendor library is closed-source.",
+      pattern:"Adapter",
+      why:"The accounting system already codes against charge(double amount); the new vendor's only entry point is submitTransaction(int cents, String currency) and is closed-source. An Adapter converts one call into the other without touching either side.",
+      points:["Existing client code already depends on a fixed interface","Vendor library is closed-source / unmodifiable","One translation, not an optional add-on or two hierarchies"] },
+    { text:"A file-compression tool needs the total uncompressed size of a 'backup job', where a job may contain individual files and/or nested folders (which may contain more files and folders) — and the size calculation must work identically whether you point it at a single file or an entire folder tree.",
+      pattern:"Composite",
+      why:"A backup job is files and/or nested folders of files and folders — a recursive part-whole structure. Total size must be computed the same way whether you target one file or an entire tree, exactly what a Composite's uniform interface gives you.",
+      points:["Recursive containment: folders inside folders","Same operation (total size) works on a leaf or a branch","No incompatible interface to reconcile, so not Adapter"] },
+    { text:"A cloud storage service lets users optionally enable, in any combination, at the moment they save a file: virus scanning, checksum verification, and automatic thumbnail generation — each addable without editing the base file-saving class.",
+      pattern:"Decorator",
+      why:"Virus scanning, checksum verification, and thumbnail generation are optional, addable in any combination at save-time, without editing the base save class — each is a wrapper adding one more responsibility around the save operation.",
+      points:["'in any combination' + 'addable without editing the base class'","Each option enhances the same save() operation, doesn't replace it","No second axis growing independently, so not Bridge"] },
+    { text:"A learning-management system offers course formats (Self-paced, Instructor-led, Cohort-based) that must be deliverable through multiple platforms (Web browser, Mobile app, Offline downloadable package). Both the list of formats and the list of delivery platforms are expected to grow as the product expands.",
+      pattern:"Bridge",
+      why:"Course format (Self-paced/Instructor-led/Cohort) and delivery platform (Web/Mobile/Offline) are two lists both expected to expand. Bridge keeps them as separate hierarchies joined by a reference, so new formats or new platforms never multiply the class count.",
+      points:["Two lists, both explicitly 'expected to grow'","The risk being avoided is combinatorial classes, not incompatible methods","Formats delegate delivery work to a Platform object — they do no real work themselves"] },
+    { text:"A smart-home hub's voice assistant expects every appliance to implement execute(String command). A newly-purchased robotic vacuum only exposes runCleaningCycle(int mode) and returnToDock(), and its firmware/API cannot be touched.",
+      pattern:"Adapter",
+      why:"The voice assistant already speaks execute(String command); the vacuum's real API is runCleaningCycle()/returnToDock() and can't be touched. An Adapter implementing execute() and translating it into the vacuum's actual calls lets it join the existing fleet.",
+      points:["A single, already-fixed target interface (execute)","An uneditable third-party API with different method names","Just one device to reconcile — not two growing hierarchies"] },
+    { text:"An HR system models a company as departments that contain employees and possibly sub-departments, and needs to calculate total headcount or total payroll for any department — top-level or nested — using the exact same method call.",
+      pattern:"Composite",
+      why:"Departments contain employees and possibly sub-departments — a tree — and headcount/payroll must total correctly for any node, top-level or nested, via one uniform call. That's Composite's whole purpose.",
+      points:["'Possibly sub-departments' = recursive containment","Same method (headcount/payroll) on a single employee or a whole branch","Nothing about incompatible interfaces or two independent axes"] },
+    { text:"An e-commerce checkout lets customers optionally add, in any combination, at checkout time: gift wrapping, a personalized greeting card, and express handling — each adds its own line-item cost and description text on top of the base order, without modifying the existing Order class.",
+      pattern:"Decorator",
+      why:"Gift wrapping, greeting card, and express handling are optional, combinable, each adding its own price/description on top of the base Order — wrapped around the order object without modifying the Order class itself.",
+      points:["'in any combination' at checkout time is the tell","Each add-on layers cost + description onto what's already there","Order class must stay unmodified — Open/Closed in action"] },
+    { text:"A remote-control manufacturer sells two control styles (Basic button remote, Smart voice-enabled remote) that must operate a growing list of appliances (TV, Sound System, Air Conditioner, and soon Smart Blinds). They want new appliances or new remote styles added independently.",
+      pattern:"Bridge",
+      why:"Control styles (Basic/Smart) and appliance types (TV/Sound/AC/Blinds) are two hierarchies meant to expand independently. Bridge lets a remote (abstraction) hold a reference to whatever appliance-control implementation it targets.",
+      points:["Two axes: remote style AND appliance type, both growing","Explicit goal: add either side 'independently'","Not a wrapper stack — no optional layering happening"] },
+    { text:"A logistics platform's route planner expects every mapping library to implement getRoute(Point a, Point b). The team wants to switch to a cheaper third-party mapping SDK whose only method is computePath(double[] origin, double[] destination), and switching vendors again in future should be painless.",
+      pattern:"Adapter",
+      why:"The route planner already codes to getRoute(Point a, Point b); the cheaper SDK only offers computePath(double[] origin, double[] destination). An Adapter converts calls both ways, and 'switching vendors again should be painless' is exactly what a clean Adapter boundary buys you.",
+      points:["Existing fixed interface the client already depends on","Vendor-swap scenario — a hallmark Adapter use case","One reconciliation, not an evolving pair of hierarchies"] },
+    { text:"A recipe app lets a 'dish' be built from raw ingredients and/or other previously-saved dishes used as sub-recipes (e.g. a lasagna dish that includes a saved 'tomato sauce' dish as one of its components), and needs to compute total calories for any dish regardless of how deeply nested its sub-recipes are.",
+      pattern:"Composite",
+      why:"A dish built from raw ingredients and/or other saved dishes (used as sub-recipes) is a self-referential tree — a dish can contain dishes. Total calories must work the same regardless of nesting depth, which is Composite's signature capability.",
+      points:["Dishes containing dishes = recursive part-whole tree","'Regardless of how deeply nested' = uniform operation at any depth","Same shape as your ZBazar exam question — packages containing packages"] },
+    { text:"A word-processor's text run can have, in any combination chosen live by the user, bold, italic, and strikethrough styling applied — and a new style like 'highlight' should be addable later without touching the existing style classes.",
+      pattern:"Decorator",
+      why:"Bold, italic, and strikethrough are optional, freely combinable text styles applied live, with room to add new styles (e.g. highlight) later without touching existing style classes — a textbook Decorator stack.",
+      points:["'any combination chosen live by the user'","New style addable later without modifying old ones","One text run being progressively wrapped, not a tree of runs"] },
+    { text:"A print-shop management system handles document types (Invoice, Business Card, Poster) that must be produced on different printer technologies (Inkjet, Laser, Large-format Plotter). Both the catalog of document types and the roster of printer technologies are expected to expand over time, and duplicating logic for every combination is already causing bugs.",
+      pattern:"Bridge",
+      why:"Document types (Invoice/Business Card/Poster) and printer technologies (Inkjet/Laser/Plotter) are two catalogs both expanding, and duplicated logic per combination is already causing bugs — Bridge separates them into two hierarchies joined by delegation.",
+      points:["Two catalogs, both 'expected to expand over time'","Explicit pain: 'duplicating logic for every combination'","Documents should delegate printing mechanics to a Printer implementation, not implement it themselves"] },
+    { text:"A media-streaming app's player component expects Playable.play() and Playable.pause(). An old audio library the company still owns only offers startAudio() and haltAudio(), and rewriting that legacy library is out of scope for this sprint.",
+      pattern:"Adapter",
+      why:"The player already expects Playable.play()/pause(); the old audio library only has startAudio()/haltAudio() and rewriting it is out of scope. An Adapter implementing Playable and delegating to the legacy calls solves this without touching either side.",
+      points:["Fixed target interface already in use (Playable)","Legacy library explicitly out of scope to rewrite","Single reconciliation between two mismatched method sets"] },
+    { text:"A theme park's ride-operations dashboard groups individual rides into 'Zones', and Zones can be grouped into a 'Park Map' that may itself contain other nested Zones. Staff need total daily rider throughput for any single ride, any Zone, or the whole park using one uniform call.",
+      pattern:"Composite",
+      why:"Rides group into Zones, Zones group into a Park Map that may contain other Zones — a nested tree — and throughput must total correctly for a single ride, a Zone, or the whole park via one uniform call.",
+      points:["'Zones...may itself contain other nested Zones' = recursive tree","One call (throughput) works at any level of the hierarchy","Very similar shape to your exam's ZBazar bundle question — package inside package"] },
+    { text:"A ticket-booking platform lets customers optionally add, in any combination, when finalizing a booking: seat insurance, priority boarding, and a printed itinerary mailed to their address — each optional add-on changes the final price and confirmation text without modifying the core Booking class.",
+      pattern:"Decorator",
+      why:"Seat insurance, priority boarding, and a printed itinerary are optional add-ons chosen at booking time, in any combination, each changing price and confirmation text on top of the base Booking — wrapped around the booking, not baked into it.",
+      points:["'in any combination when finalizing a booking'","Core Booking class stays unmodified","Each add-on changes both price AND description — layered decoration"] },
+    { text:"A home-fitness equipment company sells workout programs (Strength, Cardio, Yoga) that can run on multiple hardware consoles (Treadmill console, Smart Mirror, Mobile app). New programs and new consoles are both on the roadmap, and the current tightly-coupled implementation means every new console requires touching every program's code.",
+      pattern:"Bridge",
+      why:"Workout programs (Strength/Cardio/Yoga) and hardware consoles (Treadmill/Mirror/Mobile) are two roadmaps expanding independently, and the current coupling forces touching every program when a console is added — precisely the problem Bridge exists to solve.",
+      points:["Two roadmaps, both explicitly expanding","Named pain: 'every new console requires touching every program's code'","Programs should delegate execution to a Console implementation"] },
+    { text:"A hospital's patient-monitoring dashboard expects every vital-sign device to implement readVitals(). A newly-acquired imported ventilator only exposes fetchDeviceTelemetry() in a different data format, and the hospital's biomedical engineers are not permitted to alter the ventilator's certified firmware.",
+      pattern:"Adapter",
+      why:"The monitoring dashboard already expects readVitals(); the imported ventilator only exposes fetchDeviceTelemetry() in a different format, and its certified firmware can't be altered. An Adapter implements readVitals() and translates the ventilator's telemetry format underneath.",
+      points:["Fixed target interface the dashboard already relies on","Certified/regulated firmware explicitly cannot be touched","Format translation, not optional behaviour or two growing hierarchies"] }
+  ];
+  var patterns = ["Decorator","Composite","Adapter","Bridge"];
+
+  var quizList = document.getElementById('quizList');
+  scenarios.forEach(function(s, idx){
+    var qid = String(idx+1);
+    var card = document.createElement('div');
+    card.className = 'pq'; card.dataset.q = qid;
+    var numLabel = qid.length===1 ? '0'+qid : qid;
+    var optsHtml = patterns.map(function(p){
+      return '<button class="popt" data-pattern="'+p+'">'+p+'</button>';
+    }).join('');
+    card.innerHTML =
+      '<div class="pq-num">Scenario '+numLabel+' <span class="tag">pick one</span></div>'+
+      '<p class="pq-text">'+s.text+'</p>'+
+      '<div class="pq-options">'+optsHtml+'</div>'+
+      '<div class="pq-explain" id="explain-'+qid+'"></div>'+
+      '<textarea class="pnote" placeholder="Optional: jot your reasoning here (saved automatically)…"></textarea>';
+    quizList.appendChild(card);
+  });
+
+  function updateProgress(){
+    var answered = 0, correct = 0;
+    Object.keys(state).forEach(function(k){
+      if(state[k] && state[k].pattern){
+        answered++;
+        var s = scenarios[parseInt(k,10)-1];
+        if(s && s.pattern === state[k].pattern) correct++;
+      }
+    });
+    document.getElementById('progtext').textContent = answered + ' / ' + scenarios.length + ' answered · ' + correct + ' correct';
+    document.getElementById('progfill').style.width = Math.round(answered/scenarios.length*100) + '%';
+  }
+
+  function renderExplanation(qid, selectedPattern){
+    var s = scenarios[parseInt(qid,10)-1];
+    var box = document.getElementById('explain-'+qid);
+    var isCorrect = selectedPattern === s.pattern;
+    box.className = 'pq-explain show ' + (isCorrect ? 'isok' : 'isbad');
+    var verdict = isCorrect
+      ? '✅ Correct — it is <b>' + s.pattern + '</b>.'
+      : '❌ Not quite — you picked <b>' + selectedPattern + '</b>, but the intended answer is <b>' + s.pattern + '</b>.';
+    var kpHtml = s.points.map(function(p){ return '<li>'+p+'</li>'; }).join('');
+    box.innerHTML =
+      '<div class="verdict">'+verdict+'</div>'+
+      '<div class="why">'+s.why+'</div>'+
+      '<div class="kp-label">Key points to notice</div>'+
+      '<ul class="kp">'+kpHtml+'</ul>';
+  }
+
+  function applyOptionClasses(card, s, selectedPattern){
+    card.querySelectorAll('.popt').forEach(function(b){
+      b.classList.remove('selected','correct','wrong','dim');
+      var bp = b.dataset.pattern;
+      if(bp === s.pattern){
+        b.classList.add('correct');                 // always reveal the right one
+      } else if(bp === selectedPattern){
+        b.classList.add('wrong');                    // your pick, if it was wrong
+      } else {
+        b.classList.add('dim');
+      }
+    });
+  }
+
+  function applyStateToDOM(){
+    document.querySelectorAll('.pq').forEach(function(card){
+      var qid = card.dataset.q;
+      var s = scenarios[parseInt(qid,10)-1];
+      var st = state[qid];
+      if(st && st.pattern){
+        card.classList.add('answered');
+        applyOptionClasses(card, s, st.pattern);
+        renderExplanation(qid, st.pattern);
+      }
+      if(st && st.note){
+        card.querySelector('.pnote').value = st.note;
+      }
+    });
+    updateProgress();
+  }
+
+  quizList.addEventListener('click', function(e){
+    var btn = e.target.closest('.popt');
+    if(!btn) return;
+    var card = btn.closest('.pq');
+    var qid = card.dataset.q;
+    var s = scenarios[parseInt(qid,10)-1];
+    var pattern = btn.dataset.pattern;
+
+    if(!state[qid]) state[qid] = {};
+    state[qid].pattern = pattern;
+    card.classList.add('answered');
+    applyOptionClasses(card, s, pattern);
+    renderExplanation(qid, pattern);
+
+    saveState();
+    updateProgress();
+  });
+
+  quizList.addEventListener('input', function(e){
+    if(!e.target.classList.contains('pnote')) return;
+    var card = e.target.closest('.pq');
+    var qid = card.dataset.q;
+    if(!state[qid]) state[qid] = {};
+    state[qid].note = e.target.value;
+    saveState();
+  });
+
+  document.getElementById('resetAll').addEventListener('click', function(){
+    if(!confirm('Clear all your saved picks and notes for this quiz?')) return;
+    state = {};
+    saveState();
+    document.querySelectorAll('.pq').forEach(function(card){
+      card.classList.remove('answered');
+      card.querySelectorAll('.popt').forEach(function(b){ b.classList.remove('selected','correct','wrong','dim'); });
+      card.querySelector('.pnote').value = '';
+      var box = card.querySelector('.pq-explain');
+      box.className = 'pq-explain';
+      box.innerHTML = '';
+    });
+    updateProgress();
+  });
+
+  loadState(applyStateToDOM);
+
+  /* ---------------- Mini index for Answer Key ---------------- */
+  var keyIds = ['A1','A2','B1','B2','C1','C2'];
+  var midx = document.getElementById('miniidx');
+  keyIds.forEach(function(id){
+    var b = document.createElement('button');
+    b.textContent = id;
+    b.onclick = function(){
+      document.getElementById('key-'+id).scrollIntoView({behavior:'smooth', block:'start'});
+    };
+    midx.appendChild(b);
+  });
+})();
+</script>
+
+<!-- ================= ANSWER KEY CONTENT (static) ================= -->
+<div class="wrap" style="padding-top:0" id="answerContentHost"></div>
+
+<script>
+/* Injected separately to keep the huge code blocks out of the main flow above */
+document.getElementById('tab-key').querySelector('#keyList').innerHTML = `
+
+<div class="qcard" id="key-A1">
+  <h3><span class="qcode">A1 · IoT Home Alert Settings</span><span class="patbadge Decorator">Decorator</span></h3>
+  <p class="recap">IoT device sends notifications over Email / SMS / Push. Users can toggle Enable Encryption, Priority Label, and Enable Logging — any combination, applied on top of the base send.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Decorator</b><ul>
+      <li>Three toggles are <em>optional and combinable</em> — the classic "any subset, any order" signal.</li>
+      <li>Each toggle only <em>adds behaviour</em> around sending — encrypt the payload, tag it, log it — the channel's core send() is untouched.</li>
+      <li>New future option (e.g. "Retry on failure") should slot in as one new class, not a rewrite.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Bridge</b> would fit only if channel-vs-option were two independently-growing axes needing full decoupling — here the options are simple stackable add-ons, not a second hierarchy.</li>
+      <li><b>Adapter</b> needs an incompatible interface to reconcile — nothing here is incompatible.</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Component + concrete channels</span><span class="k">public interface</span> <span class="t">Notification</span> {
+    <span class="k">void</span> <span class="t">send</span>(<span class="t">String</span> message);
+    <span class="t">String</span> <span class="t">getDescription</span>();
+}
+
+<span class="k">public class</span> <span class="t">EmailNotification</span> <span class="k">implements</span> <span class="t">Notification</span> {
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) { <span class="t">System</span>.out.println(<span class="s">"[EMAIL] "</span> + message); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"Email Notification"</span>; }
+}
+
+<span class="k">public class</span> <span class="t">SMSNotification</span> <span class="k">implements</span> <span class="t">Notification</span> {
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) { <span class="t">System</span>.out.println(<span class="s">"[SMS] "</span> + message); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"SMS Notification"</span>; }
+}
+
+<span class="k">public class</span> <span class="t">PushNotification</span> <span class="k">implements</span> <span class="t">Notification</span> {
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) { <span class="t">System</span>.out.println(<span class="s">"[PUSH] "</span> + message); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"Push Notification"</span>; }
+}</pre>
+  <pre><span class="cap">Base decorator + the three configurable options</span><span class="k">public abstract class</span> <span class="t">NotificationDecorator</span> <span class="k">implements</span> <span class="t">Notification</span> {
+    <span class="k">protected</span> <span class="t">Notification</span> wrappee;
+    <span class="k">public</span> <span class="t">NotificationDecorator</span>(<span class="t">Notification</span> wrappee) { <span class="k">this</span>.wrappee = wrappee; }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription(); }
+}
+
+<span class="k">public class</span> <span class="t">EncryptionDecorator</span> <span class="k">extends</span> <span class="t">NotificationDecorator</span> {
+    <span class="k">public</span> <span class="t">EncryptionDecorator</span>(<span class="t">Notification</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) {
+        <span class="t">String</span> encrypted = <span class="s">"***"</span> + message + <span class="s">"***"</span>;  <span class="c">// pretend-encrypt</span>
+        wrappee.send(encrypted);
+    }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + Encrypted"</span>; }
+}
+
+<span class="k">public class</span> <span class="t">PriorityDecorator</span> <span class="k">extends</span> <span class="t">NotificationDecorator</span> {
+    <span class="k">public</span> <span class="t">PriorityDecorator</span>(<span class="t">Notification</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) { wrappee.send(<span class="s">"[HIGH PRIORITY] "</span> + message); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + High Priority"</span>; }
+}
+
+<span class="k">public class</span> <span class="t">LoggingDecorator</span> <span class="k">extends</span> <span class="t">NotificationDecorator</span> {
+    <span class="k">public</span> <span class="t">LoggingDecorator</span>(<span class="t">Notification</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public void</span> <span class="t">send</span>(<span class="t">String</span> message) {
+        wrappee.send(message);
+        <span class="t">System</span>.out.println(<span class="s">"[LOG] Delivery logged at "</span> + <span class="t">System</span>.currentTimeMillis());
+    }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + Logged"</span>; }
+}</pre>
+  <pre><span class="cap">Demo</span><span class="k">public class</span> <span class="t">IoTAlertDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">Notification</span> n = <span class="k">new</span> <span class="t">SMSNotification</span>();
+        n = <span class="k">new</span> <span class="t">EncryptionDecorator</span>(n);
+        n = <span class="k">new</span> <span class="t">PriorityDecorator</span>(n);
+        n = <span class="k">new</span> <span class="t">LoggingDecorator</span>(n);
+
+        <span class="t">System</span>.out.println(<span class="s">"Channel setup: "</span> + n.getDescription());
+        n.send(<span class="s">"Front door opened"</span>);
+    }
+}
+<span class="c">// Channel setup: SMS Notification + Encrypted + High Priority + Logged
+// [SMS] [HIGH PRIORITY] ***Front door opened***
+// [LOG] Delivery logged at 1737...</span></pre>
+</div>
+
+<div class="qcard" id="key-A2">
+  <h3><span class="qcode">A2 · ZBazar Custom Bundles</span><span class="patbadge Composite">Composite</span></h3>
+  <p class="recap">Preset packages (Small/Family/Mega) are made of single items. Users combine single items, preset packages, and even their own previously-created custom packages into a new custom package — needing total price/weight and a full structure display.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Composite</b><ul>
+      <li>"A custom package may include only individual items, only preset packages, <em>or a mixture of both — including previous custom packages</em>" is a textbook part-whole <em>tree</em>, with a package-inside-a-package recursion requirement.</li>
+      <li>getPrice()/getWeight() must work identically on a single item or an entire nested bundle — uniform treatment of leaf and composite.</li>
+      <li>"Displaying the complete structure" is exactly the recursive print/traverse operation Composite gives you for free.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Decorator</b> only wraps <em>one</em> object to add behaviour — it can't represent "many items grouped together," which this problem explicitly requires.</li>
+      <li><b>Bridge</b> needs two independently-varying dimensions; there's only one axis here (the containment tree).</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Component, Leaf, Composite</span><span class="k">public interface</span> <span class="t">GroceryComponent</span> {
+    <span class="t">String</span> <span class="t">getName</span>();
+    <span class="k">double</span> <span class="t">getPrice</span>();
+    <span class="k">double</span> <span class="t">getWeight</span>();
+    <span class="k">void</span> <span class="t">display</span>(<span class="t">String</span> indent);
+}
+
+<span class="k">public class</span> <span class="t">GroceryItem</span> <span class="k">implements</span> <span class="t">GroceryComponent</span> {   <span class="c">// Leaf</span>
+    <span class="k">private</span> <span class="t">String</span> name; <span class="k">private double</span> price; <span class="k">private double</span> weight;
+    <span class="k">public</span> <span class="t">GroceryItem</span>(<span class="t">String</span> name, <span class="k">double</span> price, <span class="k">double</span> weight) {
+        <span class="k">this</span>.name = name; <span class="k">this</span>.price = price; <span class="k">this</span>.weight = weight;
+    }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getName</span>() { <span class="k">return</span> name; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> price; }
+    <span class="k">public double</span> <span class="t">getWeight</span>() { <span class="k">return</span> weight; }
+    <span class="k">public void</span> <span class="t">display</span>(<span class="t">String</span> indent) {
+        <span class="t">System</span>.out.println(indent + <span class="s">"- "</span> + name + <span class="s">" ($"</span> + price + <span class="s">", "</span> + weight + <span class="s">"kg)"</span>);
+    }
+}
+
+<span class="k">public class</span> <span class="t">GroceryPackage</span> <span class="k">implements</span> <span class="t">GroceryComponent</span> {   <span class="c">// Composite</span>
+    <span class="k">private</span> <span class="t">String</span> name;
+    <span class="k">private</span> <span class="t">List</span>&lt;<span class="t">GroceryComponent</span>&gt; children = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+    <span class="k">public</span> <span class="t">GroceryPackage</span>(<span class="t">String</span> name) { <span class="k">this</span>.name = name; }
+    <span class="k">public void</span> <span class="t">add</span>(<span class="t">GroceryComponent</span> c)    { children.add(c); }
+    <span class="k">public void</span> <span class="t">remove</span>(<span class="t">GroceryComponent</span> c) { children.remove(c); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getName</span>() { <span class="k">return</span> name; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() {
+        <span class="k">double</span> total = <span class="n">0</span>;
+        <span class="k">for</span> (<span class="t">GroceryComponent</span> c : children) total += c.getPrice();
+        <span class="k">return</span> total;
+    }
+    <span class="k">public double</span> <span class="t">getWeight</span>() {
+        <span class="k">double</span> total = <span class="n">0</span>;
+        <span class="k">for</span> (<span class="t">GroceryComponent</span> c : children) total += c.getWeight();
+        <span class="k">return</span> total;
+    }
+    <span class="k">public void</span> <span class="t">display</span>(<span class="t">String</span> indent) {
+        <span class="t">System</span>.out.println(indent + <span class="s">"+ "</span> + name + <span class="s">" [$"</span> + getPrice() + <span class="s">", "</span> + getWeight() + <span class="s">"kg]"</span>);
+        <span class="k">for</span> (<span class="t">GroceryComponent</span> c : children) c.display(indent + <span class="s">"   "</span>);   <span class="c">// recurse — leaf or package, same call</span>
+    }
+}</pre>
+  <pre><span class="cap">Demo — a custom package inside a custom package</span><span class="k">public class</span> <span class="t">ZBazarDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">GroceryItem</span> rice  = <span class="k">new</span> <span class="t">GroceryItem</span>(<span class="s">"Rice 5kg"</span>, <span class="n">6.50</span>, <span class="n">5.0</span>);
+        <span class="t">GroceryItem</span> oil   = <span class="k">new</span> <span class="t">GroceryItem</span>(<span class="s">"Soybean Oil 1L"</span>, <span class="n">2.20</span>, <span class="n">1.0</span>);
+        <span class="t">GroceryItem</span> pulse = <span class="k">new</span> <span class="t">GroceryItem</span>(<span class="s">"Lentils 1kg"</span>, <span class="n">1.80</span>, <span class="n">1.0</span>);
+
+        <span class="t">GroceryPackage</span> small = <span class="k">new</span> <span class="t">GroceryPackage</span>(<span class="s">"Small Package"</span>);
+        small.add(rice); small.add(oil);
+
+        <span class="t">GroceryPackage</span> family = <span class="k">new</span> <span class="t">GroceryPackage</span>(<span class="s">"Family Package"</span>);
+        family.add(rice); family.add(oil); family.add(pulse);
+        family.add(<span class="k">new</span> <span class="t">GroceryItem</span>(<span class="s">"Sugar 2kg"</span>, <span class="n">2.40</span>, <span class="n">2.0</span>));
+
+        <span class="t">GroceryPackage</span> myCustom = <span class="k">new</span> <span class="t">GroceryPackage</span>(<span class="s">"My First Custom Bazar"</span>);
+        myCustom.add(small);
+        myCustom.add(<span class="k">new</span> <span class="t">GroceryItem</span>(<span class="s">"Green Tea"</span>, <span class="n">3.00</span>, <span class="n">0.2</span>));
+
+        <span class="t">GroceryPackage</span> biggerCustom = <span class="k">new</span> <span class="t">GroceryPackage</span>(<span class="s">"My Bigger Bazar"</span>);
+        biggerCustom.add(family);
+        biggerCustom.add(myCustom);   <span class="c">// a custom package nested inside another — recursion just works</span>
+
+        biggerCustom.display(<span class="s">""</span>);
+        <span class="t">System</span>.out.println(<span class="s">"TOTAL: $"</span> + biggerCustom.getPrice() + <span class="s">", "</span> + biggerCustom.getWeight() + <span class="s">"kg"</span>);
+    }
+}</pre>
+</div>
+
+<div class="qcard" id="key-B1">
+  <h3><span class="qcode">B1 · Dalchal Notifications</span><span class="patbadge Bridge">Bridge</span></h3>
+  <p class="recap">Notifications must go out over a growing list of channels (Email, SMS, Push, WhatsApp, more later) AND cover a growing list of event types (payment failed, dispatched, renewed, more later) — both axes expand independently and the team wants no codebase mess either way.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Bridge</b><ul>
+      <li>Two explicitly independent, both-growing dimensions — <em>channels</em> and <em>event types</em> — is the defining Bridge trigger (echoes the Shape × Color slide exactly).</li>
+      <li>"New channels added over time" + "new event types as features roll out," with a requirement to avoid touching one side when the other changes, is precisely abstraction/implementation decoupling.</li>
+      <li>A new channel = 1 new Implementation class; a new event type = 1 new Abstraction subclass. Never channels × events.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Decorator</b> stacks optional add-ons on <em>one</em> object; here we have two full hierarchies, not optional layers.</li>
+      <li><b>Adapter</b> would apply only if an existing channel API was incompatible — nothing here is described as incompatible/legacy.</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Implementation hierarchy — the channel</span><span class="k">public interface</span> <span class="t">MessageSender</span> {
+    <span class="k">void</span> <span class="t">sendMessage</span>(<span class="t">String</span> content);
+}
+<span class="k">public class</span> <span class="t">EmailSender</span> <span class="k">implements</span> <span class="t">MessageSender</span> {
+    <span class="k">public void</span> <span class="t">sendMessage</span>(<span class="t">String</span> content) { <span class="t">System</span>.out.println(<span class="s">"[EMAIL] "</span> + content); }
+}
+<span class="k">public class</span> <span class="t">SMSSender</span> <span class="k">implements</span> <span class="t">MessageSender</span> {
+    <span class="k">public void</span> <span class="t">sendMessage</span>(<span class="t">String</span> content) { <span class="t">System</span>.out.println(<span class="s">"[SMS] "</span> + content); }
+}
+<span class="k">public class</span> <span class="t">PushSender</span> <span class="k">implements</span> <span class="t">MessageSender</span> {
+    <span class="k">public void</span> <span class="t">sendMessage</span>(<span class="t">String</span> content) { <span class="t">System</span>.out.println(<span class="s">"[PUSH] "</span> + content); }
+}
+<span class="k">public class</span> <span class="t">WhatsAppSender</span> <span class="k">implements</span> <span class="t">MessageSender</span> {   <span class="c">// added later — zero changes elsewhere</span>
+    <span class="k">public void</span> <span class="t">sendMessage</span>(<span class="t">String</span> content) { <span class="t">System</span>.out.println(<span class="s">"[WHATSAPP] "</span> + content); }
+}</pre>
+  <pre><span class="cap">Abstraction hierarchy — the event, holding the bridge</span><span class="k">public abstract class</span> <span class="t">BazarNotification</span> {
+    <span class="k">protected</span> <span class="t">MessageSender</span> sender;              <span class="c">// ◆ the bridge</span>
+    <span class="k">public</span> <span class="t">BazarNotification</span>(<span class="t">MessageSender</span> sender) { <span class="k">this</span>.sender = sender; }
+    <span class="k">public abstract void</span> <span class="t">notifyUser</span>(<span class="t">String</span> userName);
+}
+
+<span class="k">public class</span> <span class="t">PaymentFailedNotification</span> <span class="k">extends</span> <span class="t">BazarNotification</span> {
+    <span class="k">public</span> <span class="t">PaymentFailedNotification</span>(<span class="t">MessageSender</span> sender) { <span class="k">super</span>(sender); }
+    <span class="k">public void</span> <span class="t">notifyUser</span>(<span class="t">String</span> userName) {
+        sender.sendMessage(<span class="s">"Hi "</span> + userName + <span class="s">", your payment for this month's bazar failed. Please retry."</span>);
+    }
+}
+<span class="k">public class</span> <span class="t">BazarDispatchedNotification</span> <span class="k">extends</span> <span class="t">BazarNotification</span> {
+    <span class="k">public</span> <span class="t">BazarDispatchedNotification</span>(<span class="t">MessageSender</span> sender) { <span class="k">super</span>(sender); }
+    <span class="k">public void</span> <span class="t">notifyUser</span>(<span class="t">String</span> userName) {
+        sender.sendMessage(<span class="s">"Hi "</span> + userName + <span class="s">", your bazar is on the way!"</span>);
+    }
+}
+<span class="k">public class</span> <span class="t">BazarRenewedNotification</span> <span class="k">extends</span> <span class="t">BazarNotification</span> {  <span class="c">// added later — zero changes to senders</span>
+    <span class="k">public</span> <span class="t">BazarRenewedNotification</span>(<span class="t">MessageSender</span> sender) { <span class="k">super</span>(sender); }
+    <span class="k">public void</span> <span class="t">notifyUser</span>(<span class="t">String</span> userName) {
+        sender.sendMessage(<span class="s">"Hi "</span> + userName + <span class="s">", your subscription has been renewed."</span>);
+    }
+}</pre>
+  <pre><span class="cap">Demo</span><span class="k">public class</span> <span class="t">DalchalDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">BazarNotification</span> n1 = <span class="k">new</span> <span class="t">PaymentFailedNotification</span>(<span class="k">new</span> <span class="t">SMSSender</span>());
+        n1.notifyUser(<span class="s">"Rafi"</span>);
+
+        <span class="t">BazarNotification</span> n2 = <span class="k">new</span> <span class="t">BazarDispatchedNotification</span>(<span class="k">new</span> <span class="t">WhatsAppSender</span>());
+        n2.notifyUser(<span class="s">"Nafis"</span>);
+        <span class="c">// new channel × new event type — added independently, never channels × events</span>
+    }
+}</pre>
+</div>
+
+<div class="qcard" id="key-B2">
+  <h3><span class="qcode">B2 · Smart Home Control App</span><span class="patbadge Adapter">Adapter</span></h3>
+  <p class="recap">App already speaks SmartDevice (turnOn/turnOff). Third-party OldSmartBulb exposes powerOn/powerOff, and LegacyHeater exposes startHeating/stopHeating — neither can be modified, and both must work through the existing SmartDevice interface.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Adapter</b><ul>
+      <li>"Cannot modify the existing interface," "third-party device classes cannot be changed" — the textbook Adapter constraint.</li>
+      <li>Method names genuinely don't line up (turnOn↔powerOn, turnOn↔startHeating) — this is interface translation, not behaviour addition.</li>
+      <li>"Allow adding more third-party devices easily" → one new Object Adapter class per new incompatible device, app code untouched.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Bridge</b> would apply if "device family" and "control protocol" were two hierarchies meant to vary together by design — here we're patching around <em>existing</em> incompatible classes, which is Adapter's territory.</li>
+      <li>Since this is Java, <b>Class Adapter</b> (multiple inheritance) isn't available — must be <b>Object Adapter</b> (composition).</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Target interface + existing compliant device</span><span class="k">public interface</span> <span class="t">SmartDevice</span> {
+    <span class="k">void</span> <span class="t">turnOn</span>();
+    <span class="k">void</span> <span class="t">turnOff</span>();
+}
+
+<span class="k">public class</span> <span class="t">SmartLight</span> <span class="k">implements</span> <span class="t">SmartDevice</span> {
+    <span class="k">public void</span> <span class="t">turnOn</span>()  { <span class="t">System</span>.out.println(<span class="s">"Smart Light: ON"</span>); }
+    <span class="k">public void</span> <span class="t">turnOff</span>() { <span class="t">System</span>.out.println(<span class="s">"Smart Light: OFF"</span>); }
+}
+<span class="c">// SmartFan, SmartAC follow the same shape — omitted for brevity</span></pre>
+  <pre><span class="cap">Adaptees — third-party, cannot be modified</span><span class="k">public class</span> <span class="t">OldSmartBulb</span> {
+    <span class="k">public void</span> <span class="t">powerOn</span>()  { <span class="t">System</span>.out.println(<span class="s">"OldSmartBulb: powering on..."</span>); }
+    <span class="k">public void</span> <span class="t">powerOff</span>() { <span class="t">System</span>.out.println(<span class="s">"OldSmartBulb: powering off..."</span>); }
+}
+<span class="k">public class</span> <span class="t">LegacyHeater</span> {
+    <span class="k">public void</span> <span class="t">startHeating</span>() { <span class="t">System</span>.out.println(<span class="s">"LegacyHeater: heating started"</span>); }
+    <span class="k">public void</span> <span class="t">stopHeating</span>()  { <span class="t">System</span>.out.println(<span class="s">"LegacyHeater: heating stopped"</span>); }
+}</pre>
+  <pre><span class="cap">Object Adapters — one per incompatible class</span><span class="k">public class</span> <span class="t">SmartBulbAdapter</span> <span class="k">implements</span> <span class="t">SmartDevice</span> {
+    <span class="k">private</span> <span class="t">OldSmartBulb</span> bulb;
+    <span class="k">public</span> <span class="t">SmartBulbAdapter</span>(<span class="t">OldSmartBulb</span> bulb) { <span class="k">this</span>.bulb = bulb; }
+    <span class="k">public void</span> <span class="t">turnOn</span>()  { bulb.powerOn(); }
+    <span class="k">public void</span> <span class="t">turnOff</span>() { bulb.powerOff(); }
+}
+<span class="k">public class</span> <span class="t">HeaterAdapter</span> <span class="k">implements</span> <span class="t">SmartDevice</span> {
+    <span class="k">private</span> <span class="t">LegacyHeater</span> heater;
+    <span class="k">public</span> <span class="t">HeaterAdapter</span>(<span class="t">LegacyHeater</span> heater) { <span class="k">this</span>.heater = heater; }
+    <span class="k">public void</span> <span class="t">turnOn</span>()  { heater.startHeating(); }
+    <span class="k">public void</span> <span class="t">turnOff</span>() { heater.stopHeating(); }
+}</pre>
+  <pre><span class="cap">Demo — the voice-command loop never learns adapters exist</span><span class="k">public class</span> <span class="t">SmartHomeDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">List</span>&lt;<span class="t">SmartDevice</span>&gt; devices = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        devices.add(<span class="k">new</span> <span class="t">SmartLight</span>());
+        devices.add(<span class="k">new</span> <span class="t">SmartBulbAdapter</span>(<span class="k">new</span> <span class="t">OldSmartBulb</span>()));
+        devices.add(<span class="k">new</span> <span class="t">HeaterAdapter</span>(<span class="k">new</span> <span class="t">LegacyHeater</span>()));
+
+        <span class="k">for</span> (<span class="t">SmartDevice</span> d : devices) d.turnOn();   <span class="c">// uniform voice command: "turn everything on"</span>
+    }
+}</pre>
+</div>
+
+<div class="qcard" id="key-C1">
+  <h3><span class="qcode">C1 · ZBazar Ramadan Add-ons</span><span class="patbadge Decorator">Decorator</span></h3>
+  <p class="recap">Three fixed Ramadan packages (Standard/Special/Premium) must stay unmodified. Customers can optionally add a predefined Fruit Package, Sweet Package, and/or premium gift wrapping, in any combination, on top.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Decorator</b><ul>
+      <li>"Without modifying the existing packages," "may be applied in any combination," "preserving the original package structure" — near word-for-word Decorator triggers.</li>
+      <li>Each add-on only changes price and description on top of what's already there — classic wrap-and-delegate.</li>
+      <li>Fruit/Sweet packages are themselves independently sellable items, but here they act as <em>behavioural add-ons</em> to a Ramadan package, not as tree children — so this is Decorator, not Composite.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Composite</b> would fit if you needed to treat "a package with its add-ons" the same way as "an add-on containing other add-ons" in a tree — that's not asked for here; add-ons don't nest each other.</li>
+      <li><b>Bridge</b> doesn't fit — there's one hierarchy of packages being enhanced, not two independent axes.</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Component + the 3 fixed, untouched packages</span><span class="k">public interface</span> <span class="t">RamadanPackage</span> {
+    <span class="t">String</span> <span class="t">getDescription</span>();
+    <span class="k">double</span> <span class="t">getPrice</span>();
+}
+
+<span class="k">public class</span> <span class="t">StandardPackage</span> <span class="k">implements</span> <span class="t">RamadanPackage</span> {
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"Standard Ramadan Package"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> <span class="n">15.00</span>; }
+}
+<span class="k">public class</span> <span class="t">SpecialPackage</span> <span class="k">implements</span> <span class="t">RamadanPackage</span> {
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"Special Ramadan Package"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> <span class="n">25.00</span>; }
+}
+<span class="k">public class</span> <span class="t">PremiumPackage</span> <span class="k">implements</span> <span class="t">RamadanPackage</span> {
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> <span class="s">"Premium Ramadan Package"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> <span class="n">40.00</span>; }
+}</pre>
+  <pre><span class="cap">Base decorator + the 3 optional enhancements</span><span class="k">public abstract class</span> <span class="t">PackageDecorator</span> <span class="k">implements</span> <span class="t">RamadanPackage</span> {
+    <span class="k">protected</span> <span class="t">RamadanPackage</span> wrappee;
+    <span class="k">public</span> <span class="t">PackageDecorator</span>(<span class="t">RamadanPackage</span> wrappee) { <span class="k">this</span>.wrappee = wrappee; }
+}
+
+<span class="k">public class</span> <span class="t">FruitAddOn</span> <span class="k">extends</span> <span class="t">PackageDecorator</span> {
+    <span class="k">public</span> <span class="t">FruitAddOn</span>(<span class="t">RamadanPackage</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + Fruit Package"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> wrappee.getPrice() + <span class="n">5.00</span>; }
+}
+<span class="k">public class</span> <span class="t">SweetAddOn</span> <span class="k">extends</span> <span class="t">PackageDecorator</span> {
+    <span class="k">public</span> <span class="t">SweetAddOn</span>(<span class="t">RamadanPackage</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + Sweet Package"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> wrappee.getPrice() + <span class="n">6.50</span>; }
+}
+<span class="k">public class</span> <span class="t">GiftWrapping</span> <span class="k">extends</span> <span class="t">PackageDecorator</span> {
+    <span class="k">public</span> <span class="t">GiftWrapping</span>(<span class="t">RamadanPackage</span> wrappee) { <span class="k">super</span>(wrappee); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> wrappee.getDescription() + <span class="s">" + Premium Gift Wrapping"</span>; }
+    <span class="k">public double</span> <span class="t">getPrice</span>() { <span class="k">return</span> wrappee.getPrice() + <span class="n">3.00</span>; }
+}</pre>
+  <pre><span class="cap">Demo</span><span class="k">public class</span> <span class="t">RamadanDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">RamadanPackage</span> gift = <span class="k">new</span> <span class="t">GiftWrapping</span>(<span class="k">new</span> <span class="t">FruitAddOn</span>(<span class="k">new</span> <span class="t">SpecialPackage</span>()));
+        <span class="t">System</span>.out.println(gift.getDescription() + <span class="s">" = $"</span> + gift.getPrice());
+    }
+}
+<span class="c">// Special Ramadan Package + Fruit Package + Premium Gift Wrapping = $33.0</span></pre>
+</div>
+
+<div class="qcard" id="key-C2">
+  <h3><span class="qcode">C2 · ZBazar Delivery & Transport</span><span class="patbadge Bridge">Bridge</span></h3>
+  <p class="recap">Delivery types (Standard/Express/Scheduled) each have their own pricing/time logic, and must dispatch via a physical transport method (bike, van, and now drone, soon robot). The current design tightly couples both, forcing duplication whenever either changes.</p>
+  <div class="whybox">
+    <div class="w yes"><b>Why Bridge</b><ul>
+      <li>Two explicit, independently-changing dimensions — <em>delivery policy</em> and <em>transport technology</em> — described with the exact "tightly couples everything... duplication whenever either dimension changes" pain-point Bridge solves.</li>
+      <li>"Introduced without rewriting existing delivery-type logic, and vice versa" is literally the Bridge goal statement.</li>
+      <li>New tech (drone, robot) = 1 new Implementation class only; new delivery policy = 1 new Abstraction subclass only.</li>
+    </ul></div>
+    <div class="w no"><b>Why not the others</b><ul>
+      <li><b>Decorator</b> stacks optional layers on one object — delivery type and transport aren't optional add-ons, they're two mandatory, independently-varying choices.</li>
+      <li><b>Adapter</b> would apply if drone/robot came with an incompatible legacy API to reconcile — the problem is about avoiding coupling between two evolving hierarchies, not translating an interface.</li>
+    </ul></div>
+  </div>
+  <pre><span class="cap">Implementation hierarchy — the transport technology</span><span class="k">public interface</span> <span class="t">TransportMethod</span> {
+    <span class="t">String</span> <span class="t">dispatch</span>();
+}
+<span class="k">public class</span> <span class="t">BikeCourier</span> <span class="k">implements</span> <span class="t">TransportMethod</span> {
+    <span class="k">public</span> <span class="t">String</span> <span class="t">dispatch</span>() { <span class="k">return</span> <span class="s">"dispatched via bike courier"</span>; }
+}
+<span class="k">public class</span> <span class="t">VanDelivery</span> <span class="k">implements</span> <span class="t">TransportMethod</span> {
+    <span class="k">public</span> <span class="t">String</span> <span class="t">dispatch</span>() { <span class="k">return</span> <span class="s">"dispatched via delivery van"</span>; }
+}
+<span class="k">public class</span> <span class="t">DroneDelivery</span> <span class="k">implements</span> <span class="t">TransportMethod</span> {   <span class="c">// new tech, added independently</span>
+    <span class="k">public</span> <span class="t">String</span> <span class="t">dispatch</span>() { <span class="k">return</span> <span class="s">"drone safety-checked, airspace cleared, dispatched via drone"</span>; }
+}
+<span class="k">public class</span> <span class="t">RobotDelivery</span> <span class="k">implements</span> <span class="t">TransportMethod</span> {   <span class="c">// future tech, still zero changes above</span>
+    <span class="k">public</span> <span class="t">String</span> <span class="t">dispatch</span>() { <span class="k">return</span> <span class="s">"sidewalk-mapped, dispatched via delivery robot"</span>; }
+}</pre>
+  <pre><span class="cap">Abstraction hierarchy — the delivery policy, holding the bridge</span><span class="k">public abstract class</span> <span class="t">DeliveryType</span> {
+    <span class="k">protected</span> <span class="t">TransportMethod</span> transport;              <span class="c">// ◆ the bridge</span>
+    <span class="k">public</span> <span class="t">DeliveryType</span>(<span class="t">TransportMethod</span> transport) { <span class="k">this</span>.transport = transport; }
+    <span class="k">public abstract void</span> <span class="t">deliverOrder</span>();
+}
+<span class="k">public class</span> <span class="t">StandardDelivery</span> <span class="k">extends</span> <span class="t">DeliveryType</span> {
+    <span class="k">public</span> <span class="t">StandardDelivery</span>(<span class="t">TransportMethod</span> t) { <span class="k">super</span>(t); }
+    <span class="k">public void</span> <span class="t">deliverOrder</span>() { <span class="t">System</span>.out.println(<span class="s">"Standard (within 24h): "</span> + transport.dispatch()); }
+}
+<span class="k">public class</span> <span class="t">ExpressDelivery</span> <span class="k">extends</span> <span class="t">DeliveryType</span> {
+    <span class="k">public</span> <span class="t">ExpressDelivery</span>(<span class="t">TransportMethod</span> t) { <span class="k">super</span>(t); }
+    <span class="k">public void</span> <span class="t">deliverOrder</span>() { <span class="t">System</span>.out.println(<span class="s">"Express (within 4h): "</span> + transport.dispatch()); }
+}
+<span class="k">public class</span> <span class="t">ScheduledDelivery</span> <span class="k">extends</span> <span class="t">DeliveryType</span> {
+    <span class="k">public</span> <span class="t">ScheduledDelivery</span>(<span class="t">TransportMethod</span> t) { <span class="k">super</span>(t); }
+    <span class="k">public void</span> <span class="t">deliverOrder</span>() { <span class="t">System</span>.out.println(<span class="s">"Scheduled (chosen slot): "</span> + transport.dispatch()); }
+}</pre>
+  <pre><span class="cap">Demo</span><span class="k">public class</span> <span class="t">ZBazarDeliveryDemo</span> {
+    <span class="k">public static void</span> <span class="t">main</span>(<span class="t">String</span>[] args) {
+        <span class="t">DeliveryType</span> d1 = <span class="k">new</span> <span class="t">ExpressDelivery</span>(<span class="k">new</span> <span class="t">DroneDelivery</span>());
+        d1.deliverOrder();
+
+        <span class="t">DeliveryType</span> d2 = <span class="k">new</span> <span class="t">StandardDelivery</span>(<span class="k">new</span> <span class="t">BikeCourier</span>());
+        d2.deliverOrder();
+        <span class="c">// Adding RobotDelivery tomorrow touches ZERO DeliveryType subclasses, and vice versa.</span>
+    }
+}</pre>
+</div>
+`;
+</script>
+
+</body>
+</html>

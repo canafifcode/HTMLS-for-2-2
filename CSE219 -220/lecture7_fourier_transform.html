@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 7 — The Fourier Transform | CSE 219</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --paper:#f1e9d8;
+    --paper-deep:#e8dcc2;
+    --charcoal:#22201c;
+    --charcoal-2:#2c2822;
+    --ink:#2b2620;
+    --brass:#a97b34;
+    --brass-light:#c99a52;
+    --brass-dim:#7d5c28;
+    --oxblood:#7c2222;
+    --oxblood-light:#9c3838;
+    --paper-line: rgba(43,38,32,0.14);
+    --shadow: 0 10px 30px rgba(0,0,0,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:400;
+    line-height:1.6;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(169,123,52,0.06), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(124,34,34,0.05), transparent 45%);
+  }
+  h1,h2,h3,h4{ font-family:'Cormorant Garamond', serif; font-weight:600; color:var(--charcoal); margin:0 0 0.4em 0;}
+  .eyebrow{
+    font-family:'Oswald', sans-serif;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    font-size:0.72rem;
+    color:var(--brass-dim);
+    font-weight:500;
+  }
+  a{color:var(--oxblood);}
+  code, .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* ---------- layout ---------- */
+  .app{ display:flex; min-height:100vh; }
+
+  .sidebar{
+    width:270px; flex-shrink:0;
+    background:linear-gradient(180deg, var(--charcoal) 0%, var(--charcoal-2) 100%);
+    color:#e9e0cc;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:28px 0 40px 0;
+    border-right:1px solid rgba(0,0,0,0.4);
+  }
+  .sidebar::-webkit-scrollbar{width:6px;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--brass-dim); border-radius:4px;}
+
+  .brand{
+    padding:0 22px 20px 22px;
+    border-bottom:1px solid rgba(233,224,204,0.14);
+    margin-bottom:14px;
+  }
+  .brand .kicker{
+    font-family:'Oswald',sans-serif; font-size:0.68rem; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--brass-light); margin-bottom:6px;
+  }
+  .brand h1{
+    color:#f4ecd8; font-size:1.55rem; line-height:1.15; margin:0;
+    font-weight:600;
+  }
+  .brand .sub{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:#a99b7c; margin-top:8px;
+  }
+
+  nav.toc{padding:0 10px;}
+  nav.toc .group-label{
+    font-family:'Oswald',sans-serif; font-size:0.65rem; letter-spacing:0.15em;
+    text-transform:uppercase; color:#7d735c; padding:14px 12px 6px 12px;
+  }
+  nav.toc button.navlink{
+    display:flex; align-items:baseline; gap:8px; width:100%; text-align:left;
+    background:none; border:none; color:#cfc4a6; font-family:'IBM Plex Sans',sans-serif;
+    font-size:0.87rem; padding:8px 12px; border-radius:6px; cursor:pointer;
+    transition:background .15s, color .15s; margin-bottom:1px;
+  }
+  nav.toc button.navlink .num{ font-family:'IBM Plex Mono',monospace; color:var(--brass-light); font-size:0.72rem; opacity:0.8;}
+  nav.toc button.navlink:hover{ background:rgba(233,224,204,0.07); color:#f4ecd8; }
+  nav.toc button.navlink.active{ background:rgba(169,123,52,0.22); color:#f8efdb; font-weight:500; border-left:2px solid var(--brass-light); padding-left:10px;}
+
+  .main{ flex:1; min-width:0; padding:44px 56px 100px 56px; max-width:980px; }
+
+  section.panel{ display:none; animation:fade .35s ease; }
+  section.panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .hero{
+    border-bottom:2px solid var(--charcoal); padding-bottom:22px; margin-bottom:34px;
+  }
+  .hero h2{ font-size:2.5rem; }
+  .hero .tagline{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:1.2rem; color:var(--brass-dim); }
+
+  .card{
+    background:var(--paper-deep);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:22px 26px;
+    margin-bottom:22px;
+    box-shadow: 0 2px 6px rgba(43,38,32,0.06);
+  }
+  .card h3{ font-size:1.5rem; border-bottom:1px solid var(--paper-line); padding-bottom:8px; margin-bottom:14px; }
+  .card h4{ font-size:1.18rem; color:var(--oxblood); margin-top:18px;}
+
+  .callout{
+    border-left:4px solid var(--brass); background:rgba(169,123,52,0.09);
+    padding:14px 18px; margin:16px 0; border-radius:0 4px 4px 0;
+  }
+  .callout.exam{ border-left-color:var(--oxblood); background:rgba(124,34,34,0.08); }
+  .callout .label{ font-family:'Oswald',sans-serif; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--brass-dim); margin-bottom:6px; display:block;}
+  .callout.exam .label{ color:var(--oxblood); }
+
+  .brainstorm{
+    border:1px dashed var(--brass-dim); padding:14px 18px; margin:16px 0; border-radius:4px;
+    background:rgba(169,123,52,0.04);
+    font-style:italic;
+  }
+  .brainstorm .label{ font-style:normal; font-family:'Oswald',sans-serif; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--brass-dim); display:block; margin-bottom:6px;}
+
+  .eqbox{
+    background:var(--charcoal); color:#f4ecd8; padding:18px 22px; border-radius:5px;
+    margin:16px 0; overflow-x:auto; text-align:center;
+  }
+  .eqbox .katex{ font-size:1.15em; color:#f4ecd8;}
+
+  table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:0.92rem;}
+  th, td{ border:1px solid var(--paper-line); padding:8px 12px; text-align:left; }
+  th{ background:rgba(43,38,32,0.08); font-family:'Oswald',sans-serif; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase;}
+  tr:nth-child(even){ background:rgba(255,255,255,0.25); }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:800px){ .grid2{ grid-template-columns:1fr; } }
+
+  .widget{
+    background:#fbf6ea; border:1px solid var(--paper-line); border-radius:6px;
+    padding:18px 20px; margin:16px 0;
+  }
+  .widget-title{ font-family:'Oswald',sans-serif; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass-dim); margin-bottom:10px;}
+  .widget canvas{ width:100%; height:220px; display:block; background:#fffaf0; border-radius:4px; border:1px solid var(--paper-line);}
+  .widget .controls{ display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:0.82rem;}
+  .widget input[type=range]{ flex:1; min-width:140px; accent-color:var(--oxblood); }
+  .readout{ background:var(--charcoal); color:var(--brass-light); padding:3px 10px; border-radius:3px; font-size:0.8rem;}
+
+  .pillrow{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0;}
+  .pill{ background:var(--charcoal); color:#f4ecd8; border-radius:20px; padding:5px 14px; font-family:'IBM Plex Mono',monospace; font-size:0.78rem;}
+
+  .qz{ background:#fbf6ea; border:1px solid var(--paper-line); border-radius:6px; padding:16px 20px; margin:14px 0;}
+  .qz p.q{ font-weight:500; margin:0 0 10px 0;}
+  .qz .opts{ display:flex; flex-direction:column; gap:6px;}
+  .qz button.opt{
+    text-align:left; background:#fff; border:1px solid var(--paper-line); border-radius:4px;
+    padding:9px 14px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; font-size:0.9rem;
+    transition:all .15s;
+  }
+  .qz button.opt:hover{ border-color:var(--brass); background:rgba(169,123,52,0.06); }
+  .qz button.opt.correct{ background:rgba(58,120,58,0.18); border-color:#3a783a; }
+  .qz button.opt.wrong{ background:rgba(124,34,34,0.15); border-color:var(--oxblood); }
+  .qz .explain{ display:none; margin-top:10px; font-size:0.86rem; padding:10px 12px; background:rgba(169,123,52,0.08); border-radius:4px; border-left:3px solid var(--brass);}
+  .qz .explain.show{ display:block; }
+
+  .nav-buttons{ display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid var(--paper-line);}
+  .nav-buttons button{
+    font-family:'Oswald',sans-serif; letter-spacing:0.06em; text-transform:uppercase; font-size:0.8rem;
+    background:var(--charcoal); color:#f4ecd8; border:none; padding:11px 20px; border-radius:4px; cursor:pointer;
+  }
+  .nav-buttons button:hover{ background:var(--oxblood); }
+  .nav-buttons button:disabled{ opacity:0.3; cursor:default; }
+
+  .progress{ position:sticky; top:0; height:3px; background:rgba(43,38,32,0.1); z-index:5;}
+  .progress-bar{ height:100%; background:var(--brass); width:0%; transition:width .3s;}
+
+  ul.tight li{ margin-bottom:6px;}
+  .small{ font-size:0.85rem; color:#5c5340;}
+
+  @media (max-width:900px){
+    .app{ flex-direction:column; }
+    .sidebar{ position:relative; width:100%; height:auto; }
+    .main{ padding:30px 20px 80px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="kicker">CSE 219 · Signals &amp; Linear Systems</div>
+      <h1>Lecture 7</h1>
+      <div class="sub">The Fourier Transform<br>Instructor: Anik Saha</div>
+    </div>
+    <nav class="toc" id="toc">
+      <div class="group-label">Foundations</div>
+      <button class="navlink" data-target="s0"><span class="num">00</span> Why leave Fourier Series?</button>
+      <button class="navlink" data-target="s1"><span class="num">01</span> The Limiting Trick</button>
+      <button class="navlink" data-target="s2"><span class="num">02</span> The Transform Pair</button>
+      <div class="group-label">Properties &amp; Building Blocks</div>
+      <button class="navlink" data-target="s3"><span class="num">03</span> Frequency Shifting</button>
+      <button class="navlink" data-target="s4"><span class="num">04</span> Rectangle ↔ Sinc</button>
+      <button class="navlink" data-target="s5"><span class="num">05</span> Worked Examples</button>
+      <button class="navlink" data-target="s6"><span class="num">06</span> Windowed Cosine</button>
+      <button class="navlink" data-target="s7"><span class="num">07</span> The Impulse δ(t)</button>
+      <div class="group-label">Beyond the Slides</div>
+      <button class="navlink" data-target="s8"><span class="num">08</span> Applications</button>
+      <button class="navlink" data-target="s9"><span class="num">09</span> Exam Alerts</button>
+      <button class="navlink" data-target="s10"><span class="num">10</span> Self-Check Quiz</button>
+    </nav>
+  </aside>
+
+  <div style="flex:1; min-width:0;">
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <main class="main" id="main">
+
+      <!-- 0 -->
+      <section class="panel active" id="s0">
+        <div class="hero">
+          <div class="eyebrow">Section 00 · Motivation</div>
+          <h2>Why leave Fourier Series behind?</h2>
+          <div class="tagline">"Aperiodic functions crying in the background..."</div>
+        </div>
+
+        <div class="card">
+          <h3>The one big condition Fourier Series needed</h3>
+          <p>Everything you built in Lectures 5–6 rested on one assumption: the signal repeats forever.</p>
+          <div class="eqbox" id="eq-periodic"></div>
+          <p>Real signals rarely cooperate. A single handclap, a lightning strike's EM pulse, a heartbeat's one QRS complex, a car horn — these are <strong>one-time events</strong>. They have a beginning, they have an end, and they never come back. Fourier Series, strictly speaking, has nothing to say about them.</p>
+          <div class="callout">
+            <span class="label">The question this lecture answers</span>
+            Can we still describe a <em>non-repeating</em> signal using frequencies — the way Fourier Series described repeating ones?
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>The professor's intuition</h3>
+          <p>Think of Fourier Series as a special case, not a separate universe. A periodic signal is just a signal that has been "photocopied" infinitely many times with spacing <span class="mono">T</span>. What if we started peeling those copies apart — pushing them further and further away from each other — until only <strong>one original</strong> remains, alone, with its copies banished to infinity?</p>
+          <p>That is exactly the trick this lecture performs. We do not derive a brand-new theory from scratch; we <strong>stretch Fourier Series until it breaks open into something more general.</strong> This is why the Fourier Transform (FT) and Fourier Series (FS) share so much notation — they are relatives, not strangers.</p>
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Brainstorm before you scroll on</span>
+          If a periodic signal has a <em>discrete</em> set of frequency components (the harmonics <span class="mono">kω₀</span>), and an aperiodic signal is "a periodic signal with infinite period," what do you predict happens to the *spacing* between those frequency components as the period grows? What do you predict happens to the *number* of frequencies present?
+        </div>
+      </section>
+
+      <!-- 1 -->
+      <section class="panel" id="s1">
+        <div class="hero">
+          <div class="eyebrow">Section 01 · Derivation</div>
+          <h2>The Limiting Trick: T → ∞</h2>
+        </div>
+
+        <div class="card">
+          <h3>Step 1 — Cheat first: manufacture a periodic twin</h3>
+          <p>Start with one finite-duration, one-shot signal <span class="mono">x(t)</span>. Instead of analyzing it directly, build a periodic "clone" by repeating it every <span class="mono">T</span> seconds:</p>
+          <div class="eqbox" id="eq-repeat"></div>
+          <p>Now <span class="mono">x̃<sub>T</sub>(t)</span> <em>is</em> periodic, so every Fourier Series tool from Lecture 5 applies to it.</p>
+
+          <h4>Step 2 — Stretch the period</h4>
+          <p>Now imagine sliding the copies apart — increasing <span class="mono">T</span>. For small <span class="mono">T</span> the copies crowd together; for large <span class="mono">T</span> they drift apart. As <span class="mono">T → ∞</span>, every neighboring copy is pushed infinitely far away, and within any finite window, <span class="mono">x̃<sub>T</sub>(t)</span> looks exactly like the single isolated pulse <span class="mono">x(t)</span>.</p>
+
+          <div class="widget">
+            <div class="widget-title">Interactive · Stretch the Period</div>
+            <canvas id="canvasStretch"></canvas>
+            <div class="controls">
+              <span>T =</span>
+              <input type="range" id="rangeT" min="3" max="30" value="5" step="1">
+              <span class="readout" id="readoutT">5</span>
+              <span class="small">Drag right → copies move apart. Watch the frequency comb on the right.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Step 3 — What happens in frequency space?</h3>
+          <p>Recall the fundamental frequency and spacing between harmonics:</p>
+          <div class="eqbox" id="eq-w0"></div>
+          <table>
+            <tr><th>Period T</th><th>Spacing Δω</th><th>Frequency-domain picture</th></tr>
+            <tr><td>Small T</td><td>Large Δω</td><td>Few, widely-spaced frequency lines</td></tr>
+            <tr><td>Large T</td><td>Small Δω</td><td>Many, tightly-packed frequency lines</td></tr>
+          </table>
+          <p>So <strong>increasing T in time squeezes the harmonics closer together in frequency.</strong> This is the crucial trade-off: time stretches, frequency compresses.</p>
+        </div>
+
+        <div class="card">
+          <h3>Step 4 — Extract a smooth envelope from the coefficients</h3>
+          <p>The periodic clone still has an ordinary Fourier Series:</p>
+          <div class="eqbox" id="eq-fs1"></div>
+          <p>Choose the analysis window to be exactly one period, centered on the pulse. Inside that window, <span class="mono">x̃<sub>T</sub>(t)</span> is just <span class="mono">x(t)</span> itself, so:</p>
+          <div class="eqbox" id="eq-fs2"></div>
+          <p>Notice the integral no longer needs the periodicity — it only needs the shape of <span class="mono">x(t)</span> and the frequency value <span class="mono">kω₀</span>. Define this integral as a new function of a <em>continuous</em> frequency variable <span class="mono">ω</span>:</p>
+          <div class="eqbox" id="eq-Xdef"></div>
+          <p>This is the birth of <span class="mono">X(jω)</span>. The Fourier Series coefficients are just <strong>samples</strong> of this smooth function:</p>
+          <div class="eqbox" id="eq-Tak"></div>
+          <div class="callout">
+            <span class="label">Picture this</span>
+            There is a smooth, continuous curve <span class="mono">X(jω)</span> hovering in the background. The "stems" of the Fourier Series (the values <span class="mono">a<sub>k</sub></span>) are just needle-thin samples poking up to touch that curve at the points <span class="mono">ω = kω₀</span>. As T grows, more and more samples appear, tracing the curve more finely.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Step 5 — Why do the raw coefficients a<sub>k</sub> shrink to zero?</h3>
+          <p>This confuses almost everyone the first time. If <span class="mono">a<sub>k</sub> = X(jkω₀)/T</span>, then as <span class="mono">T → ∞</span>, every individual <span class="mono">a<sub>k</sub> → 0</span>. Does that mean the signal vanishes?</p>
+          <p><strong>No — it means each individual harmonic carries a vanishingly small amount of energy because there are infinitely many of them, packed infinitely close together.</strong> What matters is not the height of one stem, but the <em>density</em> of stems per unit frequency. This is exactly like probability density: <span class="mono">P(X = x) = 0</span> for a continuous random variable, yet the density <span class="mono">f(x)</span> is very much alive.</p>
+          <div class="eqbox" id="eq-density"></div>
+          <p>As <span class="mono">Δω → 0</span>, the "bins" become infinitesimally thin, and the discrete sum of stems smoothly becomes a continuous spectrum.</p>
+        </div>
+
+        <div class="card">
+          <h3>Step 6 — From sum to integral</h3>
+          <p>Start from the ordinary Fourier Series synthesis equation, and substitute <span class="mono">a<sub>k</sub> = (Δω/2π) X(jkω₀)</span>:</p>
+          <div class="eqbox" id="eq-sum1"></div>
+          <p>As <span class="mono">T → ∞</span>, three things happen simultaneously:</p>
+          <ul class="tight">
+            <li><span class="mono">ω₀ = Δω = 2π/T → 0</span> — the spacing vanishes</li>
+            <li><span class="mono">kω₀</span> becomes a continuous variable, which we simply call <span class="mono">ω</span></li>
+            <li>The sum <span class="mono">Σ</span> becomes an integral <span class="mono">∫</span> (a Riemann-sum limit, exactly like in calculus)</li>
+          </ul>
+          <div class="eqbox" id="eq-final"></div>
+          <p>This is precisely the Fourier Transform <em>synthesis</em> equation. We didn't invent it — we watched it emerge as T was pushed to infinity.</p>
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Check your understanding</span>
+          If T were to double, does the frequency spacing Δω double or halve? Now push that logic to its limit and explain, in one sentence, why "aperiodic" and "continuous spectrum" are really the same idea wearing two different hats.
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="panel" id="s2">
+        <div class="hero">
+          <div class="eyebrow">Section 02 · The Result</div>
+          <h2>The Fourier Transform Pair</h2>
+        </div>
+
+        <div class="card">
+          <h3>Analysis and Synthesis, side by side</h3>
+          <div class="grid2">
+            <div>
+              <h4>Analysis (time → frequency)</h4>
+              <div class="eqbox" id="eq-analysis"></div>
+              <p class="small">Take the signal, multiply by a rotating exponential, integrate over all time. Produces the spectrum.</p>
+            </div>
+            <div>
+              <h4>Synthesis (frequency → time)</h4>
+              <div class="eqbox" id="eq-synthesis"></div>
+              <p class="small">Take the spectrum, multiply by a rotating exponential, integrate over all frequency (with a 1/2π). Rebuilds the signal.</p>
+            </div>
+          </div>
+          <div class="callout">
+            <span class="label">The one-line summary of the whole lecture</span>
+            The Fourier Transform is <em>not</em> a new idea — it is the Fourier Series after the discrete frequency lines have been allowed to merge into a continuum.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Fourier Series vs. Fourier Transform — a side-by-side map</h3>
+          <table>
+            <tr><th></th><th>Fourier Series</th><th>Fourier Transform</th></tr>
+            <tr><td>Applies to</td><td>Periodic signals</td><td>Any signal (periodic or not, with mild conditions)</td></tr>
+            <tr><td>Spectrum type</td><td>Discrete (harmonics <span class="mono">kω₀</span>)</td><td>Continuous (all <span class="mono">ω</span>)</td></tr>
+            <tr><td>Coefficients</td><td><span class="mono">a<sub>k</sub></span> — numbers</td><td><span class="mono">X(jω)</span> — a function</td></tr>
+            <tr><td>Synthesis</td><td>Sum <span class="mono">Σ</span></td><td>Integral <span class="mono">∫</span></td></tr>
+            <tr><td>"Weight" of each frequency</td><td>Discrete amplitude</td><td>Density (amplitude per unit ω)</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>Edge cases and existence questions</h3>
+          <ul class="tight">
+            <li><strong>Does X(jω) always exist?</strong> Not automatically. Just like an infinite series needs a convergence condition, the FT integral needs the signal to be "well-behaved" — commonly, absolute integrability <span class="mono">∫|x(t)|dt &lt; ∞</span> is sufficient (one of the Dirichlet-type conditions, echoing the convergence conditions you saw for Fourier Series). Some idealized signals (like a pure constant, or <span class="mono">cos(ω₀t)</span> itself) don't satisfy this strictly, yet still have a well-defined transform once impulses are allowed — this is why δ(ω) shows up so often in FT tables.</li>
+            <li><strong>Is X(jω) generally complex?</strong> Yes — same rule as Fourier Series: it carries both a magnitude (how much of that frequency is present) and a phase (how that frequency component is time-aligned).</li>
+            <li><strong>What if x(t) is already periodic?</strong> You can still take its Fourier Transform — you just need impulses in frequency, spaced at <span class="mono">kω₀</span>, since a periodic signal's "spectrum" is fundamentally discrete. This is a preview for later lectures, but keep it in your back pocket.</li>
+          </ul>
+        </div>
+
+        <div class="callout exam">
+          <span class="label">Exam alert</span>
+          A very common trap: writing the synthesis integral <em>without</em> the <span class="mono">1/2π</span> factor, or writing the analysis integral <em>with</em> one. Memorize the asymmetry: the <span class="mono">1/2π</span> belongs to the equation that integrates over <span class="mono">ω</span> (synthesis), not the one that integrates over <span class="mono">t</span> (analysis).
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="panel" id="s3">
+        <div class="hero">
+          <div class="eyebrow">Section 03 · Property</div>
+          <h2>Frequency Shifting (Modulation)</h2>
+        </div>
+
+        <div class="card">
+          <h3>Injecting oscillation into a signal</h3>
+          <p>Take an envelope <span class="mono">x(t)</span> and multiply it by a carrier <span class="mono">cos(ω₀t)</span>. The shape is preserved, but oscillation is injected inside it — this is the core idea behind AM radio, and behind physical phenomena like damped pendulums, vibrating strings with loss, ringing circuits, and fading echoes (all of which look like "envelope × oscillation").</p>
+          <p>Before tackling the cosine directly, solve the cleaner building block: what does multiplying by a single complex exponential <span class="mono">e<sup>jω₀t</sup></span> do?</p>
+        </div>
+
+        <div class="card">
+          <h3>Derivation — why multiplying by e<sup>jω₀t</sup> shifts the spectrum</h3>
+          <p>Every frequency component inside <span class="mono">x(t)</span> looks, in the synthesis integral, like a tiny piece of <span class="mono">e<sup>jωt</sup></span>. Multiply the whole signal by <span class="mono">e<sup>jω₀t</sup></span>:</p>
+          <div class="eqbox" id="eq-shift1"></div>
+          <p>Every component originally sitting at frequency <span class="mono">ω</span> has been relabeled to sit at <span class="mono">ω + ω₀</span>. To make the *entire* curve <span class="mono">X(jω)</span> slide right by <span class="mono">ω₀</span>, we simply replace the argument:</p>
+          <div class="eqbox" id="eq-shift2"></div>
+          <div class="callout">
+            <span class="label">Frequency-Shifting Property</span>
+            <div id="eq-shiftprop"></div>
+            Multiplication by a complex exponential in time shifts the entire spectrum in frequency. This is the frequency-domain twin of the time-shifting property you'll also want to keep handy: <span class="mono">x(t − t₀) ↔ e<sup>−jωt₀</sup>X(jω)</span>.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>From exponential shift to cosine modulation</h3>
+          <p>A cosine is nothing but two rotating exponentials added together (Euler's identity in reverse):</p>
+          <div class="eqbox" id="eq-cos1"></div>
+          <p>So:</p>
+          <div class="eqbox" id="eq-cos2"></div>
+          <p>Each exponential shifts the spectrum by <span class="mono">±ω₀</span> and scales it by <span class="mono">1/2</span>. The result: <strong>cosine modulation creates two half-height copies of the original spectrum</strong>, one centered at <span class="mono">+ω₀</span> and one at <span class="mono">−ω₀</span>.</p>
+          <div class="eqbox" id="eq-cosresult"></div>
+        </div>
+
+        <div class="widget">
+          <div class="widget-title">Interactive · Modulation slides the spectrum</div>
+          <canvas id="canvasMod"></canvas>
+          <div class="controls">
+            <span>ω₀ =</span>
+            <input type="range" id="rangeW0" min="0" max="12" value="5" step="0.5">
+            <span class="readout" id="readoutW0">5.0</span>
+            <span class="small">Watch the single hump split into two half-height copies at ±ω₀.</span>
+          </div>
+        </div>
+
+        <div class="callout exam">
+          <span class="label">Exam alert</span>
+          Do not forget the <span class="mono">1/2</span> factor on each copy when modulating by cosine — a very common point-loss. Also: modulating by <span class="mono">sin(ω₀t)</span> gives the *same* two shifted locations but with a <span class="mono">±1/2j</span> factor (and a sign flip on one side), since <span class="mono">sin(ω₀t) = (e<sup>jω₀t</sup> − e<sup>−jω₀t</sup>)/2j</span>.
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Brainstorm</span>
+          If you only had access to the *shifted* spectrum (say, from a radio receiver), how would you get the original envelope <span class="mono">x(t)</span> back? (Hint: this is exactly what an AM demodulator does — think about what operation "un-shifts" a spectrum.)
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="panel" id="s4">
+        <div class="hero">
+          <div class="eyebrow">Section 04 · Building Block</div>
+          <h2>The Rectangle ↔ Sinc Duality</h2>
+        </div>
+
+        <div class="card">
+          <h3>The most common transform pair in the whole course</h3>
+          <p>Define the width-T rectangle centered at the origin:</p>
+          <div class="eqbox" id="eq-rect-def"></div>
+          <p>Its transform is computed directly from the analysis integral:</p>
+          <div class="eqbox" id="eq-rect-deriv"></div>
+          <p>Evaluating the antiderivative between the limits and simplifying (using <span class="mono">e<sup>jθ</sup> − e<sup>−jθ</sup> = 2j sin θ</span>) gives the clean result:</p>
+          <div class="eqbox" id="eq-rect-result"></div>
+        </div>
+
+        <div class="card">
+          <h3>The inverse relationship: wide in time ⟺ narrow in frequency</h3>
+          <p>This is one of the most important qualitative facts in all of signal processing — sometimes called an <strong>uncertainty principle</strong> for signals:</p>
+          <table>
+            <tr><th>Time domain</th><th>Frequency domain</th></tr>
+            <tr><td>Wide rectangle (large T)</td><td>Narrow, tall main lobe</td></tr>
+            <tr><td>Narrow rectangle (small T)</td><td>Wide, short main lobe</td></tr>
+          </table>
+          <p>You <strong>cannot</strong> have a signal that is simultaneously very short in time and very narrow in frequency. Squeeze one domain, the other domain spreads out. (Physically: a very brief pulse must contain a broad mixture of frequencies to build its sharp edges — think of a camera shutter click versus a sustained musical note.)</p>
+        </div>
+
+        <div class="widget">
+          <div class="widget-title">Interactive · Rectangle ↔ Sinc duality</div>
+          <canvas id="canvasRectSinc"></canvas>
+          <div class="controls">
+            <span>Width T =</span>
+            <input type="range" id="rangeRectT" min="1" max="10" value="2" step="0.5">
+            <span class="readout" id="readoutRectT">2.0</span>
+            <span class="small">Top: x(t) rectangle. Bottom: X(jω) = 2sin(ωT/2)/ω. Drag and watch them fight each other.</span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="label">Sanity check at ω = 0</span>
+          The formula <span class="mono">X(jω) = 2sin(ωT/2)/ω</span> looks like it blows up (0/0) at <span class="mono">ω = 0</span>. It doesn't — L'Hôpital (or the small-angle approximation <span class="mono">sin(x) ≈ x</span>) gives <span class="mono">X(j0) = T</span>, exactly the area under the rectangle. This matches a general rule: <span class="mono">X(j0) = ∫x(t)dt</span>, the DC value of the spectrum is always the total area of the signal.
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="panel" id="s5">
+        <div class="hero">
+          <div class="eyebrow">Section 05 · Practice</div>
+          <h2>Worked Examples</h2>
+        </div>
+
+        <div class="card">
+          <h3>Example 1 — Two centered rectangles (plug-and-play)</h3>
+          <p><strong>Given:</strong> <span class="mono">x₁(t) = 1</span> for <span class="mono">−1 &lt; t &lt; 1</span>, else 0. <span class="mono">x₂(t) = 1</span> for <span class="mono">−3 &lt; t &lt; 3</span>, else 0.</p>
+          <p><strong>Method:</strong> Both are centered rectangles — just identify the width <span class="mono">T</span> and plug into <span class="mono">X(jω) = 2sin(ωT/2)/ω</span>.</p>
+          <div class="eqbox" id="eq-ex1"></div>
+          <p class="small">Width of x₁ is 2 (spans −1 to 1); width of x₂ is 6 (spans −3 to 3). Notice x₂ is wider in time and its sinc is narrower in frequency — the duality from Section 04 in action.</p>
+        </div>
+
+        <div class="card">
+          <h3>Example 2 — A shifted rectangle</h3>
+          <p><strong>Given:</strong> <span class="mono">x(t) = 1</span> for <span class="mono">4 &lt; t &lt; 10</span>, else 0.</p>
+          <p><strong>Method:</strong> First re-describe it as a <em>centered</em> rectangle, then apply time-shifting. The interval [4,10] has width 6 and midpoint 7 — so this is a width-6 rectangle shifted right by <span class="mono">t₀ = 7</span>.</p>
+          <div class="eqbox" id="eq-ex2"></div>
+          <div class="callout">
+            <span class="label">Why this matters</span>
+            This two-step pattern — "de-shift to find the base shape, transform the base shape, then re-apply the shift as a phase factor <span class="mono">e<sup>−jωt₀</sup></span>" — is the standard strategy for almost every asymmetric rectangle problem you'll see on the exam.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Example 3 — The "Lego block" signal (superposition)</h3>
+          <p><strong>Given:</strong> a stepped signal — height 1 on (1,2), height 1.5 on (2,3), height 1 on (3,4), zero elsewhere.</p>
+          <p><strong>Method:</strong> Decompose into a sum of simple rectangles using linearity. Here, the block is a width-3 rectangle (height 1, spanning 1 to 4, centered at 2.5) <em>plus</em> a smaller width-1 rectangle (height 0.5, spanning 2 to 3, centered at 2.5) sitting on top.</p>
+          <div class="eqbox" id="eq-ex3"></div>
+          <p>Both pieces share the same center (2.5), so they share the same phase factor <span class="mono">e<sup>−j2.5ω</sup></span>, which can be factored out:</p>
+          <div class="eqbox" id="eq-ex3b"></div>
+          <div class="callout exam">
+            <span class="label">Exam alert</span>
+            The Lego-block trick works because the Fourier Transform is <strong>linear</strong> — the transform of a sum is the sum of transforms. Whenever a signal looks like "a big rectangle with something stacked on top," decompose it. This shows up constantly with staircase-shaped or trapezoidal signals.
+          </div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Try it yourself</span>
+          A signal is height 2 on (0,4), and height 3 on (1,3) added on top of that. Can you decompose it into two centered rectangles the way Example 3 did, and write its transform? (Careful: the two rectangles have <em>different</em> centers this time — do they still share one phase factor?)
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="panel" id="s6">
+        <div class="hero">
+          <div class="eyebrow">Section 06 · Combining Ideas</div>
+          <h2>The Windowed Cosine</h2>
+        </div>
+
+        <div class="card">
+          <h3>Locking a cosine inside a rectangle</h3>
+          <p>Let <span class="mono">r(t)</span> be the width-T rectangle centered at the origin, and consider:</p>
+          <div class="eqbox" id="eq-wc1"></div>
+          <p>This single line quietly combines <em>every idea from this lecture</em>:</p>
+          <ul class="tight">
+            <li><span class="mono">r(t)</span> alone transforms to a sinc, <span class="mono">R(jω) = 2sin(ωT/2)/ω</span> (Section 04)</li>
+            <li>Multiplying by <span class="mono">cos(ω₀t)</span> shifts that sinc to <span class="mono">±ω₀</span> and halves its height (Section 03)</li>
+          </ul>
+          <div class="eqbox" id="eq-wc2"></div>
+          <p>Two sinc-shaped lobes, each half the height of the original, sitting at <span class="mono">ω = +ω₀</span> and <span class="mono">ω = −ω₀</span> instead of at the origin.</p>
+        </div>
+
+        <div class="callout">
+          <span class="label">Why this specific signal matters so much</span>
+          A "windowed cosine" is literally what happens every time you record a short burst of a musical note, or when a radar/sonar system sends out a finite pulse of a carrier frequency. It is also exactly the building block behind the Short-Time Fourier Transform / spectrograms you may meet later. Recognizing "rectangle × cosine" instantly as "two shifted sincs" will save serious time on exams.
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Brainstorm</span>
+          What would the spectrum look like if, instead of a rectangle window, you used a triangular window? (You don't need the exact math — just reason qualitatively about the shape of the "envelope transform" from what you know about wider/smoother time-domain shapes.)
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="panel" id="s7">
+        <div class="hero">
+          <div class="eyebrow">Section 07 · The Extreme Case</div>
+          <h2>The Impulse δ(t) and Its Transform</h2>
+        </div>
+
+        <div class="card">
+          <h3>The narrowest possible signal</h3>
+          <p>The Dirac delta <span class="mono">δ(t)</span> is the ultimate limit of "narrow in time": zero width, infinite height, unit area. Push the rectangle-sinc duality from Section 04 to its extreme — shrink T toward 0 while keeping area fixed at 1 — and you get exactly this object.</p>
+          <div class="eqbox" id="eq-delta-def"></div>
+        </div>
+
+        <div class="card">
+          <h3>Derivation using the sifting property</h3>
+          <p>Apply the analysis integral directly:</p>
+          <div class="eqbox" id="eq-delta-int"></div>
+          <p>The sifting property of the impulse says that multiplying any smooth function by <span class="mono">δ(t)</span> and integrating just "reads off" that function's value at <span class="mono">t = 0</span>:</p>
+          <div class="eqbox" id="eq-sifting"></div>
+          <p>Applying that here, with <span class="mono">f(t) = e<sup>−jωt</sup></span>:</p>
+          <div class="eqbox" id="eq-delta-result"></div>
+        </div>
+
+        <div class="card">
+          <h3>The flattest possible spectrum</h3>
+          <div class="eqbox" id="eq-delta-pair"></div>
+          <p>This is the mirror image of the rectangle-sinc duality taken to its logical extreme: a signal infinitely concentrated in time needs <em>every single frequency, in equal amount</em>, to be built. <strong>A perfectly flat spectrum in frequency corresponds to a perfectly sharp spike in time.</strong></p>
+          <div class="pillrow">
+            <span class="pill">δ(t) → all frequencies equally</span>
+            <span class="pill">Wide rectangle → few frequencies, tightly packed</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Bonus — the shifted impulse</h3>
+          <p>What if the spike occurs not at the origin, but at some time <span class="mono">t₀</span>?</p>
+          <div class="eqbox" id="eq-delta-shift"></div>
+          <p>Same sifting logic, just evaluated at <span class="mono">t = t₀</span> instead of <span class="mono">t = 0</span>:</p>
+          <div class="eqbox" id="eq-delta-shift-result"></div>
+          <p class="small">This is a special case (and, in a sense, a proof) of the general time-shifting property you saw applied to rectangles in Example 2.</p>
+        </div>
+
+        <div class="callout exam">
+          <span class="label">Exam alert</span>
+          Students often try to compute <span class="mono">∫δ(t)e<sup>−jωt</sup>dt</span> by treating <span class="mono">δ(t)</span> as an ordinary function and attempting u-substitution or integration by parts. Don't. The impulse is defined operationally by the sifting property — always jump straight to "plug in <span class="mono">t = t₀</span> into whatever it's multiplying," never try to "integrate the delta" mechanically.
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="panel" id="s8">
+        <div class="hero">
+          <div class="eyebrow">Section 08 · Why This Matters</div>
+          <h2>Applications — Where the Fourier Transform Quietly Appears</h2>
+        </div>
+
+        <div class="card">
+          <h3>A tour of real systems built on X(jω)</h3>
+          <table>
+            <tr><th>Application</th><th>What the FT does</th></tr>
+            <tr><td><strong>Audio denoising</strong></td><td>Separates voice-like frequency content from noise-like content, so unwanted frequencies can be attenuated.</td></tr>
+            <tr><td><strong>Image denoising</strong></td><td>Treats an image as a 2D signal; noise often concentrates in high spatial frequencies, so filtering the frequency view cleans the picture.</td></tr>
+            <tr><td><strong>JPEG compression</strong></td><td>Transforms image blocks into frequency coefficients; small, perceptually unimportant high-frequency coefficients are rounded away to shrink file size.</td></tr>
+            <tr><td><strong>MRI</strong></td><td>The scanner physically measures frequency-domain data first ("k-space") and reconstructs the anatomical image via an inverse transform.</td></tr>
+            <tr><td><strong>Music recognition</strong></td><td>Identifies songs from a short clip by matching characteristic peaks ("fingerprints") in the frequency domain over time.</td></tr>
+            <tr><td><strong>Vibration diagnosis</strong></td><td>A healthy machine and a faulty one (cracked bearing, loose part) often look similar in time but strikingly different in frequency.</td></tr>
+            <tr><td><strong>ECG filtering</strong></td><td>Separates the heartbeat signal from power-line interference (a narrow, known frequency) so it can be surgically removed without harming the heartbeat.</td></tr>
+          </table>
+        </div>
+
+        <div class="callout">
+          <span class="label">The unifying theme</span>
+          In every single case above, the raw time-domain signal hides information that becomes <em>obvious</em> once you look at it in frequency. This is the entire professional value of the Fourier Transform: it's a change of perspective, not just a mathematical exercise.
+        </div>
+
+        <div class="brainstorm">
+          <span class="label">Brainstorm</span>
+          For the ECG filtering example: power-line hum sits at a very specific, known frequency (50 Hz or 60 Hz depending on the country). Given everything you now know about the impulse's transform (Section 07) and modulation (Section 03), what would the *spectrum* of a pure 50 Hz interference tone look like — and how would you design a filter to surgically remove just that?
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section class="panel" id="s9">
+        <div class="hero">
+          <div class="eyebrow">Section 09 · Before the Exam</div>
+          <h2>Exam Alerts &amp; Common Pitfalls — Consolidated</h2>
+        </div>
+
+        <div class="card">
+          <h3>The full checklist</h3>
+          <div class="callout exam">
+            <span class="label">1. The 1/2π asymmetry</span>
+            Synthesis (frequency → time) has the <span class="mono">1/2π</span> factor. Analysis (time → frequency) does not. Mixing these up is the single most common point-loss on FT problems.
+          </div>
+          <div class="callout exam">
+            <span class="label">2. Modulation halves amplitude, doubles copies</span>
+            <span class="mono">x(t)cos(ω₀t)</span> gives <em>two</em> shifted copies, each scaled by <span class="mono">1/2</span> — not one full-height copy at <span class="mono">ω₀</span>.
+          </div>
+          <div class="callout exam">
+            <span class="label">3. Width, not the raw interval bounds, drives the sinc</span>
+            For a centered rectangle, only the width <span class="mono">T</span> enters <span class="mono">2sin(ωT/2)/ω</span>. For an off-center rectangle, first find width and center, then attach the phase factor <span class="mono">e<sup>−jωt₀</sup></span> separately.
+          </div>
+          <div class="callout exam">
+            <span class="label">4. Never "integrate" a delta function mechanically</span>
+            Always use the sifting property directly: <span class="mono">∫δ(t−t₀)f(t)dt = f(t₀)</span>.
+          </div>
+          <div class="callout exam">
+            <span class="label">5. Check X(j0) as a sanity test</span>
+            <span class="mono">X(j0) = ∫x(t)dt</span> always. For a rectangle, that's just its area — a fast way to check your formula didn't pick up a stray sign or factor.
+          </div>
+          <div class="callout exam">
+            <span class="label">6. Linearity is your best friend for composite shapes</span>
+            Any "Lego block" / staircase / trapezoidal signal should immediately trigger: "decompose into simple rectangles and add their transforms."
+          </div>
+          <div class="callout exam">
+            <span class="label">7. Existence is not automatic</span>
+            The FT integral needs the signal to be well-behaved (e.g. absolutely integrable). Signals like pure cosines or constants technically need impulses in their spectrum to be represented — don't panic if you see a δ(ω) show up in a "textbook" transform table.
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section class="panel" id="s10">
+        <div class="hero">
+          <div class="eyebrow">Section 10 · Self-Check</div>
+          <h2>Quiz — Test Yourself</h2>
+        </div>
+        <div class="card">
+          <p class="small">Click an option. Correct answers turn green; incorrect ones turn red and reveal an explanation.</p>
+          <div id="quizContainer"></div>
+        </div>
+      </section>
+
+      <div class="nav-buttons">
+        <button id="btnPrev">← Previous</button>
+        <button id="btnNext">Next →</button>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* ---------------- KaTeX render helper ---------------- */
+function K(id, tex, display=true){
+  const el = document.getElementById(id);
+  if(!el) return;
+  try{
+    katex.render(tex, el, {throwOnError:false, displayMode:display});
+  }catch(e){ el.textContent = tex; }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  K('eq-periodic', "x(t+T) = x(t) \\quad \\text{for all } t \\quad \\Longleftarrow \\quad \\text{this is what breaks for a one-time event}");
+  K('eq-repeat', "\\tilde{x}_T(t) = \\sum_{m=-\\infty}^{\\infty} x(t-mT)");
+  K('eq-w0', "\\omega_0 = \\frac{2\\pi}{T}, \\qquad \\Delta\\omega = \\omega_0");
+  K('eq-fs1', "\\tilde{x}_T(t) = \\sum_{k=-\\infty}^{\\infty} a_k\\, e^{jk\\omega_0 t}, \\qquad a_k = \\frac{1}{T}\\int_{\\text{one period}} \\tilde{x}_T(t)\\, e^{-jk\\omega_0 t}\\, dt");
+  K('eq-fs2', "a_k = \\frac{1}{T}\\int_{-T/2}^{T/2} x(t)\\, e^{-jk\\omega_0 t}\\, dt = \\frac{1}{T}\\int_{-\\infty}^{\\infty} x(t)\\, e^{-jk\\omega_0 t}\\, dt");
+  K('eq-Xdef', "X(j\\omega) \\;\\triangleq\\; \\int_{-\\infty}^{\\infty} x(t)\\, e^{-j\\omega t}\\, dt");
+  K('eq-Tak', "T\\,a_k = X(jk\\omega_0) \\qquad\\Longrightarrow\\qquad a_k = \\frac{1}{T}X(jk\\omega_0)");
+  K('eq-density', "a_k = \\frac{1}{T}X(jk\\omega_0) = \\frac{\\Delta\\omega}{2\\pi}X(jk\\omega_0)");
+  K('eq-sum1', "\\tilde{x}_T(t) = \\sum_{k=-\\infty}^{\\infty} \\frac{\\Delta\\omega}{2\\pi}X(jk\\omega_0)\\, e^{jk\\omega_0 t} = \\frac{1}{2\\pi}\\sum_{k=-\\infty}^{\\infty} X(jk\\omega_0)\\,e^{jk\\omega_0 t}\\,\\Delta\\omega");
+  K('eq-final', "x(t) = \\frac{1}{2\\pi}\\int_{-\\infty}^{\\infty} X(j\\omega)\\, e^{j\\omega t}\\, d\\omega");
+
+  K('eq-analysis', "X(j\\omega) = \\int_{-\\infty}^{\\infty} x(t)\\, e^{-j\\omega t}\\, dt");
+  K('eq-synthesis', "x(t) = \\frac{1}{2\\pi}\\int_{-\\infty}^{\\infty} X(j\\omega)\\, e^{j\\omega t}\\, d\\omega");
+
+  K('eq-shift1', "e^{j\\omega t}\\cdot e^{j\\omega_0 t} = e^{j(\\omega+\\omega_0)t}");
+  K('eq-shift2', "X(j\\omega) \\;\\longrightarrow\\; X\\big(j(\\omega-\\omega_0)\\big)");
+  K('eq-shiftprop', "x(t)\\,e^{j\\omega_0 t} \\;\\longleftrightarrow\\; X\\big(j(\\omega-\\omega_0)\\big)", false);
+  K('eq-cos1', "\\cos(\\omega_0 t) = \\tfrac{1}{2}\\big(e^{j\\omega_0 t} + e^{-j\\omega_0 t}\\big)");
+  K('eq-cos2', "x(t)\\cos(\\omega_0 t) = \\tfrac{1}{2}x(t)e^{j\\omega_0 t} + \\tfrac{1}{2}x(t)e^{-j\\omega_0 t}");
+  K('eq-cosresult', "x(t)\\cos(\\omega_0 t) \\;\\longleftrightarrow\\; \\tfrac{1}{2}X\\big(j(\\omega-\\omega_0)\\big) + \\tfrac{1}{2}X\\big(j(\\omega+\\omega_0)\\big)");
+
+  K('eq-rect-def', "x(t) = \\begin{cases} 1, & -\\tfrac{T}{2} < t < \\tfrac{T}{2} \\\\ 0, & \\text{otherwise} \\end{cases}");
+  K('eq-rect-deriv', "X(j\\omega) = \\int_{-T/2}^{T/2} e^{-j\\omega t}\\, dt = \\left[\\frac{e^{-j\\omega t}}{-j\\omega}\\right]_{-T/2}^{T/2} = \\frac{e^{j\\omega T/2} - e^{-j\\omega T/2}}{j\\omega}");
+  K('eq-rect-result', "X(j\\omega) = \\frac{2\\sin(\\omega T/2)}{\\omega}");
+
+  K('eq-ex1', "X_1(j\\omega) = \\frac{2\\sin(\\omega)}{\\omega}, \\qquad X_2(j\\omega) = \\frac{2\\sin(3\\omega)}{\\omega}");
+  K('eq-ex2', "R(j\\omega) = \\frac{2\\sin(3\\omega)}{\\omega} \\;\\; \\Longrightarrow \\;\\; X(j\\omega) = e^{-j7\\omega}\\cdot \\frac{2\\sin(3\\omega)}{\\omega}");
+  K('eq-ex3', "x(t) = \\underbrace{1\\cdot\\text{rect}_{3}(t-2.5)}_{\\text{wide block, width 3}} \\;+\\; \\underbrace{0.5\\cdot\\text{rect}_{1}(t-2.5)}_{\\text{small top block, width 1}}");
+  K('eq-ex3b', "X(j\\omega) = e^{-j2.5\\omega}\\left[\\frac{2\\sin(1.5\\omega)}{\\omega} + \\frac{\\sin(0.5\\omega)}{\\omega}\\right]");
+
+  K('eq-wc1', "x(t) = r(t)\\cos(\\omega_0 t), \\qquad r(t) = \\text{width-}T\\text{ rectangle}");
+  K('eq-wc2', "x(t) \\;\\longleftrightarrow\\; \\tfrac{1}{2}R\\big(j(\\omega-\\omega_0)\\big) + \\tfrac{1}{2}R\\big(j(\\omega+\\omega_0)\\big), \\qquad R(j\\omega)=\\frac{2\\sin(\\omega T/2)}{\\omega}");
+
+  K('eq-delta-def', "x(t) = \\delta(t), \\qquad \\int_{-\\infty}^{\\infty}\\delta(t)\\,dt = 1");
+  K('eq-delta-int', "X(j\\omega) = \\int_{-\\infty}^{\\infty} \\delta(t)\\, e^{-j\\omega t}\\, dt");
+  K('eq-sifting', "\\int_{-\\infty}^{\\infty} \\delta(t)\\, f(t)\\, dt = f(0)");
+  K('eq-delta-result', "X(j\\omega) = e^{-j\\omega\\cdot 0} = 1");
+  K('eq-delta-pair', "\\delta(t) \\;\\longleftrightarrow\\; 1");
+  K('eq-delta-shift', "x(t) = \\delta(t-t_0)");
+  K('eq-delta-shift-result', "X(j\\omega) = \\int_{-\\infty}^{\\infty}\\delta(t-t_0)e^{-j\\omega t}\\,dt = e^{-j\\omega t_0}");
+
+  renderQuiz();
+  initNav();
+  initStretchWidget();
+  initModWidget();
+  initRectSincWidget();
+});
+
+/* ---------------- Navigation ---------------- */
+const sectionIds = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'];
+let currentIdx = 0;
+
+function initNav(){
+  document.querySelectorAll('.navlink').forEach(btn=>{
+    btn.addEventListener('click', ()=> goTo(btn.dataset.target));
+  });
+  document.getElementById('btnPrev').addEventListener('click', ()=>{
+    if(currentIdx>0) goTo(sectionIds[currentIdx-1]);
+  });
+  document.getElementById('btnNext').addEventListener('click', ()=>{
+    if(currentIdx<sectionIds.length-1) goTo(sectionIds[currentIdx+1]);
+  });
+  updateNavButtons();
+  updateProgress();
+}
+
+function goTo(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.navlink[data-target="${id}"]`).classList.add('active');
+  currentIdx = sectionIds.indexOf(id);
+  updateNavButtons();
+  updateProgress();
+  document.getElementById('main').scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateNavButtons(){
+  document.getElementById('btnPrev').disabled = currentIdx===0;
+  document.getElementById('btnNext').disabled = currentIdx===sectionIds.length-1;
+}
+function updateProgress(){
+  const pct = (currentIdx/(sectionIds.length-1))*100;
+  document.getElementById('progressBar').style.width = pct+'%';
+}
+// mark first navlink active initially
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelector('.navlink[data-target="s0"]').classList.add('active');
+});
+
+/* ---------------- Widget 1: Stretch the period ---------------- */
+function initStretchWidget(){
+  const canvas = document.getElementById('canvasStretch');
+  const slider = document.getElementById('rangeT');
+  const readout = document.getElementById('readoutT');
+
+  function resize(){
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+  }
+
+  function draw(){
+    resize();
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    const T = parseFloat(slider.value);
+    readout.textContent = T;
+
+    const midY = H*0.28;
+    const pulseWidth = 18*devicePixelRatio;
+    const spacing = T*10*devicePixelRatio;
+    const centerX = W/2;
+
+    // time domain: baseline
+    ctx.strokeStyle = '#2b2620';
+    ctx.lineWidth = 1.5*devicePixelRatio;
+    ctx.beginPath();
+    ctx.moveTo(0, midY); ctx.lineTo(W, midY);
+    ctx.stroke();
+
+    // repeated pulses
+    ctx.fillStyle = '#7c2222';
+    for(let k=-6;k<=6;k++){
+      const cx = centerX + k*spacing;
+      if(cx < -pulseWidth || cx > W+pulseWidth) continue;
+      const alpha = k===0 ? 1 : 0.55;
+      ctx.globalAlpha = alpha;
+      ctx.fillRect(cx-pulseWidth/2, midY-40*devicePixelRatio, pulseWidth, 40*devicePixelRatio);
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#5c5340';
+    ctx.font = `${11*devicePixelRatio}px IBM Plex Mono`;
+    ctx.fillText('time domain: copies of x(t), spaced by T', 10*devicePixelRatio, midY - 55*devicePixelRatio);
+
+    // freq domain: stems
+    const midY2 = H*0.78;
+    ctx.strokeStyle = '#2b2620';
+    ctx.beginPath();
+    ctx.moveTo(0, midY2); ctx.lineTo(W, midY2);
+    ctx.stroke();
+
+    const stemSpacing = (1/T)*260*devicePixelRatio; // inverse relationship
+    ctx.strokeStyle = '#a97b34';
+    ctx.lineWidth = 2*devicePixelRatio;
+    for(let k=-14;k<=14;k++){
+      const x = centerX + k*stemSpacing;
+      if(x<0 || x>W) continue;
+      const envelope = Math.max(0, 1 - Math.pow(k*stemSpacing/(W*0.42),2));
+      const h = 55*devicePixelRatio*Math.max(envelope,0.05);
+      ctx.beginPath();
+      ctx.moveTo(x, midY2);
+      ctx.lineTo(x, midY2-h);
+      ctx.stroke();
+    }
+    ctx.fillStyle='#5c5340';
+    ctx.fillText('frequency domain: harmonics at k·ω₀, spacing Δω = 2π/T', 10*devicePixelRatio, midY2 - 70*devicePixelRatio);
+  }
+  slider.addEventListener('input', draw);
+  window.addEventListener('resize', draw);
+  draw();
+}
+
+/* ---------------- Widget 2: Modulation ---------------- */
+function initModWidget(){
+  const canvas = document.getElementById('canvasMod');
+  const slider = document.getElementById('rangeW0');
+  const readout = document.getElementById('readoutW0');
+
+  function resize(){
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+  }
+
+  function bump(x, center, width, height){
+    const d = (x-center)/width;
+    return height*Math.exp(-d*d*4);
+  }
+
+  function draw(){
+    resize();
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    const w0 = parseFloat(slider.value);
+    readout.textContent = w0.toFixed(1);
+
+    const midY = H*0.55;
+    const scaleX = W/28; // omega axis scale
+    const originX = W/2;
+
+    ctx.strokeStyle = '#2b2620';
+    ctx.lineWidth = 1.5*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(W,midY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(originX,H*0.1); ctx.lineTo(originX,H*0.95); ctx.stroke();
+    ctx.fillStyle='#5c5340';
+    ctx.font = `${11*devicePixelRatio}px IBM Plex Mono`;
+    ctx.fillText('ω', W-20*devicePixelRatio, midY-8*devicePixelRatio);
+    ctx.fillText('0', originX+4*devicePixelRatio, midY+16*devicePixelRatio);
+
+    // shifted copies (half height)
+    ctx.strokeStyle = '#7c2222';
+    ctx.lineWidth = 2.5*devicePixelRatio;
+    ctx.beginPath();
+    for(let px=0; px<=W; px+=2){
+      const om = (px-originX)/scaleX;
+      const y1 = bump(om, w0, 1.1, 45*devicePixelRatio);
+      const y2 = bump(om, -w0, 1.1, 45*devicePixelRatio);
+      const y = y1+y2;
+      const py = midY - y;
+      if(px===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // markers at +-w0
+    ctx.fillStyle = '#a97b34';
+    [w0,-w0].forEach(om=>{
+      const px = originX + om*scaleX;
+      ctx.beginPath();
+      ctx.arc(px, midY-45*devicePixelRatio, 3*devicePixelRatio, 0, 7);
+      ctx.fill();
+    });
+    ctx.fillStyle='#5c5340';
+    ctx.fillText('two half-height copies at ±ω₀', 10*devicePixelRatio, H*0.15);
+  }
+  slider.addEventListener('input', draw);
+  window.addEventListener('resize', draw);
+  draw();
+}
+
+/* ---------------- Widget 3: Rectangle <-> Sinc ---------------- */
+function initRectSincWidget(){
+  const canvas = document.getElementById('canvasRectSinc');
+  const slider = document.getElementById('rangeRectT');
+  const readout = document.getElementById('readoutRectT');
+
+  function resize(){
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+  }
+
+  function draw(){
+    resize();
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    const T = parseFloat(slider.value);
+    readout.textContent = T.toFixed(1);
+
+    // top half: rectangle in time
+    const topMidY = H*0.28;
+    const scaleXt = W/24;
+    const originX = W/2;
+    ctx.strokeStyle = '#2b2620';
+    ctx.lineWidth = 1.3*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(0,topMidY); ctx.lineTo(W,topMidY); ctx.stroke();
+
+    ctx.strokeStyle = '#7c2222';
+    ctx.lineWidth = 2.5*devicePixelRatio;
+    ctx.beginPath();
+    const halfWpx = (T/2)*scaleXt;
+    const rectH = 45*devicePixelRatio;
+    ctx.moveTo(originX-halfWpx-20*devicePixelRatio, topMidY);
+    ctx.lineTo(originX-halfWpx, topMidY);
+    ctx.lineTo(originX-halfWpx, topMidY-rectH);
+    ctx.lineTo(originX+halfWpx, topMidY-rectH);
+    ctx.lineTo(originX+halfWpx, topMidY);
+    ctx.lineTo(originX+halfWpx+20*devicePixelRatio, topMidY);
+    ctx.stroke();
+    ctx.fillStyle='#5c5340';
+    ctx.font = `${11*devicePixelRatio}px IBM Plex Mono`;
+    ctx.fillText('x(t): rectangle, width T', 10*devicePixelRatio, topMidY - rectH - 12*devicePixelRatio);
+
+    // bottom half: sinc in frequency
+    const botMidY = H*0.78;
+    const scaleXw = W/24;
+    ctx.strokeStyle = '#2b2620';
+    ctx.beginPath(); ctx.moveTo(0,botMidY); ctx.lineTo(W,botMidY); ctx.stroke();
+
+    ctx.strokeStyle = '#a97b34';
+    ctx.lineWidth = 2.2*devicePixelRatio;
+    ctx.beginPath();
+    let first = true;
+    for(let px=0; px<=W; px+=1.5){
+      const om = (px-originX)/scaleXw;
+      let val;
+      if(Math.abs(om) < 1e-6){ val = T; }
+      else { val = 2*Math.sin(om*T/2)/om; }
+      const py = botMidY - val*18*devicePixelRatio/ (1); // scale
+      if(first){ ctx.moveTo(px,py); first=false; } else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#5c5340';
+    ctx.fillText('X(jω) = 2sin(ωT/2)/ω', 10*devicePixelRatio, H*0.53);
+  }
+  slider.addEventListener('input', draw);
+  window.addEventListener('resize', draw);
+  draw();
+}
+
+/* ---------------- Quiz ---------------- */
+const quizData = [
+  {
+    q: "As the period T of a periodic signal grows toward infinity, what happens to the spacing Δω between its harmonics?",
+    opts: ["Δω grows without bound", "Δω shrinks toward zero", "Δω stays constant", "Δω becomes negative"],
+    correct: 1,
+    explain: "Δω = ω₀ = 2π/T. As T → ∞, Δω → 0, so the discrete harmonics merge into a continuum — this is exactly how the Fourier Transform is born from the Fourier Series."
+  },
+  {
+    q: "Which equation correctly carries the 1/2π factor?",
+    opts: ["The analysis equation, X(jω) = ∫x(t)e^(−jωt)dt", "The synthesis equation, x(t) = (1/2π)∫X(jω)e^(jωt)dω", "Both equations carry it", "Neither equation carries it"],
+    correct: 1,
+    explain: "The 1/2π belongs to the equation that integrates over ω (synthesis, rebuilding x(t) from its spectrum). The analysis equation integrates over t and carries no such factor."
+  },
+  {
+    q: "What is the Fourier Transform of x(t)cos(ω₀t), given x(t) ↔ X(jω)?",
+    opts: [
+      "X(j(ω−ω₀)) only",
+      "X(jω) scaled by cos(ω₀)",
+      "(1/2)X(j(ω−ω₀)) + (1/2)X(j(ω+ω₀))",
+      "X(j(ω−ω₀)) + X(j(ω+ω₀)) with no scaling"
+    ],
+    correct: 2,
+    explain: "cos(ω₀t) = (1/2)(e^(jω₀t)+e^(−jω₀t)), so modulating by cosine produces two half-height copies of the spectrum, shifted to +ω₀ and −ω₀."
+  },
+  {
+    q: "A width-T rectangle centered at the origin has Fourier Transform X(jω) = 2sin(ωT/2)/ω. What is X(j0)?",
+    opts: ["0, since sin(0)=0", "Undefined — the expression blows up", "T, matching the area under the rectangle", "1/T"],
+    correct: 2,
+    explain: "Using sin(x)≈x for small x (or L'Hôpital), the 0/0 form resolves to X(j0)=T. This matches the general rule X(j0)=∫x(t)dt, i.e. the total area of the signal."
+  },
+  {
+    q: "For a rectangle spanning from t=4 to t=10, what is the correct strategy to find its transform?",
+    opts: [
+      "Directly plug T=10 into 2sin(ωT/2)/ω",
+      "Find width (6) and center (7); transform the centered width-6 rectangle, then multiply by e^(−j7ω)",
+      "Ignore the shift entirely since width is all that matters",
+      "Average the two endpoints and treat that as the width"
+    ],
+    correct: 1,
+    explain: "The rectangle formula 2sin(ωT/2)/ω only applies to a rectangle centered at the origin. An off-center rectangle needs the width for the sinc shape, plus a phase factor e^(−jωt₀) from time-shifting, where t₀ is the center."
+  },
+  {
+    q: "What is the Fourier Transform of δ(t)?",
+    opts: ["0", "δ(ω)", "1, a flat spectrum for all ω", "e^(jω)"],
+    correct: 2,
+    explain: "Using the sifting property, ∫δ(t)e^(−jωt)dt = e^(−jω·0) = 1. An infinitely narrow spike in time needs every frequency in equal measure — the flattest possible spectrum."
+  },
+  {
+    q: "A 'Lego block' staircase signal, made of two overlapping rectangles with the SAME center, has a transform that:",
+    opts: [
+      "Cannot be found without a fundamentally new formula",
+      "Is the sum of each rectangle's transform, and since they share a center, they share one common phase factor that can be factored out",
+      "Requires taking the product of the two rectangle transforms",
+      "Only depends on the taller rectangle"
+    ],
+    correct: 1,
+    explain: "Linearity of the Fourier Transform: transform of a sum is the sum of transforms. When pieces share a center, their shared phase factor e^(−jωt₀) can be pulled outside a bracket, as shown in Example 3."
+  }
+];
+
+function renderQuiz(){
+  const container = document.getElementById('quizContainer');
+  quizData.forEach((item, qi)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'qz';
+    const p = document.createElement('p');
+    p.className = 'q';
+    p.textContent = `${qi+1}. ${item.q}`;
+    wrap.appendChild(p);
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'opts';
+    const explainDiv = document.createElement('div');
+    explainDiv.className = 'explain';
+    explainDiv.textContent = item.explain;
+
+    item.opts.forEach((optText, oi)=>{
+      const b = document.createElement('button');
+      b.className = 'opt';
+      b.textContent = optText;
+      b.addEventListener('click', ()=>{
+        const buttons = optsDiv.querySelectorAll('button');
+        buttons.forEach(bb=>bb.disabled=true);
+        if(oi===item.correct){ b.classList.add('correct'); }
+        else{
+          b.classList.add('wrong');
+          buttons[item.correct].classList.add('correct');
+        }
+        explainDiv.classList.add('show');
+      });
+      optsDiv.appendChild(b);
+    });
+    wrap.appendChild(optsDiv);
+    wrap.appendChild(explainDiv);
+    container.appendChild(wrap);
+  });
+}
+
+/* Auto-render any stray KaTeX delimiters (safety net) */
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 213 · Lecture 2 · Structural Design Patterns</title>
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#fffdf8; --ink:#1f2430; --ink-soft:#4a5163;
+    --line:#e4ddcd; --sidebar:#1b2030; --sidebar2:#232a3d; --sidebar-ink:#c9d2e6;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent2:#7c3aed;
+    --amber:#b45309; --amber-bg:#fdf3e3; --amber-line:#f0d9b0;
+    --rose:#be123c; --rose-bg:#fdeef1; --rose-line:#f3c6d1;
+    --teal:#0f766e; --teal-bg:#e7f6f3; --teal-line:#bfe3dd;
+    --sky:#1e5fb4; --sky-bg:#eaf2fd; --sky-line:#c3dbf5;
+    --green:#15803d; --code-bg:#161b2c; --code-ink:#e6e9f2;
+    --shadow:0 10px 30px -12px rgba(20,25,45,.22);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,'Times New Roman',serif;
+    font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .layout{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{width:288px;flex:0 0 288px;background:linear-gradient(180deg,var(--sidebar),var(--sidebar2));
+    color:var(--sidebar-ink);position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 18px 40px}
+  .brand{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:#8b96b5;font-family:'Trebuchet MS',system-ui,sans-serif}
+  .brand-title{font-family:'Trebuchet MS',system-ui,sans-serif;color:#fff;font-weight:700;font-size:1.28rem;margin:6px 0 2px;line-height:1.2}
+  .brand-sub{font-size:.82rem;color:#9fb0d6;margin-bottom:22px}
+  .nav-group{margin:18px 0 6px;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#727e9e;
+    font-family:'Trebuchet MS',system-ui,sans-serif;padding-left:10px}
+  .navbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;
+    color:var(--sidebar-ink);font-family:'Trebuchet MS',system-ui,sans-serif;font-size:.95rem;padding:9px 12px;
+    border-radius:10px;cursor:pointer;transition:.15s;margin:1px 0;line-height:1.25}
+  .navbtn:hover{background:rgba(255,255,255,.06);color:#fff}
+  .navbtn.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 6px 16px -6px rgba(79,70,229,.7)}
+  .navbtn .n{flex:0 0 24px;height:24px;border-radius:7px;background:rgba(255,255,255,.1);display:grid;place-items:center;
+    font-size:.78rem;font-weight:700}
+  .navbtn.active .n{background:rgba(255,255,255,.22)}
+  .progwrap{margin-top:26px;padding:12px;background:rgba(0,0,0,.18);border-radius:12px}
+  .progwrap .lab{font-size:.72rem;color:#9fb0d6;font-family:'Trebuchet MS',sans-serif;letter-spacing:.05em}
+  .progbar{height:7px;background:rgba(255,255,255,.12);border-radius:99px;margin-top:8px;overflow:hidden}
+  .progbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#7c3aed);transition:.4s}
+
+  /* Content */
+  .main{flex:1;min-width:0}
+  .wrap{max-width:900px;margin:0 auto;padding:46px 40px 120px}
+  section.page{display:none;animation:fade .35s ease}
+  section.page.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;display:flex;align-items:center;gap:9px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--accent);display:inline-block;border-radius:2px}
+  h1{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:2.35rem;line-height:1.12;margin:.35em 0 .2em;letter-spacing:-.01em}
+  h2{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:1.5rem;margin:1.9em 0 .5em;letter-spacing:-.01em;
+    padding-bottom:.28em;border-bottom:2px solid var(--line)}
+  h3{font-family:'Trebuchet MS',system-ui,sans-serif;font-size:1.14rem;margin:1.5em 0 .4em;color:#2b3245}
+  p{margin:.7em 0}
+  .lead{font-size:1.16rem;color:var(--ink-soft);line-height:1.6}
+  strong{color:#141824}
+  em.term{font-style:normal;font-weight:700;color:var(--accent2);background:var(--accent-soft);padding:1px 6px;border-radius:6px}
+  code.inl{font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:.86em;background:#eeeadd;
+    padding:1.5px 6px;border-radius:5px;color:#5a2ca0}
+  ul,ol{margin:.6em 0 .9em;padding-left:1.3em}
+  li{margin:.34em 0}
+  hr.soft{border:0;border-top:1px dashed var(--line);margin:2em 0}
+
+  /* Callouts */
+  .callout{border-radius:13px;padding:15px 18px 15px 20px;margin:1.2em 0;border:1px solid;position:relative;
+    font-size:.98rem;line-height:1.55}
+  .callout .ct{font-family:'Trebuchet MS',system-ui,sans-serif;font-weight:700;font-size:.74rem;letter-spacing:.13em;
+    text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .callout p{margin:.35em 0}
+  .prof{background:var(--teal-bg);border-color:var(--teal-line)} .prof .ct{color:var(--teal)}
+  .exam{background:var(--amber-bg);border-color:var(--amber-line)} .exam .ct{color:var(--amber)}
+  .edge{background:var(--rose-bg);border-color:var(--rose-line)} .edge .ct{color:var(--rose)}
+  .brain{background:var(--sky-bg);border-color:var(--sky-line)} .brain .ct{color:var(--sky)}
+  .ic{font-size:1.05rem;line-height:1}
+
+  /* Code */
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:16px 18px;overflow-x:auto;
+    font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:.82rem;line-height:1.62;margin:1.1em 0;
+    box-shadow:var(--shadow);border:1px solid #262c42}
+  pre .cap{display:block;color:#7f8bb0;font-size:.72rem;letter-spacing:.06em;margin-bottom:9px;
+    font-family:'Trebuchet MS',sans-serif;text-transform:uppercase}
+  .k{color:#c792ea}.t{color:#82aaff}.s{color:#c3e88d}.c{color:#5c6785;font-style:italic}
+  .n{color:#f78c6c}.m{color:#ffcb6b}.p{color:#89ddff}
+
+  /* Cards / grids */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:1.2em 0}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:1.2em 0}
+  .card{background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card h4{font-family:'Trebuchet MS',sans-serif;margin:.1em 0 .4em;font-size:1.02rem}
+  .pill{display:inline-block;font-family:'Trebuchet MS',sans-serif;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+    padding:3px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+  .pill.good{background:#e6f6ec;color:var(--green)} .pill.bad{background:var(--rose-bg);color:var(--rose)}
+  figure{margin:1.4em 0;text-align:center}
+  figure svg{max-width:100%;height:auto;background:var(--paper2);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  figcaption{font-size:.82rem;color:var(--ink-soft);margin-top:8px;font-style:italic}
+
+  table.cmp{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:.9rem;background:var(--paper2);
+    border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  table.cmp th,table.cmp td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  table.cmp th{background:#eee9db;font-family:'Trebuchet MS',sans-serif;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase}
+  table.cmp tr:nth-child(even) td{background:#faf7f0}
+
+  /* Quiz */
+  .quiz{background:var(--paper2);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:1.4em 0;box-shadow:var(--shadow)}
+  .quiz .qh{font-family:'Trebuchet MS',sans-serif;font-weight:700;color:var(--accent2);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
+  .quiz .q{font-weight:600;font-size:1.04rem;margin:.2em 0 .8em}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:10px;
+    padding:11px 14px;margin:7px 0;cursor:pointer;font-family:inherit;font-size:.96rem;transition:.15s;color:var(--ink)}
+  .opt:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.correct{border-color:var(--green);background:#e9f8ef;color:#0f5c2e;font-weight:600}
+  .opt.wrong{border-color:var(--rose);background:var(--rose-bg);color:#8a0e2c}
+  .opt.dim{opacity:.55}
+  .explain{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--accent-soft);border:1px solid #d9dcff;
+    font-size:.92rem;display:none}
+  .explain.show{display:block}
+  .explain b{color:var(--accent2)}
+
+  /* Decorator simulator */
+  .sim{background:linear-gradient(135deg,#20263a,#2c1f47);border-radius:18px;padding:22px;color:#eef;margin:1.4em 0;box-shadow:var(--shadow)}
+  .sim h4{font-family:'Trebuchet MS',sans-serif;margin:0 0 4px;color:#fff}
+  .sim .simsub{color:#aeb8dd;font-size:.86rem;margin-bottom:14px}
+  .simgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .cup{background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.22);border-radius:14px;padding:14px;min-height:150px}
+  .layer{font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:8px 12px;border-radius:9px;margin:5px 0;
+    background:rgba(124,58,237,.28);border:1px solid rgba(124,58,237,.5);animation:pop .25s}
+  .layer.base{background:rgba(34,211,238,.22);border-color:rgba(34,211,238,.5)}
+  @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  .condbtn{font-family:'Trebuchet MS',sans-serif;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+    color:#eef;border-radius:9px;padding:9px 12px;margin:4px 5px 4px 0;cursor:pointer;font-size:.86rem;transition:.15s}
+  .condbtn:hover{background:rgba(124,58,237,.4);border-color:#7c3aed}
+  .basebtn{font-family:'Trebuchet MS',sans-serif;background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.35);color:#cffafe}
+  .basebtn:hover{background:rgba(34,211,238,.32)}
+  .simtotal{font-family:'JetBrains Mono',monospace;font-size:1.25rem;color:#a5f3d0;margin-top:12px}
+  .simcode{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:#9fb0d6;margin-top:10px;line-height:1.5;
+    background:rgba(0,0,0,.28);border-radius:9px;padding:10px 12px;white-space:pre-wrap;word-break:break-word}
+  .simclear{background:rgba(190,18,60,.2);border:1px solid rgba(244,63,94,.4);color:#fecdd3}
+  .simclear:hover{background:rgba(190,18,60,.4)}
+
+  .kbtag{display:inline-flex;gap:6px;flex-wrap:wrap}
+  .kbtag span{font-family:'Trebuchet MS',sans-serif;font-size:.78rem;background:#efe9db;border:1px solid var(--line);
+    padding:3px 10px;border-radius:99px;color:#514a38}
+  .footnote{font-size:.82rem;color:var(--ink-soft);margin-top:40px;padding-top:14px;border-top:1px solid var(--line)}
+  .topbar{display:none}
+  @media(max-width:880px){
+    .sidebar{display:none}
+    .layout{flex-direction:column}
+    .topbar{display:flex;gap:6px;overflow-x:auto;padding:10px;background:var(--sidebar);position:sticky;top:0;z-index:20}
+    .topbar button{white-space:nowrap;background:rgba(255,255,255,.08);border:0;color:#cdd6ee;padding:7px 12px;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-size:.82rem}
+    .topbar button.active{background:var(--accent);color:#fff}
+    .wrap{padding:26px 18px 90px}.grid2,.grid3,.simgrid{grid-template-columns:1fr}
+    h1{font-size:1.9rem}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">CSE 213 · Software Engineering</div>
+    <div class="brand-title">Structural Design Patterns</div>
+    <div class="brand-sub">Lecture 2 · your professor's companion</div>
+
+    <div class="nav-group">Foundations</div>
+    <button class="navbtn active" data-go="overview"><span class="n">0</span> Overview &amp; Map</button>
+
+    <div class="nav-group">The Four Patterns</div>
+    <button class="navbtn" data-go="decorator"><span class="n">1</span> Decorator</button>
+    <button class="navbtn" data-go="composite"><span class="n">2</span> Composite</button>
+    <button class="navbtn" data-go="adapter"><span class="n">3</span> Adapter</button>
+    <button class="navbtn" data-go="bridge"><span class="n">4</span> Bridge</button>
+
+    <div class="nav-group">Mastery</div>
+    <button class="navbtn" data-go="compare"><span class="n">⚖</span> Compare &amp; Confuse</button>
+    <button class="navbtn" data-go="exam"><span class="n">★</span> Exam War-Room</button>
+
+    <div class="progwrap">
+      <div class="lab">Lecture progress</div>
+      <div class="progbar"><i id="progfill"></i></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="wrap">
+
+    <!-- ================= OVERVIEW ================= -->
+    <section class="page show" id="overview">
+      <div class="eyebrow">Lecture 2 · Orientation</div>
+      <h1>Structural Design Patterns</h1>
+      <p class="lead">Welcome back. In Lecture 1 we asked <em>"how do we create objects well?"</em> — that gave us the <strong>Creational</strong> family. Today we ask a different question: once objects exist, <strong>how do we assemble them into larger structures</strong> without the design collapsing under its own weight?</p>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">👨‍🏫</span> Professor's framing</div>
+        <p>Your slides give the one-line definition, and it is worth memorising verbatim: <em>Structural patterns explain how to <strong>assemble objects and classes into larger structures</strong>, while keeping this structure <strong>flexible and efficient</strong>.</em></p>
+        <p>Notice the two promises hidden in that sentence — <b>flexible</b> (easy to extend/recombine) and <b>efficient</b> (no combinatorial blow-up). Every pattern today is a different answer to "how do I get both at once?"</p>
+      </div>
+
+      <h2>Where we are in the course</h2>
+      <div class="grid3">
+        <div class="card"><span class="pill">Done</span><h4>Creational</h4><p style="font-size:.9rem;margin:.3em 0 0">Singleton, Factory, Abstract Factory, Builder — <em>who makes the object</em>.</p></div>
+        <div class="card" style="border-color:var(--accent);border-width:2px"><span class="pill">You are here</span><h4>Structural</h4><p style="font-size:.9rem;margin:.3em 0 0">Decorator, Composite, Adapter, Bridge — <em>how objects compose</em>.</p></div>
+        <div class="card"><span class="pill" style="background:#eee;color:#777">Later</span><h4>Behavioral</h4><p style="font-size:.9rem;margin:.3em 0 0">Strategy, Observer, State… — <em>how objects talk &amp; decide</em>.</p></div>
+      </div>
+
+      <h2>The one idea that unifies all four</h2>
+      <p>If you remember nothing else, remember this: <strong>favour object composition over class inheritance</strong>. Every pattern today replaces a rigid inheritance tree with objects that <em class="term">hold references</em> to (and delegate to) other objects.</p>
+
+      <figure>
+        <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS, sans-serif">
+          <text x="360" y="26" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2430">Two ways to reuse behaviour</text>
+          <!-- inheritance -->
+          <rect x="40" y="50" width="290" height="170" rx="12" fill="#fdeef1" stroke="#f3c6d1"/>
+          <text x="185" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#be123c">Inheritance (compile-time, rigid)</text>
+          <rect x="140" y="90" width="90" height="30" rx="6" fill="#fff" stroke="#be123c"/><text x="185" y="110" text-anchor="middle" font-size="12">Base</text>
+          <line x1="185" y1="120" x2="120" y2="150" stroke="#be123c"/><line x1="185" y1="120" x2="250" y2="150" stroke="#be123c"/>
+          <rect x="75" y="150" width="90" height="28" rx="6" fill="#fff" stroke="#be123c"/><text x="120" y="169" text-anchor="middle" font-size="11">SubA</text>
+          <rect x="205" y="150" width="90" height="28" rx="6" fill="#fff" stroke="#be123c"/><text x="250" y="169" text-anchor="middle" font-size="11">SubB</text>
+          <text x="185" y="205" text-anchor="middle" font-size="11" fill="#be123c">every combination → a new class 😖</text>
+          <!-- composition -->
+          <rect x="390" y="50" width="290" height="170" rx="12" fill="#e7f6f3" stroke="#bfe3dd"/>
+          <text x="535" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#0f766e">Composition (run-time, flexible)</text>
+          <rect x="415" y="95" width="95" height="30" rx="6" fill="#fff" stroke="#0f766e"/><text x="462" y="115" text-anchor="middle" font-size="12">Object A</text>
+          <rect x="560" y="95" width="95" height="30" rx="6" fill="#fff" stroke="#0f766e"/><text x="607" y="115" text-anchor="middle" font-size="12">Object B</text>
+          <line x1="510" y1="110" x2="560" y2="110" stroke="#0f766e" stroke-width="2" marker-end="url(#ar)"/>
+          <text x="535" y="150" text-anchor="middle" font-size="11" fill="#0f766e">A holds a reference to B</text>
+          <text x="535" y="172" text-anchor="middle" font-size="11" fill="#0f766e">and delegates work → mix &amp; match ✅</text>
+          <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#0f766e"/></marker></defs>
+        </svg>
+        <figcaption>The recurring move of the day: turn a tree of classes into a graph of collaborating objects.</figcaption>
+      </figure>
+
+      <h2>Today's four patterns, in one breath</h2>
+      <table class="cmp">
+        <tr><th>Pattern</th><th>Slide story</th><th>The problem it kills</th><th>One-line intent</th></tr>
+        <tr><td><b>Decorator</b></td><td>Starbuzz Coffee ☕</td><td>Subclass explosion for optional add-ons</td><td>Wrap an object to add behaviour at run-time</td></tr>
+        <tr><td><b>Composite</b></td><td>Menus &amp; sub-menus 🌳</td><td>Treating "one thing" vs "a group of things" differently</td><td>Treat individual objects &amp; trees uniformly</td></tr>
+        <tr><td><b>Adapter</b></td><td>Duck ↔ Turkey 🦆</td><td>Two useful classes with incompatible interfaces</td><td>Convert one interface into another clients expect</td></tr>
+        <tr><td><b>Bridge</b></td><td>Colored Shapes 🔵🟥</td><td>Two dimensions multiplying into N×M classes</td><td>Split abstraction &amp; implementation into 2 hierarchies</td></tr>
+      </table>
+
+      <div class="callout brain">
+        <div class="ct"><span class="ic">💭</span> Brainstorm before we dive in</div>
+        <p>Three of today's patterns share <em>almost identical UML</em> (an object holding a reference to another object of a related type). The exam loves to test whether you can tell them apart by <strong>intent</strong>, not by shape. Keep asking yourself: "Am I <em>adding</em> to it (Decorator), <em>converting</em> it (Adapter), or <em>decoupling two axes</em> (Bridge)?"</p>
+      </div>
+
+      <p style="margin-top:26px"><b>Ready?</b> Use the sidebar, or just click through. Each pattern page ends with a graded mini-quiz and exam triggers. Let's begin with the tastiest one. →</p>
+    </section>
+
+    <!-- ================= DECORATOR ================= -->
+    <section class="page" id="decorator">
+      <div class="eyebrow">Pattern 1 · Wrapping</div>
+      <h1>Decorator ☕</h1>
+      <p class="lead">The Starbuzz Coffee saga. A beverage plus any combination of condiments — steamed milk, soy, mocha, whip — and the bill has to be right every time. This is the pattern that teaches you to <em>stop subclassing and start wrapping</em>.</p>
+
+      <h2>Act 1 — The naïve tree explodes</h2>
+      <p>Starbuzz sells beverages. Then they add condiments: <span class="kbtag"><span>Steamed milk</span><span>Soy</span><span>Mocha</span><span>Whip</span></span>. A customer may take some, all, or none. First instinct: make a subclass for every combination.</p>
+
+      <figure>
+        <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif">
+          <rect x="280" y="15" width="140" height="34" rx="7" fill="#eef0ff" stroke="#4f46e5"/><text x="350" y="37" text-anchor="middle" font-size="13" font-weight="700">Beverage</text>
+          <g stroke="#be123c" fill="#fdeef1">
+            <rect x="20" y="90" width="120" height="26" rx="5"/><rect x="150" y="90" width="150" height="26" rx="5"/>
+            <rect x="310" y="90" width="150" height="26" rx="5"/><rect x="470" y="90" width="200" height="26" rx="5"/>
+            <rect x="60" y="130" width="170" height="26" rx="5"/><rect x="245" y="130" width="180" height="26" rx="5"/>
+            <rect x="440" y="130" width="230" height="26" rx="5"/>
+            <rect x="120" y="170" width="200" height="26" rx="5"/><rect x="335" y="170" width="240" height="26" rx="5"/>
+          </g>
+          <g font-size="10" fill="#7a0f2c" text-anchor="middle">
+            <text x="80" y="107">HouseBlend</text><text x="225" y="107">HouseBlendMilk</text>
+            <text x="385" y="107">DarkRoastSoy</text><text x="570" y="107">DarkRoastMochaWhip</text>
+            <text x="145" y="147">EspressoWhip</text><text x="335" y="147">DecafMochaMilk</text>
+            <text x="555" y="147">HouseBlendSoyMochaWhip</text>
+            <text x="220" y="187">DarkRoastMilkMocha…</text><text x="455" y="187">…and on, and on, and on 😵</text>
+          </g>
+        </svg>
+        <figcaption>"Subclass explosion" — each <code class="inl">cost()</code> re-computes coffee + condiments. Definitely not an option.</figcaption>
+      </figure>
+
+      <h2>Act 2 — Booleans in the superclass (a tempting trap)</h2>
+      <p>Second instinct from the slides: push boolean flags <code class="inl">hasMilk</code>, <code class="inl">hasSoy</code>, <code class="inl">hasMocha</code>, <code class="inl">hasWhip</code> up into <code class="inl">Beverage</code>, and let the superclass <code class="inl">cost()</code> add condiment prices.</p>
+      <pre><span class="cap">The Boolean design — looks clever, ages badly</span><span class="k">public abstract class</span> <span class="t">Beverage</span> {
+    <span class="k">boolean</span> milk, soy, mocha, whip;         <span class="c">// condiment flags</span>
+
+    <span class="k">public double</span> <span class="t">cost</span>() {                    <span class="c">// superclass does the maths</span>
+        <span class="k">double</span> c = <span class="n">0</span>;
+        <span class="k">if</span> (milk)  c += <span class="n">0.10</span>;
+        <span class="k">if</span> (soy)   c += <span class="n">0.15</span>;
+        <span class="k">if</span> (mocha) c += <span class="n">0.20</span>;
+        <span class="k">if</span> (whip)  c += <span class="n">0.10</span>;
+        <span class="k">return</span> c;                             <span class="c">// subclass adds base drink cost on top</span>
+    }
+}</pre>
+
+      <div class="callout edge">
+        <div class="ct"><span class="ic">⚠</span> Why the Boolean design is a design smell (straight from the slide)</div>
+        <p>1️⃣ <b>New condiments break the superclass.</b> Adding "caramel" means editing <code class="inl">Beverage</code> — violates Open/Closed.</p>
+        <p>2️⃣ <b>Inappropriate inheritance.</b> An <em>iced tea</em> still inherits <code class="inl">hasWhip</code>/<code class="inl">hasMocha</code> even though those make no sense for it. (BAD)</p>
+        <p>3️⃣ <b>No multiplicity.</b> A boolean can't express <em>double mocha</em>. You'd need counters, and now the superclass is a mess.</p>
+      </div>
+      <div class="callout prof">
+        <div class="ct"><span class="ic">👨‍🏫</span> Connect it to SOLID (they love this in vivas)</div>
+        <p>The Boolean trap is a textbook <strong>Open/Closed Principle</strong> violation — you must <em>modify</em> existing code to <em>extend</em> behaviour. Decorator's whole selling point is: extend by adding <em>new</em> classes, touch nothing old.</p>
+      </div>
+
+      <h2>Act 3 — "Let's do it like decoration"</h2>
+      <p>The insight: <strong>start with a beverage and wrap it with condiments.</strong> For a Dark Roast with double Mocha and Whip, we build an onion — each layer is an object that <em>wraps</em> the one inside and <em>adds</em> its own cost.</p>
+
+      <figure>
+        <svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif">
+          <g>
+            <rect x="120" y="20" width="460" height="170" rx="16" fill="#e7f6f3" stroke="#0f766e"/>
+            <text x="350" y="45" text-anchor="middle" font-size="12" fill="#0f766e" font-weight="700">Whip.cost()  =  0.10 + inner.cost()</text>
+            <rect x="170" y="55" width="360" height="120" rx="14" fill="#eaf2fd" stroke="#1e5fb4"/>
+            <text x="350" y="78" text-anchor="middle" font-size="12" fill="#1e5fb4" font-weight="700">Mocha.cost()  =  0.20 + inner.cost()</text>
+            <rect x="220" y="88" width="260" height="72" rx="12" fill="#eef0ff" stroke="#4f46e5"/>
+            <text x="350" y="110" text-anchor="middle" font-size="12" fill="#4f46e5" font-weight="700">Mocha.cost() = 0.20 + inner.cost()</text>
+            <rect x="270" y="118" width="160" height="34" rx="9" fill="#20263a"/>
+            <text x="350" y="140" text-anchor="middle" font-size="12" fill="#a5f3d0" font-weight="700">DarkRoast → 2.99</text>
+          </g>
+          <text x="640" y="105" font-size="11" fill="#4a5163" text-anchor="middle" transform="rotate(90 640 105)">calls delegate inward ↻ then sum outward</text>
+        </svg>
+        <figcaption>Each wrapper answers <code class="inl">cost()</code> with <em>its own price + the cost of what it wraps</em>. Total = 2.99 + 0.20 + 0.20 + 0.10 = <b>$3.49</b>.</figcaption>
+      </figure>
+
+      <h3>Try it yourself — build a drink, watch the cost delegate</h3>
+      <div class="sim" id="sim">
+        <h4>☕ Starbuzz Decorator Simulator</h4>
+        <div class="simsub">Pick a base, then stack condiments. Each condiment <em>wraps</em> the current drink.</div>
+        <div class="simgrid">
+          <div>
+            <div style="font-family:'Trebuchet MS';font-size:.8rem;color:#aeb8dd;margin-bottom:6px">1 · Base beverage</div>
+            <button class="condbtn basebtn" data-base="HouseBlend" data-cost="1.99">HouseBlend $1.99</button>
+            <button class="condbtn basebtn" data-base="DarkRoast" data-cost="2.99">DarkRoast $2.99</button>
+            <button class="condbtn basebtn" data-base="Espresso" data-cost="1.99">Espresso $1.99</button>
+            <div style="font-family:'Trebuchet MS';font-size:.8rem;color:#aeb8dd;margin:12px 0 6px">2 · Condiments (wrap)</div>
+            <button class="condbtn" data-cond="Milk" data-cost="0.10">+ Milk $0.10</button>
+            <button class="condbtn" data-cond="Soy" data-cost="0.15">+ Soy $0.15</button>
+            <button class="condbtn" data-cond="Mocha" data-cost="0.20">+ Mocha $0.20</button>
+            <button class="condbtn" data-cond="Whip" data-cost="0.10">+ Whip $0.10</button>
+            <div style="margin-top:12px"><button class="condbtn simclear" id="simclear">↺ Reset cup</button></div>
+          </div>
+          <div>
+            <div style="font-family:'Trebuchet MS';font-size:.8rem;color:#aeb8dd;margin-bottom:6px">Your cup (outermost wrapper on top)</div>
+            <div class="cup" id="cup"><div style="color:#8b96b5;font-size:.85rem;text-align:center;margin-top:40px">Pick a base beverage to start…</div></div>
+            <div class="simtotal" id="simtotal"></div>
+            <div class="simcode" id="simcode"></div>
+          </div>
+        </div>
+      </div>
+
+      <h2>The design (UML)</h2>
+      <figure>
+        <svg viewBox="0 0 720 430" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="12">
+          <!-- Beverage -->
+          <rect x="270" y="20" width="180" height="70" rx="8" fill="#eef0ff" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="360" y="40" text-anchor="middle" font-weight="700" font-style="italic">Beverage «abstract»</text>
+          <line x1="270" y1="48" x2="450" y2="48" stroke="#4f46e5"/>
+          <text x="280" y="64" font-size="11">+ getDescription()</text>
+          <text x="280" y="80" font-size="11" font-style="italic">+ cost() : double «abstract»</text>
+          <!-- concrete beverages -->
+          <g fill="#e6f6ec" stroke="#15803d">
+            <rect x="20" y="150" width="110" height="44" rx="7"/><rect x="140" y="150" width="110" height="44" rx="7"/>
+          </g>
+          <text x="75" y="168" text-anchor="middle" font-size="11" font-weight="700">DarkRoast</text><text x="75" y="184" text-anchor="middle" font-size="10">cost()=2.99</text>
+          <text x="195" y="168" text-anchor="middle" font-size="11" font-weight="700">HouseBlend</text><text x="195" y="184" text-anchor="middle" font-size="10">cost()=1.99</text>
+          <!-- decorator -->
+          <rect x="430" y="150" width="230" height="66" rx="8" fill="#e7f6f3" stroke="#0f766e" stroke-width="1.5"/>
+          <text x="545" y="170" text-anchor="middle" font-weight="700" font-style="italic">CondimentDecorator «abstract»</text>
+          <line x1="430" y1="178" x2="660" y2="178" stroke="#0f766e"/>
+          <text x="440" y="194" font-size="11">- beverage : Beverage  ◆ HAS-A</text>
+          <text x="440" y="209" font-size="11" font-style="italic">+ getDescription() «abstract»</text>
+          <!-- concrete decorators -->
+          <g fill="#eaf2fd" stroke="#1e5fb4">
+            <rect x="400" y="300" width="90" height="46" rx="7"/><rect x="500" y="300" width="90" height="46" rx="7"/><rect x="600" y="300" width="90" height="46" rx="7"/>
+          </g>
+          <text x="445" y="320" text-anchor="middle" font-size="11" font-weight="700">Mocha</text><text x="445" y="337" text-anchor="middle" font-size="9">cost()=.20+inner</text>
+          <text x="545" y="320" text-anchor="middle" font-size="11" font-weight="700">Whip</text><text x="545" y="337" text-anchor="middle" font-size="9">cost()=.10+inner</text>
+          <text x="645" y="320" text-anchor="middle" font-size="11" font-weight="700">Soy</text><text x="645" y="337" text-anchor="middle" font-size="9">cost()=.15+inner</text>
+          <!-- inheritance arrows (hollow triangle) -->
+          <defs><marker id="tri" markerWidth="16" markerHeight="16" refX="8" refY="8" orient="auto"><path d="M2,2 L14,8 L2,14 Z" fill="#fff" stroke="#333"/></marker></defs>
+          <line x1="75" y1="150" x2="330" y2="92" stroke="#333" marker-end="url(#tri)"/>
+          <line x1="195" y1="150" x2="345" y2="92" stroke="#333" marker-end="url(#tri)"/>
+          <line x1="545" y1="150" x2="400" y2="92" stroke="#333" marker-end="url(#tri)"/>
+          <line x1="445" y1="300" x2="520" y2="216" stroke="#333" marker-end="url(#tri)"/>
+          <line x1="545" y1="300" x2="545" y2="216" stroke="#333" marker-end="url(#tri)"/>
+          <line x1="645" y1="300" x2="575" y2="216" stroke="#333" marker-end="url(#tri)"/>
+          <!-- HAS-A aggregation from decorator back to Beverage -->
+          <defs><marker id="dia" markerWidth="16" markerHeight="16" refX="1" refY="6" orient="auto"><path d="M1,6 L7,2 L13,6 L7,10 Z" fill="#0f766e"/></marker></defs>
+          <path d="M545,150 C545,120 460,110 450,92" fill="none" stroke="#0f766e" stroke-dasharray="4 3" marker-start="url(#dia)"/>
+          <text x="470" y="128" font-size="10" fill="#0f766e" font-weight="700">wraps a Beverage</text>
+        </svg>
+        <figcaption>The trick: <code class="inl">CondimentDecorator</code> <b>IS-A</b> Beverage (so it fits anywhere a Beverage fits) <b>and HAS-A</b> Beverage (the thing it wraps).</figcaption>
+      </figure>
+
+      <div class="callout exam">
+        <div class="ct"><span class="ic">★</span> Exam gold — the "double inheritance/composition" line</div>
+        <p>A decorator has <b>the same supertype</b> as the object it decorates (inheritance — for <em>type</em> compatibility) <b>and holds a reference</b> to it (composition — for <em>behaviour</em>). Examiners want <em>both</em> halves. "Decorator subclasses the component <u>only to match its type, not to inherit its behaviour</u>." Write that sentence and you bank the marks.</p>
+      </div>
+
+      <h2>The code</h2>
+      <pre><span class="cap">Component + Decorator (the two abstract classes)</span><span class="k">public abstract class</span> <span class="t">Beverage</span> {
+    <span class="t">String</span> description = <span class="s">"Unknown Beverage"</span>;
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() { <span class="k">return</span> description; }
+    <span class="k">public abstract double</span> <span class="t">cost</span>();            <span class="c">// concrete drinks must define</span>
+}
+
+<span class="c">// Decorator shares the supertype so it "is a" Beverage…</span>
+<span class="k">public abstract class</span> <span class="t">CondimentDecorator</span> <span class="k">extends</span> <span class="t">Beverage</span> {
+    <span class="t">Beverage</span> beverage;                            <span class="c">// …and "has a" Beverage (the wrapped one)</span>
+    <span class="k">public abstract</span> <span class="t">String</span> <span class="t">getDescription</span>();     <span class="c">// force re-describe</span>
+}</pre>
+      <pre><span class="cap">Concrete component + concrete decorator</span><span class="k">public class</span> <span class="t">DarkRoast</span> <span class="k">extends</span> <span class="t">Beverage</span> {
+    <span class="k">public</span> <span class="t">DarkRoast</span>() { description = <span class="s">"Dark Roast Coffee"</span>; }
+    <span class="k">public double</span> <span class="t">cost</span>() { <span class="k">return</span> <span class="n">2.99</span>; }
+}
+
+<span class="k">public class</span> <span class="t">Mocha</span> <span class="k">extends</span> <span class="t">CondimentDecorator</span> {
+    <span class="k">public</span> <span class="t">Mocha</span>(<span class="t">Beverage</span> beverage) { <span class="k">this</span>.beverage = beverage; }
+
+    <span class="k">public</span> <span class="t">String</span> <span class="t">getDescription</span>() {
+        <span class="k">return</span> beverage.getDescription() + <span class="s">", Mocha"</span>;   <span class="c">// delegate + append</span>
+    }
+    <span class="k">public double</span> <span class="t">cost</span>() {
+        <span class="k">return</span> <span class="n">0.20</span> + beverage.cost();               <span class="c">// add own price, then recurse inward</span>
+    }
+}</pre>
+      <pre><span class="cap">Test drive — the "onion" is built at run-time</span><span class="t">Beverage</span> b = <span class="k">new</span> <span class="t">DarkRoast</span>();       <span class="c">// $2.99</span>
+b = <span class="k">new</span> <span class="t">Mocha</span>(b);                 <span class="c">// wrap: +0.20</span>
+b = <span class="k">new</span> <span class="t">Mocha</span>(b);                 <span class="c">// wrap again (double mocha!): +0.20</span>
+b = <span class="k">new</span> <span class="t">Whip</span>(b);                  <span class="c">// wrap: +0.10</span>
+
+<span class="t">System</span>.out.println(b.getDescription() + <span class="s">" $"</span> + b.cost());
+<span class="c">// → Dark Roast Coffee, Mocha, Mocha, Whip $3.49</span></pre>
+
+      <h2>Definition &amp; consequences</h2>
+      <div class="callout prof">
+        <div class="ct"><span class="ic">📖</span> GoF / Head First definition</div>
+        <p><em>The Decorator pattern attaches additional responsibilities to an object dynamically. Decorators provide a flexible alternative to subclassing for extending functionality.</em> (Your slide's phrasing: "…by placing these objects inside special wrapper objects that contain the behaviours.")</p>
+      </div>
+      <div class="grid2">
+        <div class="card"><span class="pill good">Wins</span><p style="font-size:.92rem;margin:.4em 0 0">Add/stack responsibilities at run-time · honours Open/Closed · supports multiplicity (double mocha) · avoids class explosion.</p></div>
+        <div class="card"><span class="pill bad">Costs</span><p style="font-size:.92rem;margin:.4em 0 0">Many small classes · lots of wrapping code · hard to debug deeply nested wrappers · code that checks the <em>concrete type</em> breaks (it only sees the outermost wrapper).</p></div>
+      </div>
+
+      <div class="callout edge">
+        <div class="ct"><span class="ic">⚠</span> Edge cases the exam pokes at</div>
+        <p><b>Type-checking pitfall:</b> <code class="inl">if (bev instanceof DarkRoast)</code> fails after wrapping — the object is now a <code class="inl">Whip</code>. Decorator changes the <em>skin</em>, not the <em>type you can detect</em>.</p>
+        <p><b>Order matters for behaviour, not for cost:</b> <code class="inl">Whip(Mocha(x))</code> vs <code class="inl">Mocha(Whip(x))</code> give the same price but a different description string — useful when wrappers transform I/O (e.g., <code class="inl">Encrypt(Compress(stream))</code> ≠ <code class="inl">Compress(Encrypt(stream))</code>).</p>
+        <p><b>Real-world sighting:</b> <code class="inl">java.io</code> — <code class="inl">new BufferedReader(new InputStreamReader(System.in))</code> is Decorator in the JDK. Great "name a real example" answer.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Checkpoint · Decorator</div>
+        <div class="q">A student wraps a drink as <code class="inl">new Whip(new Mocha(new DarkRoast()))</code> and then writes <code class="inl">if (drink instanceof DarkRoast) applyLoyaltyDiscount();</code>. What happens?</div>
+        <button class="opt" data-correct="false">The discount applies — <code class="inl">instanceof</code> sees through all the wrappers to the base.</button>
+        <button class="opt" data-correct="true">The discount never applies — the reference's runtime type is <code class="inl">Whip</code>, not <code class="inl">DarkRoast</code>.</button>
+        <button class="opt" data-correct="false">A compile error, because you can't wrap a decorator around a decorator.</button>
+        <div class="explain"><b>Correct: the discount never fires.</b> Once wrapped, the outermost object is a <code class="inl">Whip</code>. Decorator deliberately hides the concrete component behind uniform supertype calls — so any logic that depends on detecting the concrete type is a classic Decorator anti-pattern. Program to the <code class="inl">Beverage</code> interface instead.</div>
+      </div>
+    </section>
+
+    <!-- ================= COMPOSITE ================= -->
+    <section class="page" id="composite">
+      <div class="eyebrow">Pattern 2 · Trees</div>
+      <h1>Composite 🌳</h1>
+      <p class="lead">The Pancake House merges with the Diner, and now the menu is a menu-of-menus: breakfast items, a dessert sub-menu inside the lunch menu, and so on. You want to <em>print the whole thing — or just desserts — with the same code</em>. That's Composite.</p>
+
+      <h2>The problem — "something tree-like"</h2>
+      <p>From the slides, the requirements are:</p>
+      <ul>
+        <li><strong>Tree-structured menus</strong> with support for sub-menus and items.</li>
+        <li>Traversal should be <strong>flexible</strong> — iterate over one sub-menu (e.g. desserts) <em>or</em> the entire hierarchy.</li>
+      </ul>
+      <p>The pain without Composite: the client must constantly ask <em>"is this a single MenuItem or a whole Menu?"</em> and branch — <code class="inl">if (x is Menu) loopThroughChildren(); else printItem();</code>. That conditional metastasises everywhere.</p>
+
+      <div class="callout brain">
+        <div class="ct"><span class="ic">💭</span> Brainstorm — where have you already used this?</div>
+        <p>File systems (a folder contains files <em>and</em> folders), the HTML DOM (a <code class="inl">&lt;div&gt;</code> contains text nodes <em>and</em> more elements), org charts, GUI containers holding widgets and sub-panels. Any time "a whole" and "a part" should respond to the <em>same commands</em>, Composite is lurking.</p>
+      </div>
+
+      <h2>Nodes and leaves</h2>
+      <figure>
+        <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="11">
+          <defs><marker id="cline" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><circle cx="4" cy="4" r="2.5" fill="#4f46e5"/></marker></defs>
+          <rect x="285" y="18" width="130" height="30" rx="7" fill="#eef0ff" stroke="#4f46e5"/><text x="350" y="38" text-anchor="middle" font-weight="700">ALL MENUS (Menu)</text>
+          <line x1="350" y1="48" x2="180" y2="90" stroke="#4f46e5"/><line x1="350" y1="48" x2="520" y2="90" stroke="#4f46e5"/>
+          <rect x="110" y="90" width="140" height="28" rx="6" fill="#e7f6f3" stroke="#0f766e"/><text x="180" y="109" text-anchor="middle" font-weight="700">PANCAKE MENU (Menu)</text>
+          <rect x="450" y="90" width="140" height="28" rx="6" fill="#e7f6f3" stroke="#0f766e"/><text x="520" y="109" text-anchor="middle" font-weight="700">DINER MENU (Menu)</text>
+          <line x1="180" y1="118" x2="120" y2="160" stroke="#0f766e"/><line x1="180" y1="118" x2="240" y2="160" stroke="#0f766e"/>
+          <line x1="520" y1="118" x2="470" y2="160" stroke="#0f766e"/><line x1="520" y1="118" x2="590" y2="160" stroke="#0f766e"/>
+          <g fill="#fdf3e3" stroke="#b45309">
+            <rect x="60" y="160" width="120" height="26" rx="6"/><rect x="200" y="160" width="120" height="26" rx="6"/>
+            <rect x="410" y="160" width="120" height="26" rx="6"/><rect x="545" y="160" width="130" height="26" rx="6"/>
+          </g>
+          <g text-anchor="middle" font-size="10"><text x="120" y="177">Pancakes (Item)</text><text x="260" y="177">Waffles (Item)</text>
+          <text x="470" y="177">Burger (Item)</text><text x="610" y="177">DESSERT (Menu)</text></g>
+          <line x1="610" y1="186" x2="610" y2="212" stroke="#0f766e"/>
+          <rect x="545" y="212" width="130" height="26" rx="6" fill="#fdf3e3" stroke="#b45309"/><text x="610" y="229" text-anchor="middle" font-size="10">Cheesecake (Item)</text>
+        </svg>
+        <figcaption>A <b>Menu (composite)</b> holds children that may be <b>MenuItems (leaves)</b> <em>or other Menus</em>. A leaf has no children; a composite forwards operations to its children.</figcaption>
+      </figure>
+
+      <h2>The design (UML)</h2>
+      <figure>
+        <svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="11">
+          <rect x="250" y="20" width="200" height="96" rx="8" fill="#eef0ff" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="350" y="40" text-anchor="middle" font-weight="700" font-style="italic">MenuComponent «abstract»</text>
+          <line x1="250" y1="48" x2="450" y2="48" stroke="#4f46e5"/>
+          <text x="260" y="64">+ print()</text>
+          <text x="260" y="80" fill="#777">+ add(c) / remove(c) / getChild(i)</text>
+          <text x="260" y="96" fill="#777">+ getName() / getPrice()</text>
+          <text x="260" y="111" font-size="9" fill="#be123c">default impls throw UnsupportedOperationException</text>
+
+          <rect x="80" y="230" width="180" height="70" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+          <text x="170" y="250" text-anchor="middle" font-weight="700">MenuItem  (Leaf)</text>
+          <line x1="80" y1="258" x2="260" y2="258" stroke="#b45309"/>
+          <text x="90" y="274" font-size="10">- name, price</text>
+          <text x="90" y="290" font-size="10">+ print(), getPrice()</text>
+
+          <rect x="430" y="230" width="200" height="80" rx="8" fill="#e7f6f3" stroke="#0f766e" stroke-width="1.5"/>
+          <text x="530" y="250" text-anchor="middle" font-weight="700">Menu  (Composite)</text>
+          <line x1="430" y1="258" x2="630" y2="258" stroke="#0f766e"/>
+          <text x="440" y="274" font-size="10">- children : List&lt;MenuComponent&gt;</text>
+          <text x="440" y="290" font-size="10">+ add/remove/getChild</text>
+          <text x="440" y="305" font-size="10">+ print() → loops children.print()</text>
+
+          <defs><marker id="tri2" markerWidth="16" markerHeight="16" refX="8" refY="8" orient="auto"><path d="M2,2 L14,8 L2,14 Z" fill="#fff" stroke="#333"/></marker>
+          <marker id="dia2" markerWidth="16" markerHeight="16" refX="1" refY="6" orient="auto"><path d="M1,6 L7,2 L13,6 L7,10 Z" fill="#0f766e"/></marker></defs>
+          <line x1="170" y1="230" x2="320" y2="116" stroke="#333" marker-end="url(#tri2)"/>
+          <line x1="530" y1="230" x2="380" y2="116" stroke="#333" marker-end="url(#tri2)"/>
+          <path d="M560,230 C600,180 560,140 452,90" fill="none" stroke="#0f766e" stroke-dasharray="4 3" marker-start="url(#dia2)"/>
+          <text x="560" y="170" font-size="10" fill="#0f766e" font-weight="700">0..* children</text>
+        </svg>
+        <figcaption>The magic line: a <b>Composite holds a list of the very same abstract type</b> it inherits from. That self-reference is what makes trees possible and lets the client treat one node like the whole tree.</figcaption>
+      </figure>
+
+      <h2>The code</h2>
+      <pre><span class="cap">The uniform component — leaves &amp; composites share it</span><span class="k">public abstract class</span> <span class="t">MenuComponent</span> {
+    <span class="c">// Default: not supported. Leaves override the "part" ops,</span>
+    <span class="c">// composites override the "child-management" ops.</span>
+    <span class="k">public void</span> <span class="t">add</span>(<span class="t">MenuComponent</span> c)    { <span class="k">throw new</span> <span class="t">UnsupportedOperationException</span>(); }
+    <span class="k">public void</span> <span class="t">remove</span>(<span class="t">MenuComponent</span> c) { <span class="k">throw new</span> <span class="t">UnsupportedOperationException</span>(); }
+    <span class="k">public</span> <span class="t">MenuComponent</span> <span class="t">getChild</span>(<span class="k">int</span> i) { <span class="k">throw new</span> <span class="t">UnsupportedOperationException</span>(); }
+    <span class="k">public void</span> <span class="t">print</span>() { <span class="k">throw new</span> <span class="t">UnsupportedOperationException</span>(); }
+}</pre>
+      <pre><span class="cap">Leaf vs Composite</span><span class="k">public class</span> <span class="t">MenuItem</span> <span class="k">extends</span> <span class="t">MenuComponent</span> {
+    <span class="t">String</span> name; <span class="k">double</span> price;
+    <span class="k">public</span> <span class="t">MenuItem</span>(<span class="t">String</span> n, <span class="k">double</span> p){ name=n; price=p; }
+    <span class="k">public void</span> <span class="t">print</span>() { <span class="t">System</span>.out.println(<span class="s">"  "</span> + name + <span class="s">"  $"</span> + price); }
+}
+
+<span class="k">public class</span> <span class="t">Menu</span> <span class="k">extends</span> <span class="t">MenuComponent</span> {
+    <span class="t">List</span>&lt;<span class="t">MenuComponent</span>&gt; children = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();   <span class="c">// ◆ holds the same type</span>
+    <span class="t">String</span> name;
+    <span class="k">public</span> <span class="t">Menu</span>(<span class="t">String</span> n){ name=n; }
+    <span class="k">public void</span> <span class="t">add</span>(<span class="t">MenuComponent</span> c){ children.add(c); }
+    <span class="k">public void</span> <span class="t">print</span>() {
+        <span class="t">System</span>.out.println(<span class="s">"== "</span> + name + <span class="s">" =="</span>);
+        <span class="k">for</span> (<span class="t">MenuComponent</span> c : children) c.print();       <span class="c">// recurse — leaf or menu, same call</span>
+    }
+}</pre>
+      <pre><span class="cap">Client treats a whole tree exactly like one item</span><span class="t">Menu</span> all = <span class="k">new</span> <span class="t">Menu</span>(<span class="s">"ALL MENUS"</span>);
+<span class="t">Menu</span> dessert = <span class="k">new</span> <span class="t">Menu</span>(<span class="s">"DESSERTS"</span>);
+dessert.add(<span class="k">new</span> <span class="t">MenuItem</span>(<span class="s">"Cheesecake"</span>, <span class="n">3.99</span>));
+all.add(<span class="k">new</span> <span class="t">MenuItem</span>(<span class="s">"Pancakes"</span>, <span class="n">2.99</span>));
+all.add(dessert);          <span class="c">// a Menu inside a Menu — no special case</span>
+
+all.print();               <span class="c">// prints the entire hierarchy…</span>
+dessert.print();           <span class="c">// …or just one sub-menu. Same method.</span></pre>
+
+      <div class="callout exam">
+        <div class="ct"><span class="ic">★</span> Exam gold — the "uniformity vs safety" trade-off</div>
+        <p>Putting <code class="inl">add()</code>/<code class="inl">remove()</code> in the abstract component is <b>transparency</b> (client treats all nodes identically) but sacrifices <b>type-safety</b> (you <em>can</em> call <code class="inl">add()</code> on a leaf → runtime exception). The alternative — put child-ops only on <code class="inl">Menu</code> — is <b>safe</b> but not transparent (client must know the type). GoF favours <b>transparency</b>. Name this trade-off and you look like you actually read the book.</p>
+      </div>
+      <div class="callout prof">
+        <div class="ct"><span class="ic">📖</span> Definition</div>
+        <p><em>Composite lets you compose objects into tree structures and then work with these structures as if they were individual objects.</em> The keyword the grader hunts for is <strong>"tree"</strong> plus <strong>"treat individual objects and compositions uniformly."</strong></p>
+      </div>
+      <div class="callout edge">
+        <div class="ct"><span class="ic">⚠</span> Edge cases</div>
+        <p><b>Leaf calling composite ops:</b> calling <code class="inl">add()</code> on a <code class="inl">MenuItem</code> throws — by design. Some implementations return a no-op or an empty list instead; know which your course expects.</p>
+        <p><b>Cycles &amp; parent pointers:</b> a naïve tree assumes no cycles. If children need to reach parents (for "remove me"), you add a <code class="inl">parent</code> pointer — but then you must guard against a node being added to two parents.</p>
+        <p><b>Composite ≠ Decorator</b> even though both hold a same-type reference: Decorator holds <em>exactly one</em> wrapped object to <em>add behaviour</em>; Composite holds <em>a list</em> of children to <em>build a tree</em>. (More on this in Compare &amp; Confuse.)</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Checkpoint · Composite</div>
+        <div class="q">Why does <code class="inl">Menu.print()</code> not need to know whether each child is a <code class="inl">MenuItem</code> or another <code class="inl">Menu</code>?</div>
+        <button class="opt" data-correct="false">Because Java auto-detects the type and picks the right branch with a hidden <code class="inl">if</code>.</button>
+        <button class="opt" data-correct="true">Because both are <code class="inl">MenuComponent</code>s exposing <code class="inl">print()</code>; polymorphism dispatches to the right implementation, and composites recurse.</button>
+        <button class="opt" data-correct="false">Because leaves and composites are actually the same class at runtime.</button>
+        <div class="explain"><b>Correct — it's pure polymorphism.</b> The client calls <code class="inl">print()</code> on the abstract type. A leaf prints itself; a composite prints its header then loops and calls <code class="inl">print()</code> on each child (which may recurse). No type-checking, no branching — that uniform treatment <em>is</em> the pattern.</div>
+      </div>
+    </section>
+
+    <!-- ================= ADAPTER ================= -->
+    <section class="page" id="adapter">
+      <div class="eyebrow">Pattern 3 · Translation</div>
+      <h1>Adapter 🦆</h1>
+      <p class="lead">Your code speaks "Duck". A vendor ships you a "Turkey". Both are birds, both fly — but the method names don't line up and you can't touch the vendor's code. An Adapter is the travel-plug of software: it makes an incompatible thing fit a socket it was never built for.</p>
+
+      <h2>Adapters in real life → in OO</h2>
+      <p>The slide opens with the physical analogy: a European plug won't fit a US socket, so you slot in an <em>adapter</em>. It doesn't change the plug or the wall — it sits <em>between</em> them and translates. In OO, the "shapes" are <strong>interfaces</strong>.</p>
+
+      <h2>The problem — Duck vs Turkey</h2>
+      <p>Existing code uses the <code class="inl">Duck</code> interface. A vendor gives you <code class="inl">Turkey</code>. They're close but incompatible:</p>
+      <div class="grid2">
+        <div class="card"><h4>Duck (what the client expects)</h4><pre style="box-shadow:none;margin:.3em 0 0"><span class="k">interface</span> <span class="t">Duck</span> {
+  <span class="k">void</span> <span class="t">quack</span>();
+  <span class="k">void</span> <span class="t">fly</span>();   <span class="c">// long flights</span>
+}</pre></div>
+        <div class="card"><h4>Turkey (the vendor's "adaptee")</h4><pre style="box-shadow:none;margin:.3em 0 0"><span class="k">interface</span> <span class="t">Turkey</span> {
+  <span class="k">void</span> <span class="t">gobble</span>();  <span class="c">// not "quack"</span>
+  <span class="k">void</span> <span class="t">fly</span>();     <span class="c">// only short hops</span>
+}</pre></div>
+      </div>
+      <p><strong>The question from the slide:</strong> "Current code uses the Duck interface — how do we incorporate Turkey?" We can't rename the vendor's methods, and we don't want to rewrite the client. So we insert a translator.</p>
+
+      <h2>The solution — a <code class="inl">TurkeyAdapter</code> that "is a" Duck</h2>
+      <figure>
+        <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="12">
+          <rect x="20" y="100" width="120" height="46" rx="9" fill="#eef0ff" stroke="#4f46e5"/><text x="80" y="120" text-anchor="middle" font-weight="700">Client</text><text x="80" y="137" text-anchor="middle" font-size="10">wants a Duck</text>
+          <rect x="200" y="100" width="130" height="46" rx="9" fill="#e7f6f3" stroke="#0f766e"/><text x="265" y="120" text-anchor="middle" font-weight="700">«interface» Duck</text><text x="265" y="137" text-anchor="middle" font-size="10">quack(), fly()</text>
+          <rect x="390" y="100" width="140" height="46" rx="9" fill="#fdf3e3" stroke="#b45309"/><text x="460" y="120" text-anchor="middle" font-weight="700">TurkeyAdapter</text><text x="460" y="137" text-anchor="middle" font-size="10">implements Duck</text>
+          <rect x="580" y="100" width="110" height="46" rx="9" fill="#fdeef1" stroke="#be123c"/><text x="635" y="120" text-anchor="middle" font-weight="700">Turkey</text><text x="635" y="137" text-anchor="middle" font-size="10">gobble(), fly()</text>
+          <defs><marker id="aA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#4f46e5"/></marker>
+          <marker id="tA" markerWidth="16" markerHeight="16" refX="8" refY="8" orient="auto"><path d="M2,2 L14,8 L2,14 Z" fill="#fff" stroke="#333"/></marker></defs>
+          <line x1="140" y1="123" x2="196" y2="123" stroke="#4f46e5" stroke-width="2" marker-end="url(#aA)"/>
+          <line x1="390" y1="123" x2="334" y2="123" stroke="#333" stroke-dasharray="5 3" marker-end="url(#tA)"/><text x="360" y="94" font-size="10" fill="#333">implements</text>
+          <line x1="530" y1="123" x2="578" y2="123" stroke="#b45309" stroke-width="2" marker-end="url(#aA)"/><text x="555" y="94" font-size="10" fill="#b45309">wraps ◆</text>
+          <text x="350" y="185" text-anchor="middle" font-size="12" fill="#0f766e">quack() → turkey.gobble()   ·   fly() → 5× turkey.fly()</text>
+          <text x="350" y="210" text-anchor="middle" font-size="11" fill="#4a5163" font-style="italic">The client never learns a Turkey is inside. It just sees a Duck.</text>
+        </svg>
+        <figcaption>Object Adapter: <code class="inl">TurkeyAdapter</code> <b>implements Duck</b> (target) and <b>wraps a Turkey</b> (adaptee), translating each call.</figcaption>
+      </figure>
+
+      <pre><span class="cap">The adapter — translation happens here</span><span class="k">public class</span> <span class="t">TurkeyAdapter</span> <span class="k">implements</span> <span class="t">Duck</span> {   <span class="c">// IS-A Duck (the target)</span>
+    <span class="t">Turkey</span> turkey;                                <span class="c">// HAS-A Turkey (the adaptee)</span>
+    <span class="k">public</span> <span class="t">TurkeyAdapter</span>(<span class="t">Turkey</span> t) { <span class="k">this</span>.turkey = t; }
+
+    <span class="k">public void</span> <span class="t">quack</span>() { turkey.gobble(); }         <span class="c">// map quack → gobble</span>
+
+    <span class="k">public void</span> <span class="t">fly</span>() {
+        <span class="k">for</span> (<span class="k">int</span> i = <span class="n">0</span>; i &lt; <span class="n">5</span>; i++) turkey.fly();  <span class="c">// 5 short hops ≈ 1 duck flight</span>
+    }
+}</pre>
+      <pre><span class="cap">Test drive — "getting a Turkey using existing Duck code"</span><span class="t">Turkey</span> turkey = <span class="k">new</span> <span class="t">WildTurkey</span>();
+<span class="t">Duck</span>  adapted = <span class="k">new</span> <span class="t">TurkeyAdapter</span>(turkey);
+
+testDuck(adapted);   <span class="c">// client method that only knows how to test a Duck — works!</span></pre>
+
+      <h2>Two flavours: Object Adapter vs Class Adapter</h2>
+      <div class="grid2">
+        <div class="card">
+          <span class="pill">Object Adapter</span><h4>Composition</h4>
+          <p style="font-size:.92rem">Adapter <b>implements</b> the target interface and <b>wraps</b> (holds) the adaptee. Delegates each call.</p>
+          <ul style="font-size:.88rem"><li>✅ Works in <b>any</b> OO language</li><li>✅ Can adapt an adaptee <em>and all its subclasses</em></li><li>✅ Loose coupling</li></ul>
+        </div>
+        <div class="card">
+          <span class="pill">Class Adapter</span><h4>Multiple inheritance</h4>
+          <p style="font-size:.92rem">Adapter <b>inherits from both</b> Target and Adaptee at once — no wrapping object.</p>
+          <ul style="font-size:.88rem"><li>⚠ Needs <b>multiple inheritance</b> → C++ only, not Java</li><li>✅ Can override adaptee behaviour</li><li>❌ Binds to one concrete adaptee class</li></ul>
+        </div>
+      </div>
+      <figure>
+        <svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="11">
+          <text x="175" y="20" text-anchor="middle" font-weight="700" fill="#0f766e">Object Adapter (has-a)</text>
+          <rect x="120" y="35" width="110" height="34" rx="7" fill="#fdf3e3" stroke="#b45309"/><text x="175" y="56" text-anchor="middle">Adapter</text>
+          <rect x="30" y="120" width="110" height="30" rx="7" fill="#e7f6f3" stroke="#0f766e"/><text x="85" y="140" text-anchor="middle">Target</text>
+          <rect x="210" y="120" width="110" height="30" rx="7" fill="#fdeef1" stroke="#be123c"/><text x="265" y="140" text-anchor="middle">Adaptee</text>
+          <line x1="150" y1="69" x2="90" y2="120" stroke="#333" stroke-dasharray="4 3"/><text x="95" y="100" font-size="9">implements</text>
+          <line x1="205" y1="69" x2="255" y2="120" stroke="#b45309" stroke-width="2"/><text x="240" y="100" font-size="9" fill="#b45309">◆ wraps</text>
+
+          <text x="530" y="20" text-anchor="middle" font-weight="700" fill="#be123c">Class Adapter (is-a both)</text>
+          <rect x="475" y="35" width="110" height="34" rx="7" fill="#fdf3e3" stroke="#b45309"/><text x="530" y="56" text-anchor="middle">Adapter</text>
+          <rect x="385" y="120" width="110" height="30" rx="7" fill="#e7f6f3" stroke="#0f766e"/><text x="440" y="140" text-anchor="middle">Target</text>
+          <rect x="565" y="120" width="110" height="30" rx="7" fill="#fdeef1" stroke="#be123c"/><text x="620" y="140" text-anchor="middle">Adaptee</text>
+          <line x1="505" y1="69" x2="445" y2="120" stroke="#333"/><line x1="555" y1="69" x2="615" y2="120" stroke="#333"/>
+          <text x="500" y="100" font-size="9">extends both →</text><text x="600" y="100" font-size="9" fill="#be123c">multiple inheritance!</text>
+        </svg>
+        <figcaption>Same intent, two mechanics. Java can't do the right-hand one for two classes — hence Java adapters are almost always <b>object adapters</b>.</figcaption>
+      </figure>
+
+      <div class="callout edge">
+        <div class="ct"><span class="ic">⚠</span> The diamond problem connection (they WILL ask)</div>
+        <p>Why is the Class Adapter "C++ only"? Because it needs a class to inherit from <em>two</em> classes, and Java forbids multiple <em>class</em> inheritance to dodge the <strong>diamond problem</strong> (ambiguous inherited members). Java allows multiple <em>interface</em> inheritance, which is why we implement <code class="inl">Duck</code> (interface) but <em>compose</em> the <code class="inl">Turkey</code>. This ties straight back to your Lecture-1 diamond discussion.</p>
+      </div>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">📖</span> Definition</div>
+        <p><em>Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces.</em> Grader's keyword: <strong>"convert an existing interface"</strong> — Adapter changes <em>nothing about behaviour</em>, only the <em>shape of the interface</em>.</p>
+      </div>
+      <div class="callout exam">
+        <div class="ct"><span class="ic">★</span> Exam gold — Adapter vs Decorator vs Facade</div>
+        <p>All three "wrap." Distinguish by intent: <b>Adapter</b> changes the interface (same behaviour, new shape). <b>Decorator</b> keeps the interface, adds behaviour. <b>Facade</b> simplifies a whole subsystem behind one new interface. If the question says "incompatible," "legacy," "vendor," or "third-party" → almost always <b>Adapter</b>.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Checkpoint · Adapter</div>
+        <div class="q">You're integrating a legacy <code class="inl">OldPrinter</code> (method <code class="inl">printDocument()</code>) into new code that expects <code class="inl">Printer.print()</code>. You can't modify <code class="inl">OldPrinter</code>, and you're in Java. Which is correct?</div>
+        <button class="opt" data-correct="false">Class Adapter — make <code class="inl">PrinterAdapter extends OldPrinter implements Printer</code> and inherit both.</button>
+        <button class="opt" data-correct="true">Object Adapter — <code class="inl">PrinterAdapter implements Printer</code>, hold an <code class="inl">OldPrinter</code>, and have <code class="inl">print()</code> call <code class="inl">printDocument()</code>.</button>
+        <button class="opt" data-correct="false">Decorator — wrap <code class="inl">OldPrinter</code> to add the missing <code class="inl">print()</code> behaviour.</button>
+        <div class="explain"><b>Object Adapter is right.</b> In Java you can't multiply-inherit two classes, so the class-adapter route is out. Object adapter (implement the target interface, compose the adaptee, delegate) is the idiomatic Java choice. It's not Decorator — you're <em>converting an interface</em>, not <em>adding behaviour</em> to the same interface.</div>
+      </div>
+    </section>
+
+    <!-- ================= BRIDGE ================= -->
+    <section class="page" id="bridge">
+      <div class="eyebrow">Pattern 4 · Decoupling</div>
+      <h1>Bridge 🔵🟥</h1>
+      <p class="lead">Two shapes, two colours, and suddenly four classes: <code class="inl">RedCircle</code>, <code class="inl">BlueCircle</code>, <code class="inl">RedSquare</code>, <code class="inl">BlueSquare</code>. Add green and a triangle and you're drowning. Bridge is the pattern that says: <em>when a thing varies along two independent axes, give each axis its own hierarchy and connect them with a reference.</em></p>
+
+      <h2>The problem — Colored Shapes multiply</h2>
+      <p>Straight from the slides:</p>
+      <ul>
+        <li>You have two shapes: <code class="inl">Circle</code> and <code class="inl">Square</code>.</li>
+        <li>You want colours: <code class="inl">Red</code> and <code class="inl">Blue</code>.</li>
+        <li>You create four combinations: <code class="inl">BlueCircle</code>, <code class="inl">RedSquare</code>… </li>
+        <li>New colour (green) or shape (triangle)? The <strong>hierarchy grows exponentially</strong>.</li>
+        <li><strong>Why?</strong> Because things extend in <em>two independent dimensions</em>.</li>
+      </ul>
+
+      <figure>
+        <svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="11">
+          <text x="175" y="20" text-anchor="middle" font-weight="700" fill="#be123c">❌ One hierarchy: N × M classes</text>
+          <rect x="130" y="30" width="90" height="26" rx="6" fill="#eef0ff" stroke="#4f46e5"/><text x="175" y="47" text-anchor="middle">Shape</text>
+          <g fill="#fdeef1" stroke="#be123c">
+            <rect x="20" y="80" width="90" height="24" rx="5"/><rect x="115" y="80" width="90" height="24" rx="5"/>
+            <rect x="210" y="80" width="90" height="24" rx="5"/><rect x="20" y="120" width="90" height="24" rx="5"/>
+            <rect x="115" y="120" width="90" height="24" rx="5"/><rect x="210" y="120" width="90" height="24" rx="5"/>
+          </g>
+          <g font-size="9" text-anchor="middle" fill="#7a0f2c"><text x="65" y="96">RedCircle</text><text x="160" y="96">BlueCircle</text><text x="255" y="96">GreenCircle</text>
+          <text x="65" y="136">RedSquare</text><text x="160" y="136">BlueSquare</text><text x="255" y="136">GreenSquare</text></g>
+          <text x="175" y="170" text-anchor="middle" font-size="10" fill="#be123c">add a colour → +3 classes · add a shape → +3 classes 💥</text>
+
+          <text x="530" y="20" text-anchor="middle" font-weight="700" fill="#0f766e">✅ Two hierarchies: N + M classes</text>
+          <rect x="400" y="55" width="90" height="26" rx="6" fill="#eef0ff" stroke="#4f46e5"/><text x="445" y="72" text-anchor="middle">Shape</text>
+          <rect x="360" y="105" width="80" height="24" rx="5" fill="#e7f6f3" stroke="#0f766e"/><text x="400" y="121" text-anchor="middle" font-size="10">Circle</text>
+          <rect x="450" y="105" width="80" height="24" rx="5" fill="#e7f6f3" stroke="#0f766e"/><text x="490" y="121" text-anchor="middle" font-size="10">Square</text>
+          <rect x="580" y="55" width="90" height="26" rx="6" fill="#fdf3e3" stroke="#b45309"/><text x="625" y="72" text-anchor="middle">Color</text>
+          <rect x="560" y="105" width="55" height="24" rx="5" fill="#fdf3e3" stroke="#b45309"/><text x="587" y="121" text-anchor="middle" font-size="10">Red</text>
+          <rect x="620" y="105" width="55" height="24" rx="5" fill="#fdf3e3" stroke="#b45309"/><text x="647" y="121" text-anchor="middle" font-size="10">Blue</text>
+          <defs><marker id="bA" markerWidth="14" markerHeight="14" refX="1" refY="5" orient="auto"><path d="M1,5 L6,2 L11,5 L6,8 Z" fill="#4f46e5"/></marker></defs>
+          <line x1="490" y1="68" x2="578" y2="68" stroke="#4f46e5" stroke-width="2" stroke-dasharray="5 3" marker-start="url(#bA)"/>
+          <text x="533" y="60" text-anchor="middle" font-size="9" fill="#4f46e5">the "bridge"</text>
+          <text x="530" y="165" text-anchor="middle" font-size="10" fill="#0f766e">add a colour → +1 class · add a shape → +1 class ✅</text>
+        </svg>
+        <figcaption>The exponential vs linear growth is the whole argument for Bridge: separate the axes, then bridge them with composition.</figcaption>
+      </figure>
+
+      <h2>From inheritance to composition</h2>
+      <p>The fix from the slides: <strong>two independent dimensions — form and colour</strong>. Move from inheritance to composition. A <code class="inl">Shape</code> <em>delegates colour-related work to a <code class="inl">Color</code></em> object it holds.</p>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">📖</span> The GoF vocabulary (memorise these two words)</div>
+        <p>GoF names the two hierarchies <strong>Abstraction</strong> and <strong>Implementation</strong>:</p>
+        <ul style="margin:.3em 0">
+          <li><b>Abstraction</b> — the high-level control layer (also called the <em>interface</em>). It does <em>no real work itself</em>; it delegates.</li>
+          <li><b>Implementation</b> — the layer that does the actual work (also called the <em>platform</em>). Interchangeable.</li>
+        </ul>
+        <p>The slide's real example: <b>Abstraction = the GUI</b> (regular customer view, admin view); <b>Implementation = the OS APIs</b> for Linux / Windows / macOS. One GUI, swappable platform underneath — the same appearance runs on any OS.</p>
+      </div>
+
+      <h2>The design (UML) &amp; code</h2>
+      <figure>
+        <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS,sans-serif" font-size="11">
+          <rect x="40" y="30" width="180" height="60" rx="8" fill="#eef0ff" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="130" y="50" text-anchor="middle" font-weight="700" font-style="italic">Shape «Abstraction»</text>
+          <line x1="40" y1="58" x2="220" y2="58" stroke="#4f46e5"/>
+          <text x="50" y="74" font-size="10">- color : Color   ◆ the bridge</text>
+          <text x="50" y="88" font-size="10" font-style="italic">+ draw()</text>
+          <g fill="#e7f6f3" stroke="#0f766e"><rect x="20" y="210" width="90" height="30" rx="6"/><rect x="130" y="210" width="90" height="30" rx="6"/></g>
+          <text x="65" y="230" text-anchor="middle">Circle</text><text x="175" y="230" text-anchor="middle">Square</text>
+
+          <rect x="470" y="30" width="200" height="46" rx="8" fill="#fdf3e3" stroke="#b45309" stroke-width="1.5"/>
+          <text x="570" y="50" text-anchor="middle" font-weight="700" font-style="italic">Color «Implementation»</text>
+          <line x1="470" y1="58" x2="670" y2="58" stroke="#b45309"/><text x="480" y="72" font-size="10" font-style="italic">+ applyColor()</text>
+          <g fill="#fdf3e3" stroke="#b45309"><rect x="470" y="210" width="90" height="30" rx="6"/><rect x="580" y="210" width="90" height="30" rx="6"/></g>
+          <text x="515" y="230" text-anchor="middle">Red</text><text x="625" y="230" text-anchor="middle">Blue</text>
+
+          <defs><marker id="brA" markerWidth="14" markerHeight="14" refX="1" refY="5" orient="auto"><path d="M1,5 L6,2 L11,5 L6,8 Z" fill="#4f46e5"/></marker>
+          <marker id="triB" markerWidth="16" markerHeight="16" refX="8" refY="8" orient="auto"><path d="M2,2 L14,8 L2,14 Z" fill="#fff" stroke="#333"/></marker></defs>
+          <line x1="220" y1="60" x2="468" y2="55" stroke="#4f46e5" stroke-width="2.5" stroke-dasharray="6 3" marker-start="url(#brA)"/>
+          <text x="345" y="45" text-anchor="middle" font-size="11" fill="#4f46e5" font-weight="700">THE BRIDGE (has-a)</text>
+          <line x1="65" y1="210" x2="115" y2="90" stroke="#333" marker-end="url(#triB)"/>
+          <line x1="175" y1="210" x2="140" y2="90" stroke="#333" marker-end="url(#triB)"/>
+          <line x1="515" y1="210" x2="555" y2="76" stroke="#333" marker-end="url(#triB)"/>
+          <line x1="625" y1="210" x2="585" y2="76" stroke="#333" marker-end="url(#triB)"/>
+          <text x="350" y="285" text-anchor="middle" font-size="11" fill="#4a5163" font-style="italic">Two hierarchies grow independently; the dashed arrow is the "bridge".</text>
+        </svg>
+      </figure>
+      <pre><span class="cap">Implementation hierarchy (the "platform")</span><span class="k">public interface</span> <span class="t">Color</span> { <span class="t">String</span> <span class="t">applyColor</span>(); }
+<span class="k">public class</span> <span class="t">Red</span>  <span class="k">implements</span> <span class="t">Color</span> { <span class="k">public</span> <span class="t">String</span> <span class="t">applyColor</span>(){ <span class="k">return</span> <span class="s">"red"</span>; } }
+<span class="k">public class</span> <span class="t">Blue</span> <span class="k">implements</span> <span class="t">Color</span> { <span class="k">public</span> <span class="t">String</span> <span class="t">applyColor</span>(){ <span class="k">return</span> <span class="s">"blue"</span>; } }</pre>
+      <pre><span class="cap">Abstraction hierarchy holds the bridge</span><span class="k">public abstract class</span> <span class="t">Shape</span> {
+    <span class="k">protected</span> <span class="t">Color</span> color;                 <span class="c">// ◆ the bridge — a reference, not inheritance</span>
+    <span class="k">public</span> <span class="t">Shape</span>(<span class="t">Color</span> color){ <span class="k">this</span>.color = color; }
+    <span class="k">public abstract</span> <span class="t">String</span> <span class="t">draw</span>();
+}
+<span class="k">public class</span> <span class="t">Circle</span> <span class="k">extends</span> <span class="t">Shape</span> {
+    <span class="k">public</span> <span class="t">Circle</span>(<span class="t">Color</span> c){ <span class="k">super</span>(c); }
+    <span class="k">public</span> <span class="t">String</span> <span class="t">draw</span>(){ <span class="k">return</span> <span class="s">"Circle in "</span> + color.applyColor(); }  <span class="c">// delegate!</span>
+}</pre>
+      <pre><span class="cap">Mix &amp; match at run-time — no combinatorial classes</span><span class="t">Shape</span> a = <span class="k">new</span> <span class="t">Circle</span>(<span class="k">new</span> <span class="t">Red</span>());    <span class="c">// "Circle in red"</span>
+<span class="t">Shape</span> b = <span class="k">new</span> <span class="t">Square</span>(<span class="k">new</span> <span class="t">Blue</span>());   <span class="c">// "Square in blue"</span>
+<span class="c">// Add Green → 1 new class. Add Triangle → 1 new class. Never N×M.</span></pre>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">📖</span> Definition</div>
+        <p><em>Bridge lets you split a large class or a set of closely related classes into two separate hierarchies — abstraction and implementation — which can be developed independently of each other.</em></p>
+      </div>
+
+      <div class="callout edge">
+        <div class="ct"><span class="ic">⚠</span> Edge cases &amp; the #1 confusion</div>
+        <p><b>Bridge vs Strategy</b> look identical in code (both hold an interface and delegate). Difference is <em>intent &amp; scale</em>: Strategy swaps <em>one algorithm</em>; Bridge decouples <em>a whole abstraction hierarchy</em> from <em>a whole implementation hierarchy</em>. Bridge is "structural &amp; big-picture"; Strategy is "behavioural &amp; one-method."</p>
+        <p><b>Bridge is designed up-front;</b> Adapter is usually retro-fitted onto existing incompatible code. If the question emphasises "planned so the two axes evolve independently" → Bridge. If it emphasises "make this existing/legacy thing fit" → Adapter.</p>
+        <p><b>Abstraction does no real work</b> — if your "abstraction" starts implementing the actual logic instead of delegating, you've lost the pattern.</p>
+      </div>
+      <div class="callout exam">
+        <div class="ct"><span class="ic">★</span> Exam trigger phrases → Bridge</div>
+        <p>"two independent dimensions", "grows exponentially / N×M classes", "abstraction and implementation should vary independently", "same GUI across different OS/platforms", "form and colour". See any of these → write <b>Bridge</b>.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Checkpoint · Bridge</div>
+        <div class="q">A messaging app must support {SMS, Email, Push} × {Urgent, Normal, Low-priority} formatting, and management expects to keep adding both channels and priority styles. Best structural choice?</div>
+        <button class="opt" data-correct="true">Bridge — one hierarchy for channels (abstraction), one for priority-formatting (implementation), bridged by a reference.</button>
+        <button class="opt" data-correct="false">Decorator — wrap each message in priority and channel layers.</button>
+        <button class="opt" data-correct="false">Just make 9 classes (SmsUrgent, EmailNormal…); it's only nine.</button>
+        <div class="explain"><b>Bridge.</b> Two independent axes that both keep growing is the textbook trigger. Nine classes today becomes 4×4=16 tomorrow — exponential. Bridge keeps it additive: a new channel is +1 class, a new priority style is +1 class. Decorator is for <em>stacking optional add-ons on one axis</em>, not decoupling two axes.</div>
+      </div>
+    </section>
+
+    <!-- ================= COMPARE ================= -->
+    <section class="page" id="compare">
+      <div class="eyebrow">Synthesis</div>
+      <h1>Compare &amp; Confuse ⚖️</h1>
+      <p class="lead">Three of today's four patterns share nearly identical UML — an object holding a reference to a related object. The exam separates the "A" students by <em>intent</em>. Here's your disambiguation cheat-sheet.</p>
+
+      <h2>The whole lecture on one page</h2>
+      <table class="cmp">
+        <tr><th>Pattern</th><th>Category question</th><th>Structure</th><th>Intent (the deciding factor)</th><th>Trigger words</th></tr>
+        <tr><td><b>Decorator</b></td><td>How do I add behaviour?</td><td>Wrapper IS-A + HAS-A one component</td><td><b>Add</b> responsibilities dynamically, same interface</td><td>optional add-ons, stack, condiments, "double X"</td></tr>
+        <tr><td><b>Composite</b></td><td>How do I model a tree?</td><td>Composite IS-A + HAS-A <em>many</em> components</td><td>Treat part &amp; whole <b>uniformly</b></td><td>tree, hierarchy, menus/folders, "part-whole"</td></tr>
+        <tr><td><b>Adapter</b></td><td>How do I make these fit?</td><td>Adapter IS-A target, HAS-A adaptee</td><td><b>Convert</b> an existing interface to an expected one</td><td>legacy, vendor, incompatible, third-party</td></tr>
+        <tr><td><b>Bridge</b></td><td>How do I split two axes?</td><td>Abstraction HAS-A implementation</td><td><b>Decouple</b> two hierarchies so both vary freely</td><td>two dimensions, N×M, platform/OS, exponential</td></tr>
+      </table>
+
+      <h2>The four classic mix-ups</h2>
+      <div class="grid2">
+        <div class="card"><h4>Decorator vs Composite</h4><p style="font-size:.92rem">Same supertype-reference shape. But Decorator wraps <b>exactly one</b> child to <b>add behaviour</b>; Composite holds <b>a list</b> of children to <b>form a tree</b>. "One-to-add" vs "many-to-nest."</p></div>
+        <div class="card"><h4>Adapter vs Decorator</h4><p style="font-size:.92rem">Both wrap. Adapter <b>changes the interface</b> (behaviour unchanged); Decorator <b>keeps the interface</b> (behaviour enhanced). "Translate" vs "augment."</p></div>
+        <div class="card"><h4>Bridge vs Adapter</h4><p style="font-size:.92rem">Bridge is <b>designed up-front</b> to let two axes evolve; Adapter is <b>retro-fitted</b> to reconcile things that already exist and clash. "Plan" vs "patch."</p></div>
+        <div class="card"><h4>Bridge vs Strategy</h4><p style="font-size:.92rem">Identical code, different scope. Strategy swaps <b>one algorithm</b> (behavioural); Bridge decouples <b>whole abstraction &amp; implementation hierarchies</b> (structural). "One method" vs "two towers."</p></div>
+      </div>
+
+      <div class="callout brain">
+        <div class="ct"><span class="ic">💭</span> A 10-second decision tree for the exam</div>
+        <p>1. Are two things with <em>clashing interfaces</em> already built? → <b>Adapter</b>.<br>
+        2. Is it a <em>part-whole tree</em>? → <b>Composite</b>.<br>
+        3. Am I <em>stacking optional features</em> on one thing? → <b>Decorator</b>.<br>
+        4. Are there <em>two independent dimensions</em> exploding into N×M? → <b>Bridge</b>.</p>
+      </div>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">👨‍🏫</span> Professor's meta-tip</div>
+        <p>When a scenario question gives no pattern name, underline the <em>verbs and pain-points</em>: "incompatible/legacy" (Adapter), "tree/submenu" (Composite), "optional/stack/at runtime" (Decorator), "two axes/exponential/platform" (Bridge). The graders write these scenarios <em>around</em> those trigger words — train your eye to spot them.</p>
+      </div>
+    </section>
+
+    <!-- ================= EXAM ================= -->
+    <section class="page" id="exam">
+      <div class="eyebrow">Preparation</div>
+      <h1>Exam War-Room ★</h1>
+      <p class="lead">Everything above, distilled into what actually earns marks: the definitions to memorise, the trigger phrases, and a mixed scenario drill where the pattern name is hidden — exactly how your papers are set.</p>
+
+      <h2>Definitions to write verbatim</h2>
+      <div class="grid2">
+        <div class="card"><h4>Decorator</h4><p style="font-size:.9rem">Attaches additional responsibilities to an object <b>dynamically</b> — a flexible alternative to subclassing for extending functionality.</p></div>
+        <div class="card"><h4>Composite</h4><p style="font-size:.9rem">Composes objects into <b>tree structures</b> and lets you work with these structures as if they were <b>individual objects</b>.</p></div>
+        <div class="card"><h4>Adapter</h4><p style="font-size:.9rem"><b>Converts</b> the interface of a class into another interface clients expect, letting incompatible classes work together.</p></div>
+        <div class="card"><h4>Bridge</h4><p style="font-size:.9rem">Splits a class into <b>two hierarchies — abstraction &amp; implementation</b> — that can be developed <b>independently</b>.</p></div>
+      </div>
+
+      <div class="callout exam">
+        <div class="ct"><span class="ic">★</span> High-value one-liners the graders reward</div>
+        <p>• "Decorator subclasses the component <u>only to match its type</u>, not to inherit behaviour."<br>
+        • "Composite trades <u>type-safety for transparency</u>; GoF prefers transparency."<br>
+        • "Java uses <u>object adapters</u> because it lacks multiple class inheritance (diamond problem)."<br>
+        • "Bridge is <u>planned</u> up-front; Adapter is <u>retro-fitted</u> onto existing clashes."</p>
+      </div>
+
+      <h2>Scenario drill — name the pattern (no names given)</h2>
+      <p>These mimic the "identify from context" style. Decide before you reveal.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Drill 1</div>
+        <div class="q">A photo-editing library must apply optional filters — blur, sepia, sharpen — in any combination and any order, decided while the user clicks. Adding a "vignette" filter later must not touch existing filter code.</div>
+        <button class="opt" data-correct="true">Decorator</button>
+        <button class="opt" data-correct="false">Bridge</button>
+        <button class="opt" data-correct="false">Composite</button>
+        <button class="opt" data-correct="false">Adapter</button>
+        <div class="explain"><b>Decorator.</b> Optional, stackable, any-order, chosen at runtime, extensible without editing old code — every signal points to wrapping. Each filter wraps the image and adds its effect.</div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Drill 2</div>
+        <div class="q">A drawing app renders shapes to multiple rendering backends (OpenGL, DirectX, SVG). The team wants to add new shapes and new backends independently without a class for every shape-backend pair.</div>
+        <button class="opt" data-correct="false">Decorator</button>
+        <button class="opt" data-correct="true">Bridge</button>
+        <button class="opt" data-correct="false">Adapter</button>
+        <button class="opt" data-correct="false">Composite</button>
+        <div class="explain"><b>Bridge.</b> Two independent axes (shape × backend), "vary independently," avoiding N×M — this is the platform/OS story from the slides in disguise. Shapes = abstraction, renderers = implementation.</div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Drill 3</div>
+        <div class="q">Your app expects a <code class="inl">PaymentProcessor.pay(amount)</code> interface. A newly-acquired company's billing SDK only exposes <code class="inl">chargeCustomer(cents, currency)</code>. You cannot alter the SDK.</div>
+        <button class="opt" data-correct="false">Bridge</button>
+        <button class="opt" data-correct="false">Decorator</button>
+        <button class="opt" data-correct="true">Adapter</button>
+        <button class="opt" data-correct="false">Composite</button>
+        <div class="explain"><b>Adapter.</b> "Cannot alter", "newly-acquired/third-party SDK", "interface doesn't line up" — reconcile incompatible interfaces without changing either side. The adapter maps <code class="inl">pay(amount)</code> → <code class="inl">chargeCustomer(...)</code>.</div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Drill 4</div>
+        <div class="q">A project-management tool models tasks and task-groups. A group contains tasks or other groups, and "mark complete" / "estimate hours" must work the same whether called on a single task or a whole group.</div>
+        <button class="opt" data-correct="false">Adapter</button>
+        <button class="opt" data-correct="false">Bridge</button>
+        <button class="opt" data-correct="true">Composite</button>
+        <button class="opt" data-correct="false">Decorator</button>
+        <div class="explain"><b>Composite.</b> Part-whole tree, groups-within-groups, uniform operations on leaf and node — the menu example wearing a project-management costume.</div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="qh">Drill 5 · the tricky one</div>
+        <div class="q">Two patterns produce almost the same UML: an object holding a reference to another object of a related type, delegating work to it. Which pair is this, and what tells them apart?</div>
+        <button class="opt" data-correct="false">Composite &amp; Adapter — told apart by whether there's a tree.</button>
+        <button class="opt" data-correct="true">Bridge &amp; Strategy — told apart by scope: Bridge decouples two whole hierarchies (structural), Strategy swaps one algorithm (behavioural).</button>
+        <button class="opt" data-correct="false">Decorator &amp; Bridge — told apart by the number of colours.</button>
+        <div class="explain"><b>Bridge &amp; Strategy.</b> Their code is nearly identical, so intent decides: Strategy is behavioural and swaps a single algorithm; Bridge is structural and decouples an abstraction hierarchy from an implementation hierarchy. This exact "same shape, different intent" trap is a favourite discriminator question.</div>
+      </div>
+
+      <div class="callout prof">
+        <div class="ct"><span class="ic">👨‍🏫</span> Before you close the laptop</div>
+        <p>You now hold all four structural patterns, their UML, their code, and — most importantly — the <em>trigger phrases</em> that let you name them from a cold scenario. Do one thing tonight: cover the answers on the five drills and re-run them. If you can name all five in under a minute each, you're exam-ready on the structural family. See you in Lecture 3. 🎓</p>
+      </div>
+      <p class="footnote">Source material: <b>Structural Design Patterns</b>, Nafis Tahmid (Lecturer, CSE, BUET). Built on <em>Dive Into Design Patterns</em> (Alexander Shvets) &amp; <em>Head First Design Patterns, 2nd ed.</em> (Freeman &amp; Robson). Companion prepared for CSE 213.</p>
+    </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var navbtns = Array.prototype.slice.call(document.querySelectorAll('.navbtn'));
+  var order = ['overview','decorator','composite','adapter','bridge','compare','exam'];
+  var visited = {}; visited['overview']=true;
+
+  // build mobile topbar
+  var top = document.getElementById('topbar');
+  var labels = {overview:'Overview',decorator:'1 · Decorator',composite:'2 · Composite',adapter:'3 · Adapter',bridge:'4 · Bridge',compare:'Compare',exam:'Exam'};
+  order.forEach(function(id){
+    var b=document.createElement('button'); b.textContent=labels[id]; b.dataset.go=id;
+    if(id==='overview') b.className='active';
+    b.onclick=function(){go(id);}; top.appendChild(b);
+  });
+
+  function updateProgress(){
+    var c=Object.keys(visited).length;
+    document.getElementById('progfill').style.width=Math.round(c/order.length*100)+'%';
+  }
+  function go(id){
+    pages.forEach(function(p){p.classList.toggle('show',p.id===id);});
+    navbtns.forEach(function(b){b.classList.toggle('active',b.dataset.go===id);});
+    Array.prototype.forEach.call(top.children,function(b){b.classList.toggle('active',b.dataset.go===id);});
+    visited[id]=true; updateProgress();
+    document.querySelector('.main').scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  navbtns.forEach(function(b){b.onclick=function(){go(b.dataset.go);};});
+  updateProgress();
+
+  // Quiz engine
+  document.querySelectorAll('[data-quiz]').forEach(function(q){
+    var opts=q.querySelectorAll('.opt'), exp=q.querySelector('.explain'), done=false;
+    opts.forEach(function(o){
+      o.addEventListener('click',function(){
+        if(done) return; done=true;
+        var correct=o.dataset.correct==='true';
+        o.classList.add(correct?'correct':'wrong');
+        opts.forEach(function(x){
+          if(x.dataset.correct==='true') x.classList.add('correct');
+          else if(x!==o) x.classList.add('dim');
+        });
+        exp.classList.add('show');
+      });
+    });
+  });
+
+  // Decorator simulator
+  var cup=document.getElementById('cup'), total=document.getElementById('simtotal'),
+      codeEl=document.getElementById('simcode');
+  var base=null, layers=[]; // {name,cost,type}
+  function render(){
+    cup.innerHTML='';
+    if(!base){cup.innerHTML='<div style="color:#8b96b5;font-size:.85rem;text-align:center;margin-top:40px">Pick a base beverage to start…</div>';
+      total.textContent=''; codeEl.textContent=''; return;}
+    // outermost (last) on top
+    var all=[base].concat(layers);
+    for(var i=all.length-1;i>=0;i--){
+      var d=document.createElement('div');
+      d.className='layer'+(all[i].type==='base'?' base':'');
+      d.textContent=(all[i].type==='base'?'▣ ':'╰ + ')+all[i].name+'  ($'+all[i].cost.toFixed(2)+')';
+      cup.appendChild(d);
+    }
+    var sum=base.cost+layers.reduce(function(a,b){return a+b.cost;},0);
+    var desc=base.name+layers.map(function(l){return ', '+l.name;}).join('');
+    total.innerHTML='💵 '+desc+' = <b>$'+sum.toFixed(2)+'</b>';
+    // build code trace
+    var lines='Beverage b = new '+base.name+'();   // $'+base.cost.toFixed(2)+'\n';
+    layers.forEach(function(l){lines+='b = new '+l.name+'(b);'+' '.repeat(Math.max(1,14-l.name.length))+'// +'+l.cost.toFixed(2)+'\n';});
+    lines+='b.cost() → $'+sum.toFixed(2);
+    codeEl.textContent=lines;
+  }
+  document.querySelectorAll('[data-base]').forEach(function(b){
+    b.onclick=function(){base={name:b.dataset.base,cost:parseFloat(b.dataset.cost),type:'base'};layers=[];render();};
+  });
+  document.querySelectorAll('[data-cond]').forEach(function(b){
+    b.onclick=function(){ if(!base){cup.style.outline='1px solid #f43f5e';setTimeout(function(){cup.style.outline='';},400);return;}
+      layers.push({name:b.dataset.cond,cost:parseFloat(b.dataset.cost),type:'cond'});render();};
+  });
+  document.getElementById('simclear').onclick=function(){base=null;layers=[];render();};
+  render();
+})();
+</script>
+</body>
+</html>

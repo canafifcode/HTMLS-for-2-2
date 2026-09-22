@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chomsky Normal Form — CSE 211 Study Companion</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#FAF6EE;
+  --paper-raised:#F1E9D8;
+  --paper-card:#FFFDF8;
+  --ink:#201C17;
+  --ink-soft:#5E574B;
+  --ink-faint:#968E7C;
+  --oxblood:#7D2A34;
+  --oxblood-soft:#A5555E;
+  --navy:#22364A;
+  --navy-soft:#4C647C;
+  --gold:#9C7A34;
+  --green:#3F6B4A;
+  --rule:#DED0AF;
+  --shadow:rgba(32,28,23,0.09);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; color:var(--ink); font-weight:600;}
+p{margin:0 0 16px;}
+a{color:var(--navy);}
+.m{font-style:italic;}
+sup, sub{font-style:italic;}
+strong{color:var(--ink);}
+code, .lit{
+  font-family:'JetBrains Mono', 'Courier New', monospace;
+  font-style:normal;
+  background:var(--paper-raised);
+  padding:1px 7px;
+  border-radius:3px;
+  font-size:0.87em;
+  color:var(--navy);
+  white-space:nowrap;
+}
+.hl{color:var(--oxblood); font-weight:600; font-style:normal;}
+.hl-navy{color:var(--navy); font-weight:600; font-style:normal;}
+
+/* ---------- progress bar ---------- */
+#progress{position:fixed; top:0; left:0; height:3px; width:0%; background:var(--oxblood); z-index:999; transition:width .08s linear;}
+
+/* ---------- mobile nav controls ---------- */
+.nav-toggle{
+  display:none; position:fixed; top:16px; left:16px; z-index:120;
+  width:42px; height:42px; border-radius:8px; border:1px solid var(--rule);
+  background:var(--paper-card); color:var(--ink); font-size:18px; cursor:pointer;
+  box-shadow:0 2px 10px var(--shadow);
+}
+.nav-scrim{display:none; position:fixed; inset:0; background:rgba(32,28,23,.35); z-index:90;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:fixed; top:0; left:0; width:278px; height:100vh; overflow-y:auto;
+  background:var(--paper-raised); border-right:1px solid var(--rule);
+  padding:34px 26px 60px; font-size:13.5px; z-index:100;
+}
+.sidebar .brand{font-family:'Fraunces',serif; font-size:19px; font-weight:700; color:var(--oxblood); margin-bottom:2px;}
+.sidebar .brand-sub{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:30px; display:block;}
+.nav-part{margin-bottom:22px;}
+.nav-part-label{
+  font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.1em;
+  font-size:10.5px; color:var(--oxblood); font-weight:700; margin-bottom:9px; display:block;
+}
+.navlink{
+  display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+  font-family:'Source Serif 4', Georgia, serif; font-size:13.5px;
+  padding:5px 0 5px 11px; margin-left:-11px; color:var(--ink-soft);
+  border-left:2px solid transparent; line-height:1.4;
+}
+.navlink:hover{color:var(--ink); border-left-color:var(--rule);}
+.navlink.active{color:var(--ink); border-left-color:var(--oxblood); background:rgba(125,42,52,.06); font-weight:600;}
+
+/* ---------- layout ---------- */
+main{margin-left:278px; padding:0 52px 100px;}
+.content{max-width:740px; margin:0 auto;}
+
+/* ---------- hero ---------- */
+.hero{padding:74px 0 46px; border-bottom:1px solid var(--rule); margin-bottom:12px;}
+.hero .kicker{font-family:'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:var(--oxblood); font-size:12.5px;}
+.hero h1{font-size:clamp(34px,5vw,52px); line-height:1.08; margin:16px 0 20px;}
+.hero .lede{font-size:19px; color:var(--ink-soft); max-width:620px;}
+.hero .meta{margin-top:28px; font-size:12.5px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; display:flex; gap:22px; flex-wrap:wrap;}
+.hero .meta span::before{content:'—'; margin-right:8px; color:var(--rule);}
+.hero .meta span:first-child::before{content:none;}
+
+/* ---------- sections ---------- */
+section{padding-top:54px; scroll-margin-top:24px;}
+.part-divider{padding-top:66px; margin-top:12px; border-top:1px solid var(--rule);}
+.part-label{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
+.eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em; color:var(--oxblood); text-transform:uppercase; margin-bottom:8px;}
+h2{font-size:clamp(25px,3.4vw,32px); margin:0 0 18px; scroll-margin-top:24px;}
+h2 .num{color:var(--oxblood); font-style:normal; margin-right:10px; font-family:'JetBrains Mono',monospace; font-size:.6em; vertical-align:middle;}
+h3{font-size:20px; margin:26px 0 10px;}
+h4{font-size:16.5px; margin:20px 0 8px; color:var(--navy);}
+.section-intro{font-size:18px; color:var(--ink-soft); margin-bottom:22px;}
+
+/* ---------- boxes ---------- */
+.box{border-left:3px solid var(--oxblood); background:var(--paper-card); padding:22px 26px; border-radius:2px; margin:26px 0; box-shadow:0 1px 6px var(--shadow);}
+.box.definition{border-left-color:var(--navy);}
+.box.warn{border-left-color:var(--gold);}
+.box-label{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--oxblood); margin-bottom:10px; display:block; font-weight:700;}
+.box.definition .box-label{color:var(--navy);}
+.box.warn .box-label{color:var(--gold);}
+.box p:last-child{margin-bottom:0;}
+.box ol, .box ul{margin:10px 0 0; padding-left:22px;}
+.box li{margin-bottom:8px;}
+
+.callout{background:var(--paper-raised); border:1px dashed var(--rule); border-radius:4px; padding:16px 20px; margin:22px 0; font-size:15.5px; color:var(--ink-soft);}
+.callout strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+.compare{background:#F2F0E6; border:1px solid var(--rule); border-radius:6px; padding:18px 22px; margin:22px 0;}
+.compare-label{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--navy-soft); font-weight:700; margin-bottom:8px;}
+.compare p{font-size:15px; color:var(--ink-soft); margin-bottom:0;}
+
+/* ---------- diagrams ---------- */
+.diagram{margin:28px 0; padding:22px; background:#fff; border:1px solid var(--rule); border-radius:5px; text-align:center;}
+.diagram svg{max-width:100%; height:auto;}
+.diagram-caption{font-size:13px; color:var(--ink-faint); margin-top:12px; font-style:italic;}
+
+/* ---------- proof card + step stair ---------- */
+.proof-card{border:1px solid var(--rule); background:var(--paper-card); border-radius:6px; padding:30px 30px 26px; margin:34px 0; box-shadow:0 2px 12px var(--shadow);}
+.proof-card-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:2px;}
+.proof-tag{font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--oxblood); color:#fff; padding:3px 9px; border-radius:3px; letter-spacing:.04em;}
+.proof-tag.navy{background:var(--navy);}
+.proof-tag.gold{background:var(--gold);}
+.proof-card-head h3{margin:0;}
+.lang-def{font-style:italic; color:var(--ink-soft); margin:6px 0 4px; font-size:16.5px;}
+.step-stair{list-style:none; margin:22px 0 0; padding:0 0 0 54px; position:relative;}
+.step-stair::before{content:''; position:absolute; left:20px; top:6px; bottom:6px; width:2px; background:var(--rule);}
+.step-stair li{position:relative; padding-bottom:22px;}
+.step-stair li:last-child{padding-bottom:0;}
+.step-num{position:absolute; left:-54px; top:0; width:40px; height:40px; border-radius:50%; background:var(--paper); border:2px solid var(--oxblood); color:var(--oxblood); font-family:'JetBrains Mono',monospace; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:15px;}
+.step-num.navy{border-color:var(--navy); color:var(--navy);}
+.step-title{display:block; font-family:'Fraunces',serif; font-weight:600; color:var(--ink); margin-bottom:4px; font-size:16px;}
+.step-body p{margin-bottom:8px; font-size:15.8px;}
+.step-body p:last-child{margin-bottom:0;}
+.math-block{background:var(--paper-raised); border-radius:4px; padding:12px 18px; margin:10px 0; font-style:italic; font-size:16.5px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-style:normal; color:var(--navy);}
+
+.intuition{margin-top:22px; padding:15px 20px; background:#F5EFDF; border-radius:4px; font-size:15px; color:var(--ink-soft); border:1px dashed var(--rule);}
+.intuition strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+/* ---------- pipeline (numbered process) ---------- */
+.pipeline{list-style:none; margin:30px 0; padding:0; display:flex; flex-direction:column; gap:0;}
+.pipeline li{display:flex; gap:20px; padding:20px 0; border-bottom:1px solid var(--rule); align-items:flex-start;}
+.pipeline li:last-child{border-bottom:none;}
+.pipeline .pnum{flex:none; width:44px; height:44px; border-radius:50%; background:var(--navy); color:#fff; font-family:'JetBrains Mono',monospace; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:16px;}
+.pipeline .ptitle{font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin-bottom:4px;}
+.pipeline .pdesc{color:var(--ink-soft); font-size:15px; margin:0;}
+
+/* ---------- collapsibles (errors / solutions) ---------- */
+details.errors, details.solution{margin-top:20px; border:1px solid var(--rule); border-radius:5px; background:var(--paper-card); overflow:hidden;}
+details.errors summary, details.solution summary{cursor:pointer; padding:13px 20px; font-family:'Fraunces',serif; font-weight:600; color:var(--oxblood); list-style:none; display:flex; align-items:center; gap:9px; font-size:15.5px; user-select:none;}
+details.solution summary{color:var(--navy);}
+details.errors summary::-webkit-details-marker, details.solution summary::-webkit-details-marker{display:none;}
+details.errors summary::before{content:'+'; font-family:'JetBrains Mono',monospace; font-weight:700; width:16px; display:inline-block;}
+details.solution summary::before{content:'▸'; font-family:'JetBrains Mono',monospace; font-weight:700; width:16px; display:inline-block;}
+details.errors[open] summary::before{content:'–';}
+details.solution[open] summary::before{content:'▾';}
+details.errors[open] summary, details.solution[open] summary{border-bottom:1px solid var(--rule);}
+details.errors ul{padding:14px 24px 18px 42px; margin:0;}
+details.errors li{margin-bottom:9px; color:var(--ink-soft); font-size:15px;}
+details.errors li:last-child{margin-bottom:0;}
+details.solution .sol-body{padding:16px 22px 20px;}
+details.solution .sol-body p{font-size:15.3px;}
+details.solution .sol-body .math-block{font-size:15.5px;}
+
+/* ---------- tables ---------- */
+.table-wrap{overflow-x:auto; margin:24px 0;}
+table{width:100%; border-collapse:collapse; font-size:14.8px; min-width:480px;}
+th{text-align:left; font-family:'Fraunces',serif; font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--navy); padding:10px 14px; border-bottom:2px solid var(--rule);}
+td{padding:10px 14px; border-bottom:1px solid var(--rule); color:var(--ink-soft); vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td code{white-space:normal;}
+
+/* ---------- checklist / quiz ---------- */
+.check-grid{display:flex; flex-direction:column; gap:0; margin:22px 0; border:1px solid var(--rule); border-radius:6px; overflow:hidden; background:var(--paper-card);}
+.check-row{display:flex; align-items:center; gap:16px; padding:13px 20px; border-bottom:1px solid var(--rule);}
+.check-row:last-child{border-bottom:none;}
+.check-row .badge{flex:none; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff;}
+.badge.yes{background:var(--green);}
+.badge.no{background:var(--oxblood);}
+.check-row .ccode{flex:none; min-width:140px; font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--navy);}
+.check-row .cwhy{color:var(--ink-soft); font-size:14.5px;}
+
+/* ---------- pill ---------- */
+.pill{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 9px; border-radius:20px; letter-spacing:.03em; font-weight:700;}
+.pill.on{background:rgba(63,107,74,.14); color:var(--green);}
+.pill.off{background:rgba(125,42,52,.1); color:var(--oxblood);}
+
+/* ---------- CYK widget ---------- */
+.cyk-widget{margin:30px 0; border:1px solid var(--rule); background:var(--paper-card); border-radius:8px; padding:26px; box-shadow:0 2px 12px var(--shadow);}
+.cyk-rules{font-family:'JetBrains Mono',monospace; font-size:14.5px; color:var(--navy); background:var(--paper-raised); padding:12px 16px; border-radius:4px; margin-bottom:18px; line-height:1.9;}
+.cyk-controls{display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap;}
+.cyk-btn{font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.03em; padding:9px 16px; border-radius:5px; border:1px solid var(--navy); background:var(--navy); color:#fff; cursor:pointer; transition:opacity .15s;}
+.cyk-btn:hover{opacity:.85;}
+.cyk-btn.secondary{background:transparent; color:var(--navy); border:1px solid var(--rule);}
+.cyk-btn:disabled{opacity:.4; cursor:not-allowed;}
+.cyk-stage{overflow-x:auto; padding:6px 0 10px;}
+.cyk-grid{display:grid; grid-template-columns:repeat(5,66px); grid-template-rows:repeat(5,66px); gap:7px; justify-content:center; margin:0 auto;}
+.cyk-cell{border:1px solid var(--rule); background:var(--paper); border-radius:5px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--ink-faint); cursor:default; opacity:0.18; transition:opacity .35s, background .2s, transform .15s; text-align:center; padding:2px;}
+.cyk-cell.revealed{opacity:1;}
+.cyk-cell.hasvars{background:#F5EFDF; border-color:var(--gold); color:var(--ink); font-weight:700; cursor:pointer;}
+.cyk-cell.hasvars:hover{transform:scale(1.06);}
+.cyk-cell.emptyset{color:var(--ink-faint); font-style:italic;}
+.cyk-cell.accept{background:var(--oxblood); color:#fff; border-color:var(--oxblood);}
+.cyk-cell.selected{box-shadow:0 0 0 3px var(--navy);}
+.cyk-labels{display:grid; grid-template-columns:repeat(5,66px); gap:7px; justify-content:center; margin:8px auto 0;}
+.cyk-labels span{text-align:center; font-family:'JetBrains Mono',monospace; color:var(--ink-faint); font-size:13px;}
+.cyk-labels span b{color:var(--ink); font-size:16px;}
+.cyk-explain{margin-top:20px; padding:16px 20px; background:var(--paper-raised); border-radius:5px; font-size:14.8px; color:var(--ink-soft); min-height:26px; border-left:3px solid var(--navy);}
+.cyk-explain b{color:var(--navy);}
+.cyk-status{margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--ink-faint);}
+
+/* ---------- cheat sheet ---------- */
+.cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:26px 0;}
+.cheat-card{background:var(--paper-card); border:1px solid var(--rule); border-radius:6px; padding:18px 20px;}
+.cheat-card h4{margin:0 0 8px; font-size:14.5px; color:var(--oxblood); text-transform:uppercase; letter-spacing:.05em; font-family:'JetBrains Mono',monospace;}
+.cheat-card p, .cheat-card li{font-size:14.3px; color:var(--ink-soft); margin-bottom:6px;}
+.cheat-card ul{padding-left:18px; margin:0;}
+
+/* ---------- footer ---------- */
+.doc-footer{margin-top:90px; padding:28px 0 40px; border-top:1px solid var(--rule); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-faint);}
+
+/* ---------- back to top ---------- */
+#top-btn{position:fixed; bottom:26px; right:26px; width:46px; height:46px; border-radius:50%; background:var(--oxblood); color:#fff; border:none; font-size:18px; cursor:pointer; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; box-shadow:0 4px 14px var(--shadow); z-index:80;}
+#top-btn.show{opacity:1; pointer-events:auto;}
+#top-btn:hover{transform:translateY(-3px);}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px){
+  .sidebar{transform:translateX(-100%); transition:transform .25s; box-shadow:0 0 30px rgba(0,0,0,.2);}
+  body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open .nav-scrim{display:block;}
+  .nav-toggle{display:flex; align-items:center; justify-content:center;}
+  main{margin-left:0; padding:0 22px 80px;}
+  .hero{padding-top:88px;}
+  .cheat-grid{grid-template-columns:1fr;}
+  .cyk-grid, .cyk-labels{grid-template-columns:repeat(5,52px);}
+  .cyk-grid{grid-template-rows:repeat(5,52px);}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<button class="nav-toggle" id="navToggle">☰</button>
+<div class="nav-scrim" id="navScrim"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="brand">Chomsky Normal Form</div>
+  <span class="brand-sub">CSE 211 · THEORY OF COMPUTATION</span>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Foundations</span>
+    <button class="navlink" data-t="s-what">What CNF Actually Is</button>
+    <button class="navlink" data-t="s-why">Why We Bother</button>
+    <button class="navlink" data-t="s-chomsky">Aside — Noam Chomsky</button>
+    <button class="navlink" data-t="s-vocab">Generating &amp; Reachable</button>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">The Conversion Pipeline</span>
+    <button class="navlink" data-t="s-roadmap">The Four-Step Roadmap</button>
+    <button class="navlink" data-t="s-eps">Step i — Kill the ε's</button>
+    <button class="navlink" data-t="s-unit">Step ii — Kill Unit Rules</button>
+    <button class="navlink" data-t="s-useless">Step iii — Kill Useless Symbols</button>
+    <button class="navlink" data-t="s-cnf">Step iv — TERM &amp; BIN</button>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Capstone</span>
+    <button class="navlink" data-t="s-sipser">Bridge to Sipser</button>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">The CYK Algorithm</span>
+    <button class="navlink" data-t="s-cyk-idea">The Triangular Table</button>
+    <button class="navlink" data-t="s-cyk-demo">Interactive: Parsing "baaba"</button>
+    <button class="navlink" data-t="s-cyk-complexity">Why O(n³)?</button>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Consolidate</span>
+    <button class="navlink" data-t="s-traps">Trap Museum</button>
+    <button class="navlink" data-t="s-practice">Practice Problems</button>
+    <button class="navlink" data-t="s-cheatsheet">Cheat Sheet</button>
+  </div>
+</nav>
+
+<main>
+<div class="content">
+
+  <section class="hero">
+    <div class="kicker">CSE 211 · Theory of Computation</div>
+    <h1>Chomsky Normal Form</h1>
+    <p class="lede">Every context-free grammar, no matter how tangled, can be reshaped into one of exactly two production shapes — without changing the language it describes. That reshaping is what makes parsing algorithmic. This companion walks the full conversion pipeline end to end, cross-checks it against Sipser's version of the theorem, and ends with a working CYK parser you can step through by hand.</p>
+    <div class="meta">
+      <span>Atif Hasan Rahman · adapted from Dr. Muhammad Masroor Ali</span>
+      <span>BUET CSE</span>
+      <span>Study companion</span>
+    </div>
+  </section>
+
+  <section id="s-what">
+    <div class="eyebrow">Foundations · 01</div>
+    <h2>What CNF Actually Is</h2>
+    <p class="section-intro">Start with the official definition, then spend real time on the two clauses students tend to skate past.</p>
+
+    <div class="box definition">
+      <span class="box-label">Definition — Chomsky Normal Form</span>
+      <p>A context-free grammar <code>G = (V, Σ, R, S)</code> is in <span class="hl-navy">Chomsky Normal Form</span> if every rule in <code>R</code> has one of exactly two shapes:</p>
+      <ol>
+        <li><code>A → BC</code>, where <code>A</code>, <code>B</code>, and <code>C</code> are each variables, or</li>
+        <li><code>A → a</code>, where <code>A</code> is a variable and <code>a</code> is a terminal,</li>
+      </ol>
+      <p style="margin-top:12px;">and, further, <code>G</code> has <span class="hl">no useless symbols</span>.</p>
+    </div>
+
+    <p>Read that carefully — it is a closed list. Not "two variables or a variable-terminal pair," not "up to two variables." <span class="hl">Exactly</span> one of those two shapes, every single time. A rule like <code>A → aB</code> is not CNF. Neither is <code>A → BCD</code>. Neither is <code>A → B</code>. Every one of those gets fixed by the pipeline in this companion.</p>
+
+    <p>The second clause — <em>no useless symbols</em> — is the one people forget exists at all, because it doesn't show up in the two bullet points. It's easy to build a grammar where every rule is syntactically the right shape but some variable can never actually contribute to a derivation. That grammar is <em>not</em> in CNF by this definition, even though every individual rule looks fine in isolation. We'll define "useless" precisely in a moment.</p>
+
+    <div class="box warn">
+      <span class="box-label">The ε exception</span>
+      <p>Strictly, forms (1) and (2) can never produce the empty string — <code>A → BC</code> always yields at least two symbols eventually, and <code>A → a</code> always yields exactly one terminal. So if <code>ε ∈ L(G)</code>, CNF makes exactly one accommodation: the rule <code>S → ε</code> is permitted, where <code>S</code> is the start variable — <span class="hl">provided <code>S</code> never appears on the right-hand side of any rule</span> in the grammar. This exception is not optional decoration; you'll need it precisely once, at the very end of the elimination pipeline, and only for the start symbol.</p>
+    </div>
+
+    <p>A quick self-test is worth more than another paragraph of definition. For each rule below, is it legal inside a CNF grammar on its own (ignoring whether the rest of the grammar is consistent)?</p>
+
+    <div class="check-grid">
+      <div class="check-row"><span class="badge yes">✓</span><span class="ccode">A → BC</span><span class="cwhy">Two variables on the right. Textbook shape (1).</span></div>
+      <div class="check-row"><span class="badge yes">✓</span><span class="ccode">A → a</span><span class="cwhy">A single terminal. Textbook shape (2).</span></div>
+      <div class="check-row"><span class="badge no">✗</span><span class="ccode">A → aB</span><span class="cwhy">Mixes a terminal with a variable — neither shape allows this.</span></div>
+      <div class="check-row"><span class="badge no">✗</span><span class="ccode">A → BCD</span><span class="cwhy">Three variables. Shape (1) caps at exactly two.</span></div>
+      <div class="check-row"><span class="badge no">✗</span><span class="ccode">A → B</span><span class="cwhy">A unit production — a single variable is neither shape.</span></div>
+      <div class="check-row"><span class="badge no">✗</span><span class="ccode">A → ε</span><span class="cwhy">Illegal unless <code>A</code> is the start symbol <em>and</em> it never appears on any right-hand side.</span></div>
+      <div class="check-row"><span class="badge yes">✓</span><span class="ccode">S → ε</span><span class="cwhy">Legal <em>only</em> under the special exception above — and only ever this one rule, for the start symbol.</span></div>
+    </div>
+  </section>
+
+  <section id="s-why">
+    <div class="eyebrow">Foundations · 02</div>
+    <h2>Why We Bother</h2>
+    <p class="section-intro">Normal forms always trade uniform shape for something in return. Here's what CNF buys.</p>
+
+    <p>Look at what CNF's two shapes guarantee about a derivation tree once you draw one out: <span class="hl">every internal node has exactly two children</span> (from rule shape 1), and <span class="hl">every leaf hangs directly off a node that has no other children</span> (from rule shape 2). In other words, a CNF derivation tree is always — no exceptions, no special cases — a proper binary tree with terminals only at the leaves.</p>
+
+    <p>That regularity is the entire reason the <span class="hl-navy">CYK algorithm</span> (coming later in this companion) can exist as a clean dynamic-programming procedure. Ask "can some variable generate the substring from position <code>i</code> to position <code>j</code>?" and because every production is exactly binary, the answer only ever depends on splitting that substring at some point <code>k</code> and asking the same question about two strictly shorter pieces. Without CNF's guarantee, a rule like <code>A → BCD</code> would force you to consider two different split points simultaneously, and a rule like <code>A → aBb</code> would force you to align terminals against substring boundaries by hand. CNF removes all of that bookkeeping before the algorithm even starts.</p>
+
+    <div class="callout"><strong>Looking ahead — </strong> that same binary-tree guarantee is what eventually lets you bound a derivation's <em>height</em> against the <em>length</em> of the string it produces (a CNF tree of height <code>h</code> can generate a string of length at most <code>2^(h-1)</code>). That bound is the load-bearing fact behind the Pumping Lemma for context-free languages — the direct CFL analogue of the DFA pigeonhole argument from Lecture 6. You don't need that yet, but it's worth knowing why this particular normal form, and not some other one, is the one everyone converts to first.</div>
+
+    <p>One honest caveat: normal forms are never free. Converting to CNF can multiply the number of variables in a grammar substantially — every long right-hand side spawns a cascade of fresh helper variables, and every rule with a raw terminal mixed into a longer body spawns a terminal-isolating helper too. You're trading a messy-but-compact grammar for a uniform-but-larger one. That's the same trade DFA minimization makes in the other direction — structure for size — just on the opposite side of the ledger.</p>
+  </section>
+
+  <section id="s-chomsky">
+    <div class="eyebrow">Foundations · 03</div>
+    <h2>Aside — Noam Chomsky</h2>
+    <p class="section-intro">A fair question: why is a linguist's name attached to a data structure fact about grammars?</p>
+
+    <p>Noam Chomsky is a linguist, philosopher, and cognitive scientist — often credited as the father of modern linguistics — best known in this course for formalizing the notion of a <em>generative grammar</em>: a finite set of rewriting rules capable of generating an infinite set of valid sentences. That formalism is exactly the context-free grammar you've been working with. Chomsky organized grammars into a nested hierarchy by expressive power — regular, context-free, context-sensitive, and unrestricted (recursively enumerable) — now simply called the <span class="hl-navy">Chomsky hierarchy</span>, and it's the same hierarchy underlying the entire arc of this course: DFAs and regular expressions sit at the bottom, CFGs and pushdown automata sit one level up, and Turing machines sit at the top.</p>
+
+    <p>Chomsky Normal Form is one of several canonical rewritings named after him because it operates directly on his CFG formalism — it says nothing about natural language specifically, but the vocabulary (variables, terminals, productions, derivations) is inherited straight from his original notation.</p>
+  </section>
+
+  <section id="s-vocab">
+    <div class="eyebrow">Foundations · 04</div>
+    <h2>Generating &amp; Reachable</h2>
+    <p class="section-intro">The vocabulary behind "no useless symbols" — and a genuine trap in how you check it.</p>
+
+    <p>A symbol earns its place in a grammar by doing two separate jobs. Missing either one makes it useless, no matter how legitimate its rules look.</p>
+
+    <div class="box definition">
+      <span class="box-label">Two conditions for usefulness</span>
+      <p><strong>Generating.</strong> A variable <code>X</code> is <em>generating</em> if <code>X ⇒* w</code> for some string of terminals <code>w</code>. Every terminal is trivially generating — it already <em>is</em> a terminal string.</p>
+      <p><strong>Reachable.</strong> A variable <code>X</code> is <em>reachable</em> if there's some derivation <code>S ⇒* αXβ</code> — meaning <code>X</code> genuinely shows up somewhere along some path that starts from the actual start symbol.</p>
+      <p style="margin-top:10px;">A symbol is <span class="hl">useless</span> exactly when it fails at least one of these — either it can never bottom out into terminals, or the start symbol can never reach it in the first place.</p>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head">
+        <span class="proof-tag navy">Worked example</span>
+        <h3>S → AB | a, &nbsp; A → b</h3>
+      </div>
+      <p class="lang-def">Find and remove every useless symbol.</p>
+      <ul class="step-stair">
+        <li>
+          <span class="step-num navy">1</span>
+          <span class="step-title">Check generating, first</span>
+          <div class="step-body">
+            <p><code>B</code> has no rules at all — nothing tells you what <code>B</code> ever rewrites to. It cannot be generating. Every rule that <em>mentions</em> <code>B</code> is now dead weight too, so <code>S → AB</code> is deleted along with it.</p>
+            <div class="math-block">Remaining: &nbsp; S → a &nbsp;&nbsp;&nbsp; A → b</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num navy">2</span>
+          <span class="step-title">Check reachable, second — on the reduced grammar</span>
+          <div class="step-body">
+            <p>Now ask what's reachable from <code>S</code> in <em>this</em> smaller grammar. <code>S</code>'s only surviving rule is <code>S → a</code>, which never mentions <code>A</code>. So <code>A</code> is unreachable, even though it looked perfectly fine a moment ago. Delete <code>A → b</code>.</p>
+            <div class="math-block">Final grammar: &nbsp; S → a</div>
+          </div>
+        </li>
+      </ul>
+      <div class="intuition"><strong>Why the order is not a stylistic choice:</strong> generating-ness can only be lost by removing rules, so it has to be computed on the <em>original</em> grammar (or recomputed to a fixed point). Reachability, on the other hand, should be checked <em>last</em>, on whatever's left after non-generating symbols are already gone — otherwise you can be fooled into keeping a symbol that was reachable in the original grammar but only through a path that's since been deleted.</div>
+    </div>
+
+    <details class="errors">
+      <summary>Trap — reachable-then-generating can silently fail</summary>
+      <ul>
+        <li>Run it backwards on the same grammar: check reachability <em>first</em>. From <code>S</code>, both <code>A</code> and <code>B</code> are reachable (via <code>S → AB</code> and <code>S → a</code>) — nothing gets removed at this stage, since nothing looks unreachable yet.</li>
+        <li>Then check generating: <code>B</code> still has no rules, so it's removed, and <code>S → AB</code> is deleted with it. So far so good — but if you stop here after a single pass of each check, you've been fooled: <code>A → b</code> is still sitting in the "cleaned" grammar, even though <code>A</code> is now unreachable in the grammar you actually ended up with.</li>
+        <li>The fix isn't "do generating first" as a magic incantation — it's that <span class="hl">generating-ness is a closure property of the original rule set</span>, while reachability has to be evaluated on the <em>final</em> rule set. Doing generating first and reachable last, in that order, in a single clean pass, gets you there directly. Doing it the other way around demands a second reachability pass to catch what the generating-removal step exposed.</li>
+      </ul>
+    </details>
+  </section>
+
+  <div class="part-divider"></div>
+  <div class="part-label">Part II — The Conversion Pipeline</div>
+
+  <section id="s-roadmap">
+    <div class="eyebrow">Pipeline · Overview</div>
+    <h2>The Four-Step Roadmap</h2>
+    <p class="section-intro">Every CNF conversion, no matter the grammar, runs the same four stages, in this order. Order matters — each stage assumes the previous ones are already done.</p>
+
+    <ol class="pipeline">
+      <li>
+        <span class="pnum">i</span>
+        <div>
+          <div class="ptitle">Eliminate ε-productions</div>
+          <p class="pdesc">Find every nullable variable, then rewrite every rule that mentions one to cover both "it's there" and "it vanished." Discard the literal <code>A → ε</code> rules once their effect is baked in everywhere else.</p>
+        </div>
+      </li>
+      <li>
+        <span class="pnum">ii</span>
+        <div>
+          <div class="ptitle">Eliminate unit productions</div>
+          <p class="pdesc">A rule like <code>A → B</code> just renames — it contributes no actual structure. Compute which variables reach which other variables through chains of unit rules, then copy the real (non-unit) productions across those chains directly.</p>
+        </div>
+      </li>
+      <li>
+        <span class="pnum">iii</span>
+        <div>
+          <div class="ptitle">Eliminate useless symbols</div>
+          <p class="pdesc">Steps i and ii can leave dead weight behind — a unit chain that dead-ends, a variable nothing points to anymore. Re-run the generating-then-reachable check from the previous section on the grammar as it now stands.</p>
+        </div>
+      </li>
+      <li>
+        <span class="pnum">iv</span>
+        <div>
+          <div class="ptitle">Convert to CNF form — TERM, then BIN</div>
+          <p class="pdesc">Every remaining rule body is either a single terminal (already fine) or a mix of variables and terminals of some length. <strong>TERM</strong> isolates any raw terminals in multi-symbol bodies behind fresh helper variables. <strong>BIN</strong> then breaks any body still longer than two symbols into a cascade of binary rules.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="compare">
+      <div class="compare-label">A note on convention — this course vs. Sipser</div>
+      <p>Sipser's version of this theorem (§2.1) begins with an extra step: introduce a brand-new start symbol <code>S₀</code> with the single rule <code>S₀ → S</code>, <em>before</em> touching anything else. That guarantees the true start symbol can never re-appear on the right-hand side of any rule — which is exactly what lets the later ε-elimination step safely except <em>only</em> <code>S₀</code> from having its ε-rule deleted, with no risk of accidentally exempting a variable that shows up elsewhere in the grammar. Sipser also doesn't carry "eliminate useless symbols" as a labeled step inside the same theorem — it's proven once, earlier, as its own standalone simplification result, and just assumed available here.</p>
+      <p style="margin-top:10px;">This course's ordering (following Hopcroft–Ullman) folds useless-symbol elimination directly into the same four-step pipeline instead, and skips the extra <code>S₀</code>. In practice the two approaches land on equivalent grammars almost always. The gap only matters when your <em>original</em> start symbol already appears on some right-hand side (for instance <code>S → aSb</code>) — that's precisely the case Sipser's <code>S₀</code> trick is built to protect against. Keep this in your back pocket: if a solution manual's CNF grammar has one more variable than yours, this is often exactly why.</p>
+    </div>
+  </section>
+
+  <section id="s-eps">
+    <div class="eyebrow">Pipeline · Step i</div>
+    <h2>Kill the ε's</h2>
+    <p class="section-intro">Nullable variables are the ones that can quietly disappear. Before you can outlaw <code>ε</code>-rules, you have to account for every place their disappearance was doing real work.</p>
+
+    <div class="box definition">
+      <span class="box-label">Definition — nullable</span>
+      <p>A variable <code>A</code> is <em>nullable</em> if <code>A ⇒* ε</code>. This includes the direct case (<code>A → ε</code> is a rule) and the indirect case (<code>A</code>'s entire body consists of variables that are themselves — recursively — all nullable).</p>
+    </div>
+
+    <div class="box">
+      <span class="box-label">The substitution rule</span>
+      <p>Once you know the full set of nullable variables, go rule by rule. For any rule whose body contains <code>k</code> occurrences of nullable variables (occurrences, not distinct variables — a repeated variable counts each time it appears), generate <span class="hl">every</span> way of independently keeping or dropping each of those <code>k</code> occurrences — that's <code>2^k</code> candidate bodies. Discard exactly one candidate: the one where <em>every</em> symbol in the body got dropped, leaving nothing. Never re-add that empty case as a new rule.</p>
+      <p>Finally, throw away the original literal <code>A → ε</code> rules — their job is done once every rule that referenced <code>A</code> has been expanded to cover its disappearance.</p>
+      <p>One exception, applied once, at the very end: if the <em>start symbol</em> itself turned out to be nullable — meaning <code>ε ∈ L(G)</code> — add back exactly <code>S → ε</code>.</p>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head">
+        <span class="proof-tag">Worked example</span>
+        <h3>S → AB, &nbsp; A → aAA | ε, &nbsp; B → bBB | ε</h3>
+      </div>
+      <ul class="step-stair">
+        <li>
+          <span class="step-num">1</span>
+          <span class="step-title">Find every nullable variable</span>
+          <div class="step-body">
+            <p><code>A</code> and <code>B</code> are nullable directly (<code>A → ε</code>, <code>B → ε</code>). Then <code>S → AB</code> has a body made entirely of nullable variables, so <code>S</code> is nullable too. <span class="hl">All three</span> variables are nullable.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span class="step-title">Expand S → AB</span>
+          <div class="step-body">
+            <p>Two occurrences, both nullable: <code>A</code> (keep/drop) × <code>B</code> (keep/drop) → 4 combinations: <code>AB</code>, <code>A</code>, <code>B</code>, and <code>ε</code>. Drop the empty one.</p>
+            <div class="math-block">S → AB | A | B</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span class="step-title">Expand A → aAA</span>
+          <div class="step-body">
+            <p>The body is <code>a A A</code> — the terminal <code>a</code> is never dropped, and the two <code>A</code> occurrences (positions 2 and 3) are each independently nullable. <code>2² = 4</code> combinations: keep both → <code>aAA</code>; drop position 2 → <code>aA</code>; drop position 3 → <code>aA</code>; drop both → <code>a</code>. Note the middle two combinations are <em>different choices</em> that happen to produce the <em>same string</em> — that's not an error, it's a genuine coincidence of which position you deleted.</p>
+            <div class="math-block">A → aAA | aA | aA | a &nbsp;&nbsp;<span style="color:var(--ink-faint); font-size:13px;">(the repeated <code>aA</code> is harmless to merge into one)</span></div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <span class="step-title">Expand B → bBB, symmetrically</span>
+          <div class="step-body">
+            <div class="math-block">B → bBB | bB | bB | b</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <span class="step-title">Discard the literal ε-rules, then check the start symbol</span>
+          <div class="step-body">
+            <p><code>A → ε</code> and <code>B → ε</code> are both discarded now. <code>S</code> came out nullable in step 1, so <code>ε ∈ L(G)</code> — add <code>S → ε</code> back, once.</p>
+            <div class="math-block">Final: &nbsp; S → AB | A | B | ε &nbsp;&nbsp;&nbsp; A → aAA | aA | a &nbsp;&nbsp;&nbsp; B → bBB | bB | b</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <details class="errors">
+      <summary>Trap Museum — ε-elimination</summary>
+      <ul>
+        <li><strong>Skipping the empty-body exclusion.</strong> If a rule's entire body is nullable variables, dropping all of them is exactly how you'd re-derive <code>A → ε</code> — which is precisely what you're trying to eliminate. Always discard that one combination.</li>
+        <li><strong>Treating repeated occurrences as one choice.</strong> <code>aAA</code> has <em>two independent</em> decisions to make, not one — miss this and you'll silently lose the <code>aA</code> alternatives from the final grammar.</li>
+        <li><strong>Re-adding <code>X → ε</code> for a non-start variable mid-algorithm.</strong> The ε-exception belongs to the start symbol, applied once, at the very end — never to an intermediate variable while you're still expanding other rules.</li>
+        <li><strong>Distinct nullable variables in the same body still just need "all subsets."</strong> A body like <code>XAYB</code> with only <code>A, B</code> nullable (not <code>X, Y</code>) still gives <code>2² = 4</code> versions — <code>XAYB, XYB, XAY, XY</code> — never touching the non-nullable symbols.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section id="s-unit">
+    <div class="eyebrow">Pipeline · Step ii</div>
+    <h2>Kill Unit Rules</h2>
+    <p class="section-intro">A rule <code>A → B</code> doesn't build anything — it just says "whatever <code>B</code> can do, <code>A</code> can do too." CNF has no room for pure relabeling, so it gets compiled away.</p>
+
+    <div class="box definition">
+      <span class="box-label">Definitions</span>
+      <p><strong>Unit production:</strong> a rule of the exact form <code>A → B</code>, where both <code>A</code> and <code>B</code> are variables.</p>
+      <p><strong>Unit pair <code>(A, B)</code>:</strong> <code>A ⇒* B</code> using <em>only</em> unit productions along the way — a chain <code>A → X₁ → X₂ → … → B</code>. Every variable forms a trivial unit pair with itself, <code>(A, A)</code>, using zero steps.</p>
+    </div>
+
+    <div class="box">
+      <span class="box-label">The algorithm</span>
+      <p>Compute the full <span class="hl">reflexive-transitive closure</span> of the unit-pair relation — treat the unit rules as directed edges on a graph over variables, and find every pair reachable from every other. This is a graph-reachability computation, not a rewriting process — don't substitute rules into each other by hand and hope it terminates.</p>
+      <p>Then, for every unit pair <code>(A, B)</code> you found, copy every <em>non-unit</em> production of <code>B</code> directly onto <code>A</code>. Once this is done for all pairs, discard every original unit rule — only the freshly copied non-unit bodies remain.</p>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head">
+        <span class="proof-tag">Worked example</span>
+        <h3>The arithmetic-expression grammar</h3>
+      </div>
+      <div class="math-block">I → a | b | Ia | Ib | I0 | I1 &nbsp;&nbsp;&nbsp; F → I | (E) &nbsp;&nbsp;&nbsp; T → F | T*F &nbsp;&nbsp;&nbsp; E → T | E+T</div>
+      <ul class="step-stair">
+        <li>
+          <span class="step-num">1</span>
+          <span class="step-title">Trace the unit pairs</span>
+          <div class="step-body">
+            <p>Start from the trivial pairs <code>(E,E), (T,T), (F,F), (I,I)</code>. Then follow the unit rules one hop at a time: <code>E → T</code> gives <code>(E,T)</code>; from there <code>T → F</code> gives <code>(E,F)</code>; from there <code>F → I</code> gives <code>(E,I)</code>. Similarly <code>(T,F)</code> and <code>(T,I)</code> fall out of <code>T → F → I</code>, and <code>(F,I)</code> falls out of <code>F → I</code> directly.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span class="step-title">Copy non-unit productions across every pair</span>
+          <div class="step-body">
+            <div class="table-wrap">
+              <table>
+                <tr><th>Pair</th><th>Productions copied</th></tr>
+                <tr><td><code>(E,E)</code></td><td><code>E → E+T</code></td></tr>
+                <tr><td><code>(E,T)</code></td><td><code>E → T*F</code></td></tr>
+                <tr><td><code>(E,F)</code></td><td><code>E → (E)</code></td></tr>
+                <tr><td><code>(E,I)</code></td><td><code>E → a | b | Ia | Ib | I0 | I1</code></td></tr>
+                <tr><td><code>(T,T)</code></td><td><code>T → T*F</code></td></tr>
+                <tr><td><code>(T,F)</code></td><td><code>T → (E)</code></td></tr>
+                <tr><td><code>(T,I)</code></td><td><code>T → a | b | Ia | Ib | I0 | I1</code></td></tr>
+                <tr><td><code>(F,F)</code></td><td><code>F → (E)</code></td></tr>
+                <tr><td><code>(F,I)</code></td><td><code>F → a | b | Ia | Ib | I0 | I1</code></td></tr>
+                <tr><td><code>(I,I)</code></td><td><code>I → a | b | Ia | Ib | I0 | I1</code></td></tr>
+              </table>
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span class="step-title">Union per variable, drop the original unit rules</span>
+          <div class="step-body">
+            <div class="math-block">
+              E → E+T | T*F | (E) | a | b | Ia | Ib | I0 | I1<br>
+              T → T*F | (E) | a | b | Ia | Ib | I0 | I1<br>
+              F → (E) | a | b | Ia | Ib | I0 | I1<br>
+              I → a | b | Ia | Ib | I0 | I1
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <details class="errors">
+      <summary>Trap Museum — unit-production elimination</summary>
+      <ul>
+        <li><strong>Naive repeated substitution loops forever on unit cycles.</strong> If a grammar had <code>A → B</code> and <code>B → A</code>, endlessly "substituting until no unit rules remain" never terminates. Computing the closure as a finite <em>set</em> of pairs first sidesteps this completely.</li>
+        <li><strong>A pair can be legitimate and still contribute nothing.</strong> If <code>B</code> happens to have no non-unit productions at all — every one of its rules is itself a unit rule, chaining further — then <code>(A,B)</code> adds nothing to <code>A</code>. If that's true for an entire cluster of variables with no exit into a real production, every variable in that cluster is dead: this is exactly why unit-elimination and useless-symbol elimination are run back to back.</li>
+        <li><strong>Forgetting the reflexive pairs.</strong> <code>(A,A)</code> matters — without it, <code>A</code>'s own directly-attached non-unit productions (the ones it already had, not inherited from anywhere) can get dropped by mistake during bookkeeping.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section id="s-useless">
+    <div class="eyebrow">Pipeline · Step iii</div>
+    <h2>Kill Useless Symbols — Reprise</h2>
+    <p class="section-intro">Same test as before — generating first, then reachable — just re-run now that ε- and unit-elimination have had a chance to change what's actually connected.</p>
+
+    <p>Steps i and ii can each create new dead ends that weren't obviously dead in the original grammar — most commonly, a unit-elimination pair that turned out to contribute nothing (the trap above). So step iii is exactly the check from the Foundations section, applied one more time, on the grammar as it stands right now.</p>
+
+    <p>Running it on both examples above: in the <code>A, B</code>-nullable grammar, every one of <code>S, A, B</code> is generating (each has a rule bottoming out in a pure terminal string) and reachable (all three are visibly connected from <code>S</code>). In the arithmetic grammar, <code>I</code> is generating via <code>I → a</code>, and that generating-ness climbs back through <code>F, T, E</code>; reachability runs the other way, from <code>E</code> down through <code>T, F, I</code>. <span class="hl">Nothing new becomes useless in either case</span> — both grammars pass through step iii unchanged. That won't always happen; it's worth checking explicitly rather than assuming it, every time.</p>
+  </section>
+
+  <section id="s-cnf">
+    <div class="eyebrow">Pipeline · Step iv</div>
+    <h2>Convert to CNF — TERM &amp; BIN</h2>
+    <p class="section-intro">The last mile. Every surviving rule body is either already a lone terminal (fine, leave it), or some mix of terminals and variables of some length. Two clean-up passes finish the job.</p>
+
+    <div class="box">
+      <span class="box-label">TERM — isolate terminals</span>
+      <p>Scan every rule body of length <code>≥ 2</code> for raw terminal symbols. For each <em>distinct</em> terminal that shows up inside such a body anywhere in the whole grammar, introduce exactly <span class="hl">one</span> fresh helper variable for it — reused everywhere that terminal appears in a multi-symbol body, not re-created per occurrence — with a new rule <code>NewVar → terminal</code>. Replace every such occurrence with the helper. Bodies that are already a single lone terminal (<code>A → a</code>) are untouched — they're already valid.</p>
+    </div>
+
+    <div class="box">
+      <span class="box-label">BIN — binarize long bodies</span>
+      <p>Now every remaining multi-symbol body consists entirely of variables. Any body still of length <code>≥ 3</code> gets broken into a left-to-right cascade of fresh helper variables, each one standing in for exactly two adjacent symbols, until the head rule is down to two symbols.</p>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head">
+        <span class="proof-tag gold">Worked example</span>
+        <h3>Finishing the arithmetic grammar</h3>
+      </div>
+      <p class="lang-def">Picking up exactly where unit-elimination left off, over the alphabet <code>{a, b, 0, 1, +, *, (, )}</code>.</p>
+      <ul class="step-stair">
+        <li>
+          <span class="step-num navy">1</span>
+          <span class="step-title">TERM — eight terminals need helpers</span>
+          <div class="step-body">
+            <p>Every one of the eight terminals shows up inside some multi-symbol body somewhere in the grammar (<code>E+T</code>, <code>T*F</code>, <code>(E)</code>, <code>Ia</code>, <code>Ib</code>, <code>I0</code>, <code>I1</code>). Introduce one helper per terminal:</p>
+            <div class="math-block">A → a &nbsp; B → b &nbsp; Z → 0 &nbsp; O → 1 &nbsp; P → + &nbsp; M → * &nbsp; L → ( &nbsp; R → )</div>
+            <p>Replace every terminal occurrence inside a longer body with its helper — note <code>I a</code> becomes <code>I A</code>, <code>I 0</code> becomes <code>I Z</code>, and so on, while the standalone single-terminal bodies (<code>I → a</code>, <code>I → b</code>) are left exactly as they are:</p>
+            <div class="math-block">
+              E → EPT | TMF | LER | a | b | IA | IB | IZ | IO<br>
+              T → TMF | LER | a | b | IA | IB | IZ | IO<br>
+              F → LER | a | b | IA | IB | IZ | IO<br>
+              I → a | b | IA | IB | IZ | IO
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num navy">2</span>
+          <span class="step-title">BIN — three bodies are still length 3</span>
+          <div class="step-body">
+            <p><code>EPT</code>, <code>TMF</code>, and <code>LER</code> are each three variables long. Introduce one cascade helper per distinct length-3 body:</p>
+            <div class="math-block">C₁ → PT &nbsp;&nbsp;&nbsp; C₂ → MF &nbsp;&nbsp;&nbsp; C₃ → ER</div>
+            <p>and rewrite each length-3 body as (first symbol) + (helper):</p>
+          </div>
+        </li>
+      </ul>
+      <div class="math-block" style="margin-top:6px;">
+        E → EC₁ | TC₂ | LC₃ | a | b | IA | IB | IZ | IO<br>
+        T → TC₂ | LC₃ | a | b | IA | IB | IZ | IO<br>
+        F → LC₃ | a | b | IA | IB | IZ | IO<br>
+        I → a | b | IA | IB | IZ | IO<br>
+        A → a &nbsp; B → b &nbsp; Z → 0 &nbsp; O → 1 &nbsp; P → + &nbsp; M → * &nbsp; L → ( &nbsp; R → )<br>
+        C₁ → PT &nbsp; C₂ → MF &nbsp; C₃ → ER
+      </div>
+      <div class="intuition"><strong>Every body, checked:</strong> each of <code>EC₁, TC₂, LC₃, IA, IB, IZ, IO</code> is exactly two variables — shape (1). Each of <code>a, b</code> alone is exactly one terminal — shape (2). Fourteen variables total, up from four. That's the size-for-uniformity trade in action.</div>
+    </div>
+
+    <details class="errors">
+      <summary>Trap Museum — TERM &amp; BIN</summary>
+      <ul>
+        <li><strong>Running BIN before TERM.</strong> Break a body like <code>aBC</code> into binary form first and you'd get a helper whose body is still <code>a</code> mixed with a variable — you'd just be re-creating the TERM problem one level down, and you'd need a second pass anyway. TERM first means BIN only ever sees pure-variable bodies.</li>
+        <li><strong>Forgetting length-exactly-2 mixed bodies.</strong> A body like <code>aB</code> is already short enough that BIN wouldn't touch it — but it still violates TERM, since shape (1) requires <em>both</em> symbols to be variables. This is the single most common CNF-conversion mistake on an exam: fixing only the "obviously long" bodies and skipping the short mixed ones.</li>
+        <li><strong>Minting a brand-new helper name that collides with an existing variable.</strong> Every helper — for TERM and for BIN — needs a genuinely fresh name. Reusing an existing variable's name silently merges two unrelated meanings into one.</li>
+      </ul>
+    </details>
+  </section>
+
+  <div class="part-divider"></div>
+  <div class="part-label">Part III — Capstone</div>
+
+  <section id="s-sipser">
+    <div class="eyebrow">Capstone</div>
+    <h2>Bridge to Sipser</h2>
+    <p class="section-intro">Your primary text proves this exact theorem with its own running example. Let's push it through <em>this</em> lecture's four-step pipeline, end to end, and confirm it lands on a valid CNF grammar — good cross-training between the two treatments you're getting this term.</p>
+
+    <div class="callout"><strong>Note on method — </strong>what follows is derived live, rule by rule, rather than quoted from memory. Every intermediate grammar is checked (nullability by fixpoint, unit pairs by closure, generating/reachable explicitly), and the final grammar is cross-verified against two independent test strings at the end. Audit any step you like.</div>
+
+    <div class="proof-card">
+      <div class="proof-card-head">
+        <span class="proof-tag">Running example</span>
+        <h3>S → ASA | aB, &nbsp; A → B | S, &nbsp; B → b | ε</h3>
+      </div>
+
+      <ul class="step-stair">
+        <li>
+          <span class="step-num">i</span>
+          <span class="step-title">Eliminate ε-productions</span>
+          <div class="step-body">
+            <p><strong>Nullability, by fixpoint:</strong> <code>B</code> is nullable directly. <code>A → B</code> makes <code>A</code> nullable too. Does <code>S</code> become nullable? <code>S → ASA</code> would need <code>S</code> nullable to certify itself — circular, so it never gets marked; <code>S → aB</code> can't be nullable regardless, since it always contains the terminal <code>a</code>. So <span class="hl">nullable = {A, B}</span>, and <code>S</code> is <em>not</em> nullable.</p>
+            <p><strong>Expand each rule:</strong> <code>S → ASA</code> has nullable occurrences at positions 1 and 3 (the two <code>A</code>'s), position 2 (<code>S</code>) is never nullable and always stays. Four combinations, none empty: <code>ASA, SA, AS, S</code> — and <code>S → S</code> is a do-nothing self-loop, dropped on sight. <code>S → aB</code> has one nullable occurrence (<code>B</code>): keep → <code>aB</code>, drop → <code>a</code>.</p>
+            <div class="math-block">S → ASA | SA | AS | aB | a</div>
+            <p><code>A → B</code>: dropping the only symbol would leave an empty body — skip it, keep <code>A → B</code> unchanged. <code>A → S</code>: <code>S</code> isn't nullable, unchanged.</p>
+            <div class="math-block">A → B | S</div>
+            <p><code>B → b</code> is untouched; <code>B → ε</code> is discarded outright. Since <code>S</code> is not nullable, <span class="hl">no <code>S → ε</code> is added</span> — this grammar does not generate <code>ε</code>.</p>
+            <div class="math-block">B → b</div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">ii</span>
+          <span class="step-title">Eliminate unit productions</span>
+          <div class="step-body">
+            <p>Unit rules present: <code>A → B</code>, <code>A → S</code>. Closure of unit pairs: <code>(A,A), (S,S), (B,B)</code> trivially, plus <code>(A,B)</code> and <code>(A,S)</code> directly — no further hops exist (<code>S</code> and <code>B</code> have no unit rules of their own).</p>
+            <p>Copy non-unit productions across each pair: <code>(A,B)</code> gives <code>A → b</code>. <code>(A,S)</code> gives <code>A → ASA | SA | AS | aB | a</code> (all five of <code>S</code>'s bodies, none of them unit rules). <code>S</code> and <code>B</code> gain nothing new from their own reflexive pairs — they had no unit rules to begin with.</p>
+            <div class="math-block">
+              S → ASA | SA | AS | aB | a<br>
+              A → ASA | SA | AS | aB | a | b<br>
+              B → b
+            </div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">iii</span>
+          <span class="step-title">Eliminate useless symbols</span>
+          <div class="step-body">
+            <p>Generating: <code>S → a</code>, <code>A → b</code>, <code>B → b</code> — all three bottom out directly. Reachable: <code>S</code>'s own bodies mention <code>A</code> and <code>B</code>, so both are reachable. <span class="hl">Nothing is useless</span> — the grammar is untouched by this step. (Worth confirming explicitly, even when — as here — nothing changes.)</p>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">iv</span>
+          <span class="step-title">Convert to CNF — TERM, then BIN</span>
+          <div class="step-body">
+            <p><strong>TERM:</strong> the only raw terminal sitting inside a multi-symbol body is the <code>a</code> in <code>aB</code> (appearing in both <code>S</code> and <code>A</code>). One helper covers it: <code>U → a</code>.</p>
+            <div class="math-block">S → ASA | SA | AS | UB | a &nbsp;&nbsp; A → ASA | SA | AS | UB | a | b &nbsp;&nbsp; B → b &nbsp;&nbsp; U → a</div>
+            <p><strong>BIN:</strong> the only body still length 3 is <code>ASA</code> (in both <code>S</code> and <code>A</code>). One cascade helper covers the last two symbols: <code>C₁ → SA</code>, then <code>ASA → A C₁</code>.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="math-block" style="margin-top:4px;">
+        <strong style="color:var(--oxblood);">Final CNF grammar</strong><br>
+        S → AC₁ | SA | AS | UB | a<br>
+        A → AC₁ | SA | AS | UB | a | b<br>
+        B → b<br>
+        U → a<br>
+        C₁ → SA
+      </div>
+
+      <div class="intuition"><strong>Every body, checked:</strong> <code>AC₁, SA, AS, UB</code> — two variables each, shape (1). <code>a, b</code> — one terminal each, shape (2). Five variables total, up from three.</div>
+    </div>
+
+    <div class="box">
+      <span class="box-label">Trust, but verify</span>
+      <p>Pick two strings and derive them in <em>both</em> grammars, to make sure nothing was lost or gained along the way.</p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>String</th><th>Original grammar</th><th>Final CNF grammar</th></tr>
+          <tr>
+            <td><code>ab</code></td>
+            <td><code>S → aB → ab</code> &nbsp;(using <code>B → b</code>)</td>
+            <td><code>S → UB → ab</code> &nbsp;(using <code>U → a</code>, <code>B → b</code>)</td>
+          </tr>
+          <tr>
+            <td><code>bab</code></td>
+            <td><code>S → ASA → (b)(a)(b)</code> &nbsp;using <code>A → B → b</code>, middle <code>S → a</code>, right <code>A → B → b</code></td>
+            <td><code>S → AC₁ → b·C₁ → b·SA → b·a·A → b·a·b</code> &nbsp;using <code>A → b</code>, <code>C₁ → SA</code>, <code>S → a</code>, <code>A → b</code></td>
+          </tr>
+        </table>
+      </div>
+      <p style="margin-top:6px;">Both derivations land on identical strings through structurally parallel paths — good evidence the conversion is faithful, not just plausible-looking.</p>
+    </div>
+  </section>
+
+  <div class="part-divider"></div>
+  <div class="part-label">Part IV — The CYK Algorithm</div>
+
+  <section id="s-cyk-idea">
+    <div class="eyebrow">CYK · 01</div>
+    <h2>The Triangular Table</h2>
+    <p class="section-intro">This is the payoff. With a grammar guaranteed to be in CNF, membership testing — "is <code>w ∈ L(G)</code>?" — stops being a search problem and becomes a fill-in-the-table problem, solvable bottom-up in polynomial time.</p>
+
+    <p>Naively, checking membership means searching over derivations, and there's no obvious bound on how many you'd need to try. The <span class="hl-navy">Cocke–Younger–Kasami (CYK)</span> algorithm sidesteps this entirely with dynamic programming, and it only works because CNF guarantees every non-terminal step is a clean binary split.</p>
+
+    <div class="box definition">
+      <span class="box-label">Definition</span>
+      <p>For a string <code>w = a₁a₂…aₙ</code> and a CNF grammar <code>G = (V, Σ, R, S)</code>, define</p>
+      <div class="math-block">X_ij = { A ∈ V &nbsp;:&nbsp; A ⇒* a_i a_{i+1} … a_j }</div>
+      <p>— the set of variables that can generate exactly the substring running from position <code>i</code> to position <code>j</code>, inclusive.</p>
+    </div>
+
+    <div class="box">
+      <span class="box-label">Base case &amp; recurrence</span>
+      <p><strong>Base case</strong> (substrings of length 1): <code>X_ii</code> is the set of variables <code>A</code> such that <code>A → a_i</code> is a production.</p>
+      <p><strong>Recurrence</strong> (substrings of length <code>≥ 2</code>): <code>A ∈ X_ij</code> exactly when there's some split point <code>k</code> with <code>i ≤ k &lt; j</code>, a variable <code>B ∈ X_ik</code>, a variable <code>C ∈ X_{k+1,j}</code>, and a production <code>A → BC</code>.</p>
+      <p><strong>Membership:</strong> <code>w ∈ L(G)</code> exactly when <code>S ∈ X_1n</code> — the start symbol can generate the <em>entire</em> string.</p>
+    </div>
+
+    <p>Visually, this builds a triangular table: the bottom row holds every <code>X_ii</code>, aligned directly under each input symbol; each row above combines two adjacent smaller entries; the single cell at the very top is <code>X_1n</code> — the answer to the whole question.</p>
+  </section>
+
+  <section id="s-cyk-demo">
+    <div class="eyebrow">CYK · 02</div>
+    <h2>Interactive — Parsing "baaba"</h2>
+    <p class="section-intro">A concrete grammar, a concrete string, and a table you build one diagonal at a time. Click any filled cell once it's revealed to see exactly which split point and which rule put it there.</p>
+
+    <div class="cyk-widget">
+      <div class="cyk-rules">S → AB | BC &nbsp;&nbsp; A → BA | a &nbsp;&nbsp; B → CC | b &nbsp;&nbsp; C → AB | a</div>
+      <div class="cyk-controls">
+        <button class="cyk-btn secondary" id="cykReset">↺ Reset</button>
+        <button class="cyk-btn" id="cykStep">Reveal next diagonal ▸</button>
+        <button class="cyk-btn secondary" id="cykAll">Reveal entire table</button>
+      </div>
+      <div class="cyk-stage">
+        <div class="cyk-grid" id="cykGrid"></div>
+        <div class="cyk-labels" id="cykLabels"></div>
+      </div>
+      <div class="cyk-explain" id="cykExplain">The bottom diagonal (length-1 substrings) is shown to start. Press <strong>Reveal next diagonal</strong> to build the table upward, or click any highlighted cell to see how it was computed.</div>
+      <div class="cyk-status" id="cykStatus"></div>
+    </div>
+
+    <p>Once <code>X₁,₅</code> — the top cell — is revealed, check whether <code>S</code> is a member. If it is, <code>baaba ∈ L(G)</code>; if not, it isn't. Every intermediate cell you clicked along the way is the actual evidence for that final answer, not just a rubber stamp.</p>
+  </section>
+
+  <section id="s-cyk-complexity">
+    <div class="eyebrow">CYK · 03 · Beyond the slide</div>
+    <h2>Why O(n³)?</h2>
+    <p class="section-intro">Not on the lecture slides directly, but a natural — and standard — follow-up once you've built the table by hand.</p>
+
+    <p>The table has one entry <code>X_ij</code> for every pair <code>i ≤ j</code> — that's <code>n(n+1)/2</code> cells, so <code>O(n²)</code> entries overall. Filling in a single entry <code>X_ij</code> of length <code>L = j − i + 1</code> means trying up to <code>L − 1</code> split points, each an <code>O(1)</code> lookup against a grammar of fixed size. In the worst case that's <code>O(n)</code> split points per cell.</p>
+
+    <div class="math-block">O(n²) cells &nbsp;×&nbsp; O(n) split points per cell &nbsp;=&nbsp; O(n³) total</div>
+
+    <p>Notice again where CNF is doing the work: because every production is exactly binary, "trying a split point" is the <em>only</em> kind of work a cell ever needs. A grammar with unbounded right-hand sides wouldn't just be slower to parse — it wouldn't fit this table-filling structure at all.</p>
+  </section>
+
+  <div class="part-divider"></div>
+  <div class="part-label">Part V — Consolidate</div>
+
+  <section id="s-traps">
+    <div class="eyebrow">Consolidate · 01</div>
+    <h2>Trap Museum</h2>
+    <p class="section-intro">Ten ways this conversion goes wrong on an exam, gathered from every stage of the pipeline. Each one already appeared inline above — this is the one place to review all of them at once.</p>
+
+    <details class="errors">
+      <summary>1 — Forgetting "no useless symbols" is part of the definition</summary>
+      <ul><li>A grammar where every rule is syntactically shape (1) or (2), but some variable can never contribute to any derivation, is <em>not</em> in CNF. The two-shapes rule and the usefulness rule are both required, not either-or.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>2 — Checking reachable before generating</summary>
+      <ul><li>Generating-ness has to be computed on the original rule set; reachability has to be checked <em>last</em>, on whatever survives. Reversing the order can leave a genuinely useless symbol behind, looking falsely reachable.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>3 — Adding back the fully-empty body during ε-elimination</summary>
+      <ul><li>If every symbol in a body is nullable, dropping all of them just re-derives an ε-rule you're trying to eliminate. Always exclude that one combination.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>4 — Treating repeated nullable occurrences as a single decision</summary>
+      <ul><li><code>aAA</code> has two independent nullable positions, not one — that's <code>2² = 4</code> combinations, not 2. Underexpanding here silently drops legal strings from the language.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>5 — Re-adding <code>X → ε</code> for a non-start variable</summary>
+      <ul><li>The ε-exception belongs to the start symbol alone, applied once, at the very end — never mid-algorithm for an arbitrary variable you happen to be expanding.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>6 — Naive substitution during unit-elimination, instead of computing closure</summary>
+      <ul><li>Unit cycles (<code>A → B</code>, <code>B → A</code>) make repeated ad-hoc substitution loop forever. Compute the full reflexive-transitive closure of unit pairs as a finite set first, then copy productions once.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>7 — Missing unit-pair chains that lead nowhere</summary>
+      <ul><li>If every variable in a unit-cluster only ever chains to more unit rules with no non-unit exit, the whole cluster is dead. This is exactly why useless-symbol elimination runs again <em>after</em> unit-elimination.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>8 — Forgetting length-2 bodies that mix a terminal with a variable</summary>
+      <ul><li><code>aB</code> is short enough that BIN wouldn't touch it, but it still violates TERM — shape (1) needs <em>both</em> symbols to be variables. The single most common slip on this whole topic.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>9 — Running BIN before TERM</summary>
+      <ul><li>Binarizing a body like <code>aBC</code> first just relocates the mixed-terminal problem one level down into a fresh helper variable, forcing a second cleanup pass. TERM first means BIN only ever touches pure-variable bodies.</li></ul>
+    </details>
+    <details class="errors">
+      <summary>10 — Reusing an existing variable name for a new helper</summary>
+      <ul><li>Every TERM helper and every BIN cascade variable needs a name that doesn't already mean something else in the grammar. A collision silently merges two unrelated meanings into one rule set.</li></ul>
+    </details>
+  </section>
+
+  <section id="s-practice">
+    <div class="eyebrow">Consolidate · 02</div>
+    <h2>Practice Problems</h2>
+    <p class="section-intro">Four problems, spanning the full pipeline and a CYK drill. Work each one before opening its solution.</p>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Problem A</span><h3>Convert to CNF</h3></div>
+      <p class="lang-def">S → aXb | c, &nbsp; X → aXb | ε</p>
+      <details class="solution">
+        <summary>Show full solution</summary>
+        <div class="sol-body">
+          <p><strong>Nullability:</strong> <code>X</code> is nullable directly. <code>S</code> is not — both of its bodies always contain a terminal regardless of <code>X</code>.</p>
+          <p><strong>ε-elimination:</strong> <code>S → aXb</code> → <code>aXb | ab</code> (keep <code>S → c</code> as is). <code>X → aXb</code> → <code>aXb | ab</code>; discard <code>X → ε</code>. <code>S</code> not nullable ⇒ no <code>S → ε</code> added.</p>
+          <div class="math-block">S → aXb | ab | c &nbsp;&nbsp; X → aXb | ab</div>
+          <p><strong>Unit-elimination:</strong> no unit rules exist anywhere in this grammar — unchanged.</p>
+          <p><strong>Useless symbols:</strong> both variables generating (<code>X → ab</code>, <code>S → c</code>) and reachable (<code>X</code> via <code>S → aXb</code>) — nothing removed.</p>
+          <p><strong>TERM:</strong> introduce <code>Ta → a</code>, <code>Tb → b</code> (note: even the all-terminal body <code>ab</code> needs both terminals replaced — shape (1) requires <em>every</em> symbol in a length-≥2 body to be a variable).</p>
+          <div class="math-block">S → TaXTb | TaTb | c &nbsp;&nbsp; X → TaXTb | TaTb</div>
+          <p><strong>BIN:</strong> only <code>TaXTb</code> (length 3) needs it, in both rules. One helper: <code>H → XTb</code>.</p>
+          <div class="math-block">
+            <strong style="color:var(--oxblood);">Final:</strong> &nbsp; S → TaH | TaTb | c<br>
+            X → TaH | TaTb<br>
+            Ta → a &nbsp;&nbsp; Tb → b &nbsp;&nbsp; H → XTb
+          </div>
+          <p style="margin-top:8px; font-size:14px; color:var(--ink-faint);">Check: <code>L(G) = {aⁿbⁿ : n ≥ 1} ∪ {c}</code>. Test <code>aabb</code> in the CNF grammar: <code>S → TaH → a·(XTb) → a·(TaTb·b) → a·(ab)·b = aabb</code>. ✓</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag navy">Problem B</span><h3>Is this grammar in CNF?</h3></div>
+      <p class="lang-def">S → AB | a, &nbsp; A → BB | ε, &nbsp; B → b</p>
+      <details class="solution">
+        <summary>Show full solution</summary>
+        <div class="sol-body">
+          <p><strong>No.</strong> Check every rule against the two shapes: <code>S → AB</code> ✓ shape (1). <code>S → a</code> ✓ shape (2). <code>A → BB</code> ✓ shape (1). <code>B → b</code> ✓ shape (2). Three out of four rules are fine — the problem is <code>A → ε</code>.</p>
+          <p>The ε-exception only ever covers the <em>start</em> symbol. <code>A</code> is not the start symbol here — <code>S</code> is — so <code>A → ε</code> is illegal regardless of whether <code>ε ∈ L(G)</code> or not.</p>
+          <p style="margin-top:6px; font-size:14px; color:var(--ink-faint);">(As it happens, does this grammar even generate <code>ε</code>? <code>S</code>'s bodies are <code>AB</code> and <code>a</code> — <code>a</code> is nonempty, and <code>AB</code> needs <code>B</code> which is never nullable, so no: <code>ε ∉ L(G)</code> at all. The <code>A → ε</code> rule isn't just misplaced — it's dead weight that should have been eliminated by the standard pipeline before ever reaching a "final" CNF grammar.)</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag gold">Problem C</span><h3>CYK by hand</h3></div>
+      <p class="lang-def">S → AB | AC, &nbsp; A → a, &nbsp; B → BC | b, &nbsp; C → c &nbsp;&nbsp;&nbsp;&nbsp; Is <code>abcc</code> ∈ L(G)?</p>
+      <details class="solution">
+        <summary>Show full solution</summary>
+        <div class="sol-body">
+          <p>Positions: <code>1=a, 2=b, 3=c, 4=c</code>.</p>
+          <div class="table-wrap">
+            <table>
+              <tr><th>Cell</th><th>Substring</th><th>Value</th><th>Why</th></tr>
+              <tr><td>X₁₁</td><td>a</td><td>{A}</td><td>A → a</td></tr>
+              <tr><td>X₂₂</td><td>b</td><td>{B}</td><td>B → b</td></tr>
+              <tr><td>X₃₃</td><td>c</td><td>{C}</td><td>C → c</td></tr>
+              <tr><td>X₄₄</td><td>c</td><td>{C}</td><td>C → c</td></tr>
+              <tr><td>X₁₂</td><td>ab</td><td>{S}</td><td>X₁₁={A}, X₂₂={B} → S → AB</td></tr>
+              <tr><td>X₂₃</td><td>bc</td><td>{B}</td><td>X₂₂={B}, X₃₃={C} → B → BC</td></tr>
+              <tr><td>X₃₄</td><td>cc</td><td>∅</td><td>no rule has body CC</td></tr>
+              <tr><td>X₁₃</td><td>abc</td><td>{S}</td><td>X₁₁={A}, X₂₃={B} → S → AB</td></tr>
+              <tr><td>X₂₄</td><td>bcc</td><td>{B}</td><td>X₂₃={B}, X₄₄={C} → B → BC</td></tr>
+              <tr><td>X₁₄</td><td>abcc</td><td>{S}</td><td>X₁₁={A}, X₂₄={B} → S → AB</td></tr>
+            </table>
+          </div>
+          <p><code>S ∈ X₁,₄</code> — <strong>yes</strong>, <code>abcc ∈ L(G)</code>. (In fact <code>L(G) = {abcᵏ : k ≥ 0} ∪ {ac}</code>; try <code>abbc</code> yourself — it should come out empty at the top, since only one <code>b</code> is ever allowed.)</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Problem D</span><h3>Conceptual check</h3></div>
+      <p class="lang-def">Using the capstone grammar (S → ASA | aB, A → B | S, B → b | ε) — how many variables does the final CNF grammar have, and why?</p>
+      <details class="solution">
+        <summary>Show full solution</summary>
+        <div class="sol-body">
+          <p><strong>Five:</strong> <code>S, A, B</code> (the three original survivors — nothing was ever removed by useless-symbol elimination) plus <code>U</code> (one TERM helper, for the single terminal <code>a</code> that ever appears mixed into a longer body) plus <code>C₁</code> (one BIN helper, for the single length-3 body <code>ASA</code> that appears in both <code>S</code> and <code>A</code>'s rules — reused rather than duplicated, since it's the exact same three-symbol pattern in both places).</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section id="s-cheatsheet">
+    <div class="eyebrow">Consolidate · 03</div>
+    <h2>Cheat Sheet</h2>
+    <p class="section-intro">One page, everything above, compressed.</p>
+
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>CNF definition</h4>
+        <ul>
+          <li><code>A → BC</code> or <code>A → a</code>, nothing else</li>
+          <li>No useless symbols</li>
+          <li>Exception: <code>S → ε</code> only, only if <code>ε∈L(G)</code>, only if <code>S</code> never appears on any RHS</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>The four steps, in order</h4>
+        <ul>
+          <li>i. Eliminate ε-productions</li>
+          <li>ii. Eliminate unit productions</li>
+          <li>iii. Eliminate useless symbols</li>
+          <li>iv. TERM, then BIN</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>ε-elimination</h4>
+        <ul>
+          <li>Nullable: direct ε-rule, or all-nullable body</li>
+          <li><code>k</code> nullable occurrences → 2ᵏ versions, minus the empty one</li>
+          <li><code>S → ε</code> added once, only if <code>S</code> nullable</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Unit-elimination</h4>
+        <ul>
+          <li>Unit pair: reachable via unit rules only</li>
+          <li>Compute closure as a set, don't substitute naively</li>
+          <li>Copy non-unit bodies across every pair, then drop unit rules</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>TERM &amp; BIN</h4>
+        <ul>
+          <li>TERM: one helper per distinct terminal in a multi-symbol body</li>
+          <li>BIN: cascade helpers for bodies of length ≥ 3</li>
+          <li>Always TERM before BIN</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>CYK recurrence</h4>
+        <ul>
+          <li><code>X_ii</code> = {A : A→aᵢ}</li>
+          <li><code>A∈X_ij</code> iff ∃k, B∈X_ik, C∈X_(k+1)j, A→BC</li>
+          <li>Membership: <code>S∈X_1n</code></li>
+          <li>Runs in O(n³)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="doc-footer">
+    <span>CSE 211 · Theory of Computation · Chomsky Normal Form</span>
+    <span>Adapted from Atif Hasan Rahman's slides, after Dr. Muhammad Masroor Ali · Study companion built for exam prep</span>
+  </div>
+
+</div>
+</main>
+
+<button id="top-btn">↑</button>
+
+<script>
+// ---------------- scroll progress bar ----------------
+const progressBar = document.getElementById('progress');
+function updateProgress(){
+  const el = document.scrollingElement || document.documentElement;
+  const h = el.scrollHeight - el.clientHeight;
+  progressBar.style.width = (h > 0 ? (el.scrollTop / h * 100) : 0) + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+// ---------------- mobile nav toggle ----------------
+const navToggle = document.getElementById('navToggle');
+const navScrim = document.getElementById('navScrim');
+navToggle.addEventListener('click', () => document.body.classList.toggle('nav-open'));
+navScrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
+
+// ---------------- sidebar nav (buttons, not anchors) + scrollspy ----------------
+const navLinks = Array.from(document.querySelectorAll('.navlink'));
+navLinks.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.getAttribute('data-t');
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({behavior:'smooth', block:'start'});
+    document.body.classList.remove('nav-open');
+  });
+});
+function updateSpy(){
+  const sections = navLinks.map(a => document.getElementById(a.getAttribute('data-t'))).filter(Boolean);
+  let current = sections[0];
+  for (const s of sections) {
+    if (s.getBoundingClientRect().top <= 140) current = s;
+  }
+  navLinks.forEach(a => a.classList.toggle('active', current && a.getAttribute('data-t') === current.id));
+}
+document.addEventListener('scroll', updateSpy, {passive:true});
+updateSpy();
+
+// ---------------- back to top ----------------
+const topBtn = document.getElementById('top-btn');
+document.addEventListener('scroll', () => {
+  const el = document.scrollingElement || document.documentElement;
+  topBtn.classList.toggle('show', el.scrollTop > 600);
+}, {passive:true});
+topBtn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+// ================= CYK interactive widget =================
+(function(){
+  const grammar = { S:[['A','B'],['B','C']], A:[['B','A']], B:[['C','C']], C:[['A','B']] };
+  const term = { A:['a'], B:['b'], C:['a'] };
+  const input = 'baaba';
+  const n = input.length;
+
+  const table = {};
+  const info = {};
+  for (let i = 1; i <= n; i++) {
+    table[i] = table[i] || {};
+    const ch = input[i-1];
+    table[i][i] = Object.keys(term).filter(v => term[v].includes(ch)).sort();
+  }
+  for (let len = 2; len <= n; len++) {
+    for (let i = 1; i <= n - len + 1; i++) {
+      const j = i + len - 1;
+      table[i] = table[i] || {};
+      const foundSet = new Set();
+      const derivs = [];
+      for (let k = i; k < j; k++) {
+        const left = table[i][k] || [];
+        const right = table[k+1][j] || [];
+        Object.keys(grammar).forEach(head => {
+          grammar[head].forEach(([Y, Z]) => {
+            if (left.includes(Y) && right.includes(Z)) {
+              foundSet.add(head);
+              derivs.push({k, head, Y, Z});
+            }
+          });
+        });
+      }
+      table[i][j] = Array.from(foundSet).sort();
+      info[i + '-' + j] = derivs;
+    }
+  }
+
+  const grid = document.getElementById('cykGrid');
+  const labelsEl = document.getElementById('cykLabels');
+  const explain = document.getElementById('cykExplain');
+  const statusEl = document.getElementById('cykStatus');
+  let level = 1;
+
+  function cellId(i, j){ return 'cyk-' + i + '-' + j; }
+  function sub(i, j){ return '<sub>' + i + ',' + j + '</sub>'; }
+
+  for (let len = 1; len <= n; len++) {
+    for (let i = 1; i <= n - len + 1; i++) {
+      const j = i + len - 1;
+      const div = document.createElement('div');
+      div.className = 'cyk-cell';
+      div.id = cellId(i, j);
+      div.style.gridRow = (n - len + 1);
+      div.style.gridColumn = i;
+      const vars = table[i][j];
+      div.textContent = vars.length ? vars.join(',') : '\u2205';
+      div.classList.add(vars.length ? 'hasvars' : 'emptyset');
+      div.addEventListener('click', () => {
+        if (!div.classList.contains('revealed')) return;
+        document.querySelectorAll('.cyk-cell.selected').forEach(c => c.classList.remove('selected'));
+        div.classList.add('selected');
+        showExplain(i, j);
+      });
+      grid.appendChild(div);
+    }
+  }
+  for (let i = 1; i <= n; i++) {
+    const s = document.createElement('span');
+    s.innerHTML = '<b>' + input[i-1] + '</b><br>' + i;
+    labelsEl.appendChild(s);
+  }
+
+  function showExplain(i, j){
+    const vars = table[i][j];
+    const substr = input.slice(i-1, j);
+    if (i === j) {
+      explain.innerHTML = vars.length
+        ? ('<b>X' + sub(i,j) + '</b> = {' + vars.join(', ') + '} \u2014 substring \u2018' + substr + '\u2019, matched by: ' + vars.map(v => v + ' \u2192 ' + substr).join(', ') + '.')
+        : ('<b>X' + sub(i,j) + '</b> = \u2205 \u2014 no production rewrites directly to \u2018' + substr + '\u2019.');
+      return;
+    }
+    const derivs = info[i + '-' + j];
+    if (!derivs || derivs.length === 0) {
+      explain.innerHTML = '<b>X' + sub(i,j) + '</b> = \u2205 \u2014 substring \u2018' + substr + '\u2019. No split point and no production A\u2192BC matched any pair drawn from the two smaller cells it was built from.';
+      return;
+    }
+    const byHead = {};
+    derivs.forEach(d => { (byHead[d.head] = byHead[d.head] || []).push(d); });
+    const parts = Object.keys(byHead).sort().map(head => {
+      const pieces = byHead[head].map(d => 'split k=' + d.k + ' (X' + sub(i,d.k) + '\u220b' + d.Y + ', X' + sub(d.k+1,j) + '\u220b' + d.Z + ') via ' + head + '\u2192' + d.Y + d.Z);
+      return '<b>' + head + '</b> added \u2014 ' + pieces.join('; ');
+    });
+    explain.innerHTML = '<b>X' + sub(i,j) + '</b> = {' + vars.join(', ') + '} \u2014 substring \u2018' + substr + '\u2019.<br>' + parts.join('<br>');
+  }
+
+  function applyLevel(){
+    document.querySelectorAll('.cyk-cell').forEach(c => c.classList.remove('revealed', 'accept', 'selected'));
+    for (let len = 1; len <= level; len++) {
+      for (let i = 1; i <= n - len + 1; i++) {
+        const el = document.getElementById(cellId(i, i + len - 1));
+        if (el) el.classList.add('revealed');
+      }
+    }
+    const topEl = document.getElementById(cellId(1, n));
+    const stepBtn = document.getElementById('cykStep');
+    if (level >= n) {
+      stepBtn.disabled = true;
+      const accepts = table[1][n].includes('S');
+      if (topEl && accepts) topEl.classList.add('accept');
+      statusEl.textContent = 'Table complete \u2014 S ' + (accepts ? '\u2208' : '\u2209') + ' X\u2081,' + n + '. \u201cbaaba\u201d ' + (accepts ? 'IS' : 'is NOT') + ' in L(G).';
+    } else {
+      stepBtn.disabled = false;
+      statusEl.textContent = 'Diagonal ' + level + ' of ' + n + ' revealed \u2014 substrings up to length ' + level + ' are computed.';
+    }
+  }
+
+  document.getElementById('cykStep').addEventListener('click', () => {
+    if (level < n) { level++; applyLevel(); }
+  });
+  document.getElementById('cykAll').addEventListener('click', () => {
+    level = n; applyLevel();
+  });
+  document.getElementById('cykReset').addEventListener('click', () => {
+    level = 1; applyLevel();
+    explain.innerHTML = 'The bottom diagonal (length-1 substrings) is shown to start. Press <b>Reveal next diagonal</b> to build the table upward, or click any highlighted cell to see how it was computed.';
+  });
+
+  applyLevel();
+})();
+</script>
+</body>
+</html>

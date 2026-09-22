@@ -1,0 +1,1024 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSE 220 — Convolution Onlines: A/B/C Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#FCFAF5; --paper2:#F4F0E6; --paper3:#EDE7D9;
+  --ink:#17150F; --ink2:#4C463B; --ink3:#7A7263;
+  --rule:#DAD2C0; --rule2:#C4B99F;
+  --maroon:#7A1F2B; --indigo:#22486B; --gold:#9C7414; --green:#3A6547;
+  --code:#20241F; --codetx:#E7E3D6; --codeacc:#B7D2A8;
+  --shadow:0 1px 2px rgba(23,21,15,.06),0 8px 20px -12px rgba(23,21,15,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'EB Garamond',Georgia,serif;font-size:18px;line-height:1.62}
+.wrap{max-width:920px;margin:0 auto;padding:0 40px 90px}
+
+/* sidebar */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:258px;z-index:70;background:var(--paper2);border-right:1px solid var(--rule2);overflow-y:auto;padding:26px 0 44px;scrollbar-width:thin}
+.sidebar::-webkit-scrollbar{width:5px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--rule2);border-radius:3px}
+.sb-head{padding:0 22px 15px;border-bottom:1px solid var(--rule2);margin-bottom:12px}
+.sb-head .s{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);margin-bottom:7px}
+.sb-head .t{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.28rem;font-weight:700;line-height:1.14;letter-spacing:-.01em}
+.sb-group{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3);padding:16px 22px 6px}
+.sb-group:first-of-type{padding-top:4px}
+.sb-nav{display:flex;flex-direction:column}
+.tab{display:flex;gap:11px;align-items:baseline;width:100%;text-align:left;appearance:none;background:none;border:none;border-left:3px solid transparent;cursor:pointer;padding:7px 18px 7px 19px;color:var(--ink2);font-family:'EB Garamond',Georgia,serif;font-size:.94rem;line-height:1.3;transition:background .14s,color .14s,border-color .14s}
+.tab:hover{background:var(--paper3);color:var(--ink)}
+.tab[aria-selected="true"]{border-left-color:var(--maroon);color:var(--maroon);font-weight:600;background:#fff}
+.tab .num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--rule2);flex:0 0 17px}
+.tab[aria-selected="true"] .num{color:var(--maroon)}
+.sb-foot{margin-top:22px;padding:14px 22px 0;border-top:1px solid var(--rule2);font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.11em;color:var(--ink3);line-height:1.7}
+.sb-toggle{display:none;position:fixed;top:12px;left:12px;z-index:90;appearance:none;background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:9px 13px;cursor:pointer;box-shadow:var(--shadow);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.scrim{display:none;position:fixed;inset:0;z-index:65;background:rgba(23,21,15,.42)}
+.scrim.on{display:block}
+main.main{margin-left:258px}
+
+/* masthead */
+header.mast{border-bottom:2px solid var(--ink);padding:34px 0 18px}
+.mast .kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--maroon);margin-bottom:10px}
+.mast h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:clamp(28px,4.6vw,46px);line-height:1.08;margin:0 0 8px;letter-spacing:-.01em}
+.mast .sub{color:var(--ink2);font-style:italic;font-size:1.03rem;margin:0}
+.mast .byline{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3);letter-spacing:.05em}
+
+section.pane{display:none;animation:fade .28s ease}
+section.pane.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+h2.sec{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:clamp(24px,3.3vw,34px);line-height:1.15;margin:30px 0 6px}
+.slideref{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:1.4rem;margin:32px 0 10px;line-height:1.2}
+h4{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--maroon);margin:24px 0 8px;font-weight:600}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:24px}
+li{margin-bottom:7px}
+b,strong{font-weight:600}
+a{color:var(--indigo)}
+.lead{font-size:1.08rem;color:var(--ink2);border-left:3px solid var(--maroon);padding-left:16px;margin-bottom:24px}
+
+.card{background:#fff;border:1px solid var(--rule);border-radius:3px;padding:20px 22px;margin:20px 0;box-shadow:var(--shadow)}
+.card>:first-child{margin-top:0}.card>:last-child{margin-bottom:0}
+.card .cap{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--paper3)}
+
+.note{border-left:3px solid var(--rule2);background:var(--paper2);padding:14px 18px;margin:18px 0;border-radius:0 3px 3px 0}
+.note .lab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:600}
+.note.exam{border-left-color:var(--maroon);background:#FBF2F2}.note.exam .lab{color:var(--maroon)}
+.note.edge{border-left-color:var(--gold);background:#FBF6E9}.note.edge .lab{color:var(--gold)}
+.note.brain{border-left-color:var(--indigo);background:#EEF3F8}.note.brain .lab{color:var(--indigo)}
+.note.key{border-left-color:var(--green);background:#EFF5F0}.note.key .lab{color:var(--green)}
+.note>:last-child{margin-bottom:0}
+
+.eq{text-align:center;margin:18px 0;font-size:1.1rem;line-height:2.05}
+.eq.boxed{border:1px solid var(--rule2);background:var(--paper2);padding:16px 12px;border-radius:3px}
+.mv{font-style:italic}
+.frac{display:inline-flex;flex-direction:column;vertical-align:-0.48em;text-align:center;margin:0 .2em;line-height:1.25}
+.frac>span:first-child{border-bottom:1px solid currentColor;padding:0 .35em}
+.frac>span:last-child{padding:0 .35em}
+
+code,.mono{font-family:'IBM Plex Mono',monospace;font-size:.85em;background:var(--paper3);padding:1px 5px;border-radius:2px}
+
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:.94rem}
+th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);font-weight:600;padding:9px 12px;border-bottom:2px solid var(--ink)}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:hover td{background:var(--paper2)}
+td.num{font-family:'IBM Plex Mono',monospace;font-size:.85rem}
+
+/* code blocks */
+.codeblock{margin:18px 0;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #34382f}
+.code-head{background:#161811;color:var(--codeacc);padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;display:flex;justify-content:space-between}
+.codeblock pre{margin:0;background:var(--code);color:var(--codetx);padding:16px 18px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:12.3px;line-height:1.62}
+.codeblock code{background:none;padding:0;color:inherit;font-size:1em}
+.cm{color:#8B9184;font-style:italic}
+.kw{color:#D8A657}
+.fn{color:#7FB4CA}
+.st{color:var(--codeacc)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* diagram */
+.diagram{margin:20px 0;padding:14px;background:#fff;border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow)}
+svg{display:block;max-width:100%;height:auto}
+
+/* lab */
+.lab{border:1px solid var(--rule2);border-radius:3px;background:#fff;margin:24px 0;overflow:hidden;box-shadow:var(--shadow)}
+.lab-head{background:var(--ink);color:var(--paper);padding:11px 18px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lab-body{padding:18px}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:14px}
+.ctl label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px}
+.ctl .fld{display:flex;flex-direction:column}
+input[type=text],select{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--paper2);border:1px solid var(--rule2);border-radius:2px;padding:6px 9px;color:var(--ink)}
+input[type=text]{width:150px}
+.btn{appearance:none;background:var(--paper2);border:1px solid var(--rule2);border-radius:2px;padding:7px 14px;cursor:pointer;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;transition:background .14s;align-self:flex-end}
+.btn:hover{background:var(--paper3)}
+.btn.pri{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.btn.pri:hover{background:#8f2735}
+.readout{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--paper2);border:1px solid var(--rule);padding:12px 15px;border-radius:2px;margin-top:12px;white-space:pre-wrap;line-height:1.7}
+.readout .ok{color:var(--green);font-weight:600}
+.readout .bad{color:var(--maroon);font-weight:600}
+
+/* practice / reveal */
+.prac{border:1px solid var(--rule);border-radius:3px;padding:18px 20px;margin:18px 0;background:#fff}
+.prac .pn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--maroon);text-transform:uppercase;margin-bottom:8px}
+.reveal-btn{appearance:none;background:var(--ink);color:var(--paper);border:none;border-radius:2px;padding:8px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+.reveal-btn:hover{background:#33301f}
+.reveal-body{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--rule2)}
+.reveal-body.show{display:block}
+
+/* quiz */
+.q{border:1px solid var(--rule);border-radius:3px;padding:18px 20px;margin:16px 0;background:#fff}
+.q .qn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--maroon);text-transform:uppercase;margin-bottom:8px}
+.q .qt{font-size:1.02rem;margin-bottom:12px}
+.opt{display:block;width:100%;text-align:left;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:10px 14px;margin-bottom:8px;cursor:pointer;font-family:'EB Garamond',serif;font-size:.97rem;color:var(--ink);transition:background .13s,border-color .13s}
+.opt:hover{background:var(--paper2)}
+.opt.right{background:#EAF3EC;border-color:var(--green);font-weight:600}
+.opt.wrong{background:#FAEDEE;border-color:var(--maroon);opacity:.85}
+.expl{display:none;margin-top:10px;padding:12px 15px;background:var(--paper2);border-left:3px solid var(--indigo);font-size:.94rem;border-radius:0 2px 2px 0}
+.expl.show{display:block}
+.score{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.08em;padding:14px 18px;background:var(--ink);color:var(--paper);border-radius:3px;text-align:center}
+
+.footer{margin-top:56px;padding-top:20px;border-top:2px solid var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink3);letter-spacing:.06em;text-align:center}
+
+@media(max-width:1000px){
+  .sidebar{transform:translateX(-100%);transition:transform .24s ease;box-shadow:0 0 40px rgba(23,21,15,.22)}
+  .sidebar.open{transform:none}
+  main.main{margin-left:0}
+  .sb-toggle{display:block}
+  header.mast{padding-top:58px}
+}
+@media(max-width:720px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  body{font-size:17px}
+  .wrap{padding:0 18px 70px}
+  .sidebar{width:82vw;max-width:290px}
+}
+</style>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="s">CSE 220 · Convolution Onlines</div>
+    <div class="t">Onlines A/B/C<br>Study &amp; Practice Guide</div>
+  </div>
+  <div class="sb-nav" id="tabbar" role="tablist"></div>
+  <div class="sb-foot">3 EXAM SPECS ANALYSED<br>ALL NUMBERS VERIFIED BY CODE<br>9 NEW PRACTICE PROBLEMS</div>
+</aside>
+<button class="sb-toggle" id="sbToggle" aria-label="Open section menu">Menu</button>
+<div class="scrim" id="scrim"></div>
+
+<main class="main">
+<div class="wrap">
+<header class="mast">
+  <div class="kicker">CSE 220 · Signals &amp; Systems Lab · Online Assessments</div>
+  <h1>Convolution Onlines — A, B, C</h1>
+  <p class="sub">Every task in the three specs, worked step by step, with a practice bank of new problems in the same three families.</p>
+  <div class="byline">SUBSECTIONS A1/A2 · B1/B2 · C1/C2 &nbsp;·&nbsp; ALL WORKED VALUES COMPUTED AND VERIFIED &nbsp;·&nbsp; JAN 2026</div>
+</header>
+</div>
+
+<div class="wrap">
+
+<!-- ===================== 0 OVERVIEW ===================== -->
+<section class="pane on" id="p0">
+  <h2 class="sec">Three exams, one toolkit</h2>
+  <div class="slideref">Reading all three specs together</div>
+
+  <p class="lead">Strip away the surface differences and A1/A2, B1/B2, and C1/C2 are the same exam wearing three costumes. Each one hands you a variant of the <span class="mv">Signal</span>/<span class="mv">LTI_System</span> classes you built in Offline 1, and asks you to compute an output <em>without ever calling a built-in convolution function</em> — by routing the computation through a different mathematical identity each time.</p>
+
+  <div class="card">
+    <div class="cap">The three specs at a glance</div>
+    <table>
+      <tr><th style="width:110px">Subsection</th><th>What you're actually being tested on</th><th style="width:170px">The identity in play</th></tr>
+      <tr><td><b>A1 / A2</b><br><span class="mono" style="font-size:.8em">10 marks · 30 min</span></td><td>Recovering an impulse response from a <em>step</em> response, then computing output two independent ways</td><td class="num">h = s − s<sub>shift1</sub><br>y = Δx ∗ s</td></tr>
+      <tr><td><b>B1 / B2</b><br><span class="mono" style="font-size:.8em">10 marks · 30 min</span></td><td>Applying a network of three LTI blocks stage-by-stage, then collapsing it into one equivalent impulse response</td><td class="num">h<sub>c</sub> = h1 ∗ (δ+h2) ∗ h3</td></tr>
+      <tr><td><b>C1 / C2</b><br><span class="mono" style="font-size:.8em">10 marks · 25 min</span></td><td>Building a weighted-sum "SuperSignal" and computing its output via the superposition principle</td><td class="num">y = Σ c<sub>i</sub>(x<sub>i</sub> ∗ h)</td></tr>
+    </table>
+  </div>
+
+  <p>All three share the same DNA: a <span class="mv">Signal</span> object that stores samples over a symmetric window [−INF, INF], and an <span class="mv">LTI_System</span> that turns an input into an output by re-using the impulse-decomposition machinery you already wrote for Offline 1. None of them let you call <code>numpy.convolve</code> — the entire point is that you already own a correct convolution engine, and each online just asks you to <em>drive</em> it through a different route.</p>
+
+  <div class="note key">
+    <span class="lab">The one habit that pays off across all three</span>
+    <p>Before writing a line of code, work out the answer <em>by hand</em> on a tiny example — three or four taps, nothing more. Every identity in this guide (first difference, network composition, superposition) reduces to ordinary finite convolution once you strip the story away, and a hand-checked example is the fastest way to catch a sign error before it costs you marks. This guide computes every worked example both ways so you can see the pattern.</p>
+  </div>
+
+  <h3>How this guide is organised</h3>
+  <ul>
+    <li><b>Foundations</b> gives one clean, correct <span class="mv">Signal</span>/<span class="mv">LTI_System</span> reference implementation. Every later code sample builds directly on it.</li>
+    <li><b>Tracks A, B, C</b> take each spec in turn: the theory behind the identity, a full derivation, then the exact numeric worked solution using the files/examples each spec actually gives you — computed and cross-checked.</li>
+    <li><b>Exam mechanics</b> collects the pitfalls that cost marks across all three specs.</li>
+    <li><b>Interactive lab</b> lets you build a small B-style network yourself and watch the block-by-block and combined-impulse-response answers converge live.</li>
+    <li><b>Practice bank</b> gives three new problems — one per track — with numbers you haven't seen, each with a full worked solution behind a reveal button.</li>
+  </ul>
+</section>
+
+<!-- ===================== 1 FOUNDATIONS ===================== -->
+<section class="pane" id="p1">
+  <h2 class="sec">The shared toolkit</h2>
+  <div class="slideref">The Signal / LTI_System reference every spec assumes</div>
+
+  <p class="lead">None of the three specs ask you to write <span class="mv">Signal</span> or <span class="mv">LTI_System</span> from scratch — they assume you already have a working version from Offline 1. What follows is a clean, minimal implementation that satisfies every method signature used across all three templates. If your own Offline 1 code passes the same tests, keep using it — the identities in this guide don't care which correct implementation you bring.</p>
+
+  <h3>Signal — a windowed array with a symmetric index</h3>
+  <p>A <span class="mv">Signal</span> stores samples for <span class="mv">n</span> ∈ [−INF, INF] in a plain array, with <span class="mv">n</span> = 0 mapped to the middle. Everything else — shifting, adding, scaling — is array arithmetic once you get the index offset right.</p>
+
+  <div class="codeblock">
+    <div class="code-head"><span>signal.py</span><span>Signal class</span></div>
+    <pre><code>class Signal:
+    def __init__(self, INF):
+        self.INF = INF
+        self.values = np.zeros(2 * INF + 1)
+
+    def _idx(self, t):
+        return t + self.INF
+
+    def set_value_at_time(self, t, value):
+        if -self.INF &lt;= t &lt;= self.INF:
+            self.values[self._idx(t)] = value
+
+    def get_value_at_time(self, t):
+        if -self.INF &lt;= t &lt;= self.INF:
+            return self.values[self._idx(t)]
+        return 0.0
+
+    def shift(self, k):
+        # returns a NEW signal y such that y[n] = self[n - k]
+        shifted = Signal(self.INF)
+        for n in range(-self.INF, self.INF + 1):
+            shifted.set_value_at_time(n, self.get_value_at_time(n - k))
+        return shifted
+
+    def add(self, other):
+        result = Signal(self.INF)
+        result.values = self.values + other.values
+        return result
+
+    def multiply(self, scalar):
+        result = Signal(self.INF)
+        result.values = self.values * scalar
+        return result
+
+    def plot(self, title="Discrete Signal"):
+        n = np.arange(-self.INF, self.INF + 1)
+        plt.figure(figsize=(8, 3))
+        plt.stem(n, self.values)
+        plt.title(title); plt.xlabel("n"); plt.grid(True)
+        plt.show()</code></pre>
+  </div>
+
+  <div class="note exam">
+    <span class="lab">Exam alert · shift(k) is a delay, not an advance</span>
+    <p><span class="mv">shift(k)</span> must return <span class="mv">y</span>[<span class="mv">n</span>] = <span class="mv">x</span>[<span class="mv">n</span>−<span class="mv">k</span>] — the signal delayed by <span class="mv">k</span>. It is extremely easy to write <code>get_value_at_time(n+k)</code> by reflex and silently build an <em>advance</em> instead. Test it once: shift a signal with a single sample at <span class="mv">n</span>=0 by <span class="mv">k</span>=2 and confirm the sample now sits at <span class="mv">n</span>=2, not <span class="mv">n</span>=−2.</p>
+  </div>
+
+  <h3>LTI_System — convolution via the impulse decomposition</h3>
+  <p>The method name <span class="mv">linear_combination_of_impulses</span> is not decoration — it is the actual proof that convolution works, turned into code. Any discrete signal can be written exactly as a sum of scaled, shifted impulses:</p>
+
+  <div class="eq boxed"><span class="mv">x</span>[<span class="mv">n</span>] = Σ<sub><span class="mv">k</span></sub> <span class="mv">x</span>[<span class="mv">k</span>] · <span class="mv">δ</span>[<span class="mv">n</span>−<span class="mv">k</span>]</div>
+
+  <p>Feed <span class="mv">δ</span>[<span class="mv">n</span>−<span class="mv">k</span>] into an LTI system and by definition you get <span class="mv">h</span>[<span class="mv">n</span>−<span class="mv">k</span>] back — a shifted copy of the impulse response. By <b>linearity</b>, the response to the whole sum is the sum of the responses:</p>
+
+  <div class="eq boxed"><span class="mv">y</span>[<span class="mv">n</span>] = Σ<sub><span class="mv">k</span></sub> <span class="mv">x</span>[<span class="mv">k</span>] · <span class="mv">h</span>[<span class="mv">n</span>−<span class="mv">k</span>] = (<span class="mv">x</span> ∗ <span class="mv">h</span>)[<span class="mv">n</span>]</div>
+
+  <div class="codeblock">
+    <div class="code-head"><span>lti_system.py</span><span>LTI_System class</span></div>
+    <pre><code>class LTI_System:
+    def __init__(self, impulse_response: Signal):
+        self.h = impulse_response
+        self.INF = impulse_response.INF
+
+    def linear_combination_of_impulses(self, input_signal: Signal):
+        # every nonzero sample x[k] becomes a (shift, weight) pair
+        impulses = []
+        for k in range(-self.INF, self.INF + 1):
+            ck = input_signal.get_value_at_time(k)
+            if ck != 0:
+                impulses.append((k, ck))
+        return impulses
+
+    def output(self, input_signal: Signal) -> Signal:
+        y = Signal(self.INF)
+        for k, ck in self.linear_combination_of_impulses(input_signal):
+            term = self.h.shift(k).multiply(ck)   # ck * h[n-k]
+            y = y.add(term)
+        return y</code></pre>
+  </div>
+
+  <div class="note key">
+    <span class="lab">Why every spec insists "reuse your Offline 1 code"</span>
+    <p><span class="mv">output()</span> never changes across A/B/C. What changes is <em>what you construct and hand to it</em> — a step response instead of an impulse response (Track A), a composed network response (Track B), or a batch of scaled inputs summed after the fact (Track C). The graders are really testing whether you understand that convolution is one operation wearing different inputs, not three different algorithms.</p>
+  </div>
+</section>
+
+<!-- ===================== 2 TRACK A ===================== -->
+<section class="pane" id="p2">
+  <h2 class="sec">Track A — step response and the first difference</h2>
+  <div class="slideref">A1 / A2 spec · files: step_response.txt, input_signal.txt</div>
+
+  <p class="lead">You're not given <span class="mv">h</span>[<span class="mv">n</span>] directly this time — only the <em>step</em> response <span class="mv">s</span>[<span class="mv">n</span>], the system's reply to a permanent switch-on rather than a single poke. The whole task is built on one identity that turns differencing into deconvolution.</p>
+
+  <h3>Where the identity comes from</h3>
+  <p>The unit step is the running sum of the unit impulse: <span class="mv">u</span>[<span class="mv">n</span>] = Σ<sub><span class="mv">k</span>≤<span class="mv">n</span></sub> <span class="mv">δ</span>[<span class="mv">k</span>]. So the step response is what you get by feeding an LTI system the accumulated impulse — which, by linearity, is the accumulated impulse response:</p>
+  <div class="eq"><span class="mv">s</span>[<span class="mv">n</span>] = (<span class="mv">u</span> ∗ <span class="mv">h</span>)[<span class="mv">n</span>] = Σ<sub><span class="mv">k</span>=−∞</sub><sup><span class="mv">n</span></sup> <span class="mv">h</span>[<span class="mv">k</span>]</div>
+  <p>Differencing undoes summing. Subtract consecutive step-response samples and the running sum collapses back to a single term:</p>
+  <div class="eq boxed"><span class="mv">s</span>[<span class="mv">n</span>] − <span class="mv">s</span>[<span class="mv">n</span>−1] = Σ<sub><span class="mv">k</span>≤<span class="mv">n</span></sub><span class="mv">h</span>[<span class="mv">k</span>] − Σ<sub><span class="mv">k</span>≤<span class="mv">n</span>−1</sub><span class="mv">h</span>[<span class="mv">k</span>] = <span class="mv">h</span>[<span class="mv">n</span>]</div>
+
+  <p>For the output identity, start from ordinary convolution and use the fact that <span class="mv">h</span> = <span class="mv">s</span> − <span class="mv">s</span><sub>shift 1</sub>, together with the associativity of convolution:</p>
+  <div class="eq">
+    <span class="mv">y</span> = <span class="mv">x</span> ∗ <span class="mv">h</span> = <span class="mv">x</span> ∗ (<span class="mv">s</span> − <span class="mv">s</span><sub>shift1</sub>) = (<span class="mv">x</span> − <span class="mv">x</span><sub>shift1</sub>) ∗ <span class="mv">s</span> = <span class="mv">Δx</span> ∗ <span class="mv">s</span>
+  </div>
+  <p>The step response only has to be convolved with the <em>changes</em> in the input, not the input itself — every stretch where <span class="mv">x</span> is constant contributes nothing to <span class="mv">Δx</span>.</p>
+
+  <div class="note brain">
+    <span class="lab">Brainstorm · a one-line sanity check before you code anything</span>
+    <p>Since <span class="mv">h</span> = <span class="mv">s</span> − <span class="mv">s</span><sub>shift1</sub>, the samples of <span class="mv">h</span> must always sum to the step response's final settled value: Σ<span class="mv">h</span>[<span class="mv">k</span>] = <span class="mv">s</span>[∞] (a telescoping sum). If your recovered <span class="mv">h</span> doesn't sum to the plateau you can see in the <span class="mv">s</span>[<span class="mv">n</span>] plot, something is off before you even get to convolution.</p>
+  </div>
+
+  <h3>Worked solution using the actual provided files</h3>
+  <p>The spec's <code>step_response.txt</code> and <code>input_signal.txt</code> both cover <span class="mv">n</span> = −10…30. Running the identity on the real data gives:</p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="cap">Recovered h[n] = s[n] − s[n−1]</div>
+      <table>
+        <tr><th>n</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>7</th><th>8</th></tr>
+        <tr><td>h[n]</td><td class="num">0.20</td><td class="num">0.10</td><td class="num">−0.05</td><td class="num">0.15</td><td class="num">0.10</td><td class="num">0.05</td><td class="num">−0.02</td><td class="num">0.07</td></tr>
+      </table>
+      <p style="margin:8px 0 0">All other samples are exactly zero — <span class="mv">h</span> is a short 9-tap FIR response. Sum: 0.20+0.10−0.05+0.15+0.10+0.05+0−0.02+0.07 = <b>0.60</b>, matching the plateau of <span class="mv">s</span>[<span class="mv">n</span>] exactly. ✓</p>
+    </div>
+    <div class="card">
+      <div class="cap">First difference Δx[n] = x[n] − x[n−1]</div>
+      <table>
+        <tr><th>n</th><th>0</th><th>3</th><th>4</th><th>6</th><th>13</th></tr>
+        <tr><td>Δx[n]</td><td class="num">1.0</td><td class="num">1.0</td><td class="num">−1.0</td><td class="num">−0.5</td><td class="num">−1.0</td></tr>
+      </table>
+      <table style="margin-top:4px">
+        <tr><th>n</th><th>15</th><th>16</th><th>21</th><th>25</th><th>26</th></tr>
+        <tr><td>Δx[n]</td><td class="num">−1.2</td><td class="num">1.2</td><td class="num">0.5</td><td class="num">0.8</td><td class="num">−0.8</td></tr>
+      </table>
+      <p style="margin:8px 0 0">Ten nonzero taps out of forty-one samples — <span class="mv">Δx</span> compresses <span class="mv">x</span>'s flat stretches away completely.</p>
+    </div>
+  </div>
+
+  <p>Convolving <span class="mv">Δx</span> with <span class="mv">s</span>, and separately convolving <span class="mv">x</span> with the recovered <span class="mv">h</span>, gives — for every <span class="mv">n</span> from −10 to 30 — the <em>identical</em> sequence to sixteen decimal places:</p>
+
+  <div class="card">
+    <div class="cap">y[n] on the core range (excerpt)</div>
+    <table>
+      <tr><th>n</th><th>0</th><th>1</th><th>2</th><th>3</th><th>...</th><th>13</th><th>...</th><th>25</th><th>...</th><th>30</th></tr>
+      <tr><td>y<sub>s</sub>[n] = (Δx∗s)</td><td class="num">0.200</td><td class="num">0.300</td><td class="num">0.250</td><td class="num">0.600</td><td>…</td><td class="num">0.135</td><td>…</td><td class="num">0.110</td><td>…</td><td class="num">0.040</td></tr>
+      <tr><td>y<sub>h</sub>[n] = (x∗h)</td><td class="num">0.200</td><td class="num">0.300</td><td class="num">0.250</td><td class="num">0.600</td><td>…</td><td class="num">0.135</td><td>…</td><td class="num">0.110</td><td>…</td><td class="num">0.040</td></tr>
+    </table>
+  </div>
+
+  <div class="note edge">
+    <span class="lab">Edge case · the mismatch you'll actually see past n = 30, and why it's not a bug</span>
+    <p>Push the comparison past <span class="mv">n</span> = 30 (if your INF is large enough to reach there) and <span class="mv">y</span><sub>s</sub> and <span class="mv">y</span><sub>h</sub> visibly diverge — by as much as 1.2 at some samples. This is a genuine property of the dataset, not an implementation bug. <span class="mv">s</span>[<span class="mv">n</span>] is a <em>step</em> response: physically it keeps sitting at its plateau (0.6) forever. But the file only tabulates it up to <span class="mv">n</span> = 30, so any array-based <span class="mv">Signal</span> silently treats <span class="mv">s</span>[<span class="mv">n</span>] as 0 beyond that point — a value it never actually takes. <span class="mv">Δx</span>∗<span class="mv">s</span> needs <span class="mv">s</span> at arbitrarily large arguments (because <span class="mv">Δx</span> has taps as late as <span class="mv">n</span>=26), so it inherits this truncation error. <span class="mv">h</span>, by contrast, is genuinely FIR — it is exactly zero past <span class="mv">n</span>=8 in reality, not just in the file — so <span class="mv">x</span>∗<span class="mv">h</span> is unaffected. <b>If your own <code>np.allclose</code> check fails, look at which tail samples disagree before assuming your convolution code is wrong</b> — compare only over <span class="mv">n</span> ≤ 30, or extend <span class="mv">s</span> with its plateau value out to INF, and the mismatch disappears.</p>
+  </div>
+
+  <h3>Complete solution</h3>
+  <div class="codeblock">
+    <div class="code-head"><span>online_a.py</span><span>fills every TODO in the given template</span></div>
+    <pre><code>def first_difference(sig: Signal) -> Signal:
+    # sig[n] - sig[n-1], built only from shift / multiply / add
+    return sig.add(sig.shift(1).multiply(-1))
+
+def impulse_from_step_response(step_response: Signal) -> Signal:
+    return first_difference(step_response)
+
+def output_using_step_response(x: Signal, step_response: Signal) -> Signal:
+    dx = first_difference(x)
+    sys_s = LTI_System(step_response)     # reuses Offline 1 machinery
+    return sys_s.output(dx)               # (Δx * s)
+
+
+if __name__ == "__main__":
+    INF = 50
+    s = read_signal_from_file("step_response.txt", INF)
+    x = read_signal_from_file("input_signal.txt", INF)
+
+    h = impulse_from_step_response(s)
+    s.plot("Step Response s[n]")
+    h.plot("Recovered Impulse Response h[n] = s[n] - s[n-1]")
+
+    dx = first_difference(x)
+    y_s = output_using_step_response(x, s)
+    x.plot("Input x[n]")
+    dx.plot("First Difference Δx[n]")
+    y_s.plot("Output y_s[n] computed via step response")
+
+    sys_h = LTI_System(h)
+    y_h = sys_h.output(x)
+    y_h.plot("Output y_h[n] computed via impulse response")
+
+    if np.allclose(y_s.values, y_h.values, atol=1e-6):
+        print("Outputs match closely!")
+    else:
+        print("Outputs differ!")</code></pre>
+  </div>
+</section>
+
+<!-- ===================== 3 TRACK B ===================== -->
+<section class="pane" id="p3">
+  <h2 class="sec">Track B — combining a network of LTI blocks</h2>
+  <div class="slideref">B1 / B2 spec · three impulse responses, one diagram</div>
+
+  <p class="lead">The spec's figure shows <span class="mv">x</span>[<span class="mv">n</span>] passing through <span class="mv">h1</span> in series, then splitting into two parallel branches — one a straight passthrough, one filtered by <span class="mv">h2</span> — which are summed and finally passed through <span class="mv">h3</span> in series. Reading the diagram correctly is most of the task.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrB" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#17150F"/>
+        </marker>
+      </defs>
+      <text x="8" y="115" font-family="Cormorant Garamond,serif" font-style="italic" font-size="19" fill="#17150F">x[n]</text>
+      <line x1="55" y1="110" x2="108" y2="110" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <rect x="110" y="85" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#7A1F2B" stroke-width="1.6"/>
+      <text x="153" y="115" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#7A1F2B">h1[n]</text>
+      <line x1="196" y1="110" x2="234" y2="110" stroke="#17150F" stroke-width="1.6"/>
+      <circle cx="236" cy="110" r="3" fill="#17150F"/>
+      <path d="M236,110 L236,55 L410,55" fill="none" stroke="#17150F" stroke-width="1.6"/>
+      <line x1="410" y1="55" x2="452" y2="90" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <path d="M236,110 L236,168 L268,168" fill="none" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <rect x="270" y="143" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#22486B" stroke-width="1.6"/>
+      <text x="313" y="173" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#22486B">h2[n]</text>
+      <path d="M356,168 L412,168" fill="none" stroke="#17150F" stroke-width="1.6"/>
+      <line x1="412" y1="168" x2="452" y2="131" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <circle cx="478" cy="110" r="20" fill="#fff" stroke="#17150F" stroke-width="1.6"/>
+      <text x="478" y="117" text-anchor="middle" font-family="EB Garamond,serif" font-size="20" fill="#17150F">+</text>
+      <line x1="498" y1="110" x2="532" y2="110" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <rect x="534" y="85" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#9C7414" stroke-width="1.6"/>
+      <text x="577" y="115" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#9C7414">h3[n]</text>
+      <line x1="620" y1="110" x2="672" y2="110" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrB)"/>
+      <text x="678" y="115" font-family="Cormorant Garamond,serif" font-style="italic" font-size="19" fill="#17150F">y[n]</text>
+    </svg>
+    <p style="margin:12px 2px 0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);text-align:center">x[n] → h1[n] → split into (passthrough) ∥ (h2[n]) → sum → h3[n] → y[n]</p>
+  </div>
+
+  <h3>Reducing the network to one impulse response</h3>
+  <p>Two rules do all the work, and both fall straight out of the algebra of convolution:</p>
+  <table>
+    <tr><th style="width:120px">Connection</th><th>Rule</th><th>Why</th></tr>
+    <tr><td><b>Series (cascade)</b></td><td class="num">h<sub>total</sub> = h1 ∗ h2</td><td>Associativity: (x∗h1)∗h2 = x∗(h1∗h2)</td></tr>
+    <tr><td><b>Parallel, summed</b></td><td class="num">h<sub>total</sub> = h1 + h2</td><td>Distributivity: x∗h1 + x∗h2 = x∗(h1+h2)</td></tr>
+  </table>
+  <p>The "passthrough" branch is just a cascade with the identity system, whose impulse response is <span class="mv">δ</span>[<span class="mv">n</span>] (it outputs whatever it's fed, unchanged). So the parallel pair (passthrough ∥ h2) reduces to a single block with impulse response <span class="mv">δ</span> + <span class="mv">h2</span>, and the whole network becomes three systems in series:</p>
+
+  <div class="eq boxed"><span class="mv">h</span><sub>combined</sub> = <span class="mv">h1</span> ∗ (<span class="mv">δ</span> + <span class="mv">h2</span>) ∗ <span class="mv">h3</span></div>
+
+  <div class="note brain">
+    <span class="lab">Brainstorm · order doesn't matter, but bookkeeping does</span>
+    <p>Convolution is commutative and associative, so you can convolve <span class="mv">h1</span>, (<span class="mv">δ</span>+<span class="mv">h2</span>), and <span class="mv">h3</span> in any order and land on the same <span class="mv">h</span><sub>combined</sub>. What you can't do is skip the <span class="mv">δ</span>: forgetting the passthrough branch and computing <span class="mv">h1</span>∗<span class="mv">h2</span>∗<span class="mv">h3</span> silently deletes an entire signal path from the diagram — a very easy way to lose most of the marks on this task while producing a plausible-looking, wrong plot.</p>
+  </div>
+
+  <h3>Worked solution using the spec's own example signals</h3>
+  <p>The template initialises <span class="mv">x</span> = {1 at <span class="mv">n</span>=0, −1 at <span class="mv">n</span>=2}, <span class="mv">h1</span> = {1 at <span class="mv">n</span>=0} (the identity — <span class="mv">h1</span> does nothing), <span class="mv">h2</span> = {0.5 at <span class="mv">n</span>=1}, <span class="mv">h3</span> = {1 at <span class="mv">n</span>=0, 1 at <span class="mv">n</span>=1} (a two-tap averager-like sum).</p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="cap">Block-by-block route</div>
+      <p><span class="mv">v</span> = <span class="mv">x</span>∗<span class="mv">h1</span> = <span class="mv">x</span> (h1 is δ) = {1@0, −1@2}</p>
+      <p><span class="mv">v</span>∗<span class="mv">h2</span> = {0.5@1, −0.5@3}</p>
+      <p><span class="mv">w</span> = <span class="mv">v</span> + <span class="mv">v</span>∗<span class="mv">h2</span> = {1@0, 0.5@1, −1@2, −0.5@3}</p>
+      <p style="margin-bottom:0"><span class="mv">y</span> = <span class="mv">w</span>∗<span class="mv">h3</span> = <b>{1@0, 1.5@1, −0.5@2, −1.5@3, −0.5@4}</b></p>
+    </div>
+    <div class="card">
+      <div class="cap">Combined-h route</div>
+      <p>(<span class="mv">δ</span>+<span class="mv">h2</span>) = {1@0, 0.5@1}</p>
+      <p>∗<span class="mv">h3</span> ⟹ <span class="mv">h1</span>∗(<span class="mv">δ</span>+<span class="mv">h2</span>)∗<span class="mv">h3</span> = <b>h<sub>combined</sub> = {1@0, 1.5@1, 0.5@2}</b></p>
+      <p style="margin-bottom:0"><span class="mv">y</span> = <span class="mv">x</span>∗<span class="mv">h</span><sub>combined</sub> = <b>{1@0, 1.5@1, −0.5@2, −1.5@3, −0.5@4}</b></p>
+    </div>
+  </div>
+
+  <div class="note key">
+    <span class="lab">Both routes agree, to the sample</span>
+    <p>Both columns land on exactly the same five-sample output. As a final check: Σ<span class="mv">h</span><sub>combined</sub> = 1+1.5+0.5 = 3, and (Σ<span class="mv">h1</span>)(Σ<span class="mv">δ</span>+<span class="mv">h2</span>)(Σ<span class="mv">h3</span>) = 1 × 1.5 × 2 = 3 ✓. Σ<span class="mv">y</span> = 1+1.5−0.5−1.5−0.5 = 0, matching (Σ<span class="mv">x</span>)(Σ<span class="mv">h</span><sub>combined</sub>) = (1−1)×3 = 0 ✓.</p>
+  </div>
+
+  <h3>Complete solution</h3>
+  <div class="codeblock">
+    <div class="code-head"><span>online_b.py</span><span>fills every TODO in the given template</span></div>
+    <pre><code>sys1 = LTI_System(h1)
+sys2 = LTI_System(h2)
+sys3 = LTI_System(h3)
+
+# ---- Block-by-block route ----
+v = sys1.output(x)                 # x * h1
+top    = v                         # passthrough branch
+bottom = sys2.output(v)            # v * h2
+w = top.add(bottom)                # sum at the junction
+y_final_1 = sys3.output(w)         # w * h3
+
+# ---- Combined impulse-response route ----
+delta = Signal(INF)
+delta.set_value_at_time(0, 1.0)
+
+inner = delta.add(h2)              # δ + h2  (passthrough ∥ h2, as one block)
+h1_then_inner = LTI_System(inner).output(h1)   # h1 * (δ + h2)
+h_combined     = LTI_System(h3).output(h1_then_inner)  # ... * h3
+
+sys_combined = LTI_System(h_combined)
+y_final_2 = sys_combined.output(x)
+
+y_final_1.plot("Output via block-by-block system")
+y_final_2.plot("Output via combined impulse response")
+
+print("Outputs are equal:",
+      np.allclose(y_final_1.values, y_final_2.values))</code></pre>
+  </div>
+
+  <div class="note exam">
+    <span class="lab">Exam alert · read the diagram before you touch the keyboard</span>
+    <p>B-type diagrams vary — the passthrough branch might sit on <span class="mv">h2</span>'s side instead of being bare, or there might be no passthrough at all (pure parallel). Trace the arrows from <span class="mv">x</span>[<span class="mv">n</span>] to <span class="mv">y</span>[<span class="mv">n</span>] on paper first, write down which blocks are in series (multiply their transfer effect via convolution) and which are alternatives feeding the same summing junction (add), and only then translate to code. The Interactive Lab section further down lets you rehearse this on both topologies.</p>
+  </div>
+</section>
+
+<!-- ===================== 4 TRACK C ===================== -->
+<section class="pane" id="p4">
+  <h2 class="sec">Track C — superposition of multiple signals</h2>
+  <div class="slideref">C1 / C2 spec · SuperSignal and output_super</div>
+
+  <p class="lead">This spec tests linearity in its most literal form: build a signal as a weighted sum of other signals, and compute the LTI output <em>without ever materialising the sum as a single array first</em> — by convolving each component separately and combining afterward.</p>
+
+  <h3>The principle</h3>
+  <p>If <span class="mv">x</span>[<span class="mv">n</span>] = Σ<sub><span class="mv">i</span></sub> <span class="mv">c</span><sub><span class="mv">i</span></sub><span class="mv">x</span><sub><span class="mv">i</span></sub>[<span class="mv">n</span>], linearity of convolution gives immediately:</p>
+  <div class="eq boxed"><span class="mv">y</span>[<span class="mv">n</span>] = (<span class="mv">x</span> ∗ <span class="mv">h</span>)[<span class="mv">n</span>] = Σ<sub><span class="mv">i</span></sub> <span class="mv">c</span><sub><span class="mv">i</span></sub> (<span class="mv">x</span><sub><span class="mv">i</span></sub> ∗ <span class="mv">h</span>)[<span class="mv">n</span>]</div>
+  <p>The template already gives you <span class="mv">SuperSignal</span> as a list of (coefficient, <span class="mv">Signal</span>) pairs. Your job is the <span class="mv">LTI_System</span> method that walks that list, convolves each component against <span class="mv">h</span> independently, scales, and sums.</p>
+
+  <div class="codeblock">
+    <div class="code-head"><span>lti_system.py</span><span>add this method to LTI_System</span></div>
+    <pre><code>def output_super(self, supersignal: "SuperSignal") -> Signal:
+    y = Signal(self.INF)
+    for coeff, sig in supersignal.components:
+        y = y.add(self.output(sig).multiply(coeff))
+    return y</code></pre>
+  </div>
+
+  <div class="note brain">
+    <span class="lab">Brainstorm · why bother, if you could just build x[n] directly?</span>
+    <p>For this particular assignment you <em>could</em> add up the components into one <span class="mv">Signal</span> first and call <span class="mv">output</span> once — you'd get the same answer, because convolution is linear either way. The reason the spec insists on component-wise processing is that it's the pattern used everywhere real signal systems are built: filter banks, modulated carriers, multi-source superposition in physics. Practising it here, on an example small enough to check by hand, is the whole point.</p>
+  </div>
+
+  <h3>Worked solution using the spec's own example signals</h3>
+  <p>The template gives <span class="mv">x1</span> = {1 at <span class="mv">n</span>=0}, <span class="mv">x2</span> = {1 at <span class="mv">n</span>=2}, and <span class="mv">h</span> = {1 at <span class="mv">n</span>=0, 0.5 at <span class="mv">n</span>=1}, with the SuperSignal defined as <span class="mv">x</span>[<span class="mv">n</span>] = 2<span class="mv">x1</span>[<span class="mv">n</span>] − <span class="mv">x2</span>[<span class="mv">n</span>].</p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="cap">Component by component</div>
+      <p><span class="mv">x1</span>∗<span class="mv">h</span> = {1@0, 0.5@1}</p>
+      <p><span class="mv">x2</span>∗<span class="mv">h</span> = {1@2, 0.5@3}</p>
+      <p>2·(x1∗h) = {2@0, 1@1}</p>
+      <p style="margin-bottom:0">−1·(x2∗h) = {−1@2, −0.5@3}</p>
+    </div>
+    <div class="card">
+      <div class="cap">Summed result</div>
+      <p style="margin-bottom:0"><span class="mv">y</span> = 2(x1∗h) − (x2∗h) =<br><b>{2@0, 1@1, −1@2, −0.5@3}</b></p>
+      <p style="margin:10px 0 0">Cross-check: build <span class="mv">x</span> = 2δ − δ<sub>shift2</sub> = {2@0, −1@2} directly and convolve with <span class="mv">h</span> in one shot — same four samples, exactly.</p>
+    </div>
+  </div>
+
+  <h3>Complete solution</h3>
+  <div class="codeblock">
+    <div class="code-head"><span>online_c.py</span><span>fills every TODO in the given template</span></div>
+    <pre><code>class SuperSignal:
+    def __init__(self):
+        self.components = []
+
+    def add(self, signal: Signal, coefficient=1.0):
+        self.components.append((coefficient, signal))
+
+
+if __name__ == "__main__":
+    INF = 10
+    x1 = Signal(INF); x1.set_value_at_time(0, 1)
+    x2 = Signal(INF); x2.set_value_at_time(2, 1)
+
+    xs = SuperSignal()
+    xs.add(x1, 2.0)
+    xs.add(x2, -1.0)          # x(n) = 2*x1(n) - x2(n)
+
+    h = Signal(INF)
+    h.set_value_at_time(0, 1)
+    h.set_value_at_time(1, 0.5)
+
+    system = LTI_System(h)
+    y = system.output_super(xs)
+    y.plot("Output via superposition")</code></pre>
+  </div>
+
+  <div class="note exam">
+    <span class="lab">Exam alert · negative coefficients are still just coefficients</span>
+    <p><span class="mv">multiply(scalar)</span> must work for negative and fractional scalars exactly as it does for positive ones — there is no special case to add. If your <span class="mv">Signal.multiply</span> was only ever tested with positive integers in Offline 1, this is the moment a hidden sign bug in it will surface. Test <code>x1.multiply(-1)</code> against a hand-checked example before trusting <span class="mv">output_super</span>.</p>
+  </div>
+</section>
+
+<!-- ===================== 5 EXAM MECHANICS ===================== -->
+<section class="pane" id="p5">
+  <h2 class="sec">Exam mechanics and common pitfalls</h2>
+  <div class="slideref">What actually costs marks across all three specs</div>
+
+  <table>
+    <tr><th style="width:34px">#</th><th>Pitfall</th><th>Fix</th></tr>
+    <tr><td class="num">1</td><td>Choosing INF too small for the shifted/combined signal to fit</td><td>Support can grow: convolving two signals of length L1, L2 needs at least L1+L2−1 samples of room. Pick INF generously.</td></tr>
+    <tr><td class="num">2</td><td><span class="mv">shift(k)</span> implemented as an advance instead of a delay</td><td>Test on one impulse: shift by +2 must move the sample to the <em>right</em>.</td></tr>
+    <tr><td class="num">3</td><td>Forgetting <span class="mv">s</span>[−1] = 0 at the left edge when computing the first difference</td><td>Your array is already zero outside its range by construction — just make sure INF covers one sample left of where <span class="mv">s</span> starts.</td></tr>
+    <tr><td class="num">4</td><td>Using <code>numpy.convolve</code> "just to check", then leaving it in the submission</td><td>All three specs explicitly forbid it. Use it privately to sanity-check, then delete the import.</td></tr>
+    <tr><td class="num">5</td><td>Dropping the passthrough (identity) branch in a B-type network diagram</td><td>Trace every arrow from x[n] to y[n] on paper before writing code — see Track B.</td></tr>
+    <tr><td class="num">6</td><td>Assuming <span class="mv">np.allclose</span> will pass with default tolerances everywhere</td><td>Floating point sums of many small terms can differ by ~1e-10 to 1e-12 — use <code>atol=1e-6</code> as the templates do, not exact equality.</td></tr>
+    <tr><td class="num">7</td><td>Building the SuperSignal's sum directly instead of calling <span class="mv">output_super</span></td><td>Even though the numeric answer matches, C1/C2 grades the <em>component-wise mechanism</em>, not just the final plot.</td></tr>
+    <tr><td class="num">8</td><td>Not plotting every signal the spec explicitly lists</td><td>Marks are itemised per plot/step (see A1/A2's breakdown: 1+3+2+3+1) — a missing plot is a guaranteed partial deduction even with correct numbers.</td></tr>
+    <tr><td class="num">9</td><td>Wrong submission filename</td><td>All three specs want <code>{student_id}.py</code> (or zipped if multi-file) uploaded to Moodle — a wrapper detail that's still worth double-checking under time pressure.</td></tr>
+  </table>
+
+  <div class="note key">
+    <span class="lab">A 60-second pre-submission checklist</span>
+    <ul style="margin-bottom:0">
+      <li>Every plot the spec names is actually called, with the title the spec (or your own labelling) makes clear.</li>
+      <li>No <code>numpy.convolve</code>, <code>scipy.signal</code>, or other built-in convolution anywhere in the file.</li>
+      <li>The final verification print statement runs and reports a match.</li>
+      <li>File renamed to your student ID before upload.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 6 INTERACTIVE LAB ===================== -->
+<section class="pane" id="p6">
+  <h2 class="sec">Interactive lab — build your own B-type network</h2>
+  <div class="slideref">Rehearse block-by-block vs. combined-h on numbers of your choosing</div>
+
+  <p class="lead">Enter taps for <span class="mv">x</span>, <span class="mv">h1</span>, <span class="mv">h2</span>, <span class="mv">h3</span> as space-separated <code>index:value</code> pairs — the default values reproduce the B1/B2 worked example above. Switch topology to rehearse the passthrough-branch diagram from the spec, or the pure-parallel variant used in the practice bank.</p>
+
+  <div class="lab">
+    <div class="lab-head"><span>Series / parallel LTI network</span><span id="netBadge" style="font-weight:400;text-transform:none;letter-spacing:.03em"></span></div>
+    <div class="lab-body">
+      <div class="ctl">
+        <div class="fld"><label for="netTopo">Topology</label>
+          <select id="netTopo">
+            <option value="t1">h1 series → (passthrough ∥ h2) → h3 series</option>
+            <option value="t2">(h1 ∥ h2) → h3 series</option>
+          </select>
+        </div>
+        <div class="fld"><label for="netX">x[n]</label><input type="text" id="netX" value="0:1 2:-1"></div>
+        <div class="fld"><label for="netH1">h1[n]</label><input type="text" id="netH1" value="0:1"></div>
+        <div class="fld"><label for="netH2">h2[n]</label><input type="text" id="netH2" value="1:0.5"></div>
+        <div class="fld"><label for="netH3">h3[n]</label><input type="text" id="netH3" value="0:1 1:1"></div>
+        <button class="btn pri" id="netRun">Compute</button>
+      </div>
+      <div id="netPlots"></div>
+      <div class="readout" id="netRead"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7 PRACTICE A ===================== -->
+<section class="pane" id="p7">
+  <h2 class="sec">Practice bank — Track A (step response)</h2>
+  <div class="slideref">New numbers, same identity: h = s − s<sub>shift1</sub>, y = Δx ∗ s</div>
+
+  <div class="prac">
+    <div class="pn">Practice A · step response and first difference</div>
+    <p>A discrete LTI system has step response <span class="mv">s</span>[<span class="mv">n</span>] = 0 for <span class="mv">n</span> &lt; 0, <span class="mv">s</span>[0] = 1, <span class="mv">s</span>[1] = 1, <span class="mv">s</span>[2] = 2, and <span class="mv">s</span>[<span class="mv">n</span>] = 2 for all <span class="mv">n</span> ≥ 2. The input is <span class="mv">x</span>[0] = 1, <span class="mv">x</span>[1] = −1, zero elsewhere.</p>
+    <p style="margin-bottom:0"><b>Find</b> the recovered impulse response <span class="mv">h</span>[<span class="mv">n</span>], the first difference <span class="mv">Δx</span>[<span class="mv">n</span>], and the output <span class="mv">y</span>[<span class="mv">n</span>] — computed both as <span class="mv">Δx</span>∗<span class="mv">s</span> and as <span class="mv">x</span>∗<span class="mv">h</span>, and confirm they agree.</p>
+    <button class="reveal-btn" data-target="ansA">Show worked solution</button>
+    <div class="reveal-body" id="ansA">
+      <h4>Step 1 · recover h[n]</h4>
+      <p><span class="mv">h</span>[<span class="mv">n</span>] = <span class="mv">s</span>[<span class="mv">n</span>] − <span class="mv">s</span>[<span class="mv">n</span>−1]: <span class="mv">h</span>[0] = 1−0 = 1, <span class="mv">h</span>[1] = 1−1 = 0, <span class="mv">h</span>[2] = 2−1 = 1, <span class="mv">h</span>[<span class="mv">n</span>] = 0 for <span class="mv">n</span> ≥ 3 (s stays flat at 2). So <b>h = {1@0, 1@2}</b>. Check: Σh = 2 = s[∞] ✓.</p>
+      <h4>Step 2 · first difference of x</h4>
+      <p><span class="mv">Δx</span>[0] = 1−0 = 1, <span class="mv">Δx</span>[1] = −1−1 = −2, <span class="mv">Δx</span>[2] = 0−(−1) = 1. So <b>Δx = {1@0, −2@1, 1@2}</b>. (Note it sums to zero, as it must whenever x starts and ends at 0.)</p>
+      <h4>Step 3 · y via x ∗ h (the reliable route — h is FIR)</h4>
+      <p><span class="mv">y</span>[<span class="mv">n</span>] = <span class="mv">x</span>[<span class="mv">n</span>] + <span class="mv">x</span>[<span class="mv">n</span>−2] (since h has unit taps at 0 and 2): <b>y = {1@0, −1@1, 1@2, −1@3}</b>.</p>
+      <h4>Step 4 · y via Δx ∗ s, and the edge case it reveals</h4>
+      <p>Convolving the three-tap <span class="mv">Δx</span> against <span class="mv">s</span> (treating it as tabulated only up to <span class="mv">n</span>=5, i.e. zero beyond) gives the same four core samples <b>{1@0, −1@1, 1@2, −1@3}</b> — but also two small extra "ghost" samples at <span class="mv">n</span>=6 and <span class="mv">n</span>=7 (values −2 and +2), which appear only because the array representation of <span class="mv">s</span> falsely drops back to 0 after <span class="mv">n</span>=5 instead of staying at its true plateau of 2 forever. Exactly the same phenomenon as the real A1/A2 dataset, just with two ghost samples instead of many — because <span class="mv">Δx</span> sums to zero here too, these ghosts always cancel out eventually and don't reflect a real system behaviour.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8 PRACTICE B ===================== -->
+<section class="pane" id="p8">
+  <h2 class="sec">Practice bank — Track B (network combination)</h2>
+  <div class="slideref">A second topology: pure parallel, then series</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrP" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#17150F"/></marker></defs>
+      <text x="8" y="105" font-family="Cormorant Garamond,serif" font-style="italic" font-size="19" fill="#17150F">x[n]</text>
+      <line x1="52" y1="100" x2="90" y2="60" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <line x1="52" y1="100" x2="90" y2="140" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <rect x="92" y="35" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#7A1F2B" stroke-width="1.6"/>
+      <text x="135" y="65" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#7A1F2B">h1[n]</text>
+      <rect x="92" y="115" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#22486B" stroke-width="1.6"/>
+      <text x="135" y="145" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#22486B">h2[n]</text>
+      <line x1="178" y1="60" x2="330" y2="93" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <line x1="178" y1="140" x2="330" y2="107" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <circle cx="352" cy="100" r="20" fill="#fff" stroke="#17150F" stroke-width="1.6"/>
+      <text x="352" y="107" text-anchor="middle" font-family="EB Garamond,serif" font-size="20" fill="#17150F">+</text>
+      <line x1="372" y1="100" x2="406" y2="100" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <rect x="408" y="75" width="86" height="50" rx="3" fill="#F4F0E6" stroke="#9C7414" stroke-width="1.6"/>
+      <text x="451" y="105" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" fill="#9C7414">h3[n]</text>
+      <line x1="494" y1="100" x2="546" y2="100" stroke="#17150F" stroke-width="1.6" marker-end="url(#arrP)"/>
+      <text x="552" y="105" font-family="Cormorant Garamond,serif" font-style="italic" font-size="19" fill="#17150F">y[n]</text>
+    </svg>
+    <p style="margin:10px 2px 0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);text-align:center">x[n] → split → h1[n] ∥ h2[n] → sum → h3[n] → y[n]</p>
+  </div>
+
+  <div class="prac">
+    <div class="pn">Practice B · pure-parallel-then-series network</div>
+    <p>With the topology above, let <span class="mv">x</span> = {1@0, 1@2}, <span class="mv">h1</span> = {1@0} (identity), <span class="mv">h2</span> = {1@1} (unit delay), <span class="mv">h3</span> = {1@0, −1@1}.</p>
+    <p style="margin-bottom:0"><b>Find</b> <span class="mv">h</span><sub>combined</sub> and <span class="mv">y</span>[<span class="mv">n</span>], both by the block-by-block route and by combining first.</p>
+    <button class="reveal-btn" data-target="ansB">Show worked solution</button>
+    <div class="reveal-body" id="ansB">
+      <h4>Step 1 · combine the parallel pair</h4>
+      <p><span class="mv">h1</span> + <span class="mv">h2</span> = {1@0, 1@1} — a two-tap running-sum filter.</p>
+      <h4>Step 2 · put it in series with h3</h4>
+      <p><span class="mv">h</span><sub>combined</sub> = (h1+h2) ∗ h3 = {1@0,1@1} ∗ {1@0,−1@1}. Multiply out: n=0: 1·1=1; n=1: 1·(−1)+1·1=0; n=2: 1·(−1)=−1. So <b>h<sub>combined</sub> = {1@0, −1@2}</b> — the middle tap cancels exactly, which is worth noticing: h3 is a first-difference-style filter, and it differentiates away the constant part of a running sum.</p>
+      <h4>Step 3 · output</h4>
+      <p><span class="mv">y</span> = <span class="mv">x</span> ∗ <span class="mv">h</span><sub>combined</sub> = {1@0,1@2} ∗ {1@0,−1@2}: n=0: 1; n=2: 1·(−1)+1·1=0; n=4: 1·(−1)=−1. So <b>y = {1@0, −1@4}</b> (the n=2 term cancels).</p>
+      <h4>Cross-check · block-by-block</h4>
+      <p><span class="mv">x</span>∗<span class="mv">h1</span> = {1@0,1@2}; <span class="mv">x</span>∗<span class="mv">h2</span> = {1@1,1@3}; sum <span class="mv">w</span> = {1@0,1@1,1@2,1@3}; <span class="mv">w</span>∗<span class="mv">h3</span> = {1@0, (1−1)@1, (1−1)@2, (1−1)@3, −1@4} = <b>{1@0, −1@4}</b> — identical. ✓ Try both topologies in the Interactive Lab above to watch this happen live.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9 PRACTICE C ===================== -->
+<section class="pane" id="p9">
+  <h2 class="sec">Practice bank — Track C (superposition)</h2>
+  <div class="slideref">Three components this time, not two</div>
+
+  <div class="prac">
+    <div class="pn">Practice C · three-component superposition</div>
+    <p>An LTI system has impulse response <span class="mv">h</span> = {1@0, 1@1, 0.5@2}. Three unit impulses are defined: <span class="mv">x1</span> = {1@0}, <span class="mv">x2</span> = {1@1}, <span class="mv">x3</span> = {1@3}, combined as <span class="mv">x</span>[<span class="mv">n</span>] = 3<span class="mv">x1</span>[<span class="mv">n</span>] − 2<span class="mv">x2</span>[<span class="mv">n</span>] + <span class="mv">x3</span>[<span class="mv">n</span>].</p>
+    <p style="margin-bottom:0"><b>Find</b> <span class="mv">y</span>[<span class="mv">n</span>] using <span class="mv">output_super</span> (component by component), and verify by building <span class="mv">x</span>[<span class="mv">n</span>] directly and convolving once.</p>
+    <button class="reveal-btn" data-target="ansC">Show worked solution</button>
+    <div class="reveal-body" id="ansC">
+      <h4>Step 1 · convolve each component with h separately</h4>
+      <p><span class="mv">x1</span>∗<span class="mv">h</span> = {1@0, 1@1, 0.5@2} (h itself, unshifted, since x1=δ)<br>
+      <span class="mv">x2</span>∗<span class="mv">h</span> = {1@1, 1@2, 0.5@3} (h shifted right by 1)<br>
+      <span class="mv">x3</span>∗<span class="mv">h</span> = {1@3, 1@4, 0.5@5} (h shifted right by 3)</p>
+      <h4>Step 2 · scale each by its coefficient and sum</h4>
+      <p>3·(x1∗h) = {3@0, 3@1, 1.5@2}<br>
+      −2·(x2∗h) = {−2@1, −2@2, −1@3}<br>
+      1·(x3∗h) = {1@3, 1@4, 0.5@5}</p>
+      <p style="margin-bottom:0">Summing sample by sample: <b>y = {3@0, 1@1, −0.5@2, 0@3, 1@4, 0.5@5}</b> — note the n=3 terms (−1 and +1) cancel exactly, so n=3 is silently absent from the true output even though two components both contribute there.</p>
+      <h4>Cross-check · direct route</h4>
+      <p><span class="mv">x</span> = 3δ − 2δ<sub>shift1</sub> + δ<sub>shift3</sub> = {3@0, −2@1, 1@3}. Convolving directly with <span class="mv">h</span> reproduces the same six-sample sequence — a good confirmation that <span class="mv">output_super</span> and "combine first, then convolve" must always agree, since both are just different orders of applying linearity.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10 QUIZ ===================== -->
+<section class="pane" id="p10">
+  <h2 class="sec">Self-check</h2>
+  <div class="slideref">Ten questions across all three tracks · answers explained</div>
+  <p class="lead">Answer before you click — every explanation adds a detail not spelled out elsewhere on this page.</p>
+  <div id="quiz"></div>
+  <div class="score" id="score">0 / 10 answered</div>
+</section>
+
+<div class="footer">CSE 220 · CONVOLUTION ONLINES A / B / C · STUDY AND PRACTICE EDITION</div>
+</div>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- sidebar navigation ---------------- */
+var SECTIONS = ["Overview","Foundations toolkit","Track A — step response","Track B — network combination",
+  "Track C — superposition","Exam mechanics","Interactive lab","Practice — Track A","Practice — Track B",
+  "Practice — Track C","Self-check"];
+var GROUPS = [
+  {label:"Orientation", items:[0]},
+  {label:"Toolkit", items:[1]},
+  {label:"The three specs", items:[2,3,4]},
+  {label:"Exam craft", items:[5,6]},
+  {label:"Practice", items:[7,8,9]},
+  {label:"Revision", items:[10]}
+];
+var bar = document.getElementById("tabbar");
+var sidebar = document.getElementById("sidebar");
+var scrim = document.getElementById("scrim");
+function closeDrawer(){ sidebar.classList.remove("open"); scrim.classList.remove("on"); }
+function openDrawer(){ sidebar.classList.add("open"); scrim.classList.add("on"); }
+GROUPS.forEach(function(g){
+  var head=document.createElement("div"); head.className="sb-group"; head.textContent=g.label; bar.appendChild(head);
+  g.items.forEach(function(i){
+    var b=document.createElement("button"); b.className="tab"; b.type="button"; b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", i===0?"true":"false");
+    b.innerHTML='<span class="num">'+String(i).padStart(2,"0")+'</span><span>'+SECTIONS[i]+'</span>';
+    b.onclick=function(){
+      document.querySelectorAll(".tab").forEach(function(t){t.setAttribute("aria-selected","false")});
+      b.setAttribute("aria-selected","true");
+      document.querySelectorAll(".pane").forEach(function(p){p.classList.remove("on")});
+      document.getElementById("p"+i).classList.add("on");
+      window.scrollTo({top:0,behavior:"smooth"});
+      if(window.innerWidth<=1000) closeDrawer();
+    };
+    bar.appendChild(b);
+  });
+});
+document.getElementById("sbToggle").onclick=function(){ sidebar.classList.contains("open")?closeDrawer():openDrawer(); };
+scrim.onclick=closeDrawer;
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeDrawer(); });
+
+/* ---------------- reveal buttons ---------------- */
+document.querySelectorAll(".reveal-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var t=document.getElementById(btn.dataset.target);
+    var open=t.classList.toggle("show");
+    btn.textContent = open ? "Hide worked solution" : "Show worked solution";
+  });
+});
+
+/* ---------------- tiny sequence engine ---------------- */
+function parseTaps(str){
+  var m={};
+  (str||"").trim().split(/\s+/).forEach(function(tok){
+    if(!tok) return;
+    var parts=tok.split(":");
+    if(parts.length!==2) return;
+    var k=parseInt(parts[0],10), v=parseFloat(parts[1]);
+    if(!isNaN(k) && !isNaN(v) && v!==0) m[k]=v;
+  });
+  return m;
+}
+function convMap(a,b){
+  var out={};
+  Object.keys(a).forEach(function(ka){
+    var va=a[ka]; if(!va) return;
+    Object.keys(b).forEach(function(kb){
+      var vb=b[kb]; if(!vb) return;
+      var n=(+ka)+(+kb);
+      out[n]=(out[n]||0)+va*vb;
+    });
+  });
+  Object.keys(out).forEach(function(k){ if(Math.abs(out[k])<1e-9) delete out[k]; else out[k]=+out[k].toFixed(6); });
+  return out;
+}
+function addMap(a,b){
+  var out={};
+  Object.keys(a).forEach(function(k){ out[k]=(out[k]||0)+a[k]; });
+  Object.keys(b).forEach(function(k){ out[k]=(out[k]||0)+b[k]; });
+  Object.keys(out).forEach(function(k){ if(Math.abs(out[k])<1e-9) delete out[k]; else out[k]=+out[k].toFixed(6); });
+  return out;
+}
+function fmtMap(m){
+  var keys=Object.keys(m).map(Number).sort(function(a,b){return a-b;});
+  if(!keys.length) return "0";
+  return keys.map(function(k){ return m[k]+"@"+k; }).join(", ");
+}
+function mapsMatch(a,b){
+  var keys={}; Object.keys(a).forEach(function(k){keys[k]=1;}); Object.keys(b).forEach(function(k){keys[k]=1;});
+  var ok=true;
+  Object.keys(keys).forEach(function(k){ if(Math.abs((a[k]||0)-(b[k]||0))>1e-6) ok=false; });
+  return ok;
+}
+
+/* ---------------- network lab ---------------- */
+function stemSVG(mapA,mapB,labelA,labelB){
+  var keys={}; Object.keys(mapA).forEach(function(k){keys[k]=1;}); Object.keys(mapB).forEach(function(k){keys[k]=1;});
+  var ks=Object.keys(keys).map(Number);
+  if(!ks.length) ks=[0];
+  var kmin=Math.min.apply(null,ks)-1, kmax=Math.max.apply(null,ks)+1;
+  var vals=ks.map(function(k){return mapA[k]||0;}).concat(ks.map(function(k){return mapB[k]||0;}));
+  var vmax=Math.max(1,Math.max.apply(null,vals.map(Math.abs)))*1.25;
+  var W=640,H=170,L=34,R=12,T=14,B=22;
+  function px(x){ return L+(x-kmin)/(kmax-kmin)*(W-L-R); }
+  function py(v){ return T+(1-(v+vmax)/(2*vmax))*(H-T-B); }
+  var y0=py(0);
+  var parts=[];
+  parts.push('<line x1="'+L+'" y1="'+y0+'" x2="'+(W-R)+'" y2="'+y0+'" stroke="#17150F" stroke-width="1"/>');
+  for(var k=Math.ceil(kmin);k<=Math.floor(kmax);k++){
+    var X=px(k);
+    parts.push('<line x1="'+X+'" y1="'+y0+'" x2="'+X+'" y2="'+(y0+4)+'" stroke="#7A7263" stroke-width="1"/>');
+    parts.push('<text x="'+X+'" y="'+(y0+15)+'" font-size="9" font-family="IBM Plex Mono,monospace" fill="#7A7263" text-anchor="middle">'+k+'</text>');
+  }
+  ks.forEach(function(k){
+    var va=mapA[k]||0;
+    if(Math.abs(va)>1e-9){
+      var X=px(k)-3, Y=py(va);
+      parts.push('<line x1="'+X+'" y1="'+y0+'" x2="'+X+'" y2="'+Y+'" stroke="#17150F" stroke-width="1.6"/>');
+      parts.push('<circle cx="'+X+'" cy="'+Y+'" r="3.2" fill="#17150F"/>');
+    }
+  });
+  ks.forEach(function(k){
+    var vb=mapB[k]||0;
+    if(Math.abs(vb)>1e-9){
+      var X=px(k)+3, Y=py(vb);
+      parts.push('<line x1="'+X+'" y1="'+y0+'" x2="'+X+'" y2="'+Y+'" stroke="#7A1F2B" stroke-width="1.6" stroke-dasharray="1 2"/>');
+      parts.push('<circle cx="'+X+'" cy="'+Y+'" r="3.2" fill="#fff" stroke="#7A1F2B" stroke-width="1.6"/>');
+    }
+  });
+  parts.push('<text x="'+(W-R)+'" y="12" font-size="9.5" font-family="IBM Plex Mono,monospace" fill="#17150F" text-anchor="end">● '+labelA+'   ○ '+labelB+'</text>');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%">'+parts.join("")+'</svg>';
+}
+
+function netRun(){
+  var topo=document.getElementById("netTopo").value;
+  var x=parseTaps(document.getElementById("netX").value);
+  var h1=parseTaps(document.getElementById("netH1").value);
+  var h2=parseTaps(document.getElementById("netH2").value);
+  var h3=parseTaps(document.getElementById("netH3").value);
+  var yBlock,yComb,hc,note;
+
+  if(topo==="t1"){
+    var v=convMap(x,h1);
+    var top=v, bottom=convMap(v,h2);
+    var w=addMap(top,bottom);
+    yBlock=convMap(w,h3);
+    var delta={0:1};
+    var inner=addMap(delta,h2);
+    hc=convMap(convMap(h1,inner),h3);
+    yComb=convMap(x,hc);
+    note="h_combined = h1 * (δ + h2) * h3";
+  } else {
+    var y1=convMap(x,h1), y2=convMap(x,h2);
+    var wsum=addMap(y1,y2);
+    yBlock=convMap(wsum,h3);
+    hc=convMap(addMap(h1,h2),h3);
+    yComb=convMap(x,hc);
+    note="h_combined = (h1 + h2) * h3";
+  }
+
+  document.getElementById("netBadge").textContent = topo==="t1" ? "exam-spec topology" : "pure-parallel variant";
+  document.getElementById("netPlots").innerHTML =
+    '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#7A7263;margin-bottom:4px">y[n] — block-by-block (filled) vs combined-h (outline)</div>' +
+    stemSVG(yBlock, yComb, "block-by-block", "combined-h");
+
+  var match = mapsMatch(yBlock, yComb);
+  document.getElementById("netRead").innerHTML =
+    note + "\nh_combined = { " + fmtMap(hc) + " }" +
+    "\n\ny (block-by-block) = { " + fmtMap(yBlock) + " }" +
+    "\ny (combined-h)     = { " + fmtMap(yComb) + " }" +
+    "\n\nOutputs match: " + (match ? '<span class="ok">YES ✓</span>' : '<span class="bad">NO — check your taps</span>');
+}
+["netTopo","netX","netH1","netH2","netH3"].forEach(function(id){
+  document.getElementById(id).addEventListener("change", netRun);
+});
+document.getElementById("netRun").addEventListener("click", netRun);
+netRun();
+
+/* ---------------- quiz ---------------- */
+var QS=[
+ {q:"Why does h[n] = s[n] − s[n−1] recover the true impulse response?",
+  o:["It's a definition with no deeper justification","s[n] is the running sum of h, so differencing undoes the sum","h is always the derivative of any signal","Because convolution is commutative"],
+  a:1, e:"s = u * h means s[n] is the accumulated sum of h up to n. Subtracting consecutive partial sums collapses the sum back to the single term h[n] — a telescoping identity, not an arbitrary rule."},
+ {q:"In the real A1/A2 dataset, y_s = Δx∗s and y_h = x∗h are found to disagree for large n. Why?",
+  o:["The convolution code has a bug","s[n] is a step response that never decays, but the tabulated array silently treats it as zero past the last recorded sample","h was computed incorrectly","x has negative values, which convolution can't handle"],
+  a:1, e:"h is genuinely FIR, so x∗h is exact everywhere. But s physically stays at its plateau forever; the file only records it up to n=30, so any fixed-size array reports 0 beyond that — an artifact of truncation, not a computation error."},
+ {q:"Which algebraic property justifies replacing a SERIES connection of two LTI blocks with one block whose impulse response is h1∗h2?",
+  o:["Commutativity","Distributivity","Associativity of convolution","Linearity of the input"],
+  a:2, e:"(x∗h1)∗h2 = x∗(h1∗h2) is associativity. It lets you push the ∗ between the two impulse responses and treat them as one combined block."},
+ {q:"Which property justifies replacing a PARALLEL, summed connection with one block whose impulse response is h1+h2?",
+  o:["Associativity","Distributivity of convolution over addition","Commutativity","Time-invariance"],
+  a:1, e:"x∗h1 + x∗h2 = x∗(h1+h2) is exactly the distributive law applied to convolution — the mathematical basis for 'parallel branches add'."},
+ {q:"In the B1/B2 diagram, what is the impulse response of the bare passthrough branch (no block drawn on that wire)?",
+  o:["Zero everywhere","The unit impulse δ[n]","The unit step u[n]","It has no impulse response — passthrough isn't a system"],
+  a:1, e:"A wire with nothing on it still is an LTI system: the identity system, whose impulse response is δ[n] (output equals input, unchanged). Forgetting this and computing h1∗h2∗h3 silently omits an entire signal path."},
+ {q:"Why do all three specs forbid numpy.convolve even though it would give the same numeric answer?",
+  o:["It's slower than a manual loop","The assignment is testing whether you correctly reuse your own Offline 1 convolution machinery, not whether you know NumPy exists","It only works for real-valued signals","It doesn't support negative indices"],
+  a:1, e:"The whole point of Online 2 is routing a new kind of input (step response, network, superposition) through the convolution engine you already built and understand — not calling a library function that hides the mechanism."},
+ {q:"In LTI_System.output_super, what happens if a component's coefficient is negative?",
+  o:["output_super raises an error","Signal.multiply must already handle negative scalars correctly — no special case needed","You must convert it to a separate subtract() method","Negative coefficients are not allowed by the spec"],
+  a:1, e:"multiply(scalar) is ordinary scalar multiplication; -1, -2.5, or any real number should work exactly the same way arithmetically. If your Offline 1 multiply() was only ever tested with positive integers, this is where a latent bug would surface."},
+ {q:"In the three-component Practice C example, why does n = 3 end up absent from the final y even though two components both produce a term there?",
+  o:["n = 3 is outside the valid INF range","The two contributions are +1 and −1 and cancel exactly on summation","Only the largest-magnitude term is kept","It's a rounding error that should be ignored"],
+  a:1, e:"−2·(x2∗h) contributes −1 at n=3, and 1·(x3∗h) contributes +1 at n=3 (since x3 = δ shifted by 3). They cancel exactly, showing why summing component-wise and summing directly must always agree."},
+ {q:"What is the correct behaviour of Signal.shift(k) for k > 0?",
+  o:["y[n] = x[n+k], moving samples left (an advance)","y[n] = x[n−k], moving samples right (a delay)","y[n] = x[k−n], a reflection","shift(k) scales the signal by k"],
+  a:1, e:"shift(k) must delay: the sample that lived at n now lives at n+k. Writing get_value_at_time(n+k) inside shift by reflex silently builds an advance instead — test on a single impulse before trusting it."},
+ {q:"You've computed y two different ways in a B-type problem and they disagree. What's the fastest first check?",
+  o:["Assume the diagram was drawn incorrectly","Recompute h_combined by hand for 2–3 taps and compare against a hand-traced block-by-block calculation on the same small example","Increase INF and hope it resolves itself","Switch to numpy.convolve to see which answer is 'right'"],
+  a:1, e:"A hand-checked worked example (like the ones in this guide) isolates whether the bug is in your combination formula or in the block-by-block wiring — increasing INF or switching libraries won't reveal which one is wrong."}
+];
+var answered=0;
+var qbox=document.getElementById("quiz");
+QS.forEach(function(Q,i){
+  var d=document.createElement("div"); d.className="q";
+  var opts=Q.o.map(function(o,j){return '<button class="opt" data-i="'+i+'" data-j="'+j+'">'+o+'</button>';}).join("");
+  d.innerHTML='<div class="qn">Question '+(i+1)+' of '+QS.length+'</div><div class="qt">'+Q.q+'</div>'+opts+
+              '<div class="expl" id="ex'+i+'"></div>';
+  qbox.appendChild(d);
+  d.querySelector("#ex"+i).innerHTML=Q.e;
+});
+qbox.addEventListener("click", function(ev){
+  var b=ev.target.closest(".opt"); if(!b) return;
+  var i=+b.dataset.i, j=+b.dataset.j;
+  var card=b.closest(".q");
+  if(card.dataset.done) return;
+  card.dataset.done="1"; answered++;
+  card.querySelectorAll(".opt").forEach(function(o){
+    var jj=+o.dataset.j;
+    if(jj===QS[i].a) o.classList.add("right");
+    else if(jj===j) o.classList.add("wrong");
+    o.style.cursor="default";
+  });
+  document.getElementById("ex"+i).classList.add("show");
+  document.getElementById("score").textContent = answered+" / "+QS.length+" answered" +
+    (answered===QS.length ? "  ·  read every explanation before your exam" : "");
+});
+})();
+</script>

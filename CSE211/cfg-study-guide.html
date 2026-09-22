@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 211 — Context-Free Grammars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#182420;
+  --bg2:#1f2e29;
+  --bg3:#25362f;
+  --ink:#edede3;
+  --ink-dim:#a9b8b0;
+  --ink-faint:#6f8078;
+  --accent:#f2c14e;
+  --accent-dim:#b8923a;
+  --rose:#e8735a;
+  --mint:#7ec8a9;
+  --blue:#7fb3d5;
+  --rule:rgba(237,237,227,0.13);
+  --rule-strong:rgba(237,237,227,0.24);
+  --radius:10px;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.65;
+  min-height:100vh;
+}
+.layout{display:flex;max-width:1400px;margin:0 auto;min-height:100vh;}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:270px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--rule);padding:28px 18px 40px;
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--rule-strong);border-radius:3px;}
+.brand{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;}
+.brand-sub{font-size:12px;color:var(--ink-faint);margin-top:4px;margin-bottom:26px;}
+.navgroup{margin-bottom:4px;}
+.navlink{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+  color:var(--ink-dim);text-decoration:none;font-size:13.5px;cursor:pointer;
+  border-left:2px solid transparent;transition:background .15s,color .15s;
+}
+.navlink:hover{background:var(--bg2);color:var(--ink);}
+.navlink.active{color:var(--accent);background:var(--bg2);border-left:2px solid var(--accent);}
+.navnum{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);width:16px;flex-shrink:0;}
+.navlink.active .navnum{color:var(--accent);}
+.progress-wrap{margin-top:24px;padding-top:18px;border-top:1px solid var(--rule);}
+.progress-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.progress-track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);width:12.5%;transition:width .3s;}
+
+/* ---------- Main ---------- */
+.main{flex:1;padding:40px 56px 100px;max-width:920px;}
+.section{display:none;animation:fadein .35s ease;}
+.section.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+h1.title{font-family:var(--font-display);font-size:34px;font-weight:600;margin-bottom:14px;line-height:1.2;}
+.lede{color:var(--ink-dim);font-size:16.5px;max-width:640px;margin-bottom:32px;}
+h2{font-family:var(--font-display);font-size:22px;font-weight:600;margin:38px 0 14px;color:var(--ink);}
+h2:first-of-type{margin-top:0;}
+h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin:22px 0 10px;color:var(--accent);}
+p{margin-bottom:14px;color:var(--ink);}
+p.dim{color:var(--ink-dim);}
+strong{color:var(--accent);font-weight:600;}
+ul,ol{margin:0 0 16px 22px;color:var(--ink);}
+li{margin-bottom:6px;}
+
+/* Grammar / code blocks */
+.rule-box{
+  background:var(--bg2);border:1px solid var(--rule-strong);border-left:3px solid var(--accent);
+  border-radius:var(--radius);padding:16px 20px;margin:16px 0;font-family:var(--font-mono);
+  font-size:14.5px;color:var(--mint);overflow-x:auto;white-space:pre;
+}
+.rule-box .comment{color:var(--ink-faint);font-style:italic;}
+.inline-code{font-family:var(--font-mono);background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:14px;color:var(--mint);}
+
+/* Callouts */
+.callout{border-radius:var(--radius);padding:16px 20px;margin:18px 0;border:1px solid var(--rule-strong);}
+.callout-title{font-family:var(--font-display);font-weight:600;font-size:13.5px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.callout.tip{background:rgba(126,200,169,0.08);border-color:rgba(126,200,169,0.3);}
+.callout.tip .callout-title{color:var(--mint);}
+.callout.warn{background:rgba(232,115,90,0.08);border-color:rgba(232,115,90,0.3);}
+.callout.warn .callout-title{color:var(--rose);}
+.callout.note{background:rgba(127,179,213,0.08);border-color:rgba(127,179,213,0.3);}
+.callout.note .callout-title{color:var(--blue);}
+
+/* Derivation stepper */
+.stepper{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:22px;margin:18px 0;}
+.stepper-display{
+  font-family:var(--font-mono);font-size:19px;color:var(--accent);text-align:center;
+  padding:26px 10px;min-height:34px;letter-spacing:.02em;word-break:break-all;
+}
+.stepper-controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;}
+.stepper-btn{
+  background:var(--bg3);border:1px solid var(--rule-strong);color:var(--ink);
+  padding:8px 16px;border-radius:7px;font-family:var(--font-body);font-size:13px;cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.stepper-btn:hover:not(:disabled){background:var(--bg);border-color:var(--accent-dim);}
+.stepper-btn:disabled{opacity:.35;cursor:default;}
+.stepper-dots{display:flex;gap:6px;}
+.step-dot{width:7px;height:7px;border-radius:50%;background:var(--rule-strong);transition:background .2s;}
+.step-dot.on{background:var(--accent);}
+.stepper-rule{text-align:center;font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);margin-top:8px;min-height:16px;}
+
+/* Accordion (design patterns) */
+.accordion-item{border:1px solid var(--rule-strong);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;background:var(--bg2);}
+.accordion-head{
+  display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;
+  font-family:var(--font-display);font-size:15px;font-weight:500;user-select:none;
+}
+.accordion-head:hover{background:var(--bg3);}
+.accordion-head .exnum{color:var(--accent);font-family:var(--font-mono);font-size:13px;margin-right:10px;}
+.accordion-chevron{color:var(--ink-faint);transition:transform .2s;font-size:13px;}
+.accordion-item.open .accordion-chevron{transform:rotate(180deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.accordion-item.open .accordion-body{max-height:900px;}
+.accordion-body-inner{padding:0 18px 18px;}
+
+/* Grid cards */
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+@media(max-width:700px){.card-grid{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:16px 18px;}
+.card h4{font-family:var(--font-display);font-size:14px;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.card p{font-size:14px;color:var(--ink-dim);margin-bottom:0;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);}
+th{color:var(--accent);font-family:var(--font-display);font-weight:600;font-size:13px;}
+td{color:var(--ink-dim);font-family:var(--font-mono);}
+
+/* Checklist */
+.checklist{list-style:none;margin-left:0;}
+.checklist li{
+  display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14.5px;color:var(--ink-dim);
+}
+.checklist li::before{content:'—';color:var(--accent);flex-shrink:0;}
+
+/* Quiz */
+.quiz{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:20px;margin:20px 0;}
+.quiz-q{font-family:var(--font-display);font-size:15px;margin-bottom:14px;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  background:var(--bg3);border:1px solid var(--rule-strong);border-radius:7px;padding:10px 14px;
+  font-size:14px;cursor:pointer;transition:border-color .15s,background .15s;
+}
+.quiz-opt:hover{border-color:var(--accent-dim);}
+.quiz-opt.correct{border-color:var(--mint);background:rgba(126,200,169,0.12);color:var(--mint);}
+.quiz-opt.wrong{border-color:var(--rose);background:rgba(232,115,90,0.12);color:var(--rose);}
+.quiz-fb{font-size:13.5px;margin-top:10px;color:var(--ink-dim);min-height:18px;}
+
+/* Nav footer buttons */
+.section-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--rule);}
+.navbtn{
+  font-family:var(--font-body);font-size:13.5px;color:var(--ink-dim);background:none;border:1px solid var(--rule-strong);
+  padding:10px 18px;border-radius:8px;cursor:pointer;transition:border-color .15s,color .15s;
+}
+.navbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
+.navbtn:disabled{opacity:0.3;cursor:default;}
+
+/* Exam Corner: Q&A reveal */
+.brainstorm-list{list-style:none;margin-left:0;}
+.brainstorm-list li{
+  background:var(--bg2);border:1px solid var(--rule-strong);border-left:3px solid var(--blue);
+  border-radius:8px;padding:12px 16px;margin-bottom:10px;font-size:14.5px;color:var(--ink-dim);
+}
+.qa-item{border:1px solid var(--rule-strong);border-radius:var(--radius);margin-bottom:10px;background:var(--bg2);overflow:hidden;}
+.qa-q{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 18px;}
+.qa-q-text{font-family:var(--font-display);font-size:14.5px;font-weight:500;color:var(--ink);}
+.qa-tag{font-family:var(--font-mono);font-size:11px;color:var(--accent);flex-shrink:0;margin-right:8px;}
+.qa-reveal-btn{
+  flex-shrink:0;background:var(--bg3);border:1px solid var(--rule-strong);color:var(--accent);
+  font-family:var(--font-body);font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.qa-reveal-btn:hover{border-color:var(--accent-dim);background:var(--bg);}
+.qa-answer{max-height:0;overflow:hidden;transition:max-height .3s ease;border-top:1px solid transparent;}
+.qa-item.revealed .qa-answer{max-height:600px;border-top:1px solid var(--rule);}
+.qa-answer-inner{padding:14px 18px 16px;font-size:14px;color:var(--mint);line-height:1.6;}
+.qa-answer-inner .rule-box{margin:8px 0;}
+
+/* MCQ self-test */
+.score-bar{
+  display:flex;align-items:center;justify-content:space-between;background:var(--bg2);
+  border:1px solid var(--rule-strong);border-radius:var(--radius);padding:14px 20px;margin:18px 0 26px;
+  position:sticky;top:0;z-index:5;
+}
+.score-label{font-family:var(--font-display);font-size:14px;color:var(--ink-dim);}
+.score-val{font-family:var(--font-mono);font-size:18px;color:var(--accent);font-weight:600;}
+.score-reset{background:var(--bg3);border:1px solid var(--rule-strong);color:var(--ink-dim);font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;}
+.score-reset:hover{color:var(--accent);border-color:var(--accent-dim);}
+.mcq-item{background:var(--bg2);border:1px solid var(--rule-strong);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;}
+.mcq-topic{font-family:var(--font-mono);font-size:11px;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.mcq-q{font-family:var(--font-display);font-size:15px;font-weight:500;margin-bottom:12px;}
+.mcq-opts{display:flex;flex-direction:column;gap:8px;}
+.mcq-explain{font-size:13px;color:var(--ink-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);display:none;}
+.mcq-item.answered .mcq-explain{display:block;}
+
+::selection{background:var(--accent);color:var(--bg);}
+
+@media(max-width:860px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--rule);}
+  .main{padding:28px 22px 80px;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="brand">CSE 211</div>
+    <div class="brand-sub">Theory of Computation — Context-Free Grammars</div>
+    <div class="navgroup" id="navgroup"></div>
+    <div class="progress-wrap">
+      <div class="progress-label">Progress</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0: MOTIVATION -->
+    <section class="section" data-section="0">
+      <div class="eyebrow">01 · Why grammars?</div>
+      <h1 class="title">From recognizing to generating</h1>
+      <p class="lede">A finite automaton asks "is this string accepted?" A grammar asks something more ambitious: "how could this string be built?" That shift — recognizer to generator — is what unlocks recursive structure.</p>
+
+      <h2>The recursion problem</h2>
+      <p>A DFA reads input left to right with a <em>fixed</em>, finite amount of memory — its states. That's precisely why no DFA can check whether parentheses are balanced: balancing requires counting, and counting requires memory that grows with the input. Nested brackets, function calls, and mirrored packets all share one structural idea:</p>
+      <div class="callout note"><div class="callout-title">The core pattern</div>A large valid object contains a smaller valid object of the same kind.</div>
+
+      <div class="card-grid">
+        <div class="card"><h4>Nested brackets</h4><p><span class="inline-code">([]{()})</span> — a valid object may contain a smaller valid object.</p></div>
+        <div class="card"><h4>Function calls</h4><p><span class="inline-code">encrypt(hash(msg))</span> — an argument may itself be a call.</p></div>
+      </div>
+
+      <h2>A grammar before the definition</h2>
+      <p>Balanced parentheses — <span class="inline-code">ε, (), ()(), (()), (()()), ((())())</span> — are generated by three compact rules:</p>
+      <div class="rule-box">S → SS | (S) | ε</div>
+      <ul>
+        <li><span class="inline-code">S → ε</span> — the empty string is trivially balanced.</li>
+        <li><span class="inline-code">S → (S)</span> — wrapping a balanced string keeps it balanced.</li>
+        <li><span class="inline-code">S → SS</span> — concatenating two balanced strings keeps it balanced.</li>
+      </ul>
+
+      <h3>Interactive: derive (()())</h3>
+      <p class="dim">Step through the construction history one rule application at a time.</p>
+      <div class="stepper" id="stepper-intro"></div>
+
+      <div class="callout tip">
+        <div class="callout-title">Key intuition</div>
+        A CFG has only finitely many rules, but recursion lets those rules be reused arbitrarily many times — that's how a finite description generates infinitely many strings.
+      </div>
+
+      <div class="section-nav">
+        <button class="navbtn" disabled>← Previous</button>
+        <button class="navbtn" onclick="goTo(1)">Next: Formal definition →</button>
+      </div>
+    </section>
+
+    <!-- 1: FORMAL DEFINITION -->
+    <section class="section" data-section="1">
+      <div class="eyebrow">02 · Formal definition</div>
+      <h1 class="title">The 4-tuple, precisely</h1>
+      <p class="lede">Every CFG is a 4-tuple G = (V, Σ, R, S). Getting comfortable naming each part is what lets you read (and write) grammars fluently for the rest of the course.</p>
+
+      <div class="card-grid">
+        <div class="card"><h4>V — variables</h4><p>Finite set of nonterminals; placeholders for structure not yet expanded (S, E, T, F).</p></div>
+        <div class="card"><h4>Σ — terminals</h4><p>Finite set of actual output symbols, disjoint from V (0, 1, +, (, )).</p></div>
+        <div class="card"><h4>R — productions</h4><p>Finite set of rules A → α, where A ∈ V and α ∈ (V ∪ Σ)*.</p></div>
+        <div class="card"><h4>S — start symbol</h4><p>The single variable in V where every derivation begins.</p></div>
+      </div>
+
+      <p>A rule <span class="inline-code">A → α</span> means: wherever <span class="inline-code">A</span> appears in the current sentential form, replace that occurrence with <span class="inline-code">α</span>. A derivation succeeds once every variable is gone — written <span class="inline-code">S *⇒ w</span> for <span class="inline-code">w ∈ Σ*</span>.</p>
+
+      <div class="callout warn">
+        <div class="callout-title">What "context-free" actually means</div>
+        The rule for rewriting A never depends on what surrounds that occurrence of A. Context-sensitive grammars can condition a rule on neighboring symbols — CFGs never get that privilege. That restriction is exactly what makes CFGs tractable to parse.
+      </div>
+
+      <h2>Sentential forms and the language of a grammar</h2>
+      <p>Any string over variables-and-terminals that appears mid-derivation is a <strong>sentential form</strong>. For <span class="inline-code">S → 0S1 | #</span>:</p>
+      <table>
+        <tr><th>Step</th><th>Sentential form</th></tr>
+        <tr><td>0</td><td>S</td></tr>
+        <tr><td>1</td><td>0S1</td></tr>
+        <tr><td>2</td><td>00S11</td></tr>
+        <tr><td>3</td><td>00#11</td></tr>
+      </table>
+      <p>The <strong>language</strong> of G is everything reachable this way: <span class="inline-code">L(G) = {w ∈ Σ* | S *⇒ w}</span>. A language is context-free if <em>some</em> CFG generates exactly it.</p>
+
+      <div class="callout tip">
+        <div class="callout-title">Grammar ≠ language</div>
+        A grammar is a description; a language is the set it describes. Two different-looking grammars can generate the very same language — you'll see this explicitly when we fix ambiguity in the expression grammar later.
+      </div>
+
+      <h2>A recursive worked example</h2>
+      <p>Nested commands like <span class="inline-code">encrypt(sign(data))</span>:</p>
+      <div class="rule-box">S → D | F(S)
+F → hash | sign | encrypt
+D → data | msg | key</div>
+      <p class="dim">"A command is either raw data, or a function applied to a smaller command." Base case + wrap a smaller instance — this is the single most reusable idea in the whole lecture.</p>
+
+      <h2>Leftmost vs. rightmost derivations</h2>
+      <p>When a sentential form has several variables at once, you must choose which to expand next:</p>
+      <ul>
+        <li><strong>Leftmost</strong> (⇒<sub>lm</sub>) — always expand the leftmost variable.</li>
+        <li><strong>Rightmost</strong> (⇒<sub>rm</sub>) — always expand the rightmost variable.</li>
+      </ul>
+      <p>Using <span class="inline-code">E → E+T | T, T → T*F | F, F → (E) | a</span>, both orders eventually derive <span class="inline-code">a+a*a</span> — they differ in which intermediate sentential forms appear, not in the final tree. This matters later: leftmost derivations correspond to top-down (LL) parsing, rightmost (reversed) to bottom-up (LR) parsing.</p>
+
+      <div class="quiz" id="quiz-formal">
+        <div class="quiz-q">Quick check: in the rule A → α, what must be true of α?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">α must contain only terminals</div>
+          <div class="quiz-opt" data-correct="false">α must contain exactly one variable</div>
+          <div class="quiz-opt" data-correct="true">α can be any string over V ∪ Σ, including empty</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(0)">← Previous</button>
+        <button class="navbtn" onclick="goTo(2)">Next: Parse trees →</button>
+      </div>
+    </section>
+
+    <!-- 2: PARSE TREES -->
+    <section class="section" data-section="2">
+      <div class="eyebrow">03 · Parse trees</div>
+      <h1 class="title">From linear derivations to trees</h1>
+      <p class="lede">A derivation is written as a sequence, but the object being built is hierarchical. The parse tree is that hierarchy made visible — and it's the picture that makes ambiguity obvious later.</p>
+
+      <h2>Formal conditions</h2>
+      <ul>
+        <li>The root is labeled by the start variable S.</li>
+        <li>Every internal node is labeled by a variable.</li>
+        <li>Every leaf is labeled by a terminal or by ε.</li>
+        <li>If an internal node A has children (left to right) X₁, X₂, …, Xₖ, then A → X₁X₂⋯Xₖ must be a production of the grammar.</li>
+      </ul>
+      <p class="dim">Special case: a node using A → ε has exactly one child, labeled ε.</p>
+
+      <h2>Yield</h2>
+      <p>The <strong>yield</strong> is the leaves read left to right, ignoring any ε-leaf. For <span class="inline-code">S → SS | (S) | ε</span> deriving <span class="inline-code">(())</span>, the yield is exactly the string <span class="inline-code">(())</span> — the tree is a construction certificate for the string.</p>
+
+      <div class="callout tip">
+        <div class="callout-title">The equivalence that ties it together</div>
+        For every variable A and terminal string w, these are all equivalent: (1) A *⇒ w, (2) A *⇒<sub>lm</sub> w, (3) A *⇒<sub>rm</sub> w, (4) there is a parse tree with root A and yield w. Derivations and parse trees carry exactly the same information — just packaged differently.
+      </div>
+
+      <h2>Reading a tree two ways</h2>
+      <div class="card-grid">
+        <div class="card"><h4>Top-down</h4><p>Start from S, expand variables, try to generate the input. This is how you build a derivation by hand.</p></div>
+        <div class="card"><h4>Bottom-up</h4><p>Start from small substrings and infer which variables could have generated them. This is the CYK algorithm's approach.</p></div>
+      </div>
+
+      <h2>Worked example: encrypt(sign(data))</h2>
+      <p>Using <span class="inline-code">S → D | F(S), F → hash|sign|encrypt, D → data|msg|key</span>, the derivation and its tree describe the same object — the tree just makes the nesting visually obvious: <span class="inline-code">encrypt</span> wraps <span class="inline-code">sign</span> wraps <span class="inline-code">data</span>.</p>
+
+      <div class="quiz" id="quiz-tree">
+        <div class="quiz-q">If a node labeled E has children E, +, T (left to right), which production must exist?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">E → T</div>
+          <div class="quiz-opt" data-correct="true">E → E + T</div>
+          <div class="quiz-opt" data-correct="false">T → E + E</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(1)">← Previous</button>
+        <button class="navbtn" onclick="goTo(3)">Next: Design patterns →</button>
+      </div>
+    </section>
+
+    <!-- 3: DESIGN PATTERNS -->
+    <section class="section" data-section="3">
+      <div class="eyebrow">04 · Designing CFGs</div>
+      <h1 class="title">Eleven worked examples</h1>
+      <p class="lede">Grammar design is a skill you build by pattern-matching against solved cases. Work through these — each teaches a reusable trick you'll reach for on the practice problems and exam.</p>
+
+      <div class="callout note">
+        <div class="callout-title">Design checklist — ask these first</div>
+        <ol style="margin-left:18px;">
+          <li>What is the smallest valid string?</li>
+          <li>How can a larger valid string be built from smaller valid strings?</li>
+          <li>Is there a natural first/last pair to generate together?</li>
+          <li>Is the language a union of simpler languages?</li>
+          <li>Which variables correspond to meaningful syntactic categories?</li>
+        </ol>
+      </div>
+
+      <div id="accordion-patterns"></div>
+
+      <h2>Design patterns, catalogued</h2>
+      <table>
+        <tr><th>Pattern</th><th>Typical rule form</th></tr>
+        <tr><td>Wrapping</td><td>S → aSb</td></tr>
+        <tr><td>Concatenation</td><td>S → SS or S → AB</td></tr>
+        <tr><td>Optional structure</td><td>A → α | ε</td></tr>
+        <tr><td>Union of cases</td><td>S → S1 | S2</td></tr>
+        <tr><td>Regular part</td><td>convert DFA states into variables</td></tr>
+        <tr><td>Syntactic categories</td><td>one variable per category</td></tr>
+      </table>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(2)">← Previous</button>
+        <button class="navbtn" onclick="goTo(4)">Next: Ambiguity →</button>
+      </div>
+    </section>
+
+    <!-- 4: AMBIGUITY -->
+    <section class="section" data-section="4">
+      <div class="eyebrow">05 · Ambiguity</div>
+      <h1 class="title">When one string has two stories</h1>
+      <p class="lede">A string is derived <strong>ambiguously</strong> if it has two or more different parse trees — equivalently, two or more different leftmost (or rightmost) derivations. A grammar is ambiguous if it generates at least one string ambiguously.</p>
+
+      <div class="callout warn">
+        <div class="callout-title">Ambiguity is about the grammar, not the language</div>
+        The same language may have both ambiguous and unambiguous grammars. Fixing ambiguity means finding a better grammar for the same L, not changing L itself.
+      </div>
+
+      <h2>Case 1 — operator precedence</h2>
+      <p><span class="inline-code">E → E + E | E * E | (E) | a</span> lets <span class="inline-code">a+a*a</span> parse as either <span class="inline-code">a+a*a</span> (times binds first) or <span class="inline-code">a+a*a</span> (plus binds first) — the grammar treats + and * as structurally equal, so it fails to encode precedence.</p>
+      <p><strong>Fix:</strong> introduce levels — factor, term, expression:</p>
+      <div class="rule-box">E → E + T | T
+T → T * F | F
+F → (E) | a</div>
+      <p class="dim">Multiplication is now forced below addition in the tree, so * always binds tighter than +.</p>
+
+      <h2>Case 2 — the dangling else</h2>
+      <p>A naive statement grammar <span class="inline-code">S → if E then S | if E then S else S | other</span> lets <span class="inline-code">if E then if E then other else other</span> attach the <span class="inline-code">else</span> to either the inner or outer <span class="inline-code">if</span>.</p>
+      <p><strong>Fix:</strong> separate matched (M) and unmatched (U) statements:</p>
+      <div class="rule-box">S → M | U
+M → other | if E then M else M
+U → if E then S | if E then M else U</div>
+      <p class="dim">Convention encoded: every else attaches to the nearest unmatched if.</p>
+
+      <h2>Case 3 — even balanced brackets can be ambiguous</h2>
+      <p><span class="inline-code">S → SS | (S) | ε</span> correctly generates balanced parentheses, but it's ambiguous: <span class="inline-code">()()()</span> can be grouped as <span class="inline-code">()·()·()</span> in more than one way via the SS rule.</p>
+      <div class="callout tip"><div class="callout-title">Lesson</div>A language can have an "obviously correct" grammar that is still ambiguous. Correctness (generating the right language) and unambiguity (one tree per string) are separate properties.</div>
+
+      <h2>Inherent ambiguity</h2>
+      <p>Some languages are worse off: a CFL L is <strong>inherently ambiguous</strong> if <em>every</em> CFG for L is ambiguous — no amount of rewriting fixes it. The standard example:</p>
+      <div class="rule-box">L = {aⁿbⁿcᵐdᵐ | n,m≥1} ∪ {aⁿbᵐcᵐdⁿ | n,m≥1}</div>
+      <p>Strings of the form <span class="inline-code">aⁿbⁿcⁿdⁿ</span> belong to <em>both</em> halves of the union, so they're always derivable via two structurally different branches — that's unavoidable.</p>
+
+      <div class="quiz" id="quiz-ambig">
+        <div class="quiz-q">A grammar is ambiguous if...</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" data-correct="false">it can't generate every string in its language</div>
+          <div class="quiz-opt" data-correct="true">at least one string it generates has two or more distinct parse trees</div>
+          <div class="quiz-opt" data-correct="false">it has more than one start variable</div>
+        </div>
+        <div class="quiz-fb"></div>
+      </div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(3)">← Previous</button>
+        <button class="navbtn" onclick="goTo(5)">Next: Pumping lemma →</button>
+      </div>
+    </section>
+
+    <!-- 5: PUMPING LEMMA -->
+    <section class="section" data-section="5">
+      <div class="eyebrow">06 · Pumping lemma</div>
+      <h1 class="title">Proving a language is NOT context-free</h1>
+      <p class="lede">Context-free grammars are powerful but bounded. The pumping lemma gives a necessary property every CFL must satisfy — violate it, and the language cannot be context-free.</p>
+
+      <div class="callout note">
+        <div class="callout-title">The statement</div>
+        If L is context-free, there's an integer p ≥ 1 (the pumping length) such that every w ∈ L with |w| ≥ p can be written w = uvxyz where: (1) |vxy| ≤ p, (2) |vy| &gt; 0, (3) for every i ≥ 0, uvⁱxyⁱz ∈ L.
+      </div>
+
+      <h2>Who chooses what</h2>
+      <div class="card-grid">
+        <div class="card"><h4>Our choices</h4><p>A witness string w (usually built from p), and a pumping value i (typically 0 or 2).</p></div>
+        <div class="card"><h4>Adversary's choice</h4><p>The decomposition w = uvxyz — subject only to |vxy| ≤ p and |vy| &gt; 0. A proof must handle <em>every</em> valid decomposition.</p></div>
+      </div>
+
+      <h2>Standard proof template</h2>
+      <ol>
+        <li>Assume, for contradiction, that L is context-free.</li>
+        <li>Let p be the pumping length.</li>
+        <li>Choose a witness w ∈ L with |w| ≥ p.</li>
+        <li>Consider an <em>arbitrary</em> valid decomposition w = uvxyz; use |vxy| ≤ p to restrict where v and y can sit.</li>
+        <li>Choose a pumping value i; show uvⁱxyⁱz ∉ L for every possible placement.</li>
+      </ol>
+
+      <h3>Choosing a good witness</h3>
+      <table>
+        <tr><th>Required property</th><th>Typical witness</th></tr>
+        <tr><td>Three equal blocks</td><td>a^p b^p c^p</td></tr>
+        <tr><td>Two crossing equalities</td><td>a^p b^p c^p d^p</td></tr>
+        <tr><td>Prime length</td><td>a^q, q &gt; p prime</td></tr>
+        <tr><td>Nonlinear relationship</td><td>a^p b^(p²)</td></tr>
+      </table>
+
+      <div id="accordion-pumping"></div>
+
+      <div class="callout warn">
+        <div class="callout-title">What the lemma does NOT prove</div>
+        L violates the pumping property ⟹ L is not context-free. But showing a few strings <em>can</em> be pumped never proves L <em>is</em> context-free — for that you need an actual grammar or PDA.
+      </div>
+
+      <h2>Proof checklist</h2>
+      <ul class="checklist">
+        <li>Assumed L is context-free, for contradiction</li>
+        <li>Let p be an arbitrary pumping length</li>
+        <li>Witness w is actually in L, and |w| ≥ p</li>
+        <li>Considered an arbitrary valid decomposition</li>
+        <li>Used both |vxy| ≤ p and |vy| &gt; 0</li>
+        <li>Covered every possible placement of vxy</li>
+        <li>Explicitly chose a pumping value i</li>
+        <li>Proved the pumped string is outside L, for every case</li>
+      </ul>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(4)">← Previous</button>
+        <button class="navbtn" onclick="goTo(6)">Next: Practice →</button>
+      </div>
+    </section>
+
+    <!-- 6: PRACTICE -->
+    <section class="section" data-section="6">
+      <div class="eyebrow">07 · Practice problems</div>
+      <h1 class="title">Try these before the exam</h1>
+      <p class="lede">Straight from the lecture's problem set. For each, specify the witness, characterize every possible location of vxy, choose a pumping value, and state exactly which language condition fails.</p>
+
+      <ol>
+        <li style="margin-bottom:16px;"><span class="inline-code">{0ⁿ1ⁿ2ⁿ | n ≥ 0}</span></li>
+        <li style="margin-bottom:16px;"><span class="inline-code">{aⁿbᵐcⁿdᵐ | n,m ≥ 0}</span></li>
+        <li style="margin-bottom:16px;"><span class="inline-code">{aⁿb²ⁿc³ⁿ | n ≥ 0}</span></li>
+        <li style="margin-bottom:16px;"><span class="inline-code">{a^q | q is prime}</span></li>
+        <li style="margin-bottom:16px;"><span class="inline-code">{aⁿb^(n³) | n ≥ 0}</span></li>
+      </ol>
+
+      <div class="callout tip">
+        <div class="callout-title">Two common proof mistakes to avoid</div>
+        <strong>Fixing the decomposition yourself</strong> — you never control where v and y land; the adversary does. And <strong>pumping only one piece</strong> — the lemma pumps both v and y together (uvⁱxyⁱz), so their <em>combined</em> effect on symbol counts is what determines the contradiction.
+      </div>
+
+      <h2>Where CFGs hit their ceiling</h2>
+      <p>The pumping lemma shows CFGs structurally cannot maintain: three simultaneous equal block lengths, crossing equality constraints, prime-length requirements, or nonlinear counting relationships. That's precisely the gap that pushdown automata (single-stack memory) will turn out to match exactly — our next lecture.</p>
+
+      <div class="callout note">
+        <div class="callout-title">Good luck with SciBlitz too</div>
+        Once you're comfortable with derivations and parse trees here, the recursive "base case + wrap a smaller instance" pattern shows up constantly in general algorithm design — worth having solid before you're deep into LeafLine's crunch time.
+      </div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(5)">← Previous</button>
+        <button class="navbtn" onclick="goTo(7)">Next: Exam mastery →</button>
+      </div>
+    </section>
+
+    <!-- 7: EDGE CASES & EXAM MASTERY -->
+    <section class="section" data-section="7">
+      <div class="eyebrow">08 · Exam mastery</div>
+      <h1 class="title">Edge cases examiners actually test</h1>
+      <p class="lede">The definition looks simple until a question exploits one of its corners. These are the corners that come up over and over — know them cold.</p>
+
+      <h2>Corner 1 — α can be empty</h2>
+      <p>In <span class="inline-code">A → α</span>, α ranges over <span class="inline-code">(V ∪ Σ)*</span> — which includes the empty string. <span class="inline-code">A → ε</span> is completely legal, and it's exactly how recursion terminates (recall <span class="inline-code">S → ε</span> in balanced brackets).</p>
+
+      <h2>Corner 2 — recursion is required for an infinite language</h2>
+      <div class="callout warn">
+        <div class="callout-title">Exam trap</div>
+        "Give a CFG with no recursive productions that generates an infinite language." This is impossible — a finite set of non-recursive rules can only ever build finitely many distinct terminal strings. Proof sketch: without any variable capable of reappearing beneath itself, every derivation tree has bounded depth, so there are only finitely many distinct trees, hence finitely many yields.
+      </div>
+
+      <h2>Corner 3 — useless symbols</h2>
+      <p>A grammar can contain a variable that's syntactically fine but contributes nothing to <span class="inline-code">L(G)</span>:</p>
+      <div class="card-grid">
+        <div class="card"><h4>Unreachable</h4><p>No derivation from S ever reaches it — it never appears on the right side of any rule reachable from S.</p></div>
+        <div class="card"><h4>Unproductive</h4><p>It can never derive an all-terminal string — e.g. B → B with no alternative is an infinite dead end.</p></div>
+      </div>
+      <p><strong>The removal algorithm needs two passes, in this order:</strong></p>
+      <ol>
+        <li>Bottom-up: mark every variable that <em>can</em> derive some terminal string; discard the rest.</li>
+        <li>Top-down: mark every variable reachable from S in the reduced grammar; discard the rest.</li>
+      </ol>
+      <div class="callout note"><div class="callout-title">Order matters</div>Doing only one pass can leave a variable that's reachable but still unproductive, or productive but unreachable. Both passes are required, in this order, to fully simplify.</div>
+
+      <h2>Worked exam problem</h2>
+      <p><em>Give a CFG for L = {aⁱbʲcᵏ | i = j+k}, and give a leftmost derivation for aabc.</em></p>
+      <div class="callout warn">
+        <div class="callout-title">The mistake most students make here</div>
+        Reaching for <span class="inline-code">S → aSb | aSc | ε</span> looks tempting since each step "spends" one a against one b or c — but it interleaves a's with b's and c's arbitrarily, generating strings like <span class="inline-code">abac</span>. That violates the required block shape a...a b...b c...c. Matching a count equality without checking block order is the single most common error on this style of question.
+      </div>
+      <p><strong>Correct design:</strong> nest one wrapping layer for the c-matched a's around a second wrapping layer for the b-matched a's, so all a's stay together as one contiguous block:</p>
+      <div class="rule-box">S → aSc | T
+T → aTb | ε</div>
+      <p class="dim">S contributes p pairs of (a,c) from the outside in; T contributes q pairs of (a,b) in the middle. The result is always a^(p+q) b^q c^p — one contiguous a-block, then b's, then c's — with i = p+q = q+p = j+k automatically.</p>
+
+      <h3>Interactive: leftmost derivation of aabc (i=2, j=1, k=1)</h3>
+      <div class="stepper" id="stepper-exam"></div>
+
+      <h2>Common exam traps, at a glance</h2>
+      <table>
+        <tr><th>Trap</th><th>Why it bites</th></tr>
+        <tr><td>Matching a count equality</td><td>without checking required block/order shape</td></tr>
+        <tr><td>Assuming a unique derivation</td><td>same string can have &gt;1 construction history</td></tr>
+        <tr><td>Fixing the pumping decomposition</td><td>the adversary chooses it, not you</td></tr>
+        <tr><td>One-pass useless-symbol removal</td><td>must do productive-check, then reachable-check, in order</td></tr>
+        <tr><td>"Pumping-property fails" ⟹ done</td><td>only proves not-CF; never proves a language IS context-free</td></tr>
+      </table>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(6)">← Previous</button>
+        <button class="navbtn" onclick="goTo(8)">Next: Exam corner →</button>
+      </div>
+    </section>
+
+    <!-- 8: EXAM CORNER -->
+    <section class="section" data-section="8">
+      <div class="eyebrow">09 · Exam corner</div>
+      <h1 class="title">Brainstorm first, then test yourself</h1>
+      <p class="lede">Two modes here. First, open questions worth chewing on before you look anything up — they don't have single clean answers. Then a bank of exam-style questions with the answer hidden until you've actually attempted it yourself.</p>
+
+      <h2>Brainstorming — think before reading on</h2>
+      <ul class="brainstorm-list" id="brainstorm-list"></ul>
+
+      <h2>Exam-likely questions</h2>
+      <p class="dim">Try to answer each one in your head (or on paper) before hitting reveal — that's the only way this actually helps.</p>
+      <div id="qa-bank"></div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(7)">← Previous</button>
+        <button class="navbtn" onclick="goTo(9)">Next: MCQ self-test →</button>
+      </div>
+    </section>
+
+    <!-- 9: MCQ SELF-TEST -->
+    <section class="section" data-section="9">
+      <div class="eyebrow">10 · Self-test</div>
+      <h1 class="title">Twelve MCQs, spanning everything</h1>
+      <p class="lede">Pulled across formal definitions, derivations, ambiguity, the pumping lemma, and grammar design — the way a real exam would mix them, not organized by topic. Answer each, then check your score.</p>
+
+      <div class="score-bar">
+        <div><span class="score-label">Score: </span><span class="score-val" id="scoreVal">0 / 12</span></div>
+        <button class="score-reset" id="scoreReset">Reset</button>
+      </div>
+
+      <div id="mcq-bank"></div>
+
+      <div class="section-nav">
+        <button class="navbtn" onclick="goTo(8)">← Previous</button>
+        <button class="navbtn" onclick="goTo(0)">Back to start →</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const sections = [
+  {label:'Why grammars?', sub:'Motivation'},
+  {label:'Formal definition', sub:'4-tuple, derivations'},
+  {label:'Parse trees', sub:'Yield, top-down/bottom-up'},
+  {label:'Design patterns', sub:'11 worked examples'},
+  {label:'Ambiguity', sub:'Precedence, dangling else'},
+  {label:'Pumping lemma', sub:'Proving non-context-free'},
+  {label:'Practice problems', sub:'5 exercises'},
+  {label:'Exam mastery', sub:'Edge cases & traps'},
+  {label:'Exam corner', sub:'Brainstorm + Q&A bank'},
+  {label:'MCQ self-test', sub:'12 mixed questions'}
+];
+const navgroup = document.getElementById('navgroup');
+sections.forEach((s,i)=>{
+  const a = document.createElement('div');
+  a.className = 'navlink' + (i===0?' active':'');
+  a.innerHTML = `<span class="navnum">${String(i+1).padStart(2,'0')}</span><span>${s.label}</span>`;
+  a.onclick = ()=>goTo(i);
+  a.id = 'nav-'+i;
+  navgroup.appendChild(a);
+});
+
+function goTo(i){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.section[data-section="${i}"]`).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+i).classList.add('active');
+  document.getElementById('progressFill').style.width = (((i+1)/sections.length)*100)+'%';
+  document.querySelector('.main').scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+goTo(0);
+
+/* ---------- Derivation stepper ---------- */
+function buildStepper(containerId, steps){
+  const el = document.getElementById(containerId);
+  let i = 0;
+  el.innerHTML = `
+    <div class="stepper-display" id="${containerId}-disp"></div>
+    <div class="stepper-rule" id="${containerId}-rule"></div>
+    <div class="stepper-controls">
+      <button class="stepper-btn" id="${containerId}-prev">← Back</button>
+      <div class="stepper-dots" id="${containerId}-dots"></div>
+      <button class="stepper-btn" id="${containerId}-next">Next →</button>
+    </div>`;
+  const dotsEl = document.getElementById(containerId+'-dots');
+  steps.forEach(()=>{ const d=document.createElement('div'); d.className='step-dot'; dotsEl.appendChild(d); });
+  function render(){
+    document.getElementById(containerId+'-disp').textContent = steps[i].form;
+    document.getElementById(containerId+'-rule').textContent = steps[i].rule || '';
+    [...dotsEl.children].forEach((d,idx)=>d.classList.toggle('on', idx===i));
+    document.getElementById(containerId+'-prev').disabled = i===0;
+    document.getElementById(containerId+'-next').disabled = i===steps.length-1;
+  }
+  document.getElementById(containerId+'-prev').onclick = ()=>{ if(i>0){i--; render();} };
+  document.getElementById(containerId+'-next').onclick = ()=>{ if(i<steps.length-1){i++; render();} };
+  render();
+}
+
+buildStepper('stepper-intro', [
+  {form:'S', rule:'start'},
+  {form:'(S)', rule:'S → (S)'},
+  {form:'(SS)', rule:'S → SS'},
+  {form:'((S)S)', rule:'S → (S)'},
+  {form:'(()S)', rule:'S → ε'},
+  {form:'(()(S))', rule:'S → (S)'},
+  {form:'(()())', rule:'S → ε   — done, all terminals'}
+]);
+
+buildStepper('stepper-exam', [
+  {form:'S', rule:'start'},
+  {form:'aSc', rule:'S → aSc'},
+  {form:'aTc', rule:'S → T'},
+  {form:'a(aTb)c', rule:'T → aTb'},
+  {form:'a(a(ε)b)c', rule:'T → ε'},
+  {form:'aabc', rule:'done — i=2, j=1, k=1, and 2 = 1+1 ✓'}
+]);
+
+/* ---------- Accordion: design patterns ---------- */
+const patterns = [
+  {t:'Balanced mixed brackets', g:'S → SS | (S) | [S] | {S} | ε',
+   d:'Wrap a balanced object, or concatenate two balanced objects. Rejection intuition: strings like ([)] can never be generated, because every opening bracket must be closed by its matching wrapper rule.'},
+  {t:'Equal numbers of 0s and 1s (any order)', g:'S → 0S1S | 1S0S | ε',
+   d:'The matching symbols need not be adjacent or block-grouped — 001011 and 1010 both qualify. Invariant: every nonempty production introduces exactly one 0 and one 1, so every generated string has equal counts by construction.'},
+  {t:'Mirrored packets w#wᴿ', g:'S → 0S0 | 1S1 | #',
+   d:'Choose the middle marker # first, then wrap matching symbols symmetrically around it. Example: 101#101.'},
+  {t:'All palindromes', g:'P → 0P0 | 1P1 | 0 | 1 | ε',
+   d:'Two base cases handle both parities: P → ε gives even-length palindromes (00, 0110), P → 0 | 1 gives odd-length ones (0, 10101).'},
+  {t:'Two independent matching layers aⁿbᵐcᵐdⁿ', g:'S → aSd | T\nT → bTc | ε',
+   d:'Use one variable per independent obligation. The outer recursion (S) matches a\'s with d\'s; the inner recursion (T) matches b\'s with c\'s, nested inside.'},
+  {t:'One of two equalities: i=j or j=k', g:'S → S1 | S2\nS1 → AC,  A → aAb | ε,  C → cC | ε\nS2 → DB,  D → aD | ε,  B → bBc | ε',
+   d:'Build the language as a union of two branches, each independently verifying one equality — this is the standard move whenever L splits into "either this holds, or that holds."'},
+  {t:'Unequal numbers of 0s and 1s', g:'U → A | B\nA → E0E | E0A\nB → E1E | E1B\nE → 0E1E | 1E0E | ε',
+   d:'E generates equal-count strings; A generates "more 0s than 1s" strings by injecting an extra unmatched 0; B is the symmetric case for 1s. Variables here represent syntactic categories, not just raw counts.'},
+  {t:'Binary trees in prefix form', g:'T → x | n(T,T)',
+   d:'A leaf x, or an internal node n wrapping two smaller trees. Generates x, n(x,x), n(n(x,x),x), and so on — the grammar directly mirrors the recursive tree structure.'},
+  {t:'A tiny query language', g:'Q → select(F, W)\nF → name | age | dept\nW → all | where(P)\nP → F O V\nO → > | = | <\nV → 18 | 30 | cse',
+   d:'Generates strings like select(name, where(age>18)). Moral: variables often represent meaningful syntactic categories (a field, an operator, a value) rather than pure counting devices.'},
+  {t:'DFA → CFG conversion', g:'Rᵢ → aRⱼ   for every δ(qᵢ,a)=qⱼ\nRᵢ → ε     for every accept state qᵢ',
+   d:'One variable per DFA state; start variable = the DFA\'s start state. This construction proves every regular language is context-free — a derivation Rq0 *⇒ w exactly tracks the DFA reaching an accepting state after reading w.'},
+  {t:'The tempting non-example: {ww}', g:'S → 0S0 | 1S1 | ε   (WRONG for {ww})',
+   d:'Students often reach for this, but it actually generates {wwᴿ} (mirrors), not {ww} (exact copies). Recursive wrapping remembers the first half in reverse order — that\'s exactly why stack-based automata recognize mirrors naturally, but not copies.'}
+];
+const accEl = document.getElementById('accordion-patterns');
+patterns.forEach((p,i)=>{
+  const item = document.createElement('div');
+  item.className = 'accordion-item';
+  item.innerHTML = `
+    <div class="accordion-head" onclick="this.parentElement.classList.toggle('open')">
+      <span><span class="exnum">Ex ${i+1}</span>${p.t}</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-body-inner">
+      <div class="rule-box">${p.g}</div>
+      <p class="dim" style="margin-bottom:0;">${p.d}</p>
+    </div></div>`;
+  accEl.appendChild(item);
+});
+
+/* ---------- Accordion: pumping lemma examples ---------- */
+const pumps = [
+  {t:'aⁿbⁿcⁿ — three equal blocks', w:'w = a^p b^p c^p',
+   d:'Since |vxy| ≤ p, vxy can\'t reach across all three blocks (that would need ≥ p+2 symbols). So vxy touches at most two adjacent blocks. Pumping with i=2 either mixes symbol order (if vy spans two blocks) or changes exactly one/two block lengths while the third stays at p — either way the counts can\'t all stay equal. Contradiction ⟹ not context-free.'},
+  {t:'aⁿbᵐcⁿdᵐ — crossing dependencies', w:'w = a^p b^p c^p d^p',
+   d:'The equalities that must hold (a↔c, b↔d) are non-adjacent, but |vxy| ≤ p restricts pumping to at most two adjacent blocks. So pumping changes one matched block while its non-adjacent partner (outside vxy) stays fixed — the equality breaks. Contradiction.'},
+  {t:'a^q for prime q — unary length', w:'w = a^q,  q prime, q > p',
+   d:'Let d = |v|+|y|, so 1 ≤ d < q. Pump with i = q+1: the new length is q + qd = q(1+d), a product of two factors both ≥ 2 — composite. A prime-length string pumped to a composite length leaves the language. Contradiction.'},
+  {t:'aⁿb^(n²) — nonlinear growth', w:'w = a^p b^(p²)',
+   d:'Let α, β count a\'s and b\'s inside vy. Membership after pumping (i=2) requires β = 2pα + α². If α=0, the b-count changes with the a-count fixed — breaks the square relationship directly. If α>0, the required β exceeds the available budget (β ≤ p). Either way, contradiction — pumping can only add symbols linearly, but the language needs a quadratic relationship.'}
+];
+const pumpEl = document.getElementById('accordion-pumping');
+pumps.forEach((p,i)=>{
+  const item = document.createElement('div');
+  item.className = 'accordion-item';
+  item.innerHTML = `
+    <div class="accordion-head" onclick="this.parentElement.classList.toggle('open')">
+      <span><span class="exnum">Proof ${i+1}</span>${p.t}</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body"><div class="accordion-body-inner">
+      <div class="rule-box">${p.w}</div>
+      <p class="dim" style="margin-bottom:0;">${p.d}</p>
+    </div></div>`;
+  pumpEl.appendChild(item);
+});
+
+/* ---------- MCQ self-test ---------- */
+const mcqBank = [
+  {topic:'Formal definition', q:'Which statement about a production A → α is FALSE?',
+   opts:['α ∈ (V ∪ Σ)*','A must be a variable','α can be the empty string','α must contain at least one terminal'],
+   correct:3, explain:'A rule can be entirely variables (A → BC) or entirely empty (A → ε) — a terminal is never required.'},
+  {topic:'Ambiguity', q:'A string is derived ambiguously when it has...',
+   opts:['two accepting DFA paths','two or more distinct parse trees','no valid derivation','two start variables'],
+   correct:1, explain:'DFAs and start-variable counts are irrelevant here — ambiguity is purely about multiple distinct parse trees for one string.'},
+  {topic:'Ambiguity', q:'S → SS | (S) | ε correctly generates balanced parentheses but is still ambiguous. Why?',
+   opts:['ε causes infinite loops','SS lets a string like ()()()  be grouped via more than one split point','(S) never terminates','it is not actually ambiguous'],
+   correct:1, explain:'Concatenation via SS can split the same string at different points, producing multiple distinct trees for one string — correctness and unambiguity are separate properties.'},
+  {topic:'Pumping lemma', q:'In w = uvxyz, who chooses the decomposition, and under what constraints?',
+   opts:['We choose it, no constraints','An adversary chooses it, constrained only by |vxy| ≤ p and |vy| > 0','We choose it, constrained by i ≥ 0','An adversary chooses it, constrained by |uv| ≤ p'],
+   correct:1, explain:'A valid proof must work for every possible adversarial placement of v and y — that is the entire difficulty of these proofs.'},
+  {topic:'Design', q:'Which grammar correctly generates {aⁿbᵐcᵐdⁿ | n,m ≥ 0}?',
+   opts:['S → aSd | T,  T → bTc | ε','S → aSb | cSd | ε','S → aSc | bSd | ε','S → abScd | ε'],
+   correct:0, explain:'The outer recursion matches a with d; the inner recursion (T) independently matches b with c — two nested, independent obligations.'},
+  {topic:'Regular vs. CF', q:'Why does every regular language have a corresponding CFG, but not every CFL correspond to a DFA?',
+   opts:['DFAs always have more states than needed','The DFA→CFG construction mirrors states/transitions exactly, but some CFLs (e.g. aⁿbⁿ) need unbounded counting memory no DFA has','CFGs cannot contain terminals','Regular languages are always finite'],
+   correct:1, explain:'One CFG variable per DFA state proves regular ⊆ context-free. The strict containment comes from languages like aⁿbⁿ, provably impossible for any finite-state machine.'},
+  {topic:'Derivations', q:'In a leftmost derivation (⇒lm), what is guaranteed at each step?',
+   opts:['The leftmost variable in the current sentential form is expanded','The resulting parse tree must differ from any rightmost derivation\'s tree','The derivation is always shorter than a rightmost one','Leftmost derivations only exist for regular grammars'],
+   correct:0, explain:'Leftmost vs rightmost only fixes the expansion ORDER — both can converge on the exact same parse tree.'},
+  {topic:'Simplification', q:'A variable B never appears on the right-hand side of any production reachable from S, and B ≠ S. B is:',
+   opts:['unreachable','unproductive','ambiguous','a required base case'],
+   correct:0, explain:'Unreachable = never appears in any sentential form derivable from S. Unproductive is the separate failure mode of never reaching an all-terminal string.'},
+  {topic:'Pumping lemma', q:'Proving {a^q | q prime} is not context-free, the pumping value i is chosen as:',
+   opts:['i = 0','i = 2','i = q + 1, making the pumped length q(1+d) composite','i = p'],
+   correct:2, explain:'Pumping length becomes q(1+d), a product of two factors ≥ 2 — composite, hence outside the prime-length language.'},
+  {topic:'Ambiguity', q:'The dangling-else problem is resolved by:',
+   opts:['banning else entirely','splitting statements into matched (M) and unmatched (U) categories, so else binds to the nearest unmatched if','always attaching else to the outermost if','requiring parentheses around every if'],
+   correct:1, explain:'M/U → the standard fix: U → if E then S | if E then M else U forces every else to the nearest still-open if.'},
+  {topic:'Parse trees', q:'The yield of a parse tree is:',
+   opts:['the root label','the leaves read left to right, ignoring any ε-leaf','the total node count','the start variable'],
+   correct:1, explain:'Yield is literally the terminal string the tree constructs — read the leaves in order, skip ε.'},
+  {topic:'Design', q:'For L = {aⁱbʲcᵏ | i=j+k}, why does S → aSb | aSc | ε fail?',
+   opts:['It generates strings of the wrong total length','It interleaves a\'s, b\'s, and c\'s instead of keeping them in three separate blocks','It cannot generate i=0','It is inherently ambiguous'],
+   correct:1, explain:'The count equality i=j+k is satisfied, but the required block SHAPE a...a b...b c...c is violated — matching counts without checking order is the classic trap.'}
+];
+
+const mcqEl = document.getElementById('mcq-bank');
+const scoreValEl = document.getElementById('scoreVal');
+let score = 0;
+const answered = new Array(mcqBank.length).fill(false);
+
+function updateScore(){
+  scoreValEl.textContent = `${score} / ${mcqBank.length}`;
+}
+
+mcqBank.forEach((item,qi)=>{
+  const div = document.createElement('div');
+  div.className = 'mcq-item';
+  div.innerHTML = `
+    <div class="mcq-topic">${item.topic}</div>
+    <div class="mcq-q">Q${qi+1}. ${item.q}</div>
+    <div class="mcq-opts"></div>
+    <div class="mcq-explain">${item.explain}</div>`;
+  const optsEl = div.querySelector('.mcq-opts');
+  item.opts.forEach((optText,oi)=>{
+    const opt = document.createElement('div');
+    opt.className = 'quiz-opt';
+    opt.textContent = optText;
+    opt.onclick = ()=>{
+      if(answered[qi]) return;
+      answered[qi] = true;
+      div.classList.add('answered');
+      const isCorrect = oi === item.correct;
+      opt.classList.add(isCorrect?'correct':'wrong');
+      if(!isCorrect){
+        [...optsEl.children][item.correct].classList.add('correct');
+      } else {
+        score++;
+        updateScore();
+      }
+    };
+    optsEl.appendChild(opt);
+  });
+  mcqEl.appendChild(div);
+});
+
+document.getElementById('scoreReset').onclick = ()=>{
+  score = 0;
+  updateScore();
+  answered.fill(false);
+  mcqEl.querySelectorAll('.mcq-item').forEach(item=>{
+    item.classList.remove('answered');
+    item.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong'));
+  });
+};
+updateScore();
+
+/* ---------- Exam corner: brainstorm list ---------- */
+const brainstorm = [
+  'Why can\'t a DFA verify balanced parentheses no matter how many states you give it — what specifically breaks?',
+  'Is every language described by some grammar automatically context-free? What would make a grammar not a CFG?',
+  'If a grammar has zero recursive productions, what does that force about L(G)? Can you prove it?',
+  'Two different grammars generate the exact same language — one is ambiguous, one isn\'t. What does that tell you about "ambiguity" as a property — of the grammar, or of the language?',
+  'Could a language be inherently ambiguous and still be simple-looking, like a union of two near-identical patterns? Why does the union operation specifically create this risk?',
+  'Why does the pumping lemma pump both v and y at once instead of analyzing them separately — what would go wrong if you only pumped one piece?',
+  'Every regular language is context-free, via the DFA→CFG construction. Is the reverse ever true — could every context-free language be regular? What single fact rules that out?'
+];
+const bEl = document.getElementById('brainstorm-list');
+brainstorm.forEach(q=>{
+  const li = document.createElement('li');
+  li.textContent = q;
+  bEl.appendChild(li);
+});
+
+/* ---------- Exam corner: Q&A bank ---------- */
+const qaBank = [
+  {tag:'Definition', q:'Define a context-free grammar formally, naming all four components.',
+   a:'G = (V, Σ, R, S). V: finite set of variables/nonterminals. Σ: finite set of terminals, disjoint from V. R: finite set of productions A → α with A ∈ V and α ∈ (V ∪ Σ)*. S ∈ V: the start variable. L(G) = {w ∈ Σ* | S *⇒ w}.'},
+  {tag:'Derivations', q:'What exactly is the difference between a derivation and a parse tree, and how are they related?',
+   a:'A derivation is a linear sequence of rewrite steps — a construction history. A parse tree is the hierarchical object being built. They carry the same information: for any A and w, A *⇒ w iff A *⇒lm w iff A *⇒rm w iff there\'s a parse tree with root A and yield w. Different derivation orders (leftmost vs rightmost) can correspond to the same tree.'},
+  {tag:'Ambiguity', q:'Fix the ambiguous grammar E → E+E | E*E | (E) | a so that * binds tighter than +.',
+   a:'Introduce precedence levels:\nE → E + T | T\nT → T * F | F\nF → (E) | a\nMultiplication is forced to sit below addition in the tree, so it always binds first.'},
+  {tag:'Ambiguity', q:'What is inherent ambiguity, and why is {aⁿbⁿcᵐdᵐ} ∪ {aⁿbᵐcᵐdⁿ} (n,m≥1) the standard example?',
+   a:'A CFL is inherently ambiguous if every possible grammar for it is ambiguous — no rewriting fixes it. Strings of the form aⁿbⁿcⁿdⁿ satisfy both halves of the union simultaneously, so they always have at least two structurally distinct derivations (one via each branch), regardless of how you write the grammar.'},
+  {tag:'Pumping lemma', q:'State the pumping lemma for context-free languages precisely, including all three conditions.',
+   a:'If L is context-free, there exists p ≥ 1 such that every w ∈ L with |w| ≥ p can be written w = uvxyz where: (1) |vxy| ≤ p, (2) |vy| > 0, (3) for every i ≥ 0, uvⁱxyⁱz ∈ L.'},
+  {tag:'Pumping lemma', q:'Sketch a proof that {aⁿbⁿcⁿ | n≥0} is not context-free.',
+   a:'Assume it is CF with pumping length p. Choose w = a^p b^p c^p. |vxy| ≤ p means vxy can\'t span all three blocks (that needs ≥ p+2 symbols), so it touches at most two adjacent blocks. Pump with i=2: if vy spans a boundary, symbol order breaks; otherwise only one or two block lengths grow while the third stays at p, so the three counts can\'t all remain equal. Contradiction, so the language is not context-free.'},
+  {tag:'Design', q:'Design a CFG for {aⁱbʲcᵏ | i = j+k} and explain the trap most people fall into.',
+   a:'Trap: S → aSb | aSc | ε looks right (each step "spends" one a) but interleaves symbols arbitrarily, breaking the required a-block/b-block/c-block order. Correct grammar keeps all a\'s together:\nS → aSc | T\nT → aTb | ε\nThis gives a^(p+q) b^q c^p — one contiguous a-block — with i = p+q = j+k automatically.'},
+  {tag:'Regularity', q:'Every regular language is context-free — how is the CFG built from a DFA, and why does this NOT go the other way?',
+   a:'One variable Rq per DFA state; for δ(q,a)=r add Rq → aRr; for every accepting state q add Rq → ε; start variable is Rq0. This proves regular ⊆ context-free. The reverse fails because CFLs like {aⁿbⁿ} require unbounded counting memory that no DFA (finite states only) can provide — the pumping lemma for regular languages rules it out, even though it IS context-free via S → aSb | ε.'},
+  {tag:'Simplification', q:'Why can\'t you remove useless grammar symbols in a single pass?',
+   a:'A variable can be reachable-from-S but unproductive (never derives an all-terminal string), or productive-in-isolation but unreachable-from-S. You need the productive-check first (bottom-up: which variables can derive some terminal string), discard failures, THEN the reachable-check (top-down, on the reduced grammar). Reversing the order, or doing only one, can leave genuinely useless symbols behind.'},
+  {tag:'Design', q:'Why does S → 0S0 | 1S1 | ε generate {wwᴿ} and not {ww}, and what does that reveal about CFGs generally?',
+   a:'The wrapping recursion remembers the first half and reproduces it in reverse order on the way back out of the recursion — that\'s exactly a stack\'s LIFO behavior. {ww} requires reproducing the first half in the SAME order after an arbitrary-length gap, which needs comparing two positions read in the same direction — no CFG can do this (provable via pumping lemma). This is why PDAs recognize mirrors naturally but not exact copies.'}
+];
+const qaEl = document.getElementById('qa-bank');
+qaBank.forEach((item,i)=>{
+  const div = document.createElement('div');
+  div.className = 'qa-item';
+  const answerHtml = item.a.includes('\n')
+    ? `<div class="rule-box">${item.a.split('\n').slice(1).join('\n')}</div><p class="dim" style="margin:0;">${item.a.split('\n')[0]}</p>`
+    : `<p style="margin:0;">${item.a}</p>`;
+  div.innerHTML = `
+    <div class="qa-q">
+      <span><span class="qa-tag">Q${i+1} · ${item.tag}</span><span class="qa-q-text">${item.q}</span></span>
+      <button class="qa-reveal-btn">Reveal answer</button>
+    </div>
+    <div class="qa-answer"><div class="qa-answer-inner">${answerHtml}</div></div>`;
+  const btn = div.querySelector('.qa-reveal-btn');
+  btn.onclick = ()=>{
+    const revealed = div.classList.toggle('revealed');
+    btn.textContent = revealed ? 'Hide answer' : 'Reveal answer';
+  };
+  qaEl.appendChild(div);
+});
+
+/* ---------- Quizzes ---------- */
+document.querySelectorAll('.quiz').forEach(q=>{
+  const fb = q.querySelector('.quiz-fb');
+  q.querySelectorAll('.quiz-opt').forEach(opt=>{
+    opt.onclick = ()=>{
+      const already = q.querySelector('.correct,.wrong');
+      if(already) return;
+      const correct = opt.dataset.correct === 'true';
+      opt.classList.add(correct?'correct':'wrong');
+      if(!correct){
+        q.querySelectorAll('.quiz-opt').forEach(o=>{ if(o.dataset.correct==='true') o.classList.add('correct'); });
+      }
+      fb.textContent = correct ? 'Correct.' : 'Not quite — correct answer highlighted above.';
+    };
+  });
+});
+</script>
+</body>
+</html>

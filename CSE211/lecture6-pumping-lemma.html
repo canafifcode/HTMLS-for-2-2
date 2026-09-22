@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 6 — Non-Regular Languages &amp; The Pumping Lemma</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#FAF6EE;
+  --paper-raised:#F1E9D8;
+  --paper-card:#FFFDF8;
+  --ink:#201C17;
+  --ink-soft:#5E574B;
+  --ink-faint:#968E7C;
+  --oxblood:#7D2A34;
+  --oxblood-soft:#A5555E;
+  --navy:#22364A;
+  --navy-soft:#4C647C;
+  --gold:#9C7A34;
+  --rule:#DED0AF;
+  --shadow:rgba(32,28,23,0.09);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; color:var(--ink); font-weight:600;}
+p{margin:0 0 16px;}
+a{color:var(--navy);}
+.m{font-style:italic;}
+sup, sub{font-style:italic;}
+code, .lit{
+  font-family:'JetBrains Mono', 'Courier New', monospace;
+  font-style:normal;
+  background:var(--paper-raised);
+  padding:1px 7px;
+  border-radius:3px;
+  font-size:0.87em;
+  color:var(--navy);
+  white-space:nowrap;
+}
+
+/* ---------- progress bar ---------- */
+#progress{position:fixed; top:0; left:0; height:3px; width:0%; background:var(--oxblood); z-index:999; transition:width .08s linear;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:fixed; top:0; left:0; width:278px; height:100vh; overflow-y:auto;
+  background:var(--paper-raised); border-right:1px solid var(--rule);
+  padding:34px 26px 60px; font-size:13.5px; z-index:50;
+}
+.sidebar .brand{font-family:'Fraunces',serif; font-size:19px; font-weight:700; color:var(--oxblood); margin-bottom:2px;}
+.sidebar .brand-sub{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:30px; display:block;}
+.nav-part{margin-bottom:24px;}
+.nav-part-label{
+  font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.1em;
+  font-size:10.5px; color:var(--oxblood); font-weight:700; margin-bottom:9px; display:block;
+}
+.nav-part a{
+  display:block; padding:5px 0 5px 11px; margin-left:-11px; color:var(--ink-soft);
+  text-decoration:none; border-left:2px solid transparent; line-height:1.4;
+}
+.nav-part a:hover{color:var(--ink); border-left-color:var(--rule);}
+.nav-part a.active{color:var(--ink); border-left-color:var(--oxblood); background:rgba(125,42,52,.06); font-weight:600;}
+.nav-toggle{display:none;}
+
+/* ---------- layout ---------- */
+main{margin-left:278px; padding:0 52px 100px;}
+.content{max-width:730px; margin:0 auto;}
+.wide{max-width:730px; margin:0 auto;}
+
+/* ---------- hero ---------- */
+.hero{padding:78px 0 50px; border-bottom:1px solid var(--rule); margin-bottom:12px;}
+.hero .kicker{font-family:'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:var(--oxblood); font-size:12.5px;}
+.hero h1{font-size:clamp(34px,5vw,54px); line-height:1.08; margin:16px 0 20px;}
+.hero .lede{font-size:19px; color:var(--ink-soft); max-width:600px;}
+.hero .meta{margin-top:30px; font-size:12.5px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; display:flex; gap:22px; flex-wrap:wrap;}
+
+/* ---------- sections ---------- */
+section{padding-top:56px; scroll-margin-top:24px;}
+.part-divider{padding-top:70px; margin-top:14px; border-top:1px solid var(--rule);}
+.part-label{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
+.eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em; color:var(--oxblood); text-transform:uppercase; margin-bottom:8px;}
+h2{font-size:clamp(26px,3.6vw,34px); margin:0 0 18px; scroll-margin-top:24px;}
+h2 .num{color:var(--oxblood); font-style:normal; margin-right:10px; font-family:'JetBrains Mono',monospace; font-size:.6em; vertical-align:middle;}
+h3{font-size:21px; margin:0 0 10px; scroll-margin-top:24px;}
+.section-intro{font-size:18px; color:var(--ink-soft); margin-bottom:22px;}
+
+/* ---------- boxes ---------- */
+.box{border-left:3px solid var(--oxblood); background:var(--paper-card); padding:22px 26px; border-radius:2px; margin:26px 0; box-shadow:0 1px 6px var(--shadow);}
+.box.definition{border-left-color:var(--navy);}
+.box-label{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--oxblood); margin-bottom:10px; display:block; font-weight:700;}
+.box.definition .box-label{color:var(--navy);}
+.box p:last-child{margin-bottom:0;}
+.box ol, .box ul{margin:10px 0 0; padding-left:22px;}
+.box li{margin-bottom:8px;}
+
+.callout{background:var(--paper-raised); border:1px dashed var(--rule); border-radius:4px; padding:16px 20px; margin:22px 0; font-size:15.5px; color:var(--ink-soft);}
+.callout strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+/* ---------- diagrams ---------- */
+.diagram{margin:28px 0; padding:22px; background:#fff; border:1px solid var(--rule); border-radius:5px; text-align:center;}
+.diagram svg{max-width:100%; height:auto;}
+.diagram-caption{font-size:13px; color:var(--ink-faint); margin-top:12px; font-style:italic;}
+
+/* ---------- transcript (adversary game) ---------- */
+.transcript{border:1px solid var(--rule); border-radius:5px; overflow:hidden; margin:26px 0; background:#fff;}
+.turn{display:grid; grid-template-columns:98px 1fr; border-bottom:1px solid var(--rule);}
+.turn:last-child{border-bottom:none;}
+.turn .who{padding:17px 14px; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:flex-start; line-height:1.4;}
+.turn.demon .who{background:rgba(125,42,52,.07); color:var(--oxblood);}
+.turn.you .who{background:rgba(34,54,74,.07); color:var(--navy);}
+.turn .what{padding:17px 22px;}
+.turn .what strong{font-family:'Fraunces',serif; font-weight:600;}
+
+/* ---------- proof card + step stair ---------- */
+.proof-card{border:1px solid var(--rule); background:var(--paper-card); border-radius:6px; padding:30px 30px 26px; margin:34px 0; box-shadow:0 2px 12px var(--shadow);}
+.proof-card-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:2px;}
+.proof-tag{font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--oxblood); color:#fff; padding:3px 9px; border-radius:3px; letter-spacing:.04em;}
+.proof-card-head h3{margin:0;}
+.lang-def{font-style:italic; color:var(--ink-soft); margin:6px 0 4px; font-size:16.5px;}
+.step-stair{list-style:none; margin:22px 0 0; padding:0 0 0 54px; position:relative;}
+.step-stair::before{content:''; position:absolute; left:20px; top:6px; bottom:6px; width:2px; background:var(--rule);}
+.step-stair li{position:relative; padding-bottom:22px;}
+.step-stair li:last-child{padding-bottom:0;}
+.step-num{position:absolute; left:-54px; top:0; width:40px; height:40px; border-radius:50%; background:var(--paper); border:2px solid var(--oxblood); color:var(--oxblood); font-family:'JetBrains Mono',monospace; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:15px;}
+.step-title{display:block; font-family:'Fraunces',serif; font-weight:600; color:var(--ink); margin-bottom:4px; font-size:16px;}
+.step-body p{margin-bottom:8px; font-size:15.8px;}
+.step-body p:last-child{margin-bottom:0;}
+.math-block{background:var(--paper-raised); border-radius:4px; padding:12px 18px; margin:10px 0; font-style:italic; font-size:16.5px; overflow-x:auto;}
+
+.intuition{margin-top:22px; padding:15px 20px; background:#F5EFDF; border-radius:4px; font-size:15px; color:var(--ink-soft); border:1px dashed var(--rule);}
+.intuition strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+/* ---------- common-errors collapsibles ---------- */
+details.errors{margin-top:20px; border:1px solid var(--rule); border-radius:5px; background:var(--paper-card); overflow:hidden;}
+details.errors summary{cursor:pointer; padding:13px 20px; font-family:'Fraunces',serif; font-weight:600; color:var(--oxblood); list-style:none; display:flex; align-items:center; gap:9px; font-size:15.5px; user-select:none;}
+details.errors summary::-webkit-details-marker{display:none;}
+details.errors summary::before{content:'+'; font-family:'JetBrains Mono',monospace; font-weight:700; width:16px; display:inline-block;}
+details.errors[open] summary::before{content:'–';}
+details.errors[open] summary{border-bottom:1px solid var(--rule);}
+details.errors ul{padding:14px 24px 18px 42px; margin:0;}
+details.errors li{margin-bottom:9px; color:var(--ink-soft); font-size:15px;}
+details.errors li:last-child{margin-bottom:0;}
+
+/* ---------- tables ---------- */
+.table-wrap{overflow-x:auto; margin:24px 0;}
+table{width:100%; border-collapse:collapse; font-size:14.8px; min-width:560px;}
+th{text-align:left; font-family:'Fraunces',serif; font-weight:600; color:var(--navy); padding:11px 15px; border-bottom:2px solid var(--ink); background:var(--paper-raised);}
+td{padding:11px 15px; border-bottom:1px solid var(--rule); vertical-align:top;}
+tr:hover td{background:rgba(125,42,52,.03);}
+
+/* ---------- checklist ---------- */
+.checklist{list-style:none; margin:0; padding:0;}
+.checklist li{display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--rule);}
+.checklist li:last-child{border-bottom:none;}
+.checklist .box-tick{flex:0 0 26px; height:26px; border:2px solid var(--navy); border-radius:5px; margin-top:1px;}
+
+/* ---------- practice list ---------- */
+.practice-list{list-style:none; margin:0; padding:0;}
+.practice-list li{padding:16px 0; border-bottom:1px solid var(--rule); display:grid; grid-template-columns:44px 1fr; gap:14px;}
+.practice-list li:last-child{border-bottom:none;}
+.practice-list .pnum{font-family:'JetBrains Mono',monospace; color:var(--oxblood); font-weight:700; font-size:15px;}
+.practice-list .hint{font-size:14px; color:var(--ink-faint); margin-top:4px; font-style:italic;}
+
+/* ---------- footer ---------- */
+.doc-footer{margin-top:80px; padding-top:28px; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+
+/* ---------- back to top ---------- */
+#top-btn{
+  position:fixed; right:28px; bottom:28px; width:46px; height:46px; border-radius:50%;
+  background:var(--oxblood); color:#fff; border:none; cursor:pointer; font-family:'JetBrains Mono',monospace;
+  font-size:16px; box-shadow:0 3px 12px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .2s;
+  z-index:60;
+}
+#top-btn.show{opacity:1; pointer-events:auto;}
+
+/* ---------- responsive ---------- */
+@media (max-width:940px){
+  .sidebar{transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 24px rgba(0,0,0,.2);}
+  body.nav-open .sidebar{transform:translateX(0);}
+  main{margin-left:0; padding:0 20px 80px;}
+  .hero{padding:88px 0 40px;}
+  .nav-toggle{
+    display:flex; position:fixed; top:16px; left:16px; z-index:70; width:44px; height:44px;
+    background:var(--ink); color:var(--paper); border:none; border-radius:6px; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:16px; cursor:pointer;
+  }
+  .nav-scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40;}
+  body.nav-open .nav-scrim{display:block;}
+}
+@media (max-width:520px){
+  .turn{grid-template-columns:78px 1fr;}
+  .step-stair{padding-left:46px;}
+  .step-num{left:-46px; width:34px; height:34px; font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+<div class="nav-scrim" id="navScrim"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="brand">Lecture 6</div>
+  <span class="brand-sub">NON-REGULAR LANGUAGES · THE PUMPING LEMMA</span>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part I · Foundations</span>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#motivation">Why finite memory fails</a>
+    <a href="#pigeonhole">The pigeonhole principle</a>
+    <a href="#cycle">The cycle: x, y, z</a>
+    <a href="#pump-concept">The "pump"</a>
+    <a href="#lemma-statement">The Pumping Lemma</a>
+    <a href="#contradiction-logic">Logic of contradiction</a>
+    <a href="#adversary-game">The adversary game</a>
+    <a href="#proof-template">The 5-step template</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part II · Five Core Proofs</span>
+    <a href="#ex1">0ⁿ1ⁿ</a>
+    <a href="#ex2">Palindromes</a>
+    <a href="#ex3">aⁿbⁿcⁿ</a>
+    <a href="#ex4">w#w</a>
+    <a href="#ex5">a raised to n²</a>
+    <a href="#lessons-table">What we learned</a>
+    <a href="#checklist">Proof checklist</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part III · Beyond Pumping</span>
+    <a href="#closure1">Closure proof: m ≠ n</a>
+    <a href="#closure2">Closure proof: m &lt; n</a>
+    <a href="#quick-ref">Quick-reference tables</a>
+    <a href="#practice">Practice problems</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part IV · Case Studies</span>
+    <a href="#advA">Unequal 0s and 1s</a>
+    <a href="#advB">Unary primes</a>
+    <a href="#advC">Unary composites</a>
+    <a href="#advD">Fibonacci lengths</a>
+    <a href="#advE">#ab = #ba</a>
+    <a href="#why-c">Why c matters</a>
+    <a href="#final-lessons">Final lessons</a>
+    <a href="#summary">Summary</a>
+  </div>
+</nav>
+
+<main>
+<div class="content">
+
+  <section class="hero" id="top">
+    <div class="kicker">Theory of Computation · Sheikh Azizul Hakim, BUET</div>
+    <h1>Non-Regular Languages<br>&amp; the Pumping Lemma</h1>
+    <p class="lede">Finite automata are powerful — but finite memory has fundamental mathematical limits. This is a complete, corner-to-corner study companion to Lecture 6, built around one recurring idea: <span class="m">assume → p → s → trap y → pump.</span></p>
+    <div class="meta">
+      <span>48 slides distilled</span>
+      <span>9 fully worked proofs</span>
+      <span>2 closure-style proofs</span>
+      <span>Reference: Sipser, Ch. 1</span>
+    </div>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part I</div>
+    <h2 id="roadmap"><span class="num">§0</span>Today's Roadmap</h2>
+    <p class="section-intro">Five moves carry the entire lecture, in order:</p>
+    <div class="box">
+      <ol>
+        <li><strong>The graph intuition</strong> — why finite states force repetition.</li>
+        <li><strong>The formal theorem</strong> — Sipser's Pumping Lemma, precisely stated.</li>
+        <li><strong>The adversary game</strong> — how to navigate the nested quantifiers.</li>
+        <li><strong>The proof template</strong> — a rigorous, five-step recipe for contradictions.</li>
+        <li><strong>Worked examples</strong> — proving real languages are non-regular.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="motivation">
+    <div class="eyebrow">A suspicious language</div>
+    <h2><span class="num">§1</span>Why Finite Memory Fails</h2>
+    <p>Consider the language of perfectly balanced binary strings:</p>
+    <div class="math-block"><span class="m">B</span> = { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }</div>
+    <p>To accept <code>00001111</code>, a machine must somehow "remember" that it saw exactly four 0s so it can later verify exactly four 1s.</p>
+    <p>The problem: a DFA only has a fixed number of states — say <span class="m">p</span> states. What happens when we feed it <span class="m">p</span> + 1 zeros? There simply aren't enough states left to keep counting. Something has to give — and that "something" is the seed of the whole lecture.</p>
+  </section>
+
+  <section id="pigeonhole">
+    <div class="eyebrow">The engine of the proof</div>
+    <h2><span class="num">§2</span>The Pigeonhole Principle in Directed Graphs</h2>
+    <p>A DFA is simply a directed graph. Reading a string is just tracing a walk through that graph.</p>
+    <div class="box definition">
+      <span class="box-label">Pigeonhole Principle</span>
+      <p>If you put <span class="m">m</span> + 1 pigeons into <span class="m">m</span> holes, at least one hole contains two pigeons.</p>
+    </div>
+    <p>If a DFA has <span class="m">p</span> states and it reads a string of length <span class="m">p</span> or greater, it visits at least <span class="m">p</span> + 1 states (counting the start state). Therefore, it <em>must</em> visit at least one state twice.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="pigArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7D2A34"/></marker>
+        </defs>
+        <text x="20" y="24" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">p = 5 states (holes)</text>
+        <!-- holes -->
+        <g font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">
+          <rect x="30" y="40" width="80" height="46" rx="4" fill="none" stroke="#22364A" stroke-width="1.6"/>
+          <rect x="150" y="40" width="80" height="46" rx="4" fill="none" stroke="#22364A" stroke-width="1.6"/>
+          <rect x="270" y="40" width="80" height="46" rx="4" fill="#7D2A34" fill-opacity="0.08" stroke="#7D2A34" stroke-width="2"/>
+          <rect x="390" y="40" width="80" height="46" rx="4" fill="none" stroke="#22364A" stroke-width="1.6"/>
+          <rect x="510" y="40" width="80" height="46" rx="4" fill="none" stroke="#22364A" stroke-width="1.6"/>
+        </g>
+        <!-- pigeons: circles -->
+        <circle cx="70" cy="63" r="9" fill="#22364A"/>
+        <circle cx="190" cy="63" r="9" fill="#22364A"/>
+        <circle cx="300" cy="55" r="9" fill="#7D2A34"/>
+        <circle cx="322" cy="70" r="9" fill="#7D2A34"/>
+        <circle cx="430" cy="63" r="9" fill="#22364A"/>
+        <circle cx="550" cy="63" r="9" fill="#22364A"/>
+        <text x="270" y="112" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#7D2A34" font-weight="600">↑ one hole receives 2 pigeons — a state is revisited</text>
+        <text x="20" y="145" font-family="'Source Serif 4', serif" font-style="italic" font-size="14" fill="#5E574B">6 pigeons (steps of a length-p+1 walk) forced into 5 holes (states)</text>
+      </svg>
+      <p class="diagram-caption">The pigeonhole principle, restated for automata: reading p+1 symbols visits p+1 states, but only p exist.</p>
+    </div>
+  </section>
+
+  <section id="cycle">
+    <div class="eyebrow">Graph theory</div>
+    <h2><span class="num">§3</span>Revisiting a State Creates a Cycle</h2>
+    <p>In graph theory, a walk that intersects itself contains a cycle. Let the string be <span class="m">s</span> = <span class="m">xyz</span>:</p>
+    <div class="box definition">
+      <ul>
+        <li><strong><span class="m">x</span></strong> — the path from the start state to the first time we hit the repeated state.</li>
+        <li><strong><span class="m">y</span></strong> — the cycle itself (leaving the repeated state and returning to it).</li>
+        <li><strong><span class="m">z</span></strong> — the path from the repeated state onward to the accept state.</li>
+      </ul>
+    </div>
+    <div class="diagram">
+      <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow1" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#201C17"/></marker>
+        </defs>
+        <!-- start stub -->
+        <line x1="30" y1="120" x2="82" y2="120" stroke="#201C17" stroke-width="1.6" marker-end="url(#arrow1)"/>
+        <text x="20" y="105" font-family="'Fraunces',serif" font-size="12" fill="#5E574B">start</text>
+
+        <!-- q start -->
+        <circle cx="120" cy="120" r="30" fill="#fff" stroke="#22364A" stroke-width="2"/>
+        <text x="120" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#22364A">q<tspan baseline-shift="sub" font-size="9">start</tspan></text>
+
+        <!-- x arrow -->
+        <line x1="150" y1="120" x2="255" y2="120" stroke="#201C17" stroke-width="1.6" marker-end="url(#arrow1)"/>
+        <text x="200" y="108" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="16" fill="#201C17">x</text>
+
+        <!-- q repeat -->
+        <circle cx="300" cy="120" r="30" fill="#fff" stroke="#7D2A34" stroke-width="2.4"/>
+        <text x="300" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#7D2A34">q<tspan baseline-shift="sub" font-size="9">rpt</tspan></text>
+
+        <!-- self loop y -->
+        <path d="M280,95 C260,40 340,40 320,95" fill="none" stroke="#7D2A34" stroke-width="1.8" marker-end="url(#arrow1)"/>
+        <text x="300" y="42" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="16" fill="#7D2A34">y</text>
+
+        <!-- z arrow -->
+        <line x1="330" y1="120" x2="460" y2="120" stroke="#201C17" stroke-width="1.6" marker-end="url(#arrow1)"/>
+        <text x="395" y="108" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="16" fill="#201C17">z</text>
+
+        <!-- q accept (double circle) -->
+        <circle cx="505" cy="120" r="30" fill="#fff" stroke="#22364A" stroke-width="2"/>
+        <circle cx="505" cy="120" r="24" fill="#fff" stroke="#22364A" stroke-width="2"/>
+        <text x="505" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">q<tspan baseline-shift="sub" font-size="9">acc</tspan></text>
+
+        <text x="340" y="185" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14.5" fill="#5E574B">s = xyz, and the loop y can be looped 0, 1, 2, 3 … times</text>
+      </svg>
+      <p class="diagram-caption">The repeated state splits any long accepted string into x (get there), y (the loop), z (finish up).</p>
+    </div>
+  </section>
+
+  <section id="pump-concept">
+    <div class="eyebrow">The key insight</div>
+    <h2><span class="num">§4</span>The "Pump"</h2>
+    <p>Because <span class="m">y</span> is a cycle, the DFA doesn't actually know <em>how many times</em> it loops. If the DFA accepts <span class="m">xyz</span>, it has no choice but to also accept:</p>
+    <div class="box">
+      <ul>
+        <li><span class="m">xz</span> — looping 0 times, skipping <span class="m">y</span> entirely</li>
+        <li><span class="m">xyyz</span> — looping 2 times</li>
+        <li><span class="m">xyyyz</span> — looping 3 times</li>
+        <li>… and so on, for every <span class="m">i</span> ≥ 0</li>
+      </ul>
+    </div>
+    <div class="callout"><strong>Core intuition.</strong> Any sufficiently long string accepted by a regular language must contain a cycle that can be "pumped" — repeated any number of times — without ever leaving the language.</div>
+  </section>
+
+  <section id="lemma-statement">
+    <div class="eyebrow">Sipser's theorem</div>
+    <h2><span class="num">§5</span>The Pumping Lemma for Regular Languages</h2>
+    <div class="box">
+      <span class="box-label">Theorem</span>
+      <p>If <span class="m">A</span> is a regular language, then there exists a number <span class="m">p</span> (the <strong>pumping length</strong>) such that every string <span class="m">s</span> ∈ <span class="m">A</span> with |<span class="m">s</span>| ≥ <span class="m">p</span> can be divided into three pieces, <span class="m">s</span> = <span class="m">xyz</span>, satisfying all three conditions:</p>
+      <ol>
+        <li>for each <span class="m">i</span> ≥ 0, &nbsp; <span class="m">xy<sup>i</sup>z</span> ∈ <span class="m">A</span></li>
+        <li>|<span class="m">y</span>| &gt; 0</li>
+        <li>|<span class="m">xy</span>| ≤ <span class="m">p</span></li>
+      </ol>
+    </div>
+    <p><strong>Why |<span class="m">y</span>| &gt; 0?</strong> The cycle must consume at least one character — otherwise there is nothing to pump.</p>
+    <p><strong>Why |<span class="m">xy</span>| ≤ <span class="m">p</span>?</strong> By the pigeonhole principle, the <em>first</em> duplicate state must occur within the first <span class="m">p</span> steps — so the repeated state is guaranteed to fall somewhere inside the first <span class="m">p</span> characters of <span class="m">s</span>.</p>
+  </section>
+
+  <section id="contradiction-logic">
+    <div class="eyebrow">Turning the theorem into a weapon</div>
+    <h2><span class="num">§6</span>The Logic of Contradiction</h2>
+    <p>The Pumping Lemma is an implication:</p>
+    <div class="math-block">If <span class="m">A</span> is regular &nbsp;⟹&nbsp; <span class="m">A</span> has the pumping property.</div>
+    <p>By <em>modus tollens</em>, if <span class="m">A</span> does <em>not</em> have the pumping property, then <span class="m">A</span> is not regular. That's the entire strategy of this lecture in one sentence.</p>
+    <p>The lemma hides heavily nested quantifiers:</p>
+    <div class="math-block">∃<span class="m">p</span>, ∀<span class="m">s</span>, ∃<span class="m">x,y,z</span>, ∀<span class="m">i</span> …</div>
+    <p>To prove a language is <strong>not</strong> regular, we negate this statement — every ∃ flips to ∀ and every ∀ flips to ∃:</p>
+    <div class="math-block">∀<span class="m">p</span>, ∃<span class="m">s</span>, ∀<span class="m">x,y,z</span>, ∃<span class="m">i</span> …</div>
+  </section>
+
+  <section id="adversary-game">
+    <div class="eyebrow">A game against a demon</div>
+    <h2><span class="num">§7</span>The Adversary Game</h2>
+    <p>Think of the proof as a turn-based game against a <strong>Setup Demon</strong> who claims <span class="m">A</span> is regular. You win if you force a contradiction.</p>
+    <div class="transcript">
+      <div class="turn demon"><div class="who">Turn 1<br>Demon</div><div class="what"><strong>Chooses the pumping length <span class="m">p</span>.</strong> You don't know <span class="m">p</span> — treat it as a variable, never a number.</div></div>
+      <div class="turn you"><div class="who">Turn 2<br>You</div><div class="what"><strong>Choose a target string <span class="m">s</span> ∈ <span class="m">A</span></strong> such that |<span class="m">s</span>| ≥ <span class="m">p</span>. This is your one creative move — express <span class="m">s</span> in terms of <span class="m">p</span>.</div></div>
+      <div class="turn demon"><div class="who">Turn 3<br>Demon</div><div class="what"><strong>Divides your string</strong> into <span class="m">s</span> = <span class="m">xyz</span> however they like — as long as |<span class="m">y</span>| &gt; 0 and |<span class="m">xy</span>| ≤ <span class="m">p</span>.</div></div>
+      <div class="turn you"><div class="who">Turn 4<br>You</div><div class="what"><strong>Choose a pump count <span class="m">i</span> ≥ 0</strong> such that <span class="m">xy<sup>i</sup>z</span> ∉ <span class="m">A</span>.</div></div>
+    </div>
+    <div class="callout"><strong>Rule of rigor.</strong> You cannot choose the split (<span class="m">x, y, z</span>) — the demon does. You must prove your <span class="m">i</span> works for <em>every</em> valid split the demon could possibly make.</div>
+  </section>
+
+  <section id="proof-template">
+    <div class="eyebrow">The recipe you will use again and again</div>
+    <h2><span class="num">§8</span>The Rigorous 5-Step Proof Template</h2>
+    <p class="section-intro">Every valid Pumping Lemma proof in this document follows exactly this structure — the same staircase shape reappears in every worked example below.</p>
+    <ol class="step-stair">
+      <li><span class="step-num">1</span><div class="step-body"><span class="step-title">Assume for contradiction</span><p>Assume that language <span class="m">L</span> is regular.</p></div></li>
+      <li><span class="step-num">2</span><div class="step-body"><span class="step-title">Let p be the pumping length</span><p>The Pumping Lemma guarantees such a <span class="m">p</span> exists — you don't get to pick its value.</p></div></li>
+      <li><span class="step-num">3</span><div class="step-body"><span class="step-title">Choose a specific string s ∈ L, |s| ≥ p</span><p>This is your creative step — express <span class="m">s</span> in terms of <span class="m">p</span>.</p></div></li>
+      <li><span class="step-num">4</span><div class="step-body"><span class="step-title">Split and trap y</span><p>By the lemma, <span class="m">s</span> = <span class="m">xyz</span> with |<span class="m">y</span>| &gt; 0 and |<span class="m">xy</span>| ≤ <span class="m">p</span>. Analyze exactly what <span class="m">y</span> must look like given this constraint.</p></div></li>
+      <li><span class="step-num">5</span><div class="step-body"><span class="step-title">Pump and contradict</span><p>Choose an <span class="m">i</span> ≥ 0. Show mathematically that <span class="m">xy<sup>i</sup>z</span> ∉ <span class="m">L</span>, contradicting the lemma. Conclude <span class="m">L</span> is not regular.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part II</div>
+    <h2 id="ex1"><span class="num">§9</span>Five Core Worked Proofs</h2>
+    <p class="section-intro">Same five moves, five different languages. Watch how the "trap" on <span class="m">y</span> and the choice of <span class="m">i</span> change each time — everything else is boilerplate.</p>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Example 1</span><h3>Matching Two Blocks</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>1</sub> = { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>1</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Choose <span class="m">s</span> = 0<sup><span class="m">p</span></sup>1<sup><span class="m">p</span></sup>. Clearly <span class="m">s</span> ∈ <span class="m">L</span><sub>1</sub> and |<span class="m">s</span>| = 2<span class="m">p</span> ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>For every valid split with |<span class="m">xy</span>| ≤ <span class="m">p</span> and |<span class="m">y</span>| &gt; 0, both <span class="m">x</span> and <span class="m">y</span> lie inside the first block of 0s. Hence <span class="m">y</span> = 0<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 0. Then <span class="m">xy</span><sup>0</sup><span class="m">z</span> = <span class="m">xz</span> = 0<sup><span class="m">p</span>−<span class="m">k</span></sup>1<sup><span class="m">p</span></sup>. This has <span class="m">p</span>−<span class="m">k</span> zeros but still <span class="m">p</span> ones. Since <span class="m">k</span> &gt; 0, <span class="m">p</span>−<span class="m">k</span> ≠ <span class="m">p</span>, so <span class="m">xz</span> ∉ <span class="m">L</span><sub>1</sub> — contradiction. <span class="m">L</span><sub>1</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="intuition"><strong>Intuition.</strong> The machine is forced to repeat or remove some early 0s without touching the later 1s, breaking the exact count.</div>
+    </div>
+
+    <div class="proof-card" id="ex2">
+      <div class="proof-card-head"><span class="proof-tag">Example 2</span><h3>Palindromes</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>2</sub> = { <span class="m">w</span> ∈ {a,b}<sup>*</sup> | <span class="m">w</span> = <span class="m">w</span><sup><span class="m">R</span></sup> }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>2</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Choose <span class="m">s</span> = a<sup><span class="m">p</span></sup>ba<sup><span class="m">p</span></sup>. This is a palindrome, and |<span class="m">s</span>| = 2<span class="m">p</span>+1 ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>|<span class="m">xy</span>| ≤ <span class="m">p</span> forces <span class="m">y</span> entirely inside the first block of <code>a</code>s. Thus <span class="m">y</span> = a<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 0. Then <span class="m">xy</span><sup>0</sup><span class="m">z</span> = a<sup><span class="m">p</span>−<span class="m">k</span></sup>ba<sup><span class="m">p</span></sup>. The left of the central <code>b</code> now has <span class="m">p</span>−<span class="m">k</span> copies of <code>a</code>, the right still has <span class="m">p</span>. Since <span class="m">k</span> &gt; 0, the halves differ — the string is no longer a palindrome. Contradiction. <span class="m">L</span><sub>2</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="intuition"><strong>Intuition.</strong> Pumping only edits the left half, so the mirror image no longer matches.</div>
+    </div>
+
+    <div class="proof-card" id="ex3">
+      <div class="proof-card-head"><span class="proof-tag">Example 3</span><h3>Synchronizing Three Blocks</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>3</sub> = { a<sup><span class="m">n</span></sup>b<sup><span class="m">n</span></sup>c<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>3</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Choose <span class="m">s</span> = a<sup><span class="m">p</span></sup>b<sup><span class="m">p</span></sup>c<sup><span class="m">p</span></sup>. Clearly <span class="m">s</span> ∈ <span class="m">L</span><sub>3</sub> and |<span class="m">s</span>| = 3<span class="m">p</span> ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>|<span class="m">xy</span>| ≤ <span class="m">p</span> places <span class="m">y</span> completely inside the initial block of <code>a</code>s. Therefore <span class="m">y</span> = a<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 2. Then <span class="m">xy</span><sup>2</sup><span class="m">z</span> = a<sup><span class="m">p</span>+<span class="m">k</span></sup>b<sup><span class="m">p</span></sup>c<sup><span class="m">p</span></sup>. The counts are now <span class="m">p</span>+<span class="m">k</span>, <span class="m">p</span>, <span class="m">p</span> — not all equal since <span class="m">k</span> &gt; 0. Contradiction. <span class="m">L</span><sub>3</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="intuition"><strong>Intuition.</strong> A finite automaton cannot keep three arbitrarily large blocks perfectly synchronized.</div>
+    </div>
+
+    <div class="proof-card" id="ex4">
+      <div class="proof-card-head"><span class="proof-tag">Example 4</span><h3>Copying Across a Separator</h3></div>
+      <div class="lang-def">Σ = {0,1,#} &nbsp;&nbsp; <span class="m">L</span><sub>4</sub> = { <span class="m">w</span>#<span class="m">w</span> | <span class="m">w</span> ∈ {0,1}<sup>*</sup> }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>4</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Choose <span class="m">s</span> = 0<sup><span class="m">p</span></sup>1#0<sup><span class="m">p</span></sup>1. The word 0<sup><span class="m">p</span></sup>1 appears on both sides of <code>#</code>, so <span class="m">s</span> ∈ <span class="m">L</span><sub>4</sub>, and |<span class="m">s</span>| = 2<span class="m">p</span>+3 ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>|<span class="m">xy</span>| ≤ <span class="m">p</span> forces <span class="m">y</span> into the first block of 0s. Hence <span class="m">y</span> = 0<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 0. Then <span class="m">xy</span><sup>0</sup><span class="m">z</span> = 0<sup><span class="m">p</span>−<span class="m">k</span></sup>1#0<sup><span class="m">p</span></sup>1. The word left of <code>#</code> is now shorter than the word on the right — they differ since <span class="m">k</span> &gt; 0. Contradiction. <span class="m">L</span><sub>4</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="intuition"><strong>Intuition.</strong> Pumping edits the first copy but leaves the second copy completely untouched.</div>
+    </div>
+
+    <div class="proof-card" id="ex5">
+      <div class="proof-card-head"><span class="proof-tag">Example 5</span><h3>Unary Strings of Square Length</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>5</sub> = { a<sup><span class="m">n</span><sup style="font-size:.7em">2</sup></sup> | <span class="m">n</span> ≥ 0 }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>5</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> ≥ 1 be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Choose <span class="m">s</span> = a<sup><span class="m">p</span><sup style="font-size:.7em">2</sup></sup>. Since <span class="m">p</span><sup>2</sup> is a perfect square, <span class="m">s</span> ∈ <span class="m">L</span><sub>5</sub>, and |<span class="m">s</span>| = <span class="m">p</span><sup>2</sup> ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>Every valid split has <span class="m">y</span> = a<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 2. Then |<span class="m">xy</span><sup>2</sup><span class="m">z</span>| = <span class="m">p</span><sup>2</sup>+<span class="m">k</span>. Since 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>: &nbsp; <span class="m">p</span><sup>2</sup> &lt; <span class="m">p</span><sup>2</sup>+<span class="m">k</span> ≤ <span class="m">p</span><sup>2</sup>+<span class="m">p</span> &lt; (<span class="m">p</span>+1)<sup>2</sup>. The new length lies strictly between two consecutive perfect squares, so it isn't one. Contradiction. <span class="m">L</span><sub>5</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="diagram">
+        <svg viewBox="0 0 640 110" xmlns="http://www.w3.org/2000/svg">
+          <line x1="40" y1="60" x2="600" y2="60" stroke="#DED0AF" stroke-width="2"/>
+          <circle cx="120" cy="60" r="5" fill="#22364A"/><text x="120" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#22364A">p²</text>
+          <circle cx="340" cy="60" r="5" fill="#7D2A34"/><text x="340" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#7D2A34">p² + k</text>
+          <circle cx="560" cy="60" r="5" fill="#22364A"/><text x="560" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#22364A">(p+1)²</text>
+          <path d="M120,78 C220,100 240,100 340,78" fill="none" stroke="#7D2A34" stroke-width="1.4" stroke-dasharray="3 3"/>
+          <text x="230" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">0 &lt; k ≤ p</text>
+        </svg>
+        <p class="diagram-caption">p² + k is trapped strictly between two consecutive perfect squares — it cannot itself be a square.</p>
+      </div>
+      <div class="intuition"><strong>Intuition.</strong> Even over a one-symbol alphabet, a DFA cannot track the widening gaps between perfect squares.</div>
+    </div>
+  </section>
+
+  <section id="lessons-table">
+    <div class="eyebrow">Pattern recognition</div>
+    <h2><span class="num">§10</span>What the Five Examples Teach Us</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Language type</th><th>What must be remembered</th><th>What pumping breaks</th></tr></thead>
+        <tbody>
+          <tr><td>0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup></td><td>one count</td><td>equality of two blocks</td></tr>
+          <tr><td>Palindromes</td><td>distant symbols</td><td>left–right symmetry</td></tr>
+          <tr><td>a<sup><span class="m">n</span></sup>b<sup><span class="m">n</span></sup>c<sup><span class="m">n</span></sup></td><td>three counts</td><td>three-way synchronization</td></tr>
+          <tr><td><span class="m">w</span>#<span class="m">w</span></td><td>an entire word</td><td>exact copying</td></tr>
+          <tr><td>a<sup><span class="m">n</span><sup style="font-size:.7em">2</sup></sup></td><td>special lengths</td><td>arithmetic spacing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Although the languages look different, every proof uses the same five moves: <span class="m">assume → p → s → trap y → pump.</span></p>
+  </section>
+
+  <section id="checklist">
+    <div class="eyebrow">Self-grading</div>
+    <h2><span class="num">§11</span>Checklist for Student Proofs</h2>
+    <p class="section-intro">When grading your own proof, ask:</p>
+    <ul class="checklist">
+      <li><span class="box-tick"></span><span>Did I say "let <span class="m">p</span> be the pumping length"? (Never invent a value like <span class="m">p</span> = 5.)</span></li>
+      <li><span class="box-tick"></span><span>Did I choose a string <span class="m">s</span> using <span class="m">p</span>?</span></li>
+      <li><span class="box-tick"></span><span>Did I verify both <span class="m">s</span> ∈ <span class="m">L</span> and |<span class="m">s</span>| ≥ <span class="m">p</span>?</span></li>
+      <li><span class="box-tick"></span><span>Did I use |<span class="m">xy</span>| ≤ <span class="m">p</span> to prove exactly where <span class="m">y</span> must occur?</span></li>
+      <li><span class="box-tick"></span><span>Did I handle <em>every</em> valid split rather than choosing <span class="m">y</span> myself?</span></li>
+      <li><span class="box-tick"></span><span>Did I select an <span class="m">i</span> and clearly prove that <span class="m">xy<sup>i</sup>z</span> ∉ <span class="m">L</span>?</span></li>
+    </ul>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part III</div>
+    <h2 id="closure1"><span class="num">§12</span>When Pumping Becomes Tedious</h2>
+    <p class="section-intro">Sometimes a direct pumping argument is awkward — pumping may accidentally <em>preserve</em> the property you're trying to break. Closure properties can reveal the contradiction faster.</p>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Closure&nbsp;1</span><h3>Unequal Block Lengths</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>≠</sub> = { 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m,n</span> ≥ 0, <span class="m">m</span> ≠ <span class="m">n</span> }</div>
+      <div class="box">
+        <ul>
+          <li>Assume <span class="m">L</span><sub>≠</sub> is regular.</li>
+          <li>The language <span class="m">R</span> = 0<sup>*</sup>1<sup>*</sup> is regular.</li>
+          <li>Regular languages are closed under set difference.</li>
+          <li>Therefore <span class="m">R</span> \ <span class="m">L</span><sub>≠</sub> must be regular.</li>
+          <li>But <span class="m">R</span> \ <span class="m">L</span><sub>≠</sub> = { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 } — which Example 1 already proved is <strong>not</strong> regular.</li>
+        </ul>
+      </div>
+      <div class="intuition"><strong>Contradiction.</strong> Therefore <span class="m">L</span><sub>≠</sub> is not regular. ∎ The trick: subtracting away everything with "unequal" leaves exactly the equal-count language we already broke.</div>
+    </div>
+
+    <div class="proof-card" id="closure2">
+      <div class="proof-card-head"><span class="proof-tag">Closure&nbsp;2</span><h3>Strict Inequality</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>&lt;</sub> = { 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m</span> &lt; <span class="m">n</span> }</div>
+      <div class="box">
+        <ul>
+          <li>Assume <span class="m">L</span><sub>&lt;</sub> is regular.</li>
+          <li>Regular languages are closed under reversal. Reversing <span class="m">L</span><sub>&lt;</sub> and swapping 0 ↔ 1 produces the regular language <span class="m">L</span><sub>&gt;</sub> = { 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m</span> &gt; <span class="m">n</span> }.</li>
+          <li>Hence <span class="m">L</span><sub>&lt;</sub> ∪ <span class="m">L</span><sub>&gt;</sub> = { 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m</span> ≠ <span class="m">n</span> } would be regular (closure under union).</li>
+          <li>Since 0<sup>*</sup>1<sup>*</sup> is regular, its difference with this union would also be regular: &nbsp; 0<sup>*</sup>1<sup>*</sup> \ (<span class="m">L</span><sub>&lt;</sub> ∪ <span class="m">L</span><sub>&gt;</sub>) = { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }.</li>
+        </ul>
+      </div>
+      <div class="intuition"><strong>Contradiction.</strong> This is impossible — so <span class="m">L</span><sub>&lt;</sub> is not regular. ∎ Notice how reversal, union, and difference stack together to reduce the problem back to 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> once more.</div>
+    </div>
+  </section>
+
+  <section id="quick-ref">
+    <div class="eyebrow">Reference sheet</div>
+    <h2><span class="num">§13</span>Quick-Reference: More Pumping Examples</h2>
+    <p class="section-intro">Condensed proof sketches for rapid review — same five-step skeleton, compressed into rows.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Language</th><th>Choose s</th><th>Forced form of y</th><th>Pump &amp; contradiction</th></tr></thead>
+        <tbody>
+          <tr><td>{ a<sup><span class="m">n</span>+1</sup>b<sup><span class="m">n</span></sup> }</td><td>a<sup><span class="m">p</span>+1</sup>b<sup><span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: a<sup><span class="m">p</span>+1−<span class="m">k</span></sup>b<sup><span class="m">p</span></sup> no longer has exactly one more <code>a</code> than <code>b</code>.</td></tr>
+          <tr><td>{ a<sup><span class="m">m</span></sup>b<sup><span class="m">n</span></sup> | <span class="m">m</span>&gt;<span class="m">n</span> }</td><td>a<sup><span class="m">p</span>+1</sup>b<sup><span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: <span class="m">p</span>+1−<span class="m">k</span> ≤ <span class="m">p</span>, so <code>a</code>-count is no longer greater.</td></tr>
+          <tr><td>{ a<sup><span class="m">n</span></sup>b<sup>2<span class="m">n</span></sup> }</td><td>a<sup><span class="m">p</span></sup>b<sup>2<span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: counts become <span class="m">p</span>−<span class="m">k</span> and 2<span class="m">p</span>, but 2<span class="m">p</span>≠2(<span class="m">p</span>−<span class="m">k</span>).</td></tr>
+          <tr><td>{ a<sup><span class="m">m</span></sup>b<sup><span class="m">n</span></sup>c<sup><span class="m">m</span>+<span class="m">n</span></sup> }</td><td>a<sup><span class="m">p</span></sup>b<sup><span class="m">p</span></sup>c<sup>2<span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: first two blocks total 2<span class="m">p</span>−<span class="m">k</span>, final block stays 2<span class="m">p</span>.</td></tr>
+          <tr><td>{ a<sup>i</sup>b<sup>j</sup>c<sup>k</sup> | <span class="m">i</span>=<span class="m">j</span> or <span class="m">j</span>=<span class="m">k</span> }</td><td>a<sup><span class="m">p</span></sup>b<sup><span class="m">p</span></sup>c<sup><span class="m">p</span>+1</sup></td><td>a<sup><span class="m">r</span></sup>, <span class="m">r</span>&gt;0</td><td><span class="m">i</span>=0: <span class="m">p</span>−<span class="m">r</span>≠<span class="m">p</span> and <span class="m">p</span>≠<span class="m">p</span>+1 — neither equality holds.</td></tr>
+          <tr><td>{ <span class="m">u</span>#<span class="m">v</span> | |<span class="m">u</span>|=|<span class="m">v</span>| }</td><td>0<sup><span class="m">p</span></sup>#1<sup><span class="m">p</span></sup></td><td>0<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: sides have lengths <span class="m">p</span>−<span class="m">k</span> and <span class="m">p</span> — unequal.</td></tr>
+          <tr><td>{ a<sup><span class="m">q</span></sup> | <span class="m">q</span> prime }</td><td>a<sup><span class="m">q</span></sup>, <span class="m">q</span>&gt;<span class="m">p</span> prime</td><td>a<sup><span class="m">k</span></sup>, 1≤<span class="m">k</span>≤<span class="m">p</span></td><td><span class="m">i</span>=<span class="m">q</span>+1: new length <span class="m">q</span>(<span class="m">k</span>+1) is composite.</td></tr>
+          <tr><td>{ a<sup>2<sup style="font-size:.75em"><span class="m">n</span></sup></sup> }</td><td>a<sup>2<sup style="font-size:.75em"><span class="m">m</span></sup></sup>, 2<sup><span class="m">m</span></sup>&gt;<span class="m">p</span></td><td>a<sup><span class="m">k</span></sup>, 1≤<span class="m">k</span>≤<span class="m">p</span></td><td><span class="m">i</span>=2: 2<sup><span class="m">m</span></sup>&lt;2<sup><span class="m">m</span></sup>+<span class="m">k</span>&lt;2<sup><span class="m">m</span>+1</sup> — not a power of two.</td></tr>
+          <tr><td>{ a<sup><span class="m">m</span></sup>b<sup><span class="m">n</span></sup> | <span class="m">m</span>=<span class="m">n</span> or <span class="m">m</span>=2<span class="m">n</span> }</td><td>a<sup><span class="m">p</span></sup>b<sup><span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: <span class="m">p</span>−<span class="m">k</span>&lt;<span class="m">p</span>, matching neither <span class="m">p</span> nor 2<span class="m">p</span>.</td></tr>
+          <tr><td>{ a<sup><span class="m">m</span></sup>b<sup><span class="m">m</span>+<span class="m">n</span></sup>c<sup><span class="m">n</span></sup> }</td><td>a<sup><span class="m">p</span></sup>b<sup>2<span class="m">p</span></sup>c<sup><span class="m">p</span></sup></td><td>a<sup><span class="m">k</span></sup>, <span class="m">k</span>&gt;0</td><td><span class="m">i</span>=0: outer blocks total 2<span class="m">p</span>−<span class="m">k</span>, middle block stays 2<span class="m">p</span>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="practice">
+    <div class="eyebrow">Your turn</div>
+    <h2><span class="num">§14</span>Problems to Try at Home</h2>
+    <p class="section-intro">Use the five-step template on each. A light strategic nudge is given — the proof is yours to complete.</p>
+    <ol class="practice-list">
+      <li><span class="pnum">L₁</span><div><div class="lang-def" style="margin:0;">{ 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m</span> ≠ <span class="m">n</span> }</div><div class="hint">Try the closure-under-difference route from Closure Proof 1, or pump directly with a carefully chosen s.</div></div></li>
+      <li><span class="pnum">L₂</span><div><div class="lang-def" style="margin:0;">{ 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | gcd(<span class="m">m,n</span>) = 1 }</div><div class="hint">Pick s so that m and n start coprime, then ask what pumping does to the gcd.</div></div></li>
+      <li><span class="pnum">L₃</span><div><div class="lang-def" style="margin:0;">{ 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">m</span> divides <span class="m">n</span>, <span class="m">m,n</span> ≥ 1 }</div><div class="hint">Divisibility is fragile — pumping the smaller block by even one symbol usually breaks it.</div></div></li>
+      <li><span class="pnum">L₄</span><div><div class="lang-def" style="margin:0;">{ (ab)<sup><span class="m">n</span></sup>c<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }</div><div class="hint">Structurally close to Example 1 — the (ab) block just replaces the 0 block.</div></div></li>
+      <li><span class="pnum">L₅</span><div><div class="lang-def" style="margin:0;">{ a<sup><span class="m">n</span>!</sup> | <span class="m">n</span> ≥ 1 }</div><div class="hint">Factorial growth leaves enormous gaps — similar spirit to the square-length example.</div></div></li>
+      <li><span class="pnum">L₆</span><div><div class="lang-def" style="margin:0;">{ a<sup><span class="m">F</span><sub><span class="m">n</span></sub></sup> | <span class="m">n</span> ≥ 0, F<sub>n</sub> the nth Fibonacci number }</div><div class="hint">This is solved in full as an Advanced Case Study below — try it first, then compare.</div></div></li>
+      <li><span class="pnum">L₇</span><div><div class="lang-def" style="margin:0;">balanced parentheses over {(, )}</div><div class="hint">Nesting depth needs unbounded memory — pump inside the parentheses and count the imbalance.</div></div></li>
+    </ol>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part IV</div>
+    <h2 id="advA"><span class="num">§15</span>Advanced Case Studies</h2>
+    <p class="section-intro">Five deeper examples, each paired with the specific misconceptions students fall into. Click "Common Errors" on each card to expand.</p>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Case&nbsp;A</span><h3>Unequal Numbers of 0s and 1s</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>≠</sub> = { <span class="m">w</span> ∈ {0,1}<sup>*</sup> | #<sub>0</sub>(<span class="m">w</span>) ≠ #<sub>1</sub>(<span class="m">w</span>) }, where #<sub>σ</sub>(<span class="m">w</span>) counts occurrences of σ in <span class="m">w</span>.</div>
+      <p>Proved using closure properties rather than direct pumping:</p>
+      <div class="box">
+        <ol>
+          <li>Assume for contradiction that <span class="m">L</span><sub>≠</sub> is regular.</li>
+          <li>Regular languages are closed under complement, so <span class="m">E</span> = {0,1}<sup>*</sup> \ <span class="m">L</span><sub>≠</sub> = { <span class="m">w</span> | #<sub>0</sub>(<span class="m">w</span>) = #<sub>1</sub>(<span class="m">w</span>) } must be regular.</li>
+          <li><span class="m">R</span> = 0<sup>*</sup>1<sup>*</sup> is regular.</li>
+          <li>Regular languages are closed under intersection, so <span class="m">E</span> ∩ <span class="m">R</span> must be regular.</li>
+          <li>But <span class="m">E</span> ∩ <span class="m">R</span> = { <span class="m">w</span> ∈ 0<sup>*</sup>1<sup>*</sup> | #<sub>0</sub>(<span class="m">w</span>) = #<sub>1</sub>(<span class="m">w</span>) } = { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }, which is not regular.</li>
+        </ol>
+      </div>
+      <div class="intuition"><strong>Contradiction.</strong> Therefore <span class="m">L</span><sub>≠</sub> is not regular. ∎ Intersecting with 0<sup>*</sup>1<sup>*</sup> forces all 0s before all 1s, exposing the familiar 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> language hiding inside.</div>
+      <details class="errors"><summary>Common errors &amp; misconceptions</summary>
+        <ul>
+          <li>The original language contains strings in <em>any</em> order — <code>0101</code>, <code>1100</code>, <code>1010</code> — it is not restricted to the form 0<sup><span class="m">m</span></sup>1<sup><span class="m">n</span></sup>.</li>
+          <li>The complement of <span class="m">L</span><sub>≠</sub> is { <span class="m">w</span> | #<sub>0</sub>(<span class="m">w</span>)=#<sub>1</sub>(<span class="m">w</span>) }, <em>not</em> immediately { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> }.</li>
+          <li>We only obtain { 0<sup><span class="m">n</span></sup>1<sup><span class="m">n</span></sup> } after intersecting with 0<sup>*</sup>1<sup>*</sup>.</li>
+          <li>A complement must always be taken relative to a fixed universe — here that universe is {0,1}<sup>*</sup>.</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="proof-card" id="advB">
+      <div class="proof-card-head"><span class="proof-tag">Case&nbsp;B</span><h3>Unary Strings of Prime Length</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>prime</sub> = { a<sup><span class="m">t</span></sup> | <span class="m">t</span> is prime }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>prime</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be the pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>There are infinitely many primes, so choose a prime <span class="m">q</span> &gt; <span class="m">p</span>, and let <span class="m">s</span> = a<sup><span class="m">q</span></sup>. Then <span class="m">s</span> ∈ <span class="m">L</span><sub>prime</sub> and |<span class="m">s</span>| = <span class="m">q</span> ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>For every valid decomposition, <span class="m">y</span> = a<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = <span class="m">q</span>+1. Replacing one copy of <span class="m">y</span> with <span class="m">q</span>+1 copies adds <span class="m">qk</span> symbols, so |<span class="m">xy</span><sup><span class="m">q</span>+1</sup><span class="m">z</span>| = <span class="m">q</span> + <span class="m">qk</span> = <span class="m">q</span>(<span class="m">k</span>+1). Since <span class="m">q</span> ≥ 2 and <span class="m">k</span>+1 ≥ 2, this length is a product of two integers greater than 1 — composite. Contradiction. <span class="m">L</span><sub>prime</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <details class="errors"><summary>Common errors &amp; misconceptions</summary>
+        <ul>
+          <li>The pumping length <span class="m">p</span> is an arbitrary positive integer — it is <em>not</em> necessarily prime.</li>
+          <li>We do not choose <span class="m">s</span> = a<sup><span class="m">p</span></sup>, because <span class="m">p</span> may be composite. Instead, after receiving <span class="m">p</span>, we choose a separate prime <span class="m">q</span> &gt; <span class="m">p</span>.</li>
+          <li>We do not choose <span class="m">y</span> — the adversary does. We only conclude <span class="m">y</span> = a<sup><span class="m">k</span></sup>, 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</li>
+          <li>Pumping with <span class="m">i</span> = <span class="m">q</span>+1 does <em>not</em> make the length (<span class="m">q</span>+1)<span class="m">k</span>. The correct length is <span class="m">q</span> + (<span class="m">i</span>−1)<span class="m">k</span> = <span class="m">q</span> + <span class="m">qk</span> = <span class="m">q</span>(<span class="m">k</span>+1).</li>
+          <li>The pump count <span class="m">i</span> may depend on <span class="m">p</span> and the chosen string — it does not have to be a fixed constant.</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="proof-card" id="advC">
+      <div class="proof-card-head"><span class="proof-tag">Case&nbsp;C</span><h3>Unary Strings of Composite Length</h3></div>
+      <div class="lang-def"><span class="m">L</span><sub>comp</sub> = { a<sup><span class="m">t</span></sup> | <span class="m">t</span> is composite }</div>
+      <p>Recall that 0 and 1 are neither prime nor composite, so a<sup>*</sup> = <span class="m">L</span><sub>prime</sub> ∪ <span class="m">L</span><sub>comp</sub> ∪ {ε, a}.</p>
+      <div class="box">
+        <ol>
+          <li>Assume for contradiction that <span class="m">L</span><sub>comp</sub> is regular.</li>
+          <li>The finite language {ε, a} is regular, so <span class="m">L</span><sub>comp</sub> ∪ {ε, a} would be regular.</li>
+          <li>Regular languages are closed under difference, so a<sup>*</sup> \ (<span class="m">L</span><sub>comp</sub> ∪ {ε, a}) would be regular.</li>
+          <li>But a<sup>*</sup> \ (<span class="m">L</span><sub>comp</sub> ∪ {ε, a}) = <span class="m">L</span><sub>prime</sub>, which Case B already proved is not regular.</li>
+        </ol>
+      </div>
+      <div class="intuition"><strong>Contradiction.</strong> Therefore <span class="m">L</span><sub>comp</sub> is not regular. ∎ Primes and composites cover all positive unary lengths except length 1 — and length 0 (ε) must also be carved out separately.</div>
+      <details class="errors"><summary>Common errors &amp; misconceptions</summary>
+        <ul>
+          <li>The complement of the composite-length language is <em>not</em> exactly the prime-length language.</li>
+          <li>ε = a<sup>0</sup> and a = a<sup>1</sup> have lengths 0 and 1, which are neither prime nor composite.</li>
+          <li>Therefore a<sup>*</sup> \ <span class="m">L</span><sub>comp</sub> = <span class="m">L</span><sub>prime</sub> ∪ {ε, a}.</li>
+          <li>To isolate the prime-length language, we must remove both <span class="m">L</span><sub>comp</sub> <em>and</em> {ε, a}.</li>
+          <li>The proof leans on the earlier result that <span class="m">L</span><sub>prime</sub> is not regular — it does not stand alone.</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="proof-card" id="advD">
+      <div class="proof-card-head"><span class="proof-tag">Case&nbsp;D</span><h3>Unary Strings of Fibonacci Length</h3></div>
+      <div class="lang-def">F<sub>0</sub>=0, F<sub>1</sub>=1, F<sub><span class="m">n</span>+1</sub>=F<sub><span class="m">n</span></sub>+F<sub><span class="m">n</span>−1</sub> &nbsp;&nbsp; <span class="m">L</span><sub>Fib</sub> = { a<sup>F<sub><span class="m">n</span></sub></sup> | <span class="m">n</span> ≥ 0 }</div>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume for contradiction that <span class="m">L</span><sub>Fib</sub> is regular.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Fibonacci numbers grow without bound, so choose <span class="m">m</span> ≥ 3 large enough that F<sub><span class="m">m</span>−1</sub> &gt; <span class="m">p</span>. Let <span class="m">s</span> = a<sup>F<sub><span class="m">m</span></sub></sup>. Since F<sub><span class="m">m</span></sub> &gt; F<sub><span class="m">m</span>−1</sub> &gt; <span class="m">p</span>, we have <span class="m">s</span> ∈ <span class="m">L</span><sub>Fib</sub> and |<span class="m">s</span>| ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p>For every valid decomposition, <span class="m">y</span> = a<sup><span class="m">k</span></sup> for some 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p>Choose <span class="m">i</span> = 2. Then |<span class="m">xy</span><sup>2</sup><span class="m">z</span>| = F<sub><span class="m">m</span></sub> + <span class="m">k</span>. Since <span class="m">k</span> ≥ 1, F<sub><span class="m">m</span></sub> &lt; F<sub><span class="m">m</span></sub>+<span class="m">k</span>. Since <span class="m">k</span> ≤ <span class="m">p</span> &lt; F<sub><span class="m">m</span>−1</sub>, F<sub><span class="m">m</span></sub>+<span class="m">k</span> &lt; F<sub><span class="m">m</span></sub>+F<sub><span class="m">m</span>−1</sub> = F<sub><span class="m">m</span>+1</sub>. So F<sub><span class="m">m</span></sub>+<span class="m">k</span> is trapped strictly between two consecutive Fibonacci numbers — it cannot itself be one. Contradiction. <span class="m">L</span><sub>Fib</sub> is not regular. ∎</p></div></li>
+      </ol>
+      <div class="diagram">
+        <svg viewBox="0 0 640 110" xmlns="http://www.w3.org/2000/svg">
+          <line x1="40" y1="60" x2="600" y2="60" stroke="#DED0AF" stroke-width="2"/>
+          <circle cx="120" cy="60" r="5" fill="#22364A"/><text x="120" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#22364A">F<tspan baseline-shift="sub" font-size="10">m</tspan></text>
+          <circle cx="340" cy="60" r="5" fill="#7D2A34"/><text x="340" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#7D2A34">F<tspan baseline-shift="sub" font-size="10">m</tspan> + k</text>
+          <circle cx="560" cy="60" r="5" fill="#22364A"/><text x="560" y="42" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="14" fill="#22364A">F<tspan baseline-shift="sub" font-size="10">m+1</tspan></text>
+          <path d="M120,78 C220,100 240,100 340,78" fill="none" stroke="#7D2A34" stroke-width="1.4" stroke-dasharray="3 3"/>
+          <text x="230" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">1 ≤ k ≤ p &lt; F(m−1)</text>
+        </svg>
+        <p class="diagram-caption">Fm + k is trapped strictly between two consecutive Fibonacci numbers.</p>
+      </div>
+      <details class="errors"><summary>Common errors &amp; misconceptions</summary>
+        <ul>
+          <li>The pumping length <span class="m">p</span> need not be a Fibonacci number.</li>
+          <li>We must choose <span class="m">m</span> <em>after</em> receiving <span class="m">p</span>, specifically so that F<sub><span class="m">m</span>−1</sub> &gt; <span class="m">p</span>.</li>
+          <li>Merely choosing F<sub><span class="m">m</span></sub> &gt; <span class="m">p</span> is not enough — we need <span class="m">k</span> ≤ <span class="m">p</span> &lt; F<sub><span class="m">m</span>−1</sub> so the pumped length stays below F<sub><span class="m">m</span>+1</sub>.</li>
+          <li>The first few Fibonacci numbers repeat (F<sub>1</sub>=F<sub>2</sub>=1). Choosing <span class="m">m</span> ≥ 3 avoids this irrelevant duplication.</li>
+          <li>We pump <em>upward</em> with <span class="m">i</span>=2. Pumping down (<span class="m">i</span>=0) may accidentally land on another Fibonacci length and needs extra analysis.</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="proof-card" id="advE">
+      <div class="proof-card-head"><span class="proof-tag">Case&nbsp;E</span><h3>Equal Numbers of ab and ba</h3></div>
+      <div class="lang-def">Σ = {a,b,c} &nbsp;&nbsp; <span class="m">L</span><sub>ab=ba</sub> = { <span class="m">w</span> ∈ Σ<sup>*</sup> | #<sub>ab</sub>(<span class="m">w</span>) = #<sub>ba</sub>(<span class="m">w</span>) }, counting overlapping substring occurrences.</div>
+      <p>For example, <code>aba</code> has one <code>ab</code> and one <code>ba</code>, so it belongs to the language; <code>abcab</code> has two <code>ab</code>s and zero <code>ba</code>s, so it does not.</p>
+      <p><strong>Restricting to a two-block language.</strong> For <span class="m">w</span> = (abc)<sup><span class="m">m</span></sup>(bac)<sup><span class="m">n</span></sup>, we get #<sub>ab</sub>(<span class="m">w</span>) = <span class="m">m</span> and #<sub>ba</sub>(<span class="m">w</span>) = <span class="m">n</span>. So intersecting with the regular language <span class="m">R</span> = (abc)<sup>*</sup>(bac)<sup>*</sup> gives:</p>
+      <div class="math-block"><span class="m">K</span> = <span class="m">L</span><sub>ab=ba</sub> ∩ <span class="m">R</span> = { (abc)<sup><span class="m">n</span></sup>(bac)<sup><span class="m">n</span></sup> | <span class="m">n</span> ≥ 0 }</div>
+      <p>If <span class="m">L</span><sub>ab=ba</sub> were regular, closure under intersection would force <span class="m">K</span> to be regular too. So we prove directly, by pumping, that <span class="m">K</span> is <em>not</em> regular:</p>
+      <ol class="step-stair">
+        <li><span class="step-num">1</span><div class="step-body"><p>Assume <span class="m">K</span> is regular; let <span class="m">p</span> be its pumping length.</p></div></li>
+        <li><span class="step-num">2</span><div class="step-body"><p>Choose <span class="m">s</span> = (abc)<sup><span class="m">p</span></sup>(bac)<sup><span class="m">p</span></sup>. Then <span class="m">s</span> ∈ <span class="m">K</span> and |<span class="m">s</span>| = 6<span class="m">p</span> ≥ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">3</span><div class="step-body"><p>Since |<span class="m">xy</span>| ≤ <span class="m">p</span> and the first region (abc)<sup><span class="m">p</span></sup> has length 3<span class="m">p</span> &gt; <span class="m">p</span>, the substring <span class="m">y</span> lies entirely within the first region. Let |<span class="m">y</span>| = <span class="m">k</span>, 1 ≤ <span class="m">k</span> ≤ <span class="m">p</span>.</p></div></li>
+        <li><span class="step-num">4</span><div class="step-body"><p><strong>Case 3∤k:</strong> pumping down gives |<span class="m">xz</span>| = 6<span class="m">p</span>−<span class="m">k</span>. Since 6<span class="m">p</span> is divisible by 3 but <span class="m">k</span> is not, 6<span class="m">p</span>−<span class="m">k</span> isn't divisible by 3 either — yet every string in <span class="m">K</span> has length 6<span class="m">n</span>, divisible by 3. So <span class="m">xz</span> ∉ <span class="m">K</span>.</p></div></li>
+        <li><span class="step-num">5</span><div class="step-body"><p><strong>Case 3|k</strong> (<span class="m">k</span>=3<span class="m">r</span>, <span class="m">r</span>≥1): since (abc)<sup><span class="m">p</span></sup> is periodic with period 3, removing 3<span class="m">r</span> symbols preserves phase, giving <span class="m">xz</span> = (abc)<sup><span class="m">p</span>−<span class="m">r</span></sup>(bac)<sup><span class="m">p</span></sup>. Since <span class="m">r</span> ≥ 1, <span class="m">p</span>−<span class="m">r</span> ≠ <span class="m">p</span>, so <span class="m">xz</span> ∉ <span class="m">K</span> either way. Both cases contradict the lemma — <span class="m">K</span> is not regular, so <span class="m">L</span><sub>ab=ba</sub> cannot be regular over {a,b,c}. ∎</p></div></li>
+      </ol>
+      <details class="errors"><summary>Common errors &amp; misconceptions</summary>
+        <ul>
+          <li>The pumping length <span class="m">p</span> counts individual symbols, <em>not</em> complete <code>abc</code>-blocks.</li>
+          <li>From |<span class="m">xy</span>| ≤ <span class="m">p</span> we may conclude <span class="m">y</span> lies inside the first (abc)<sup><span class="m">p</span></sup> region — but <em>not</em> that <span class="m">y</span> is itself a sequence of complete blocks.</li>
+          <li>The adversary chooses <span class="m">x, y, z</span> — we cannot assume <span class="m">y</span> begins at a block boundary.</li>
+          <li>Both possibilities, 3∤|<span class="m">y</span>| and 3||<span class="m">y</span>|, must be considered separately.</li>
+          <li>If 3∤|<span class="m">y</span>|, the simplest contradiction comes from total length alone — no need to analyze symbol boundaries.</li>
+          <li>Proving <span class="m">K</span> non-regular is not the final conclusion by itself — closure under intersection is what carries the result back to <span class="m">L</span><sub>ab=ba</sub>.</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section id="why-c">
+    <div class="eyebrow">A contrast worth noticing</div>
+    <h2><span class="num">§16</span>Why the Extra Symbol c Matters</h2>
+    <p>Over the binary alphabet {a, b}, the difference #<sub>ab</sub>(<span class="m">w</span>) − #<sub>ba</sub>(<span class="m">w</span>) depends <em>only</em> on the first and last symbols of <span class="m">w</span>:</p>
+    <div class="box definition">
+      <p>#<sub>ab</sub>(<span class="m">w</span>) − #<sub>ba</sub>(<span class="m">w</span>) = 1 if <span class="m">w</span> starts with <code>a</code> and ends with <code>b</code>; −1 if it starts with <code>b</code> and ends with <code>a</code>; 0 otherwise.</p>
+    </div>
+    <p>That means equality can be checked with a handful of states — <strong>the language is regular over {a, b}.</strong></p>
+    <p>Over {a, b, c}, occurrences of <code>c</code> chop the word into many separate binary segments. Each segment can contribute −1, 0, or +1 to the running difference, and these contributions can accumulate without bound — exactly the kind of unbounded counting a DFA cannot do.</p>
+    <div class="callout"><strong>Conclusion.</strong> The very same counting condition is regular over a two-symbol alphabet, but becomes non-regular the moment a third symbol is introduced. The alphabet is not just decoration — it can change the answer entirely.</div>
+  </section>
+
+  <section id="final-lessons">
+    <div class="eyebrow">Bringing it together</div>
+    <h2><span class="num">§17</span>Lessons from the Worked-Out Examples</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Language</th><th>Main proof technique</th><th>Key danger</th></tr></thead>
+        <tbody>
+          <tr><td>Unequal numbers of 0s and 1s</td><td>Complement + intersection</td><td>Confusing all strings with 0<sup>*</sup>1<sup>*</sup></td></tr>
+          <tr><td>Prime unary length</td><td>Pumping Lemma</td><td>Assuming the pumping length is itself prime</td></tr>
+          <tr><td>Composite unary length</td><td>Closure under difference</td><td>Forgetting lengths 0 and 1</td></tr>
+          <tr><td>Fibonacci unary length</td><td>Pumping between consecutive values</td><td>Assuming p is a Fibonacci number</td></tr>
+          <tr><td>Equal numbers of ab and ba</td><td>Intersection</td><td>Ignoring block boundaries</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The proof method must always match the structure of the language — direct pumping is not always the shortest road.</p>
+  </section>
+
+  <section id="summary">
+    <div class="eyebrow">Closing the lecture</div>
+    <h2><span class="num">§18</span>Summary</h2>
+    <div class="box">
+      <ul>
+        <li><strong>Intuition:</strong> finite states and sufficiently long inputs force cycles.</li>
+        <li><strong>Theorem:</strong> every sufficiently long string in a regular language must be pumpable.</li>
+        <li><strong>Proof strategy:</strong> choose a string that traps the pumpable part in a vulnerable region.</li>
+        <li><strong>Rigor:</strong> the argument must work for every valid decomposition s = xyz, not just a convenient one.</li>
+        <li><strong>Alternative:</strong> when direct pumping becomes awkward, closure properties may be cleaner.</li>
+      </ul>
+    </div>
+    <p class="callout"><strong>Next lecture:</strong> Context-Free Grammars, and the idea of recursive structure.</p>
+    <div class="doc-footer">
+      <span>Theory of Computation · Lecture 6 · Sheikh Azizul Hakim, BUET</span>
+      <span>Study companion built for exam prep</span>
+    </div>
+  </section>
+
+
+</div>
+</main>
+
+<button id="top-btn" aria-label="Back to top">↑</button>
+
+<script>
+// ---- scroll progress bar ----
+const progressBar = document.getElementById('progress');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+// ---- mobile nav toggle ----
+const navToggle = document.getElementById('navToggle');
+const navScrim = document.getElementById('navScrim');
+navToggle.addEventListener('click', () => document.body.classList.toggle('nav-open'));
+navScrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
+document.querySelectorAll('.sidebar a').forEach(a=>{
+  a.addEventListener('click', ()=> document.body.classList.remove('nav-open'));
+});
+
+// ---- scrollspy ----
+const navLinks = Array.from(document.querySelectorAll('.sidebar a'));
+const targets = navLinks
+  .map(a => document.querySelector(a.getAttribute('href')))
+  .filter(Boolean);
+
+const spy = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    const id = '#' + entry.target.id;
+    const link = navLinks.find(a => a.getAttribute('href') === id);
+    if(!link) return;
+    if(entry.isIntersecting){
+      navLinks.forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+}, {rootMargin: '-15% 0px -75% 0px', threshold: 0});
+
+targets.forEach(t => spy.observe(t));
+
+// ---- back to top button ----
+const topBtn = document.getElementById('top-btn');
+document.addEventListener('scroll', ()=>{
+  topBtn.classList.toggle('show', window.scrollY > 600);
+}, {passive:true});
+topBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+</script>
+</body>
+</html>

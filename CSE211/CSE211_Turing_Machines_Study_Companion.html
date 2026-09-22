@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 211 · Turing Machines — Study Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f6f1e7;
+  --cream-2:#efe8d8;
+  --paper:#fbf8f1;
+  --ink:#2a241c;
+  --ink-soft:#5b5346;
+  --oxblood:#7a2a2a;
+  --oxblood-dark:#5c1f1f;
+  --oxblood-light:#a8483f;
+  --navy:#1f3350;
+  --navy-light:#345074;
+  --navy-bg:#e9eef4;
+  --oxblood-bg:#f5e6e2;
+  --line:#ddd3bd;
+  --line-soft:#e8e0cc;
+  --accept-green:#2f5c3f;
+  --accept-bg:#e4ede4;
+  --warn-bg:#fbeee0;
+  --warn-line:#d9a256;
+  --trap-bg:#f7e6e1;
+  --shadow:0 2px 10px rgba(42,36,28,0.08);
+  --shadow-lift:0 6px 24px rgba(42,36,28,0.14);
+  --radius:10px;
+  --serif: 'Fraunces', 'Source Serif 4', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  --body: 'Source Serif 4', Georgia, serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--cream);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.62;
+}
+::selection{background:var(--oxblood-light);color:#fff;}
+
+/* ---------- layout ---------- */
+.app{display:flex; min-height:100vh;}
+.sidebar{
+  width:280px; flex-shrink:0;
+  background:var(--paper);
+  border-right:1px solid var(--line);
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  padding:22px 0 40px;
+}
+.sidebar-brand{
+  padding:0 22px 16px; border-bottom:1px solid var(--line-soft); margin-bottom:10px;
+}
+.sidebar-brand .course{ font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--oxblood); font-weight:700;}
+.sidebar-brand h1{
+  font-family:var(--serif); font-size:21px; font-weight:600; margin:4px 0 2px; line-height:1.25; color:var(--ink);
+}
+.sidebar-brand .sub{font-size:13px; color:var(--ink-soft); font-style:italic;}
+.nav-group{margin-top:14px;}
+.nav-group-label{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-soft); padding:6px 22px; opacity:.75;
+}
+.nav-btn{
+  display:block; width:100%; text-align:left; background:none; border:none;
+  font-family:var(--body); font-size:14.5px; color:var(--ink-soft);
+  padding:7px 22px 7px 26px; cursor:pointer; border-left:3px solid transparent;
+  line-height:1.35;
+}
+.nav-btn:hover{ background:var(--cream-2); color:var(--ink);}
+.nav-btn.active{
+  border-left-color:var(--oxblood); color:var(--oxblood); font-weight:600; background:var(--oxblood-bg);
+}
+.nav-btn .num{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-right:7px;}
+.nav-btn.active .num{color:var(--oxblood);}
+
+.main{flex:1; min-width:0;}
+.content{max-width:880px; margin:0 auto; padding:48px 40px 120px;}
+@media (max-width: 920px){
+  .sidebar{position:fixed; left:-300px; transition:left .25s; z-index:50; box-shadow:var(--shadow-lift);}
+  .sidebar.open{left:0;}
+  .content{padding:24px 18px 100px;}
+  .menu-toggle{display:flex !important;}
+}
+.menu-toggle{
+  display:none; position:fixed; top:14px; left:14px; z-index:60;
+  width:42px; height:42px; border-radius:50%; background:var(--oxblood); color:#fff; border:none;
+  align-items:center; justify-content:center; font-size:18px; cursor:pointer; box-shadow:var(--shadow-lift);
+}
+
+/* ---------- typography ---------- */
+h1.page-title{
+  font-family:var(--serif); font-weight:600; font-size:38px; letter-spacing:-0.01em; margin:0 0 6px; color:var(--ink);
+}
+.page-kicker{
+  font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--oxblood); font-weight:700; margin-bottom:10px;
+}
+.lede{font-size:18.5px; color:var(--ink-soft); font-style:italic; margin:4px 0 34px; max-width:70ch;}
+section.topic{padding-top:26px; margin-top:8px; border-top:1px solid var(--line-soft);}
+section.topic:first-of-type{border-top:none;}
+h2{
+  font-family:var(--serif); font-weight:600; font-size:27px; color:var(--navy); margin:38px 0 14px;
+  padding-bottom:8px; border-bottom:2px solid var(--navy-light);
+}
+h2 .hnum{color:var(--oxblood); font-family:var(--mono); font-size:16px; margin-right:10px; font-weight:700;}
+h3{font-family:var(--serif); font-weight:600; font-size:20.5px; color:var(--ink); margin:26px 0 10px;}
+h4{font-family:var(--serif); font-weight:600; font-size:17.5px; color:var(--ink); margin:20px 0 8px;}
+p{margin:0 0 14px;}
+ul,ol{margin:0 0 14px; padding-left:24px;}
+li{margin-bottom:6px;}
+a{color:var(--oxblood);}
+strong{color:var(--ink); font-weight:600;}
+em.term{font-style:italic; color:var(--navy); font-weight:600;}
+code, .mono{font-family:var(--mono); font-size:.92em;}
+.small{font-size:14px; color:var(--ink-soft);}
+
+/* ---------- boxes ---------- */
+.box{
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 22px; margin:18px 0; box-shadow:var(--shadow);
+}
+.box.def{border-left:4px solid var(--navy);}
+.box.def .box-label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--navy); font-weight:700; margin-bottom:6px;}
+.box.theorem{border-left:4px solid var(--oxblood); background:var(--oxblood-bg);}
+.box.theorem .box-label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--oxblood); font-weight:700; margin-bottom:6px;}
+.box.example{border-left:4px solid var(--ink-soft);}
+.box.example .box-label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin-bottom:6px;}
+.box.note{background:var(--warn-bg); border-left:4px solid var(--warn-line);}
+.box.note .box-label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#8a5a1e; font-weight:700; margin-bottom:6px;}
+
+/* collapsible proof / trap cards */
+details.card{
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  margin:16px 0; box-shadow:var(--shadow); overflow:hidden;
+}
+details.card summary{
+  cursor:pointer; padding:13px 44px 13px 20px; font-family:var(--serif); font-weight:600; font-size:16.5px;
+  list-style:none; color:var(--ink); position:relative;
+  background:var(--cream-2);
+}
+details.card summary::-webkit-details-marker{display:none;}
+details.card summary::before{
+  content:"▸"; color:var(--oxblood); font-size:13px; transition:transform .15s; display:inline-block;
+  position:absolute; right:18px; top:50%; transform:translateY(-50%);
+}
+details.card[open] summary::before{transform:translateY(-50%) rotate(90deg);}
+details.card .card-body{padding:16px 22px 18px;}
+details.card.proof summary{background:var(--navy-bg);}
+details.card.proof summary::before{color:var(--navy);}
+details.card.trap{border-left:4px solid var(--oxblood-light);}
+details.card.trap summary{background:var(--trap-bg); color:var(--oxblood-dark);}
+details.card.trap summary::before{content:"⚠"; color:var(--oxblood);}
+details.card.solution summary{background:#eef2ea;}
+details.card.solution summary::before{color:var(--accept-green);}
+
+/* step-stair for derivations */
+.stair{margin:16px 0; border-left:2px solid var(--line); padding-left:0;}
+.stair-step{
+  display:flex; gap:14px; padding:9px 0 9px 18px; position:relative;
+}
+.stair-step::before{
+  content:""; position:absolute; left:-5px; top:16px; width:8px; height:8px; border-radius:50%;
+  background:var(--navy);
+}
+.stair-step .sn{font-family:var(--mono); font-size:12px; color:var(--navy); font-weight:700; min-width:20px;}
+.stair-step .sd{flex:1;}
+
+/* tables */
+table{border-collapse:collapse; width:100%; margin:14px 0; font-size:15px;}
+th,td{border:1px solid var(--line); padding:7px 11px; text-align:left;}
+th{background:var(--navy); color:#fff; font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; font-weight:600;}
+td{font-family:var(--mono); font-size:13.8px;}
+td.desc{font-family:var(--body); font-size:14.5px;}
+tr:nth-child(even) td{background:var(--cream-2);}
+.delta-table td.accepting{background:var(--accept-bg); font-weight:700;}
+
+/* pills / tags */
+.tag{
+  display:inline-block; font-family:var(--mono); font-size:11.5px; padding:2px 9px; border-radius:20px;
+  background:var(--navy-bg); color:var(--navy); font-weight:600; margin-right:6px;
+}
+.tag.ox{background:var(--oxblood-bg); color:var(--oxblood);}
+
+/* nav quick-jump chips at top of section */
+.crumb{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin-bottom:2px;}
+
+/* buttons */
+button.btn{
+  font-family:var(--mono); font-size:13px; padding:7px 14px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--navy); background:var(--navy); color:#fff; font-weight:600;
+}
+button.btn:hover{background:var(--navy-light);}
+button.btn.ghost{background:var(--paper); color:var(--navy); border:1px solid var(--navy);}
+button.btn.ghost:hover{background:var(--navy-bg);}
+button.btn.ox{background:var(--oxblood); border-color:var(--oxblood);}
+button.btn.ox:hover{background:var(--oxblood-light);}
+button.btn:disabled{opacity:.4; cursor:not-allowed;}
+button.chip{
+  font-family:var(--mono); font-size:12px; padding:5px 11px; border-radius:20px; cursor:pointer;
+  border:1px solid var(--line); background:var(--paper); color:var(--ink-soft);
+}
+button.chip:hover{border-color:var(--navy); color:var(--navy);}
+button.chip.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+/* cheat sheet */
+.cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:700px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; box-shadow:var(--shadow);}
+.cheat-card h4{margin-top:0; color:var(--navy); border-bottom:1px solid var(--line-soft); padding-bottom:6px;}
+
+footer.end{
+  margin-top:60px; padding-top:20px; border-top:1px solid var(--line-soft);
+  font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); text-align:center;
+}
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle">☰</button>
+
+<div class="app">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="course">CSE 211 · Theory of Computation</div>
+      <h1>Turing Machines</h1>
+      <div class="sub">the whole story, start to finish</div>
+    </div>
+    <div id="navContainer"></div>
+  </nav>
+
+  <main class="main">
+    <div class="content" id="contentRoot">
+
+      <div class="page-kicker">Study Companion</div>
+      <h1 class="page-title">Turing Machines</h1>
+      <p class="lede">From "why finite automata aren't enough" all the way to "a Turing machine can simulate your laptop, and vice versa" — covering Lectures 4, 5 and 6, built to survive an exam.</p>
+
+<!-- SECTIONS INSERTED BELOW -->
+      <section class="topic" id="why">
+        <h2><span class="hnum">01</span>Why Turing Machines</h2>
+
+        <p>Every automaton you've built so far — DFA, NFA, PDA — is a machine with a <em class="term">bounded</em> kind of memory. A DFA remembers nothing but "which state am I in" (a fixed, finite amount of information). A PDA gets a stack, which is unbounded, but disciplined: you can only touch the top. Neither can be regarded as a genuinely general model of computation.</p>
+
+        <p>Here's the proof by example. Take the language</p>
+        <div class="box example">
+          <div class="box-label">A language no PDA can recognize</div>
+          <p style="margin:0;font-family:var(--mono);font-size:16px;">L = { aⁿbⁿcⁿ | n ≥ 0 }</p>
+        </div>
+        <p>A PDA can check "equal number of a's and b's" by pushing a's and popping on b's. It can check "equal number of b's and c's" the same way. But it cannot check <em>both simultaneously</em> — by the time it needs to compare the c-count against the a-count, the a-count has already been consumed matching the b's. One stack isn't enough to remember two independent quantities at once. (You'll meet the formal proof of this — the pumping lemma for context-free languages — as a corollary once you have this vocabulary; for now, take it as the motivating gap.)</p>
+
+        <p>A Turing machine closes that gap. It can recognize aⁿbⁿcⁿ, and a great deal more besides — it is, in a precise sense, as powerful as any computer you own.</p>
+
+        <div class="box def">
+          <div class="box-label">The core idea</div>
+          <p style="margin:0;">A Turing machine is a finite automaton bolted onto a <strong>single tape of infinite length</strong>, on which it can both <strong>read and write</strong>. The "program" — the finite control — looks exactly like a DFA's transition diagram. What's new is the tape: instead of the input flying past a read-only head in one direction, the TM gets a scratchpad it can revisit, overwrite, and wander across in either direction, forever if it wants to.</p>
+        </div>
+
+        <p>That's the entire conceptual leap. Read/write access to unbounded memory, with a head that can move both ways. Everything else in this course — the formal 7-tuple, the programming tricks, multitape variants, the equivalence with real computers — is working out the consequences of that one idea.</p>
+
+        <details class="card">
+          <summary>Named after Alan Turing — who was he thinking about?</summary>
+          <div class="card-body">
+            <p>Alan Turing (1912–1954) introduced this model in 1936, before electronic computers existed, to answer a purely mathematical question: is there a mechanical procedure that can decide, for <em>any</em> mathematical statement, whether it's provable? (Hilbert's <em>Entscheidungsproblem</em>.) Turing's answer was "no" — and to prove a negative like that rigorously, he first had to pin down, mathematically, what "mechanical procedure" even means. The Turing machine is his answer: the most primitive machine that can still do <em>everything</em> a step-by-step mechanical procedure could do. That it later turned out to be exactly as powerful as a general-purpose computer wasn't the original goal — it fell out for free.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="topic" id="formal">
+        <h2><span class="hnum">02</span>The Formal Machine</h2>
+
+        <h3>Picture first</h3>
+        <p>A Turing machine has:</p>
+        <ul>
+          <li>A <strong>finite control</strong> — a state, exactly like a DFA's.</li>
+          <li>A <strong>tape</strong>, divided into cells, extending infinitely in both directions. Each cell holds one symbol from a finite alphabet.</li>
+          <li>A <strong>tape head</strong>, positioned over one cell at a time (the machine is "scanning" that cell), that can read the symbol there, overwrite it, and then move one cell left or right.</li>
+        </ul>
+        <p>Initially the input string sits on the tape starting at the leftmost cell, the head sits on the leftmost input symbol, and every other cell — infinitely many in both directions — holds a special reserved symbol called the <strong>blank</strong>, written <code>B</code>. The blank is a tape symbol, but never an input symbol: no string you feed the machine is allowed to contain a <code>B</code>.</p>
+
+        <div class="box def">
+          <div class="box-label">One move, precisely</div>
+          <p>A move is a function of (current state, symbol under the head). In one move the TM:</p>
+          <ol style="margin-bottom:0;">
+            <li><strong>changes state</strong> (optionally to the same state it was already in),</li>
+            <li><strong>writes a tape symbol</strong> into the scanned cell, replacing whatever was there (optionally the same symbol — an effective no-op write), and</li>
+            <li><strong>moves the head</strong> one cell left or right.</li>
+          </ol>
+          <p style="margin-top:10px;margin-bottom:0;" class="small">This formalism <em>requires</em> a move every step — there is no "stay put" option. (You'll meet machines later in the course that add an S = stay option; it's a notational convenience, not extra power.)</p>
+        </div>
+
+        <h3>The 7-tuple</h3>
+        <div class="box def">
+          <div class="box-label">Definition</div>
+          <p style="text-align:center;font-family:var(--mono);font-size:19px;margin:6px 0 14px;">M = (Q, Σ, Γ, δ, q₀, B, F)</p>
+          <table>
+            <tr><th style="width:60px;">symbol</th><th style="width:200px;">name</th><th>meaning</th></tr>
+            <tr><td>Q</td><td class="desc">states</td><td class="desc">the finite set of states of the finite control</td></tr>
+            <tr><td>Σ</td><td class="desc">input alphabet</td><td class="desc">the finite set of <em>input</em> symbols — what the input string is built from</td></tr>
+            <tr><td>Γ</td><td class="desc">tape alphabet</td><td class="desc">the <em>complete</em> set of symbols that may appear on the tape. Σ ⊆ Γ always — the tape alphabet is a superset of the input alphabet, because the machine needs "working" symbols (like X, Y, ∗, or a mark) that never appear in legal input</td></tr>
+            <tr><td>δ</td><td class="desc">transition function</td><td class="desc">δ(q, X) = (p, Y, D) — see below</td></tr>
+            <tr><td>q₀</td><td class="desc">start state</td><td class="desc">a member of Q</td></tr>
+            <tr><td>B</td><td class="desc">blank symbol</td><td class="desc">B ∈ Γ, B ∉ Σ — every cell not holding input starts out as B</td></tr>
+            <tr><td>F</td><td class="desc">accepting states</td><td class="desc">F ⊆ Q</td></tr>
+          </table>
+        </div>
+
+        <div class="box def">
+          <div class="box-label">The transition function, unpacked</div>
+          <p style="margin-bottom:6px;">δ takes a <strong>state</strong> and a <strong>tape symbol</strong>, and — if it's defined there — returns a <strong>triple</strong>:</p>
+          <p style="text-align:center;font-family:var(--mono);font-size:17px;">δ(q, X) = (p, Y, D)</p>
+          <ul style="margin-bottom:0;">
+            <li><strong>p</strong> ∈ Q — the next state</li>
+            <li><strong>Y</strong> ∈ Γ — the symbol written into the scanned cell, replacing X</li>
+            <li><strong>D</strong> ∈ {L, R} — which way the head moves</li>
+          </ul>
+        </div>
+
+        <details class="card trap">
+          <summary>Trap: δ is a <em>partial</em> function</summary>
+          <div class="card-body">
+            <p>Nothing forces δ to be defined for every (state, symbol) pair. Where it's undefined, the machine simply <strong>halts</strong> — this is the mechanism used for rejection. There's no explicit "reject and stop" instruction; you reject a string by <em>constructing your δ so the machine gets stuck</em> on it. When you design a TM, "what happens on inputs I didn't plan for" is not an afterthought — it's how half your rejecting behavior gets implemented.</p>
+          </div>
+        </details>
+
+        <h4>Notational conventions</h4>
+        <p>The course (following Hopcroft–Ullman) is consistent about letters, and it pays to internalize this so you can read someone else's TM construction fluently:</p>
+        <ul>
+          <li>Lower-case letters near the <strong>start</strong> of the alphabet (a, b, c, …) — <em>input</em> symbols.</li>
+          <li>Capital letters near the <strong>end</strong> (X, Y, Z, …) — <em>tape</em> symbols that may or may not be input symbols (B is always reserved for blank, regardless of where it sits alphabetically).</li>
+          <li>Lower-case letters near the <strong>end</strong> (w, x, y, z) — <em>strings</em> of input symbols.</li>
+          <li>Greek letters (α, β, γ) — <em>strings</em> of tape symbols (may include blanks/working symbols).</li>
+          <li>q, p, and nearby letters — <em>states</em>.</li>
+        </ul>
+      </section>
+
+      <section class="topic" id="ids">
+        <h2><span class="hnum">03</span>Instantaneous Descriptions</h2>
+
+        <p>A PDA's configuration was a triple: (state, remaining input, stack). A TM's tape is infinite, so at first it looks like you'd need infinite information to describe a snapshot. You don't — because after any <em>finite</em> number of moves, the machine can only have visited finitely many cells.</p>
+
+        <div class="box def">
+          <div class="box-label">Instantaneous description (ID)</div>
+          <p>Every ID has an infinite prefix and infinite suffix of cells the machine has never touched — necessarily all blank (or, in edge cases discussed below, holding original untouched input). So we only ever <em>write down</em> the cells strictly between the leftmost and rightmost nonblank cell — everything outside that window is uniformly blank, forever, and doesn't need stating.</p>
+          <p style="margin-bottom:0;">To show where the head is and what state we're in, we <strong>embed the state name into the tape string itself</strong>, writing it immediately to the left of the cell being scanned:</p>
+          <p style="text-align:center; font-family:var(--mono); font-size:17px; margin:10px 0 0;">X₁X₂ … Xᵢ₋₁ <span style="color:var(--navy);font-weight:700;">q</span> Xᵢ Xᵢ₊₁ … Xₙ</p>
+        </div>
+        <p>This means: <strong>q</strong> is the current state, the head is scanning the <strong>i</strong>-th symbol from the left, and X₁…Xₙ is everything on the tape between the leftmost and rightmost nonblank cell. (Two things have to line up for this to be unambiguous: no state name is ever allowed to double as a tape symbol — trivially arranged by renaming — and there's a special convention for when the head sits <em>at</em> or <em>past</em> the blank boundary, covered just below.)</p>
+
+        <h3>The move relation ⊢</h3>
+        <p>We write <code>ID₁ ⊢ ID₂</code> ("ID₁ <em>yields</em> ID₂") for one move of the machine, <code>⊢*</code> for zero-or-more moves — exactly the PDA notation, carried over.</p>
+
+        <div class="stair">
+          <div class="stair-step">
+            <div class="sn">L</div>
+            <div class="sd"><strong>Moving left</strong> — if δ(q, Xᵢ) = (p, Y, L):
+              <div class="mono small" style="margin-top:4px;">X₁…Xᵢ₋₁ q Xᵢ Xᵢ₊₁…Xₙ &nbsp;⊢&nbsp; X₁…Xᵢ₋₂ p Xᵢ₋₁ Y Xᵢ₊₁…Xₙ</div>
+              the state jumps to <em>before</em> Xᵢ₋₁, since the head is now one cell further left, and Xᵢ gets overwritten to Y in place.</div>
+          </div>
+          <div class="stair-step">
+            <div class="sn">R</div>
+            <div class="sd"><strong>Moving right</strong> — if δ(q, Xᵢ) = (p, Y, R):
+              <div class="mono small" style="margin-top:4px;">X₁…Xᵢ₋₁ q Xᵢ Xᵢ₊₁…Xₙ &nbsp;⊢&nbsp; X₁…Xᵢ₋₁ Y p Xᵢ₊₁…Xₙ</div></div>
+          </div>
+        </div>
+
+        <details class="card trap">
+          <summary>Trap: the four boundary exceptions</summary>
+          <div class="card-body">
+            <p>The rules above silently assume there's tape on both sides to shuffle into. Four situations break that assumption, and each needs its own handling — these are exactly the cases where an ID <em>grows</em> or <em>shrinks</em> by one cell:</p>
+            <table>
+              <tr><th>situation</th><th class="desc">what happens</th></tr>
+              <tr><td>i = 1, move L</td><td class="desc">head was already at the leftmost known cell and steps further left, into virgin blank territory: qX₁X₂…Xₙ ⊢ pBYX₂…Xₙ — a fresh B appears on the left.</td></tr>
+              <tr><td>i = n, Y = B, move L</td><td class="desc">the rightmost cell gets blanked and the head steps off it leftward — that blank rejoins the infinite trailing blank run and is simply dropped from the ID: X₁…Xₙ₋₁qXₙ ⊢ X₁…Xₙ₋₂pXₙ₋₁ (one cell <em>shorter</em>).</td></tr>
+              <tr><td>i = n, move R</td><td class="desc">symmetric to the first case, but on the right: a fresh B appears.</td></tr>
+              <tr><td>i = 1, move R, Y=B</td><td class="desc">symmetric to the second case: qX₁X₂…Xₙ ⊢ pX₂…Xₙ, the ID shrinks from the left.</td></tr>
+            </table>
+            <p class="small" style="margin-bottom:0;">The unifying idea: the written-down ID always shows exactly the nonblank window, so writing a blank at an edge shrinks it, and moving past a known edge into unexplored territory grows it.</p>
+          </div>
+        </details>
+
+        <div class="box note">
+          <div class="box-label">Why this matters beyond bookkeeping</div>
+          <p style="margin:0;">Every worked example below is really just a long ⊢-chain. Being fluent with this notation is what lets you read (and write) a full accepting computation for an exam question in one line per step instead of drawing the whole tape each time.</p>
+        </div>
+      </section>
+
+      <section class="topic" id="ex1">
+        <h2><span class="hnum">04</span>Worked Example: 0ⁿ1ⁿ</h2>
+        <p>Time to build one. Target language: <span class="mono">L = {0ⁿ1ⁿ | n ≥ 1}</span> — balanced blocks of 0's then 1's, at least one of each. (Note the strict <span class="mono">n ≥ 1</span>: this particular construction's start state has no rule for a leading blank, so — unlike the language definition you'll see quoted elsewhere for n ≥ 0 — <em>this specific machine</em> rejects the empty string. Worth noticing, because it's exactly the kind of off-by-one an exam loves to probe.)</p>
+
+        <div class="box def">
+          <div class="box-label">The strategy</div>
+          <p style="margin:0;">Repeatedly: cross off the leftmost remaining 0 (turn it into <span class="mono">X</span>), skip right past whatever's left of the unmarked block to find the leftmost remaining 1, cross it off too (turn it into <span class="mono">Y</span>), then walk back to the start and repeat. As the machine works, the visited portion of the tape always matches the regular expression <span class="mono">X*0*Y*1*</span> — some 0's already matched (now X), some not yet; some 1's already matched (now Y), some not yet.</p>
+        </div>
+
+        <p>Formally, M = ({q₀,q₁,q₂,q₃,q₄}, {0,1}, {0,1,X,Y,B}, δ, q₀, B, {q₄}):</p>
+
+        <table class="delta-table">
+          <tr><th>state</th><th>on 0</th><th>on 1</th><th>on X</th><th>on Y</th><th>on B</th></tr>
+          <tr><td>q₀</td><td>(q₁,X,R)</td><td>—</td><td>—</td><td>(q₃,Y,R)</td><td>—</td></tr>
+          <tr><td>q₁</td><td>(q₁,0,R)</td><td>(q₂,Y,L)</td><td>—</td><td>(q₁,Y,R)</td><td>—</td></tr>
+          <tr><td>q₂</td><td>(q₂,0,L)</td><td>—</td><td>(q₀,X,R)</td><td>(q₂,Y,L)</td><td>—</td></tr>
+          <tr><td>q₃</td><td>—</td><td>—</td><td>—</td><td>(q₃,Y,R)</td><td class="accepting">(q₄,B,R) ✓</td></tr>
+          <tr><td>q₄</td><td colspan="4" style="text-align:center;color:var(--ink-soft);">— accepting, halts —</td></tr>
+        </table>
+
+        <div class="stair">
+          <div class="stair-step"><div class="sn">q₀</div><div class="sd">the "find next unmatched 0" state. On a 0: cross it to X, move right, go hunt for the matching 1 (q₁). On a Y (all 0's exhausted): every 0 has been matched — switch to the cleanup sweep (q₃).</div></div>
+          <div class="stair-step"><div class="sn">q₁</div><div class="sd">skip right over remaining 0's and already-matched Y's. On the first raw 1 found: cross it to Y, reverse direction (q₂).</div></div>
+          <div class="stair-step"><div class="sn">q₂</div><div class="sd">skip left back over 0's and Y's. On hitting the rightmost X (the boundary of already-matched 0's): step right onto the next unmatched 0, back to q₀.</div></div>
+          <div class="stair-step"><div class="sn">q₃</div><div class="sd">sweep right over the remaining Y's, confirming no stray 1 is left. Hit a blank → accept (q₄).</div></div>
+        </div>
+
+        <details class="card trap">
+          <summary>Trap: why does <span class="mono">q₃</span> exist at all — why not accept the moment the last 0 is matched?</summary>
+          <div class="card-body">
+            <p>Because matching every 0 doesn't prove there's no <em>extra</em> 1 left over. Input <span class="mono">001</span> would otherwise slip through: both 0's get matched to the first two 1's, but a third 1 remains unconsumed. State q₃'s entire job is to walk across everything to the right of the last matched 0 and confirm it's <em>only</em> Y's before the blank — if it meets a bare 1 instead, δ(q₃,1) is undefined and the machine halts without accepting. This is a general pattern: matching a prefix is not the same as matching the whole string, and a well-designed TM proof-reads its own work before accepting.</p>
+          </div>
+        </details>
+
+        <h3>Try it — step through the machine yourself</h3>
+        <p class="small">Pick a preset or type your own string of 0's and 1's, then step or press play. Watch the head; the current rule fires below the tape.</p>
+        <div id="sim-0n1n"></div>
+
+        <h3 id="diagrams">Transition diagram</h3>
+        <p>Same machine, drawn as a graph. Arcs are labeled <span class="mono">X/YD</span> — read symbol X, write symbol Y, move direction D.</p>
+        <svg viewBox="0 0 720 340" style="width:100%;max-width:680px;display:block;margin:10px auto;font-family:var(--mono);">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#2a241c"/>
+            </marker>
+          </defs>
+          <!-- states -->
+          <circle cx="90" cy="80" r="30" fill="#fbf8f1" stroke="#1f3350" stroke-width="2"/>
+          <text x="90" y="86" text-anchor="middle" font-size="17" fill="#1f3350" font-weight="700">q0</text>
+          <circle cx="330" cy="80" r="30" fill="#fbf8f1" stroke="#1f3350" stroke-width="2"/>
+          <text x="330" y="86" text-anchor="middle" font-size="17" fill="#1f3350" font-weight="700">q1</text>
+          <circle cx="330" cy="230" r="30" fill="#fbf8f1" stroke="#1f3350" stroke-width="2"/>
+          <text x="330" y="236" text-anchor="middle" font-size="17" fill="#1f3350" font-weight="700">q2</text>
+          <circle cx="560" cy="80" r="30" fill="#fbf8f1" stroke="#1f3350" stroke-width="2"/>
+          <text x="560" y="86" text-anchor="middle" font-size="17" fill="#1f3350" font-weight="700">q3</text>
+          <circle cx="670" cy="80" r="30" fill="#e4ede4" stroke="#2f5c3f" stroke-width="2"/>
+          <circle cx="670" cy="80" r="24" fill="none" stroke="#2f5c3f" stroke-width="2"/>
+          <text x="670" y="86" text-anchor="middle" font-size="17" fill="#2f5c3f" font-weight="700">q4</text>
+          <!-- start arrow -->
+          <text x="8" y="66" font-size="13" fill="#5b5346" font-style="italic">start</text>
+          <path d="M35,72 L60,78" stroke="#2a241c" stroke-width="1.6" marker-end="url(#arrow)" fill="none"/>
+          <!-- q0->q1 -->
+          <path d="M120,76 C180,68 260,68 300,76" stroke="#7a2a2a" stroke-width="1.6" marker-end="url(#arrow)" fill="none"/>
+          <text x="205" y="62" text-anchor="middle" font-size="12.5" fill="#7a2a2a">0/X→R</text>
+          <!-- q1->q1 self -->
+          <path d="M310,52 C300,20 360,20 350,52" stroke="#1f3350" stroke-width="1.4" marker-end="url(#arrow)" fill="none"/>
+          <text x="330" y="18" text-anchor="middle" font-size="12">0/0→R, Y/Y→R</text>
+          <!-- q1->q2 -->
+          <path d="M330,110 L330,200" stroke="#7a2a2a" stroke-width="1.6" marker-end="url(#arrow)" fill="none"/>
+          <text x="336" y="160" font-size="12.5" fill="#7a2a2a">1/Y→L</text>
+          <!-- q2->q2 self -->
+          <path d="M310,258 C300,290 360,290 350,258" stroke="#1f3350" stroke-width="1.4" marker-end="url(#arrow)" fill="none"/>
+          <text x="330" y="308" text-anchor="middle" font-size="12">0/0→L, Y/Y→L</text>
+          <!-- q2->q0 -->
+          <path d="M305,205 C220,170 130,130 100,108" stroke="#7a2a2a" stroke-width="1.6" marker-end="url(#arrow)" fill="none"/>
+          <text x="175" y="185" text-anchor="middle" font-size="12.5" fill="#7a2a2a">X/X→R</text>
+          <!-- q0->q3 -->
+          <path d="M118,68 C280,10 430,10 532,66" stroke="#7a2a2a" stroke-width="1.6" marker-end="url(#arrow)" fill="none"/>
+          <text x="330" y="24" text-anchor="middle" font-size="12.5" fill="#7a2a2a">Y/Y→R</text>
+          <!-- q3->q3 self -->
+          <path d="M540,52 C530,20 590,20 580,52" stroke="#1f3350" stroke-width="1.4" marker-end="url(#arrow)" fill="none"/>
+          <text x="560" y="18" text-anchor="middle" font-size="12">Y/Y→R</text>
+          <!-- q3->q4 -->
+          <path d="M590,80 L636,80" stroke="#2f5c3f" stroke-width="1.8" marker-end="url(#arrow)" fill="none"/>
+          <text x="613" y="70" text-anchor="middle" font-size="12.5" fill="#2f5c3f">B/B→R</text>
+        </svg>
+
+        <div class="box note">
+          <div class="box-label">Reading transition diagrams — the fixed rules</div>
+          <p style="margin:0;">Nodes = states. An arc from q to p labeled X/YD means δ(q,X) = (p,Y,D); D is drawn as ← or → rather than written out. "Start" with an arrow marks q₀. Double circles mark accepting states. The <em>one</em> thing you cannot read off the diagram is which symbol is the blank — by convention it's B unless stated otherwise.</p>
+        </div>
+      </section>
+
+      <section class="topic" id="functions">
+        <h2><span class="hnum">06</span>Computing Functions</h2>
+
+        <p>So far a TM has been a language recognizer — a fancy accept/reject box. That's the modern framing. But Turing's own original picture was different: he thought of the machine as computing <em class="term">integer-valued functions</em>, with integers written in <strong>unary</strong> — the number <em>k</em> represented as a block of <em>k</em> identical symbols. The machine computes by growing, shrinking, or relocating those blocks on the tape. Since it's not accepting a language, the 7th component (F, the accepting states) is simply omitted — you'll see machines specified as 6-tuples in this mode, and that omission is deliberate, not sloppy notation.</p>
+
+        <div class="box def">
+          <div class="box-label">Worked example — proper subtraction (monus)</div>
+          <p style="margin:0 0 10px;">Define <span class="mono">m −̇ n = max(m − n, 0)</span> — ordinary subtraction, floored at zero so it never goes negative. Input tape: <span class="mono">0ᵐ 1 0ⁿ</span> (a block of m zeros, one separator 1, a block of n zeros). Output: the machine halts with <span class="mono">0^(m−̇n)</span> on the tape, nothing else.</p>
+        </div>
+
+        <h3>The algorithm</h3>
+        <p>Same "cross things off and match them up" idea as the 0ⁿ1ⁿ machine, but now matching consumes a symbol from <em>each</em> block per round rather than checking equality:</p>
+        <div class="stair">
+          <div class="stair-step"><div class="sn">1</div><div class="sd">Find the leftmost remaining 0 of the <em>first</em> (m-) block; blank it.</div></div>
+          <div class="stair-step"><div class="sn">2</div><div class="sd">Search right, past the separator, for the leftmost remaining 0 of the <em>second</em> (n-) block; convert it to a 1 (a "used" marker).</div></div>
+          <div class="stair-step"><div class="sn">3</div><div class="sd">Walk back left until hitting the blank boundary just created in step 1, step one cell right — that's the next 0 of the m-block — and repeat.</div></div>
+        </div>
+        <p>The repetition ends one of two ways:</p>
+        <div class="stair">
+          <div class="stair-step"><div class="sn">A</div><div class="sd"><strong>Searching for a 0 in the n-block, the machine hits a blank instead.</strong> Every one of the n zeros has already been converted to a 1 — the n-block is exhausted, but the m-block still had an unmatched 0 left (the one blanked at the start of <em>this</em> round). So m > n: blank out the separator and all the "used" 1's, restore that one over-consumed cell back to a 0, and halt. What's left on the tape is exactly the untouched tail of the m-block, now made contiguous — <span class="mono">m −̇ n</span> zeros.</div></div>
+          <div class="stair-step"><div class="sn">B</div><div class="sd"><strong>At the very start of a round, the machine looks for a 0 in the m-block and finds a 1 (the separator) instead.</strong> Every 0 in the m-block is already blanked — so n ≥ m, meaning <span class="mono">m −̇ n = 0</span>. Blank out everything else that remains (separator and n-block) and halt on a completely empty tape.</div></div>
+        </div>
+
+        <details class="card trap">
+          <summary>Trap: case A's "restore one cell" step is the single easiest place to get this wrong</summary>
+          <div class="card-body">
+            <p>The natural first instinct is: "we hit a blank while hunting in the n-block, so just leave everything left of the separator as-is and blank the separator + used 1's." That's <em>wrong by exactly one</em> — because the current round had <em>already</em> optimistically blanked a fresh 0 from the m-block before discovering there was no partner for it in the n-block. If you don't give that cell back, your machine reports <span class="mono">m −̇ n − 1</span> instead of <span class="mono">m −̇ n</span>. The fix is to have the cleanup sweep travel <em>all the way</em> back past the untouched tail of the m-block (skipping over those 0's unchanged) until it hits the first blank cell — <em>that's</em> the over-consumed one — and turn only that one back into a 0. Trace it by hand for m=3, n=1 if this doesn't click immediately; it's a genuinely subtle off-by-one, and exactly the kind of detail an exam question likes to test.</p>
+          </div>
+        </details>
+
+        <h3>Try it — with the lecture's own example (m=2, n=4)</h3>
+        <p class="small">This is a verified, runnable realization of the algorithm above (7 states, matching the lecture's q₀…q₆ naming). Presets replay the exact 0²10⁴ trace from the slides plus a few others; the custom box accepts any <span class="mono">m,n</span> pair.</p>
+        <div id="sim-monus"></div>
+
+        <details class="card">
+          <summary>Why unary, and why does this feel so wasteful?</summary>
+          <div class="card-body">
+            <p>It <em>is</em> wasteful — representing the number one million takes a million tape cells. That's precisely why, once the course reframes TMs as language recognizers, nobody computes in unary again; you'll use binary (or leave numbers implicit in string structure) from here on. Unary survives in this one corner of the course purely because it makes "the machine scans past a whole block" trivial to describe and verify — no carrying, no place value, just counting matched pairs. It's a pedagogical stepping stone, not the model you're expected to compute with going forward.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="topic" id="language">
+        <h2><span class="hnum">07</span>Language & Halting</h2>
+
+        <h3>The language of a TM</h3>
+        <div class="box def">
+          <div class="box-label">Definition</div>
+          <p style="margin:0;">For M = (Q, Σ, Γ, δ, q₀, B, F), the language <strong>L(M)</strong> is the set of strings w ∈ Σ* such that</p>
+          <p style="text-align:center;font-family:var(--mono);font-size:17px;margin:8px 0 0;">q₀w ⊢* αpβ&nbsp; for some p ∈ F and any tape strings α, β</p>
+        </div>
+        <p>In words: start the machine on w, run it, and if it <em>ever</em> reaches an accepting state — regardless of what's elsewhere on the tape at that moment — w ∈ L(M). This is exactly the definition silently assumed back in the 0ⁿ1ⁿ example.</p>
+
+        <div class="box theorem">
+          <div class="box-label">Recursively enumerable languages</div>
+          <p style="margin:0;">The class of languages accepted by some Turing machine is called the <strong>recursively enumerable (RE) languages</strong>. ("Recursively enumerable" is a name inherited from an older, independently-developed formalism that turns out to define the exact same class of languages — you'll meet the term again heavily once decidability is on the table.)</p>
+        </div>
+
+        <h3>Acceptance by halting</h3>
+        <p>There's a second, commonly-used notion of "accepting" worth having in your vocabulary now, even though the course's default is acceptance-by-final-state:</p>
+        <div class="box def">
+          <div class="box-label">Halting</div>
+          <p style="margin:0;">A TM <strong>halts</strong> when it's in some state q, scanning symbol X, and δ(q,X) is undefined — there's simply no move to make. This is exactly the mechanism flagged as a trap back in the formal definition: every TM you've built already halts-to-reject constantly, every time it falls off the edge of its own δ table.</p>
+        </div>
+        <p>For a language recognizer, "accept" and "eventually enter an accepting state" coincide — but a machine can also halt <em>without</em> accepting (reject), and, as you'll see very shortly once nontermination enters the picture, a machine is not guaranteed to halt at all on every input.</p>
+
+        <div class="box example">
+          <div class="box-label">A function-computing machine's relationship to halting</div>
+          <p style="margin:0;">The monus machine above was never designed to accept a language — it has no F. Its entire "correctness" claim is a <em>halting</em> claim: for every string of 0's, 1's, no matter what it looks like, that machine provably halts (either via the case-A cleanup or the case-B cleanup — those two branches are exhaustive). That it always halts, on every input, is worth noticing precisely <em>because</em> it won't be true of every machine you meet later in the course — some machines run forever on some inputs, and telling in advance whether a given machine will halt on a given input turns out to be uncomputable in general. Filed away for later; for now, just notice that "does this thing halt" is a real, nontrivial property to have to argue for.</p>
+        </div>
+      </section>
+
+      <section class="topic" id="storage">
+        <h2><span class="hnum">08</span>Programming Tricks: Storage in the State</h2>
+
+        <p>A TM is exactly as powerful as a conventional computer — but the raw 7-tuple gets unwieldy fast for anything nontrivial. The rest of this section is a toolkit of three standard tricks for taming that. All three are pure notation: <strong>none of them extend what a TM can compute</strong>. Every trick below compiles down to an ordinary flat δ table; they just make the design — and its correctness argument — dramatically easier to read and write.</p>
+
+        <div class="box def">
+          <div class="box-label">The trick</div>
+          <p style="margin:0;">Let a state be a <em>tuple</em> instead of an atomic symbol: <span class="mono">[q, A]</span> is "control position q, remembering data value A." Formally this changes nothing — Q is still just a finite set, it's simply a set of pairs now instead of a set of bare labels — but it lets you describe transitions <em>systematically</em>, as functions of the remembered data, instead of writing out one state per remembered value by hand.</p>
+        </div>
+
+        <h3>Worked example — 01* + 10*</h3>
+        <p>Build M = (Q, {0,1}, {0,1,B}, δ, [q₀,B], {[q₁,B]}) that remembers the <em>first</em> symbol it reads and rejects if that symbol ever reappears — i.e. accepts exactly <span class="mono">01* ∪ 10*</span>. (A trivially regular language — this is a demonstration of the technique, not a machine that needed a TM's power.)</p>
+        <p>States: Q = {q₀,q₁} × {0,1,B} — a control component (q₀ "haven't read yet" / q₁ "checking the rest") crossed with a data component (which symbol was first seen, or B if none yet).</p>
+
+        <table class="delta-table">
+          <tr><th>#</th><th>rule</th><th class="desc">meaning</th></tr>
+          <tr><td>1</td><td>δ([q₀,B], a) = ([q₁,a], a, R)</td><td class="desc">read the first symbol a (0 or 1), store it, move right, switch to "checking" mode</td></tr>
+          <tr><td>2</td><td>δ([q₁,a], ā) = ([q₁,a], ā, R)</td><td class="desc">ā is the complement of a — skip over every symbol that <em>differs</em> from the stored one</td></tr>
+          <tr><td>3</td><td>δ([q₁,a], B) = ([q₁,B], B, R)</td><td class="desc">reached the end cleanly → accepting state [q₁,B]</td></tr>
+        </table>
+        <p class="small">Notice there is deliberately <strong>no</strong> rule for δ([q₁,a], a) — encountering the stored symbol a <em>second time</em> has no transition, so the machine halts without accepting. The absence of a rule is doing real work here, exactly as flagged earlier.</p>
+
+        <div class="box example">
+          <div class="box-label">Lecture's own trace, input 01111</div>
+          <p style="margin:0;font-family:var(--mono);font-size:14px;line-height:1.9;">
+          [q₀,B] 01111<br>
+          ⊢ 0[q₁,0] 1111<br>
+          ⊢ 01[q₁,0] 111<br>
+          ⊢ 011[q₁,0] 11<br>
+          ⊢ 0111[q₁,0] 1<br>
+          ⊢ 01111[q₁,0] B<br>
+          ⊢ 01111B[q₁,B] B &nbsp;&nbsp;<span style="color:var(--accept-green);">← accept</span></p>
+        </div>
+
+        <div id="sim-storage"></div>
+      </section>
+
+      <section class="topic" id="tracks">
+        <h2><span class="hnum">09</span>Programming Tricks: Multiple Tracks</h2>
+
+        <div class="box def">
+          <div class="box-label">The trick</div>
+          <p style="margin:0;">Think of the tape alphabet as <em>tuples</em>: each cell holds a symbol from Γ where Γ itself is a Cartesian product, e.g. Γ = {B,∗} × {0,1,c,B}. Visually, imagine the tape ruled into horizontal "tracks" stacked in the same cell — one track might hold the real data, another might hold nothing but a checkmark. Again: zero extra power. It's exactly the storage-in-state trick, just applied to the <em>tape alphabet</em> instead of the state set.</p>
+        </div>
+
+        <h3>Worked example — the copy-checker L<sub>wcw</sub></h3>
+        <p>Target language (genuinely <strong>not context-free</strong> — no PDA can do this one):</p>
+        <div class="box example" style="margin-top:0;">
+          <p style="margin:0;font-family:var(--mono);">L<sub>wcw</sub> = { w c w &nbsp;|&nbsp; w ∈ {0,1}⁺ }</p>
+        </div>
+        <p>Strategy: use a second track as a <strong>checkmark</strong> track. Pick up the leftmost unchecked symbol before the <span class="mono">c</span>, remember it (storage-in-state again), skip past the <span class="mono">c</span>, find the leftmost unchecked symbol after it, compare, checkmark <em>both</em> if they match, and repeat until everything's checked.</p>
+
+        <p>M = (Q, Σ, Γ, δ, [q₁,B], [B,B], {[q₉,B]}) where Γ = {B,∗} × {0,1,c,B} — track 1 is blank-or-checked (B/∗), track 2 is the real symbol.</p>
+
+        <table class="delta-table">
+          <tr><th>#</th><th>rule</th><th class="desc">meaning</th></tr>
+          <tr><td>1</td><td>δ([q₁,B],[B,a]) = ([q₂,a],[∗,a],R)</td><td class="desc">pick up symbol a before c, check it off, remember it, head right</td></tr>
+          <tr><td>2</td><td>δ([q₂,a],[B,b]) = ([q₂,a],[B,b],R)</td><td class="desc">skip right, searching for c</td></tr>
+          <tr><td>3</td><td>δ([q₂,a],[B,c]) = ([q₃,a],[B,c],R)</td><td class="desc">found c, keep going right</td></tr>
+          <tr><td>4</td><td>δ([q₃,a],[∗,b]) = ([q₃,a],[∗,b],R)</td><td class="desc">skip already-checked symbols after c</td></tr>
+          <tr><td>5</td><td>δ([q₃,a],[B,a]) = ([q₄,B],[∗,a],L)</td><td class="desc">match found — check it off, drop the stored symbol, reverse</td></tr>
+          <tr><td>6</td><td>δ([q₄,B],[∗,a]) = ([q₄,B],[∗,a],L)</td><td class="desc">move left over checked symbols</td></tr>
+          <tr><td>7</td><td>δ([q₄,B],[B,c]) = ([q₅,B],[B,c],L)</td><td class="desc">back at c, keep moving left — now must decide what's next</td></tr>
+          <tr><td>8</td><td>δ([q₅,B],[B,a]) = ([q₆,B],[B,a],L)</td><td class="desc">symbol left of c is <em>unchecked</em> → more work remains</td></tr>
+          <tr><td>9</td><td>δ([q₆,B],[B,a]) = ([q₆,B],[B,a],L)</td><td class="desc">keep sweeping left over unchecked symbols</td></tr>
+          <tr><td>10</td><td>δ([q₆,B],[∗,a]) = ([q₁,B],[∗,a],R)</td><td class="desc">found the checked/unchecked boundary → back to q₁, restart cycle</td></tr>
+          <tr><td>11</td><td>δ([q₅,B],[∗,a]) = ([q₇,B],[∗,a],R)</td><td class="desc">symbol left of c is <em>already checked</em> → the left half is fully done</td></tr>
+          <tr><td>12</td><td>δ([q₇,B],[B,c]) = ([q₈,B],[B,c],R)</td><td class="desc">head back right, past c</td></tr>
+          <tr><td>13</td><td>δ([q₈,B],[∗,a]) = ([q₈,B],[∗,a],R)</td><td class="desc">skip checked symbols on the right side too</td></tr>
+          <tr><td>14</td><td>δ([q₈,B],[B,B]) = ([q₉,B],[B,B],R)</td><td class="accepting desc">blank reached with nothing unchecked remaining → accept ✓</td></tr>
+        </table>
+        <p class="small">If step 13 meets a <em>bare</em> (unchecked) 0 or 1 instead of running clean to a blank, there's no rule for it — halt, reject. That's how "the right half had leftover unmatched symbols" gets caught.</p>
+
+        <details class="card trap">
+          <summary>Trap: the state does double duty — don't lose track of which branch you're in</summary>
+          <div class="card-body">
+            <p>States q₅ through q₈ exist purely to resolve one binary question — "is the symbol immediately left of c checked or not?" — and the two answers lead to <em>completely different</em> onward paths (q₆→q₁, a fresh cycle; vs q₇→q₈→q₉, straight to acceptance). It's easy while tracing by hand to forget which of those two branches you're currently walking. Anchor yourself with the plain-English question each state is answering, not just its number.</p>
+          </div>
+        </details>
+
+        <h3>Try it — verified live, matches the lecture's own 011c011 trace exactly</h3>
+        <p class="small">Top row of each cell is the checkmark track; bottom row is the real symbol.</p>
+        <div id="sim-wcw"></div>
+      </section>
+
+      <section class="topic" id="subroutines">
+        <h2><span class="hnum">10</span>Subroutines &amp; The Binary Adder</h2>
+
+        <div class="box def">
+          <div class="box-label">The trick</div>
+          <p style="margin:0;">Think of a TM as built from interacting components — "subroutines" — the same way you'd decompose a program into functions. A subroutine is a set of states with a designated start state; "calling" it just means transitioning into that start state from wherever you are. The catch: <strong>a TM has no call stack</strong>. There's no built-in mechanism to remember "where do I return to when I'm done." If the same piece of logic needs to be invoked from several different places and return to different places each time, the fix is blunt but effective: make <em>separate copies</em> of the subroutine's states, one per call site, each copy hard-wired to return to its own caller.</p>
+        </div>
+
+        <h3>Worked example — binary addition</h3>
+        <p>Tape layout: <span class="mono">w₁ c w₂ c</span>, where w₁ and w₂ are equal-length binary numbers written <strong>least-significant-bit first</strong> (a deliberate convenience — it lets the machine process a carry chain left-to-right, in the same direction it's already scanning). The sum gets written after the second c.</p>
+
+        <p>This combines <em>both</em> earlier tricks at once: <strong>multiple tracks</strong> (a checkmark track, exactly like L<sub>wcw</sub>) plus <strong>storage in the state</strong> — but now storing <em>three</em> values at once: the two bits being added, and the carry. States are 4-tuples <span class="mono">[q, a, b, cᵢ]</span>.</p>
+
+        <table class="delta-table">
+          <tr><th>#</th><th>rule (a,b,cᵢ ∈ {0,1})</th><th class="desc">meaning</th></tr>
+          <tr><td>1</td><td>δ([q₀,B,B,cᵢ],[B,a]) = ([q₁,a,B,cᵢ],[∗,a],R)</td><td class="desc">pick up bit a of w₁, check it off, remember it</td></tr>
+          <tr><td>2</td><td>δ([q₁,a,B,cᵢ],[B,0/1]) = same,R</td><td class="desc">skip right looking for c</td></tr>
+          <tr><td>3</td><td>δ([q₁,a,B,cᵢ],[B,c]) = ([q₂,a,B,cᵢ],[B,c],R)</td><td class="desc">found first c, continue right</td></tr>
+          <tr><td>4</td><td>δ([q₂,a,B,cᵢ],[∗,0/1]) = same,R</td><td class="desc">skip already-checked bits of w₂</td></tr>
+          <tr><td>5</td><td>δ([q₂,a,B,cᵢ],[B,b]) = ([q₃,a,b,cᵢ],[∗,b],R)</td><td class="desc">pick up matching bit b of w₂, check it off</td></tr>
+          <tr><td>6</td><td>δ([q₃,a,b,cᵢ],[B,0/1/c]) = same,R</td><td class="desc">run right past everything (including any digits already written) to the end</td></tr>
+          <tr><td>7</td><td>δ([q₃,a,b,cᵢ],[B,B]) = ([q₄,B,B,c₀],[B,s],L)</td><td class="desc">at the blank — write sum bit s, carry the new carry c₀ in the state, reverse (table below)</td></tr>
+          <tr><td>8–9</td><td>δ([q₄,…],[B,0/1])→same,L &nbsp;then&nbsp; δ([q₄,…],[B,c])→[q₅,…],L</td><td class="desc">sweep left back to the second c</td></tr>
+          <tr><td>10–11</td><td>δ([q₅,…],[B/∗,0/1])→same,L &nbsp;then&nbsp; δ([q₅,…],[B,c])→[q₆,…],L</td><td class="desc">sweep left across w₂, back to the first c</td></tr>
+          <tr><td>12–13</td><td>δ([q₆,…],[B,0/1])→same,L &nbsp;then&nbsp; δ([q₆,…],[∗,0/1])→[q₀,…],R</td><td class="desc">sweep left over w₁'s <em>un</em>checked bits until the checked boundary, then hand back to q₀ for the next column</td></tr>
+          <tr><td>14</td><td>δ([q₀,…],[B,c]) = ([q₇,…],[B,c],R)</td><td class="desc">q₀ finds c instead of an unchecked bit → both numbers fully consumed</td></tr>
+          <tr><td>15</td><td>δ([q₇,…],[B/∗,0/1/c]) = same,R</td><td class="desc">run right to the end of the written sum</td></tr>
+          <tr><td>16</td><td>δ([q₇,…],[B,B]) = ([q₈,…],[B,cᵢ],R)</td><td class="accepting desc">write the final carry-out bit and halt ✓</td></tr>
+        </table>
+
+        <div class="box def">
+          <div class="box-label">The sum/carry table (rule 7) — verified: a+b+cᵢ = s + 2·c₀ for every row</div>
+          <table style="margin-top:8px;">
+            <tr><th>a</th><th>b</th><th>cᵢ</th><th>s</th><th>c₀</th></tr>
+            <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+          </table>
+        </div>
+
+        <p>This is textbook subroutine structure: rules 8–9 ("sweep back to the second c"), 10–11, and 12–13 are each little self-contained "find this landmark" routines, chained one into the next by state transitions — exactly the decomposition the intro box described, just inlined into one flat δ rather than drawn as separate boxes.</p>
+
+        <h3>Try it — verified against 300 random additions, matches the lecture's 101+011=1101 trace exactly</h3>
+        <p class="small">Inputs are LSB-first. 101 = 1+0·2+1·4 = 5; 011 = 0+1·2+1·4 = 6; sum 11 = 1011₂, written LSB-first as 1101 — exactly what the machine produces.</p>
+        <div id="sim-adder"></div>
+      </section>
+
+      <section class="topic" id="multitape">
+        <h2><span class="hnum">11</span>Multitape Turing Machines</h2>
+
+        <p>Every trick in the previous section left the <em>machine model itself</em> untouched — one tape, one head, a flat δ. Now we actually generalize the model: give the machine several tapes, each with its own independent head. Multitape machines are worth knowing for a very practical reason — they make it far easier to see how a TM can simulate a real computer (Section 14) or another TM, compared to constantly threading everything through a single tape. And crucially: <strong>the extra tapes add no language-recognizing power at all.</strong> That equivalence is the theorem this section proves.</p>
+
+        <div class="box def">
+          <div class="box-label">The model</div>
+          <p style="margin:0;">One finite control, k tapes, each with its own head, moving independently. In one move, the machine: enters a new state (function of the current state <em>and all k</em> scanned symbols); writes a symbol on <em>each</em> tape simultaneously; moves each head left, right, <strong>or stays put</strong> (the S option finally earns its keep here — multitape machines are exactly where "stay stationary" stops being cosmetic and becomes genuinely useful, since a head might have nothing to do on a given tape this step — you'll watch this happen live in the simulator below). The input starts on tape 1 only; every other tape starts entirely blank.</p>
+        </div>
+
+        <h3>Feel it first: the same language, dramatically easier with two tapes</h3>
+        <p>Section 9 built a 14-rule single-tape machine for L<sub>wcw</sub> = {wcw | w ∈ {0,1}⁺} — checkmarks, four sweep-states, a lot of bookkeeping. Here's the closely-related language <span class="mono">L = {w#w | w ∈ {0,1}⁺}</span>, done with <strong>two tapes</strong> instead: copy the first half onto tape 2 as you read it, rewind tape 2, then walk both tapes forward together comparing symbol by symbol. Four states. No checkmarks needed at all — a second tape <em>is</em> the checkmark.</p>
+
+        <div class="stair">
+          <div class="stair-step"><div class="sn">q<sub>copy</sub></div><div class="sd">read tape 1 left-to-right; copy every 0/1 straight onto tape 2 (both heads move right together). On seeing <span class="mono">#</span>: step tape 1's head past it, and start walking tape 2's head back to the left.</div></div>
+          <div class="stair-step"><div class="sn">q<sub>rewind</sub></div><div class="sd">tape 1's head holds still (the S move) while tape 2's head walks left, back to the start of the copy. The instant tape 2 hits blank, step it one cell right (onto the first copied symbol) and switch to comparing.</div></div>
+          <div class="stair-step"><div class="sn">q<sub>compare</sub></div><div class="sd">step both heads right together as long as they agree. A mismatch has no rule to follow → halt-reject. Both heads hitting blank at the same moment → accept.</div></div>
+        </div>
+
+        <div class="mts">
+          <div class="mts-viewtoggle">
+            <button class="chip active" data-view="dual">two tapes</button>
+            <button class="chip" data-view="folded">fold into one tape (2k tracks)</button>
+          </div>
+          <div class="mts-view active" data-view="dual" id="mts-dual"></div>
+          <div class="mts-view" data-view="folded" id="mts-folded"></div>
+          <div class="mts-status">
+            <div>state: <span class="mts-state-val mono" style="color:var(--navy);font-weight:700;">—</span></div>
+            <div class="mts-verdict"></div>
+          </div>
+          <div class="mts-rule"></div>
+          <div class="tmw-controls">
+            <button class="btn ghost mts-reset">⟲ reset</button>
+            <button class="btn mts-step">step →</button>
+            <button class="btn ox mts-play">▶ play</button>
+            <select class="tmw-speed mts-speed">
+              <option value="700">slow</option>
+              <option value="350" selected>normal</option>
+              <option value="120">fast</option>
+            </select>
+            <span class="mts-steps small"></span>
+          </div>
+          <div class="tmw-presets mts-presets"></div>
+        </div>
+
+        <div class="box note">
+          <div class="box-label">What the "fold into one tape" toggle is actually showing you</div>
+          <p style="margin:0;">Flip the toggle mid-run. The folded view takes the <em>exact same computation</em> and repaints it as a single physical tape with four tracks stacked in each column: tape 1's symbol, a marker for where head 1 sits, tape 2's symbol, a marker for head 2. Column-by-column, that's precisely the "2k tracks" construction the proof below describes — you're not watching an analogy, you're watching the actual simulating machine's tape.</p>
+        </div>
+
+        <div class="box theorem">
+          <div class="box-label">Theorem</div>
+          <p style="margin:0;">Every language accepted by a multitape TM is recursively enumerable — i.e. some ordinary <em>one</em>-tape TM accepts it too.</p>
+        </div>
+
+        <details class="card proof">
+          <summary>Proof — simulate k tapes on one tape using 2k tracks</summary>
+          <div class="card-body">
+            <p>Let L be accepted by a k-tape TM M. Build a one-tape TM N whose single tape is organized into <strong>2k tracks</strong> (recall: multiple tracks are free — Section 9). Half the tracks hold the literal contents of M's k tapes, one track each — exactly the "data1 / data2" tracks you just toggled into view above. The other half hold nothing but a single position-marker symbol each, recording where the corresponding head of M currently sits — the "marker1 / marker2" tracks.</p>
+            <p>To simulate one move of M, N must:</p>
+            <div class="stair">
+              <div class="stair-step"><div class="sn">1</div><div class="sd">Sweep across its tape, visiting each of the k head-markers in turn, and record (in its own finite control) which symbol each one sits on. N tracks how many markers are to its left at all times, as a component of its own state, so it never loses its place mid-sweep.</div></div>
+              <div class="stair-step"><div class="sn">2</div><div class="sd">Now knowing all k scanned symbols <em>and</em> M's current state (also stored in N's control), N knows exactly which move M would make.</div></div>
+              <div class="stair-step"><div class="sn">3</div><div class="sd">Sweep across again, this time actually revisiting each marker, writing the new symbol on that track, and nudging the marker left or right as needed.</div></div>
+              <div class="stair-step"><div class="sn">4</div><div class="sd">Update the state-component recording M's state. One move of M is now fully simulated.</div></div>
+            </div>
+            <p style="margin-bottom:0;">N accepts exactly when the simulated M-state it's tracking is one of M's accepting states — so L(N) = L(M).</p>
+          </div>
+        </details>
+
+        <div class="box theorem">
+          <div class="box-label">Theorem — the simulation's cost</div>
+          <p style="margin:0;">The one-tape TM N simulates n moves of the k-tape TM M in <strong>O(n²)</strong> steps of its own.</p>
+        </div>
+        <details class="card proof">
+          <summary>Proof sketch</summary>
+          <div class="card-body">
+            <p>After n moves of M, no head marker can have drifted more than 2n cells from where it started (each move shifts a head by at most one cell). So a single sweep visiting every marker costs O(n) steps of N. Simulating one move of M therefore costs O(n) (plus O(k), a constant, for turning around); doing this for n moves costs O(n)·n = O(n²) total. Since k is fixed (doesn't grow with n), it disappears into the constant.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>Trap: "no extra power" ≠ "no extra cost" — say both halves out loud on an exam</summary>
+          <div class="card-body">
+            <p>Multitape and single-tape TMs recognize exactly the same class of languages — that's the qualitative equivalence. But the <em>quantitative</em> cost of collapsing k tapes into one is real: an O(n)-time multitape algorithm becomes an O(n²)-time single-tape one. This distinction — same computability class, different complexity — is a recurring theme; get comfortable stating both halves of an equivalence result rather than only the "can it be done at all" half.</p>
+          </div>
+        </details>
+      </section>
+
+
+      <section class="topic" id="ntm">
+        <h2><span class="hnum">12</span>Nondeterministic Turing Machines</h2>
+
+        <div class="box def">
+          <div class="box-label">The model</div>
+          <p style="margin:0;">Same idea as NFA-vs-DFA. Now δ(q,X) returns a <em>set</em> of triples {(q₁,Y₁,D₁), …, (qₖ,Yₖ,Dₖ)} rather than a single one, and the machine may pick any of them at each step. (One constraint: it must pick a triple <em>as a whole</em> — it cannot mix-and-match a state from one option, a written symbol from another, and a direction from a third.) An NTM accepts input w if <em>some</em> sequence of choices leads from the initial configuration to an accepting state — exactly as for NFAs and PDAs, the existence of other, non-accepting branches is simply irrelevant.</p>
+        </div>
+
+        <h3>Feel it first: a machine that genuinely guesses</h3>
+        <p>Take Σ = {0,1} and the language "contains 11 somewhere." Here's an NTM with a real fork in it — not a disguised deterministic scan:</p>
+        <div class="stair">
+          <div class="stair-step"><div class="sn">q<sub>s</sub></div><div class="sd">scanning, looking for the start of a match. On a 0: only one option, keep scanning right. On a 1: <strong>two</strong> genuine options — either ignore it and keep scanning (this 1 might be a false start), <em>or</em> guess "this is the first half of 11" and jump to q<sub>m</sub>.</div></div>
+          <div class="stair-step"><div class="sn">q<sub>m</sub></div><div class="sd">the guess is being checked. If the next symbol really is a 1: confirmed, accept. If it's a 0: the guess was wrong — this branch simply has no rule to follow, and dies right there.</div></div>
+        </div>
+        <p>Every branch that guesses wrong dies quietly. The <em>only</em> thing that matters for acceptance is whether at least one branch, anywhere in the tree, survives to q<sub>acc</sub>. Watch the frontier of live configurations grow and shrink round by round:</p>
+
+        <div class="ntmx">
+          <div class="ntmx-input" id="ntmxInputDisplay"></div>
+          <div class="ntmx-rounds" id="ntmxRounds"></div>
+          <div class="ntmx-banner" id="ntmxBanner"></div>
+          <div class="ntmx-controls">
+            <button class="btn ghost" id="ntmxReset">⟲ reset</button>
+            <button class="btn" id="ntmxExpand">expand one round →</button>
+            <button class="btn ox" id="ntmxRunAll">▶ run to completion</button>
+            <span class="ntmx-stats" id="ntmxStats"></span>
+          </div>
+          <div class="tmw-presets" id="ntmxPresets"></div>
+        </div>
+
+        <div class="box note">
+          <div class="box-label">What you just watched</div>
+          <p style="margin:0;">Every dashed, struck-through chip is a branch that guessed wrong and quietly died — exactly step 2/3 of the proof below, "make k copies, one per choice," except now you can see the copies pile up and thin out round by round. The moment a green chip appears, that's the deterministic simulator's step 1 firing: "if the state is accepting, stop immediately." Everything else in the frontier at that instant is simply abandoned, unexplored.</p>
+        </div>
+
+        <div class="box theorem">
+          <div class="box-label">Theorem</div>
+          <p style="margin:0;">NTMs accept exactly the same languages as deterministic TMs. Nondeterminism buys convenience of design, not extra power — same story as NFA vs. DFA, once again.</p>
+        </div>
+
+        <details class="card proof">
+          <summary>Proof — simulate by breadth-first search over the tree of choices</summary>
+          <div class="card-body">
+            <p>Given NTM M<sub>N</sub>, build a deterministic multitape M<sub>D</sub> (equivalent to a one-tape TM, by the previous section's theorem) that explores every configuration M<sub>N</sub> could possibly reach, and accepts if any of them is accepting.</p>
+            <p>One tape of M<sub>D</sub> holds a <strong>queue of configurations</strong> (instantaneous descriptions) of M<sub>N</sub>, separated by a marker symbol, with one of them flagged as "current" — the one whose successors are presently being discovered. To process the current configuration, M<sub>D</sub>:</p>
+            <div class="stair">
+              <div class="stair-step"><div class="sn">1</div><div class="sd">Reads off the current configuration's state and scanned symbol. If that state is accepting, M<sub>D</sub> accepts immediately and stops simulating entirely.</div></div>
+              <div class="stair-step"><div class="sn">2</div><div class="sd">Otherwise, looks up how many choices M<sub>N</sub> has from this (state, symbol) pair — say k of them — and makes k copies of the current configuration, appended to the <em>end</em> of the queue.</div></div>
+              <div class="stair-step"><div class="sn">3</div><div class="sd">Modifies each of the k copies according to a <em>different</em> one of the k choices.</div></div>
+              <div class="stair-step"><div class="sn">4</div><div class="sd">Un-marks the old "current" configuration, marks the next one in the queue as current, and repeats from step 1.</div></div>
+            </div>
+            <div class="box note" style="margin-bottom:0;">
+              <div class="box-label">Why a queue, and not a stack</div>
+              <p style="margin:0;">This has to be breadth-first, not depth-first. If M<sub>D</sub> instead always exhausted one branch before trying the next (a stack / depth-first approach), it could get stuck forever down a single infinite non-accepting branch and never even try a sibling branch that accepts in two steps. A queue guarantees that after some finite amount of work, M<sub>D</sub> has tried every sequence of up to k moves for every k = 1, 2, 3, … — so if <em>any</em> branch accepts, M<sub>D</sub> is guaranteed to reach it eventually. In the widget above, that's exactly why we expand every chip in a round together, all at once, rather than chasing one chip all the way down before looking at its neighbors.</p>
+            </div>
+          </div>
+        </details>
+
+        <div class="box theorem">
+          <div class="box-label">The cost of removing nondeterminism</div>
+          <p style="margin:0;">If m is the maximum number of choices M<sub>N</sub> ever has from a single configuration, then after n moves M<sub>N</sub> could have reached as many as 1 + m + m² + ⋯ + mⁿ ≤ n·mⁿ distinct configurations. M<sub>D</sub> may have to explore all of them before finding an accepting one — <strong>exponential</strong> blowup in the worst case, even though the language recognized is identical.</p>
+        </div>
+        <p class="small">Hold that number in mind — "removing nondeterminism can cost exponentially more time, even with zero change in what's computable" is one of the load-bearing ideas the rest of the theory course (NP, etc.) is built on.</p>
+      </section>
+
+      <section class="topic" id="restricted">
+        <h2><span class="hnum">13</span>Restricted Models — Still Exactly As Powerful</h2>
+
+        <p>Sections 11–12 generalized the model and found: no extra power. This section goes the other direction — <em>restrict</em> the model in various seemingly-limiting ways, and find the exact same thing: no loss of power. Seeing both directions hammers home how robust the "Turing machine" concept really is; a huge range of superficially different machines all land on the identical class of languages.</p>
+
+        <h3>Semi-infinite tapes</h3>
+        <div class="box def">
+          <div class="box-label">The restriction</div>
+          <p style="margin:0;">Instead of a tape infinite in both directions, allow the head to move only at-or-right of its initial position — the tape is infinite to the right only, with a hard wall on the left.</p>
+        </div>
+        <details class="card proof">
+          <summary>Why this loses nothing — the two-track fold trick</summary>
+          <div class="card-body">
+            <p>Simulate a two-way-infinite tape using a semi-infinite one with <strong>two tracks</strong>. The upper track holds cells X₀, X₁, X₂, … (the original tape from the initial head position rightward). The lower track holds X₋₁, X₋₂, … <em>in reverse order</em> — effectively, fold the left half of the original tape underneath the right half, like folding a ruler in half at the zero mark. A single marker symbol (∗) on the leftmost cell's lower track acts as an end-stop, so the head never tries to walk off the left edge. Every move on the original two-way tape translates to a move on one of the two tracks of the folded tape, with left/right sometimes swapping depending which track is active — a bookkeeping detail, not a power difference.</p>
+          </div>
+        </details>
+
+        <h3>Multistack machines</h3>
+        <div class="box def">
+          <div class="box-label">The model</div>
+          <p style="margin:0;">A k-stack machine is a deterministic PDA generalized to k independent stacks, reading input from an input source (not a tape) via its finite control, using one shared finite stack alphabet across all k stacks.</p>
+        </div>
+        <p>Recall a <em>one</em>-stack machine (an ordinary PDA) is strictly weaker than a TM — it can't do aⁿbⁿcⁿ, exactly Section 1's motivating example. Add a second stack, though, and the picture flips completely:</p>
+        <div class="box theorem">
+          <div class="box-label">Theorem</div>
+          <p style="margin:0;">A <strong>two-stack</strong> machine accepts exactly the recursively enumerable languages — the same class as a full Turing machine.</p>
+        </div>
+
+        <h4>Feel it first: split the tape at the head</h4>
+        <p>Here's the whole idea in one picture. Take any tape with a head somewhere on it. Everything strictly left of the head, <strong>reversed</strong>, becomes stack 1 — its top is whatever's immediately left of the head. Everything at-or-right of the head becomes stack 2, unreversed — its top is the currently-scanned symbol itself. Step the head right or left below and watch both stacks update in lockstep with nothing but push/pop:</p>
+
+        <div class="stk">
+          <div class="stk-tape-wrap"><div class="stk-tape" id="stkTape"></div></div>
+          <div class="stk-panels">
+            <div class="stk-panel">
+              <div class="stk-panel-label">stack 1 (left of head, reversed)</div>
+              <div class="stk-stack" id="stkLeft"></div>
+            </div>
+            <div class="stk-arrow">⇄</div>
+            <div class="stk-panel">
+              <div class="stk-panel-label">stack 2 (head, and everything right)</div>
+              <div class="stk-stack" id="stkRight"></div>
+            </div>
+          </div>
+          <div class="stk-controls">
+            <button class="btn ghost" id="stkReset">⟲ reset</button>
+            <button class="btn" id="stkLeftBtn">← move head left</button>
+            <button class="btn" id="stkRightBtn">move head right →</button>
+            <span class="stk-write">
+              <span class="small">write here:</span>
+              <input type="text" maxlength="1" id="stkWriteInput" placeholder="X">
+              <button class="chip" id="stkWriteBtn">write ↵</button>
+            </span>
+          </div>
+        </div>
+
+        <details class="card">
+          <summary>The correspondence, stated precisely</summary>
+          <div class="card-body">
+            <p>A TM move at the head does exactly two things: write a symbol into the scanned cell, then shift the head one way. Translated to two stacks:</p>
+            <ul style="margin-bottom:0;">
+              <li><strong>Write Y, then move right:</strong> replace the top of stack 2 with Y, then <em>pop</em> it off stack 2 and <em>push</em> it onto stack 1. Stack 2's new top is what was previously one cell further right.</li>
+              <li><strong>Write Y, then move left:</strong> replace the top of stack 2 with Y (as always, the write happens to the currently-scanned cell first), then <em>pop</em> the top of stack 1 and <em>push</em> it onto stack 2. Stack 2's new top is now what used to be immediately left of the head.</li>
+            </ul>
+            <p style="margin:10px 0 0;">One stack alone can't do this because a single stack only ever exposes <em>one</em> side of the head. A TM head needs both sides on tap — which is exactly why one stack tops out at context-free languages, while two recover full TM power.</p>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary>The intuition, in words (same idea as above, without the widget)</summary>
+          <div class="card-body">
+            <p>Picture a TM's tape with the head at some cell. Split it there: everything left of the head, reversed, goes on stack 1 (top of stack 1 = cell just left of the head); everything right of the head goes on stack 2 (top of stack 2 = the currently-scanned cell). A left-move pops stack 1 and pushes onto stack 2 (or vice-versa for a right-move) — exactly simulating the tape head sliding one cell, using only push/pop.</p>
+          </div>
+        </details>
+
+        <h3>Counter machines</h3>
+        <div class="box def">
+          <div class="box-label">The model</div>
+          <p style="margin:0;">Same skeleton as a multistack machine, but each stack is replaced by a <strong>counter</strong> — a nonnegative integer the machine can increment, decrement (never below zero), and test <em>only</em> for zero-vs-nonzero (it cannot read off the counter's exact value). It's a stack that's forgotten everything except its height, and even that only coarsely.</p>
+        </div>
+        <div class="box theorem">
+          <div class="box-label">Theorem</div>
+          <p style="margin:0;">Every recursively enumerable language is accepted by some <strong>two-counter</strong> machine.</p>
+        </div>
+        <p>This one is the most surprising result in the section — a counter is an almost absurdly weak-looking piece of memory (no structure at all, just a number, and you can't even read it directly), yet two of them, wired to a finite control, recover full TM power. The construction (not shown here) works by having the counters' values jointly encode, via a clever numbering, a full stack's contents — reducing back to the two-stack result above.</p>
+
+        <div class="box note">
+          <div class="box-label">Zooming out — the pattern across this whole section</div>
+          <p style="margin:0;">Multiple tapes: no gain. Nondeterminism: no gain. A tape truncated to one direction: no loss. Stacks replaced by bare counters: no loss (once you have two of them). This is exactly what makes "Turing-machine computable" feel like a robust, natural boundary rather than an arbitrary one — you can push and pull on the model's details in many directions and land on the identical class of languages every time. That robustness is a big part of why the Church–Turing thesis (every reasonable notion of "mechanical computation" coincides with Turing-machine computation) is so widely believed.</p>
+        </div>
+      </section>
+
+      <section class="topic" id="computers">
+        <h2><span class="hnum">14</span>TMs ⟺ Computers</h2>
+
+        <p>Time to close the loop the whole course has been driving toward. Section 1 opened with "a Turing machine can recognize more than a PDA." This section makes the much stronger claim precise: <strong>a Turing machine and an ordinary computer can simulate each other</strong> — and, importantly, can do so <em>efficiently</em> (polynomial-time overhead in each direction), not just "eventually, given unlimited time."</p>
+
+        <div class="box def">
+          <div class="box-label">Why this needs care, not just a wave of the hand</div>
+          <p style="margin:0;">"A computer can simulate a TM" is the easy direction — a computer program can maintain an array for the tape and a variable for the state, and that's basically it. "A TM can simulate a computer" is the direction worth actually building, since it's the one that turns "Turing machine" from a cute toy model into the foundation for everything complexity theory says about real computation. The argument below is informal by nature (unlike a TM, "a typical computer" isn't a mathematically pinned-down object) — but the construction is concrete enough to extract a real time bound from.</p>
+        </div>
+
+        <h3>Setting up the simulation</h3>
+        <p>Model a computer as: an unbounded sequence of memory words, each with an integer address 0,1,2,…, no bound on word length, and a stored program made of simple instructions (arithmetic/logic, data movement, control flow — think one MIPS-style instruction each). A multitape TM represents this with five tapes:</p>
+        <div class="stair">
+          <div class="stair-step"><div class="sn">1</div><div class="sd"><strong>Memory tape</strong> — the entire memory, encoded as alternating (address, contents) pairs in binary, in numerical address order: <span class="mono">$ 0*w₀ #1*w₁ #10*w₂ #11*w₃ …</span>. The <span class="mono">$</span> marks the start; <span class="mono">*</span> and <span class="mono">#</span> are markers separating an address from its contents, and one pair from the next.</div></div>
+          <div class="stair-step"><div class="sn">2</div><div class="sd"><strong>Instruction counter</strong> — one binary integer: which memory address holds the instruction to execute next.</div></div>
+          <div class="stair-step"><div class="sn">3</div><div class="sd"><strong>Memory address / working value</strong> — holds an address being looked up, then (once found) the contents at that address, moved wherever it's needed.</div></div>
+          <div class="stair-step"><div class="sn">4</div><div class="sd"><strong>Computer's input file</strong> — the input the simulated program itself reads.</div></div>
+          <div class="stair-step"><div class="sn">5</div><div class="sd"><strong>Scratch tape</strong> — working space, used e.g. when a value needs more room than was previously allocated for it (see "shifting over," below).</div></div>
+        </div>
+
+        <h3>One instruction cycle</h3>
+        <div class="stair">
+          <div class="stair-step"><div class="sn">a</div><div class="sd">Search tape 1 from the <span class="mono">$</span> rightward for the address matching the instruction counter (tape 2) — a straightforward left-to-right scan comparing binary strings.</div></div>
+          <div class="stair-step"><div class="sn">b</div><div class="sd">Read the instruction's opcode (its first few bits: copy / add / branch / …) and operand address(es) (the remaining bits).</div></div>
+          <div class="stair-step"><div class="sn">c</div><div class="sd">If an operand's <em>value</em> is needed, copy that address to tape 3, search tape 1 for it (same scan as step a), and copy its stored value back to tape 3.</div></div>
+          <div class="stair-step"><div class="sn">d</div><div class="sd">Execute the instruction using that value; if it's not a jump, increment the instruction counter (tape 2) and loop back to step a.</div></div>
+        </div>
+
+        <details class="card">
+          <summary>Sample instruction executions — copy, addition, jump</summary>
+          <div class="card-body">
+            <p><strong>Copy:</strong> locate the destination address on tape 1 (same scan as always) and overwrite its stored value. If the new value needs more room than the old one occupied — or less — use the <em>shifting-over</em> technique: copy everything to the right of the write point onto the scratch tape, write the new value in its correctly-sized slot, then copy the scratch tape's contents back immediately following it. (If the address doesn't exist on tape 1 yet, find the correct sorted insertion point and write both address and value fresh.)</p>
+            <p><strong>Addition:</strong> locate the other operand's address, then perform an ordinary ripple-carry binary addition by scanning both values from their right (least-significant) ends — exactly the carry-propagation idea from the binary-adder TM in Section 10. Shift over if the result needs more space.</p>
+            <p style="margin-bottom:0;"><strong>Jump:</strong> the simplest of the three — just copy tape 3 (the computed target address) onto tape 2 (the instruction counter) and restart the cycle. No search needed at all.</p>
+          </div>
+        </details>
+
+        <h3>How fast is this simulation?</h3>
+        <div class="box theorem">
+          <div class="box-label">Theorem — the word-length constraint</div>
+          <p style="margin:0;">Suppose a computer's instructions (i) each grow the length of the longest word on the tape by <strong>at most 1</strong> bit, and (ii) each instruction, restricted to words of length k, can itself be carried out by a multitape TM in O(k²) steps or fewer. Then the TM described above simulates n computer-instructions in <strong>O(n³)</strong> of its own steps.</p>
+        </div>
+        <details class="card proof">
+          <summary>Proof sketch</summary>
+          <div class="card-body">
+            <p>After n instructions, no word or address on the simulated tape can exceed c+n bits (c a constant — the length of anything the fixed program itself mentions), and at most d+n distinct addresses can have been created (d another constant — the program's own size), each instruction creating at most one new one. So the whole simulated memory fits in O(n²) TM tape cells (a linear count of entries, each of linear length). Locating an address by linear scan, or carrying out one instruction on O(n)-length words per assumption (ii), each cost O(n²) TM steps; and shifting-over similarly costs at most O(n²), since it moves at most that much data. So one simulated instruction costs O(n²) TM steps, and n of them cost O(n³) total.</p>
+          </div>
+        </details>
+
+        <p>Chained with Section 11's O(n²) multitape-to-one-tape conversion, a single-tape TM simulates n computer instructions in <strong>O(n⁶)</strong> steps. Large-looking, but the point isn't the exact exponent — it's that the overhead is a <em>fixed polynomial</em>, not something that blows up with the size of the computation. That's exactly the property complexity theory needs: "tractable on a real computer" and "tractable on a TM" turn out to be the same notion, up to a polynomial factor, which is precisely why the whole theory of P and NP can be stated in terms of Turing machines without losing any real-world relevance.</p>
+
+        <details class="card trap">
+          <summary>Trap: why does the theorem's assumption (i) even need stating — isn't "each instruction adds at most 1 bit" obviously true?</summary>
+          <div class="card-body">
+            <p>No — and this is the one genuinely subtle wrinkle in the whole argument. <strong>Multiplication</strong> violates it: multiplying two m-bit numbers can produce a result of length <em>2m</em>, not m+1. If a computer were allowed a single "multiply" instruction and repeatedly squared a growing word — start with 2, square it n times in a row — the word's length would double every step, reaching roughly 2ⁿ bits after n instructions. A TM simulating that would need <em>exponential</em> time, not polynomial, completely breaking the O(n³) bound above.</p>
+            <p style="margin-bottom:0;">The fix used in this course: <strong>disallow multiplication as a primitive instruction</strong> (only allow instructions — like addition — that grow the longest operand by at most one bit), and instead build multiplication out of a sequence of up to m additions interleaved with left-shifts (exactly the grade-school long-multiplication algorithm). That keeps it computable, and keeps the total time for one multiplication of m-bit numbers proportional to <em>m²</em> — not exponential — restoring the polynomial bound. The moral: when someone hands you a "reasonable" instruction set and asks you to bound simulation time, check each instruction's <em>output size</em> against its <em>input size</em> before trusting a polynomial bound — a single unchecked exponential-growth instruction poisons the whole argument.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="topic" id="traps">
+        <h2><span class="hnum">15</span>Edge Cases &amp; Traps — Cross-Cutting</h2>
+        <p>A synthesis of the sharpest pitfalls scattered through every section above, gathered in one place for last-minute review. Each one has already been introduced where it belongs; this is the "make sure none of these have faded" pass.</p>
+
+        <details class="card trap">
+          <summary>1. δ being undefined is not a bug — it's how rejection is implemented</summary>
+          <div class="card-body">
+            <p>There is no "reject" instruction in the formalism. Every reject you've engineered across this whole page — the second occurrence of a stored symbol in the 01*+10* machine, a stray unmatched digit in L<sub>wcw</sub>, an odd-count string in 0ⁿ1ⁿ — happened by <em>deliberately leaving a (state, symbol) pair out of δ</em>. When you design a machine, always ask explicitly: "what happens on inputs I haven't accounted for?" If the answer is "nothing, it just halts," check that halting there is actually correct rejection, not an accidental gap that lets something wrong slip through un-rejected.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>2. Matching a prefix ≠ matching the whole string</summary>
+          <div class="card-body">
+            <p>The 0ⁿ1ⁿ machine needed state q₃ purely to sweep the tail and confirm nothing extra was left — matching every 0 to a 1 doesn't rule out leftover unmatched 1's (input 001 is the textbook counterexample). The L<sub>wcw</sub> machine has the identical concern built into rule 14 (a stray unchecked symbol before the final blank means reject, not accept). Any time your algorithm's main loop terminates because "the first block ran out," ask what happens if the <em>second</em> block still has leftovers — that's usually a separate check you have to build in, not something that falls out for free.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>3. Off-by-one errors in cleanup/bookkeeping phases are the single most common construction bug</summary>
+          <div class="card-body">
+            <p>The monus machine's case-A cleanup is the poster child: optimistically blanking a 0 from the m-block <em>before</em> confirming a partner exists in the n-block means that when no partner turns up, you've over-consumed by exactly one, and the cleanup sweep must explicitly walk back and restore it. This class of bug is invisible on "clean" test cases (m ≫ n, or m ≪ n) and only surfaces at the boundary (m ≈ n, or m = n exactly). When you verify your own TM designs — by hand or in code — deliberately test the boundary cases, not just the comfortable middle.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>4. "No extra power" and "no extra cost" are two different claims — an exam wants both</summary>
+          <div class="card-body">
+            <p>Multitape vs. single-tape TMs: same languages, but O(n²) slower once collapsed to one tape. NTM vs. DTM: same languages, but potentially exponentially slower once determinized. If a question asks you to "discuss the relationship" between two machine models, a complete answer states the equivalence <em>and</em> quantifies the overhead — stopping at "they're equivalent" leaves real content on the table.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>5. The pumping-length p is a black box — never assume it has a convenient value or property</summary>
+          <div class="card-body">
+            <p>This one's technically from the closure-properties/pumping-lemma lecture rather than the TM lectures directly, but it rhymes strongly with trap #3 and #6 here, and it's worth restating in this context: whenever an adversary (or, in the TM world, "the machine's own δ table") hands you a quantity you don't control, your construction has to work for <em>every</em> possible value of it — you don't get to assume it's prime, or even, or anything else convenient.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>6. Multiplication silently breaks polynomial simulation bounds — check growth rates before trusting an O(nᵏ) claim</summary>
+          <div class="card-body">
+            <p>Covered in full in Section 14, but worth restating as a general reflex: any time you're asked to bound how long a TM takes to simulate some other computational process, check whether that process has an instruction whose <em>output size</em> can exceed its <em>input size</em> by more than an additive constant. A single such instruction (multiplication being the standard example) turns a claimed polynomial bound into an actual exponential one.</p>
+          </div>
+        </details>
+
+        <details class="card trap">
+          <summary>7. Don't confuse "halts" with "accepts," or "doesn't halt" with "rejects"</summary>
+          <div class="card-body">
+            <p>Three genuinely distinct outcomes exist for a TM run on a given input: (a) it halts in an accepting state — accept; (b) it halts in a non-accepting configuration because δ is undefined there — reject; (c) it never halts at all — runs forever. Loose exam language sometimes blurs (b) and (c) together as "rejects," but they are not interchangeable, and the distinction becomes load-bearing the moment decidability enters the course: a language where every "no" instance causes case (c) rather than case (b) is a fundamentally different — and weaker — kind of recognizable than one where every "no" instance halts cleanly.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="topic" id="practice">
+        <h2><span class="hnum">16</span>Practice Problems</h2>
+        <p>Solutions are collapsed — attempt each one on paper (or by sketching a δ table) before revealing.</p>
+
+        <details class="card">
+          <summary><strong>1.</strong> Design a TM (informally — states and the strategy, not a full δ table) that accepts { 0ⁿ1ⁿ2ⁿ | n ≥ 1 } over Σ = {0,1,2}.</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>Direct extension of the 0ⁿ1ⁿ strategy to three blocks. Repeatedly: cross off the leftmost remaining 0 (→X), skip right to the leftmost remaining 1 and cross it off (→Y), skip right further to the leftmost remaining 2 and cross it off (→Z), then sweep all the way back left to the boundary and repeat. Once no 0's remain (the head, at the top of the loop, meets a Y instead of a 0), sweep right confirming only Z's remain before the blank — exactly the same "don't just match a prefix" cleanup q₃ performed for two blocks. This is precisely the kind of extension exam questions love: "you've seen the two-block version, now do three" — the state count grows, but the strategy doesn't need a new idea, just one more matching pass per cycle.</p>
+            </div></details>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary><strong>2.</strong> A TM halts on input <span class="mono">w</span> but does not accept it. Is <span class="mono">w</span> necessarily <em>not</em> in L(M)? What if the machine runs forever on <span class="mono">w</span> instead?</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>Halting without reaching an accepting state does mean w ∉ L(M) — L(M) is defined as exactly the strings for which <em>some</em> reachable configuration is accepting, and "halted, not accepting" forecloses that (a deterministic machine has only one run to check). Running forever, though, also means w ∉ L(M) by the same definition — an infinite run never reaches an accepting configuration either. The distinction between the two isn't about membership in L(M) (both are "no"); it's about whether a recognizing procedure for L(M) can ever <em>report</em> the "no" — a machine that runs forever on a non-member gives you no signal to act on, while one that halts-rejects does. That distinction is exactly what separates decidable languages from merely recognizable ones, later in the course.</p>
+            </div></details>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary><strong>3.</strong> Why can't a single-stack PDA be adapted into a 2-stack machine simply by using one stack for input-matching and leaving the second one unused? What's actually needed to get full TM power from two stacks?</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>An unused second stack contributes nothing — you'd just have a PDA with excess baggage, still capped at context-free languages. The power comes specifically from using <em>both</em> stacks together to simulate a TM tape: one stack holds everything left of the head (reversed), the other holds everything at-and-right of the head, and a head move becomes a coordinated pop from one stack paired with a push onto the other. It's the coordination between the two that recovers two-way tape movement — not merely having a second stack available.</p>
+            </div></details>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary><strong>4.</strong> Trace the monus machine by hand on m=3, n=3 (tape <span class="mono">000 1 000</span>). What's the final tape, and which termination branch (A or B) fires?</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>m = n, so the answer should be 0 (an empty/blank tape) — and this exercises branch B specifically, not branch A. Three full cycles pair up all three 0's of the m-block with all three 0's of the n-block (each cycle: blank one m-digit, convert one n-digit to a 1). After the third cycle, the head returns to q₀ looking for a <em>fourth</em> m-block 0 — but there isn't one; the very next symbol is the separator 1. That's exactly branch B's trigger condition (q₀ sees a 1 instead of a 0), which blanks the separator and all three converted 1's, leaving a fully blank tape. Notice branch A never fires here at all — it's specifically the m > n branch, and equality routes through B just like the n > m case does. Load the "custom m,n" box in Section 6's simulator with m=3, n=3 to watch this exact run.</p>
+            </div></details>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary><strong>5.</strong> True or false, with justification: "Since nondeterministic and deterministic TMs accept the same languages, you never need to think about nondeterminism when analyzing running time."</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>False. The languages coincide, but the standard deterministic simulation of an NTM (breadth-first exploration of the configuration tree) can cost exponentially more steps than the nondeterministic machine's own move count — Section 12's bound is n·mⁿ in the worst case. "Same computability class" says nothing about "same complexity class"; this exact gap is the informal seed of the P-vs-NP question later in the theory sequence, where NP is defined via exactly this kind of nondeterministic-polynomial-time machine.</p>
+            </div></details>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary><strong>6.</strong> A friend claims: "Since a TM can simulate any computer program, and computers can multiply in one instruction, a TM must also be able to multiply two n-bit numbers in O(n) of its own steps." Where's the flaw?</summary>
+          <div class="card-body">
+            <details class="card solution"><summary>Solution</summary><div class="card-body">
+            <p>The flaw is exactly Section 14's trap: the O(n³)/O(n⁶) simulation theorems explicitly assume instructions grow the longest word by at most one bit, which a single "multiply" instruction violates (it can double word length). A computer that's <em>allowed</em> single-instruction multiplication falls outside the theorem's hypotheses, and simulating it can cost exponential TM time (via the repeated-squaring construction from that trap card). To stay inside the polynomial bound, multiplication has to be built from O(m) additions — at which point it costs O(m²), not O(m) — on the TM side too. So the friend's claim silently assumes a computer model the theorem doesn't cover.</p>
+            </div></details>
+          </div>
+        </details>
+      </section>
+
+      <section class="topic" id="cheatsheet">
+        <h2><span class="hnum">17</span>Cheat Sheet</h2>
+        <div class="cheat-grid">
+          <div class="cheat-card">
+            <h4>The 7-tuple</h4>
+            <p class="mono" style="margin:0 0 6px;">M = (Q, Σ, Γ, δ, q₀, B, F)</p>
+            <p class="small" style="margin:0;">Σ ⊆ Γ, B ∈ Γ∖Σ. δ(q,X)=(p,Y,D), D∈{L,R}. Undefined δ ⇒ halt/reject.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>ID notation</h4>
+            <p class="mono" style="margin:0 0 6px;">X₁…Xᵢ₋₁ q Xᵢ…Xₙ</p>
+            <p class="small" style="margin:0;">q embedded left of scanned cell. Boundary move creates/drops a cell when Y=B at an edge, or head steps past a known edge.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>L(M) &amp; RE</h4>
+            <p class="small" style="margin:0;">L(M) = {w : q₀w ⊢* αpβ, p∈F}. Class of all such languages = <strong>recursively enumerable</strong>.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Halting</h4>
+            <p class="small" style="margin:0;">Halt = δ undefined at current (state,symbol). Three outcomes per input: accept / halt-reject / run forever — not the same as each other.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Programming tricks (zero extra power)</h4>
+            <p class="small" style="margin:0;"><strong>Storage in state:</strong> state = tuple [q,data]. <strong>Multiple tracks:</strong> tape symbol = tuple, e.g. {B,∗}×{0,1,c,B}. <strong>Subroutines:</strong> shared start state, no call stack ⇒ copy states per call site if returning to different places.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Multitape TMs</h4>
+            <p class="small" style="margin:0;">Same languages as 1-tape. Simulation cost: <strong>O(n²)</strong> single-tape steps per n multitape moves (2k-track fold, k tape-position markers).</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Nondeterministic TMs</h4>
+            <p class="small" style="margin:0;">Same languages as DTMs. Deterministic simulation (BFS/queue over configuration tree) can cost <strong>up to n·mⁿ</strong> — exponential worst case.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Restricted / alternate models — all still full TM power</h4>
+            <p class="small" style="margin:0;">Semi-infinite tape (2-track fold). Two-stack machine. Two-counter machine (increment/decrement/test-zero only).</p>
+          </div>
+          <div class="cheat-card">
+            <h4>TM ⟺ computer</h4>
+            <p class="small" style="margin:0;">n instructions, multitape: <strong>O(n³)</strong>. Single-tape: <strong>O(n⁶)</strong>. Requires instructions grow longest word by ≤1 bit/step — multiplication violates this; build it from O(m) additions instead.</p>
+          </div>
+          <div class="cheat-card">
+            <h4>Five-step proof template (design pattern)</h4>
+            <p class="small" style="margin:0;">1) Strategy in English. 2) States &amp; what each remembers. 3) δ table / rules. 4) Verify: does the tail-cleanup rule out leftover unmatched symbols? 5) Trace at least one boundary case (equal-length blocks, empty block, etc).</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="topic" id="quiz">
+        <h2><span class="hnum">18</span>Self-Check Quiz</h2>
+        <p>18 questions across all three lectures, weighted toward the "why" rather than plain recall — several of these are built directly around the off-by-one and "same-power-different-cost" traps from Section 15. Pick an answer to get immediate feedback; nothing here is submitted or graded anywhere but your own head.</p>
+        <div id="quizRoot"></div>
+      </section>
+
+<!--SECTION_ANCHOR-->
+
+      <footer class="end">§ built from CSE 211 lecture slides (Atif Hasan Rahman, adapted from Dr. Muhammad Masroor Ali) · verified TM constructions run live in your browser</footer>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============ NAV WIRING ============ */
+const NAV = [
+  {group:"Foundations", items:[
+    ["why","1","Why Turing Machines"],
+    ["formal","2","The Formal Machine"],
+    ["ids","3","Instantaneous Descriptions"],
+  ]},
+  {group:"First Machine", items:[
+    ["ex1","4","Worked Example: 0ⁿ1ⁿ"],
+    ["diagrams","5","Transition Diagrams"],
+  ]},
+  {group:"TMs as Computers", items:[
+    ["functions","6","Computing Functions"],
+    ["language","7","Language & Halting"],
+  ]},
+  {group:"Programming Tricks", items:[
+    ["storage","8","Storage in the State"],
+    ["tracks","9","Multiple Tracks"],
+    ["subroutines","10","Subroutines & The Adder"],
+  ]},
+  {group:"Extensions", items:[
+    ["multitape","11","Multitape TMs"],
+    ["ntm","12","Nondeterministic TMs"],
+    ["restricted","13","Restricted Models"],
+  ]},
+  {group:"The Big Picture", items:[
+    ["computers","14","TMs ⟺ Computers"],
+    ["traps","15","Edge Cases & Traps"],
+    ["practice","16","Practice Problems"],
+    ["cheatsheet","17","Cheat Sheet"],
+    ["quiz","18","Self-Check Quiz"],
+  ]},
+];
+const navContainer = document.getElementById('navContainer');
+NAV.forEach(g=>{
+  const label = document.createElement('div');
+  label.className='nav-group-label'; label.textContent=g.group;
+  navContainer.appendChild(label);
+  const grp = document.createElement('div'); grp.className='nav-group';
+  g.items.forEach(([id,num,title])=>{
+    const b = document.createElement('button');
+    b.className='nav-btn'; b.dataset.target=id;
+    b.innerHTML = `<span class="num">${num}</span>${title}`;
+    b.addEventListener('click', ()=>{
+      document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'});
+      document.getElementById('sidebar').classList.remove('open');
+    });
+    grp.appendChild(b);
+  });
+  navContainer.appendChild(grp);
+});
+document.getElementById('menuToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+// scrollspy
+const sectionIds = NAV.flatMap(g=>g.items.map(i=>i[0]));
+function updateActive(){
+  let current = sectionIds[0];
+  for(const id of sectionIds){
+    const el = document.getElementById(id);
+    if(el && el.getBoundingClientRect().top - 90 <= 0) current = id;
+  }
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.target===current);
+  });
+}
+window.addEventListener('scroll', updateActive, {passive:true});
+setTimeout(updateActive, 200);
+</script>
+<script>
+/* ============================================================
+   Generic Turing-machine step simulator widget.
+   Reused across every worked example in this page.
+   State/symbol keys are plain strings; for machines that use
+   "storage in the state" or multi-track tapes, the state/symbol
+   is encoded as comma-joined components, e.g. state "q1,0" or
+   tape symbol "*,1". A machine config supplies small render
+   callbacks to turn those codes into readable badges/cells.
+   ============================================================ */
+class TMSim{
+  constructor(root, cfg){
+    this.root = root;
+    this.cfg = cfg; // {delta, start, accept, blank, presets, renderState, renderSym, ruleText, title}
+    this.build();
+    this.load(cfg.presets[0].tape);
+  }
+  build(){
+    this.root.innerHTML = `
+      <div class="tmw">
+        <div class="tmw-tape-wrap"><div class="tmw-tape"></div></div>
+        <div class="tmw-status">
+          <div class="tmw-state">state: <span class="tmw-state-val">—</span></div>
+          <div class="tmw-verdict"></div>
+        </div>
+        <div class="tmw-rule"></div>
+        <div class="tmw-controls">
+          <button class="btn ghost tmw-reset">⟲ reset</button>
+          <button class="btn tmw-step">step →</button>
+          <button class="btn ox tmw-play">▶ play</button>
+          <select class="tmw-speed">
+            <option value="700">slow</option>
+            <option value="350" selected>normal</option>
+            <option value="120">fast</option>
+          </select>
+          <span class="tmw-steps small"></span>
+        </div>
+        <div class="tmw-presets"></div>
+      </div>`;
+    const presetsEl = this.root.querySelector('.tmw-presets');
+    this.cfg.presets.forEach((p,i)=>{
+      const b = document.createElement('button');
+      b.className='chip'+(i===0?' active':'');
+      b.textContent = p.label;
+      b.addEventListener('click', ()=>{
+        presetsEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        b.classList.add('active');
+        this.pause();
+        this.load(p.tape);
+      });
+      presetsEl.appendChild(b);
+    });
+    if(this.cfg.customInput){
+      const wrap = document.createElement('span');
+      wrap.style.cssText='display:inline-flex;gap:6px;align-items:center;margin-left:6px;';
+      const inp = document.createElement('input');
+      inp.placeholder = this.cfg.customInput.placeholder||'custom input';
+      inp.style.cssText='font-family:var(--mono);font-size:12px;padding:5px 9px;border-radius:20px;border:1px solid var(--line);width:120px;';
+      const go = document.createElement('button');
+      go.className='chip'; go.textContent='load ↵';
+      const doLoad = ()=>{
+        const t = this.cfg.customInput.toTape(inp.value);
+        if(t===null){ inp.style.borderColor='var(--oxblood)'; return; }
+        presetsEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        this.pause(); this.load(t);
+      };
+      go.addEventListener('click', doLoad);
+      inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doLoad(); });
+      wrap.appendChild(inp); wrap.appendChild(go);
+      presetsEl.appendChild(wrap);
+    }
+    this.root.querySelector('.tmw-reset').addEventListener('click', ()=>{this.pause(); this.load(this.tapeInit);});
+    this.root.querySelector('.tmw-step').addEventListener('click', ()=>this.step());
+    this.playBtn = this.root.querySelector('.tmw-play');
+    this.playBtn.addEventListener('click', ()=> this.playing ? this.pause() : this.play());
+    this.speedSel = this.root.querySelector('.tmw-speed');
+  }
+  load(tape){
+    this.tapeInit = tape.slice();
+    this.tape = tape.slice();
+    this.pos = 0;
+    this.state = this.cfg.start;
+    this.steps = 0;
+    this.status = 'running';
+    this.render();
+  }
+  currentSym(){
+    if(this.pos < 0 || this.pos >= this.tape.length) return this.cfg.blank;
+    return this.tape[this.pos];
+  }
+  step(){
+    if(this.status !== 'running') return;
+    const sym = this.currentSym();
+    if(this.cfg.accept && this.cfg.accept.has(this.state)){
+      this.status='accept'; this.render(); this.pause(); return;
+    }
+    const key = this.state+'::'+sym;
+    const rule = this.cfg.delta[key];
+    if(!rule){ this.status='reject'; this.render(); this.pause(); return; }
+    while(this.pos >= this.tape.length) this.tape.push(this.cfg.blank);
+    if(this.pos < 0){ this.tape.unshift(this.cfg.blank); this.pos = 0; }
+    this.tape[this.pos] = rule.w;
+    this.lastRule = rule.desc || key;
+    this.state = rule.ns;
+    this.pos += (rule.d==='R') ? 1 : -1;
+    this.steps++;
+    if(this.cfg.accept && this.cfg.accept.has(this.state)){ this.status='accept'; }
+    this.render();
+    if(this.status!=='running') this.pause();
+  }
+  play(){
+    this.playing = true;
+    this.playBtn.textContent = '⏸ pause';
+    const iv = ()=>{
+      if(!this.playing) return;
+      if(this.status!=='running'){ this.pause(); return; }
+      this.step();
+      this._t = setTimeout(iv, +this.speedSel.value);
+    };
+    this._t = setTimeout(iv, +this.speedSel.value);
+  }
+  pause(){
+    this.playing = false;
+    this.playBtn.textContent = '▶ play';
+    clearTimeout(this._t);
+  }
+  render(){
+    const tapeEl = this.root.querySelector('.tmw-tape');
+    tapeEl.innerHTML='';
+    const lo = Math.min(-2, this.pos-4), hi = Math.max(this.tape.length+2, this.pos+5);
+    for(let i=lo;i<hi;i++){
+      const sym = (i>=0 && i<this.tape.length) ? this.tape[i] : this.cfg.blank;
+      const cell = document.createElement('div');
+      cell.className = 'tmw-cell' + (i===this.pos ? ' head':'');
+      cell.innerHTML = this.cfg.renderSym(sym);
+      tapeEl.appendChild(cell);
+    }
+    // center head cell horizontally within the tape strip only (never scroll the page)
+    const headCell = tapeEl.querySelector('.head');
+    const wrap = this.root.querySelector('.tmw-tape-wrap');
+    if(headCell && wrap){
+      const target = headCell.offsetLeft - wrap.clientWidth/2 + headCell.offsetWidth/2;
+      wrap.scrollLeft = Math.max(0, target);
+    }
+    this.root.querySelector('.tmw-state-val').innerHTML = this.cfg.renderState(this.state);
+    const v = this.root.querySelector('.tmw-verdict');
+    if(this.status==='accept'){ v.innerHTML = this.cfg.acceptLabel || '<span class="tag" style="background:var(--accept-bg);color:var(--accept-green);">✓ accept / halt</span>'; }
+    else if(this.status==='reject'){ v.innerHTML = '<span class="tag ox">✗ halt — no rule (reject)</span>'; }
+    else { v.innerHTML=''; }
+    this.root.querySelector('.tmw-rule').textContent = this.lastRule ? ('last applied: '+this.lastRule) : 'ready — press step or play';
+    this.root.querySelector('.tmw-steps').textContent = this.steps+' step'+(this.steps===1?'':'s');
+  }
+}
+</script>
+<style>
+.tmw{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow); margin:16px 0;}
+.tmw-tape-wrap{overflow-x:auto; padding:6px 0 10px; scrollbar-width:thin;}
+.tmw-tape{display:flex; width:max-content; margin:0 auto;}
+.tmw-cell{
+  min-width:34px; height:44px; border:1px solid var(--line); display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-family:var(--mono); font-size:15px; background:var(--cream-2);
+  position:relative; flex-shrink:0;
+}
+.tmw-cell .track1{font-size:10px; color:var(--oxblood); line-height:1; height:12px;}
+.tmw-cell.head{
+  background:var(--navy); color:#fff; box-shadow:0 0 0 2px var(--navy);
+  z-index:2; transform:scale(1.08);
+}
+.tmw-cell.head .track1{color:#ffd9a0;}
+.tmw-cell.head::after{
+  content:"▲"; position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); color:var(--navy); font-size:11px;
+}
+.tmw-status{display:flex; align-items:center; gap:12px; margin-top:4px; font-family:var(--mono); font-size:13.5px;}
+.tmw-state-val{color:var(--navy); font-weight:700;}
+.tmw-rule{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin:6px 0 10px; min-height:16px;}
+.tmw-controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.tmw-speed{font-family:var(--mono); font-size:12px; border-radius:6px; border:1px solid var(--line); padding:5px;}
+.tmw-presets{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+
+/* ---------- quiz widget ---------- */
+.quiz-header{
+  position:sticky; top:0; z-index:5; background:var(--cream); padding:12px 0 14px;
+  border-bottom:1px solid var(--line-soft); margin-bottom:18px;
+}
+.quiz-scorebar{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.quiz-score{font-family:var(--mono); font-size:14px; color:var(--navy); font-weight:700;}
+.quiz-score .frac{color:var(--oxblood);}
+.quiz-progress{flex:1; min-width:140px; height:8px; background:var(--cream-2); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+.quiz-progress-fill{height:100%; background:var(--navy); width:0%; transition:width .3s;}
+.quiz-card{
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 22px 16px; margin:16px 0; box-shadow:var(--shadow);
+}
+.quiz-card.answered.correct{border-left:4px solid var(--accept-green);}
+.quiz-card.answered.incorrect{border-left:4px solid var(--oxblood);}
+.quiz-qnum{font-family:var(--mono); font-size:12px; color:var(--oxblood); font-weight:700; margin-bottom:4px;}
+.quiz-prompt{font-family:var(--serif); font-weight:600; font-size:17px; margin-bottom:14px; color:var(--ink);}
+.quiz-options{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{
+  display:flex; align-items:flex-start; gap:10px; text-align:left; width:100%;
+  background:var(--cream-2); border:1px solid var(--line); border-radius:8px;
+  padding:10px 14px; cursor:pointer; font-family:var(--body); font-size:15px; color:var(--ink);
+}
+.quiz-opt:hover{border-color:var(--navy);}
+.quiz-opt .oid{font-family:var(--mono); font-weight:700; color:var(--navy); min-width:16px;}
+.quiz-card.answered .quiz-opt{cursor:default;}
+.quiz-card.answered .quiz-opt:hover{border-color:var(--line);}
+.quiz-opt.picked-correct{background:var(--accept-bg); border-color:var(--accept-green);}
+.quiz-opt.picked-correct .oid{color:var(--accept-green);}
+.quiz-opt.picked-incorrect{background:var(--trap-bg); border-color:var(--oxblood);}
+.quiz-opt.picked-incorrect .oid{color:var(--oxblood);}
+.quiz-opt.reveal-correct{background:var(--accept-bg); border-color:var(--accept-green);}
+.quiz-hint-btn{
+  background:none; border:none; font-family:var(--mono); font-size:12px; color:var(--ink-soft);
+  cursor:pointer; text-decoration:underline; padding:0; margin-top:10px;
+}
+.quiz-hint{font-size:13.5px; color:var(--ink-soft); font-style:italic; margin-top:6px; display:none;}
+.quiz-hint.shown{display:block;}
+.quiz-feedback{margin-top:14px; padding:12px 16px; border-radius:8px; font-size:14.5px; display:none;}
+.quiz-feedback.shown{display:block;}
+.quiz-feedback.correct{background:var(--accept-bg); color:var(--accept-green);}
+.quiz-feedback.incorrect{background:var(--trap-bg); color:var(--oxblood-dark);}
+.quiz-feedback .verdict{font-family:var(--mono); font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.06em; display:block; margin-bottom:5px;}
+.quiz-feedback .expl{color:var(--ink); font-style:normal;}
+.quiz-footer{display:flex; justify-content:center; margin:26px 0 10px;}
+.quiz-summary-banner{
+  text-align:center; padding:20px; border-radius:var(--radius); margin:16px 0;
+  background:var(--navy-bg); border:1px solid var(--navy-light); display:none;
+}
+.quiz-summary-banner.shown{display:block;}
+.quiz-summary-banner .big{font-family:var(--serif); font-size:26px; font-weight:600; color:var(--navy);}
+
+/* ---------- multi-tape simulator (Section 11) ---------- */
+.mts{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow); margin:16px 0;}
+.mts-viewtoggle{display:flex; gap:6px; margin-bottom:12px;}
+.mts-view{display:none;}
+.mts-view.active{display:block;}
+.mts-tape-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.mts-tape-label{font-family:var(--mono); font-size:12px; color:var(--navy); font-weight:700; min-width:52px;}
+.mts-tape-wrap{overflow-x:auto; flex:1; padding:4px 0;}
+.mts-tape{display:flex; width:max-content;}
+.mts-cell{
+  min-width:32px; height:38px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:14px; background:var(--cream-2); flex-shrink:0; position:relative;
+}
+.mts-cell.head{background:var(--navy); color:#fff; box-shadow:0 0 0 2px var(--navy); z-index:2; transform:scale(1.08);}
+.mts-cell.head::after{content:"▲"; position:absolute; bottom:-15px; left:50%; transform:translateX(-50%); color:var(--navy); font-size:10px;}
+/* folded single-tape (2k-track) view */
+.mts-fold-wrap{overflow-x:auto; padding:4px 0 14px;}
+.mts-fold{display:flex; width:max-content; margin:0 auto;}
+.mts-fold-col{display:flex; flex-direction:column; flex-shrink:0; width:34px; border-right:1px solid var(--line-soft);}
+.mts-fold-col:first-child{border-left:1px solid var(--line-soft);}
+.mts-fold-cell{
+  height:26px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12.5px;
+  background:var(--cream-2); border-bottom:1px solid var(--line-soft);
+}
+.mts-fold-cell.marker{height:14px; font-size:10px; background:var(--paper); color:var(--navy); font-weight:700;}
+.mts-fold-cell.marker.on{background:var(--navy); color:#fff;}
+.mts-fold-cell.data1{border-top:2px solid var(--oxblood);}
+.mts-fold-cell.data2{border-top:2px solid var(--navy-light);}
+.mts-fold-tracklabel{font-family:var(--mono); font-size:10px; color:var(--ink-soft); width:56px; display:flex; flex-direction:column; justify-content:center; flex-shrink:0;}
+.mts-fold-tracklabel div{height:26px; display:flex; align-items:center; white-space:nowrap; overflow:hidden;}
+.mts-fold-tracklabel div.marker{height:14px; font-size:9px;}
+.mts-fold-row{display:flex; align-items:stretch;}
+.mts-status{display:flex; align-items:center; gap:12px; margin:8px 0 4px; font-family:var(--mono); font-size:13.5px;}
+.mts-rule{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin:4px 0 10px; min-height:16px;}
+
+/* ---------- NTM configuration-tree explorer (Section 12) ---------- */
+.ntmx{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow); margin:16px 0;}
+.ntmx-input{font-family:var(--mono); font-size:14px; text-align:center; margin-bottom:12px; letter-spacing:.1em;}
+.ntmx-rounds{display:flex; flex-direction:column; gap:10px; max-height:420px; overflow-y:auto; padding:4px 2px;}
+.ntmx-round{border-left:2px solid var(--line); padding-left:12px;}
+.ntmx-round-label{font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-bottom:6px;}
+.ntmx-chips{display:flex; flex-wrap:wrap; gap:8px;}
+.ntmx-chip{
+  background:var(--cream-2); border:1px solid var(--line); border-radius:8px; padding:6px 10px;
+  font-family:var(--mono); font-size:12px; display:flex; flex-direction:column; gap:3px; min-width:120px;
+}
+.ntmx-chip.dead{opacity:.45; text-decoration:line-through; border-style:dashed;}
+.ntmx-chip.accept{background:var(--accept-bg); border-color:var(--accept-green); border-width:2px; box-shadow:0 0 0 2px rgba(47,92,63,.15);}
+.ntmx-chip .cstate{font-weight:700; color:var(--navy);}
+.ntmx-chip.accept .cstate{color:var(--accept-green);}
+.ntmx-chip .cmini{font-size:11px; color:var(--ink-soft); letter-spacing:.05em;}
+.ntmx-chip .cmini b{color:var(--oxblood); background:var(--oxblood-bg); border-radius:3px; padding:0 2px;}
+.ntmx-controls{display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap;}
+.ntmx-stats{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft);}
+.ntmx-banner{margin-top:12px; padding:10px 14px; border-radius:8px; font-size:13.5px; display:none;}
+.ntmx-banner.shown{display:block;}
+.ntmx-banner.accept{background:var(--accept-bg); color:var(--accept-green);}
+.ntmx-banner.dead{background:var(--trap-bg); color:var(--oxblood-dark);}
+
+/* ---------- tape / two-stack correspondence (Section 13) ---------- */
+.stk{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px 14px; box-shadow:var(--shadow); margin:16px 0;}
+.stk-tape-wrap{overflow-x:auto; padding:6px 0 16px; text-align:center;}
+.stk-tape{display:inline-flex;}
+.stk-cell{
+  min-width:32px; height:38px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:14px; background:var(--cream-2);
+}
+.stk-cell.head{background:var(--navy); color:#fff; box-shadow:0 0 0 2px var(--navy); transform:scale(1.08); z-index:2; position:relative;}
+.stk-panels{display:flex; justify-content:center; align-items:flex-end; gap:40px; margin:10px 0 16px; min-height:180px;}
+.stk-panel{display:flex; flex-direction:column; align-items:center;}
+.stk-panel-label{font-family:var(--mono); font-size:12px; color:var(--navy); font-weight:700; margin-bottom:8px;}
+.stk-stack{display:flex; flex-direction:column-reverse; gap:2px; min-height:20px; align-items:center;}
+.stk-block{
+  width:44px; height:26px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:13px; background:var(--cream-2); border:1px solid var(--line); border-radius:3px;
+}
+.stk-block.top{background:var(--oxblood-bg); border-color:var(--oxblood); font-weight:700;}
+.stk-arrow{font-family:var(--mono); font-size:22px; color:var(--ink-soft); align-self:center; margin-bottom:10px;}
+.stk-controls{display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;}
+.stk-write{display:inline-flex; gap:6px; align-items:center;}
+.stk-write input{font-family:var(--mono); font-size:13px; width:44px; padding:5px 7px; border-radius:6px; border:1px solid var(--line); text-align:center;}
+</style>
+<script>
+/* ============================================================
+   Machine data — every delta table below was generated and
+   verified by direct simulation in Python before being
+   transcribed here (see the "verified" notes in each section).
+   ============================================================ */
+function mkDelta(rows){ // rows: [ [state, sym, nstate, w, d, desc], ... ]
+  const d = {};
+  rows.forEach(([s,sym,ns,w,dir,desc])=>{ d[s+'::'+sym] = {ns,w,d:dir,desc}; });
+  return d;
+}
+
+/* ---------- 1. 0^n 1^n ---------- */
+(function(){
+  const delta = mkDelta([
+    ['q0','0','q1','X','R','δ(q0,0)=(q1,X,R) — cross off a 0'],
+    ['q1','0','q1','0','R','δ(q1,0)=(q1,0,R) — skip remaining 0s'],
+    ['q1','Y','q1','Y','R','δ(q1,Y)=(q1,Y,R) — skip matched 1s'],
+    ['q1','1','q2','Y','L','δ(q1,1)=(q2,Y,L) — cross off matching 1'],
+    ['q2','0','q2','0','L','δ(q2,0)=(q2,0,L) — walk back left'],
+    ['q2','Y','q2','Y','L','δ(q2,Y)=(q2,Y,L) — walk back left'],
+    ['q2','X','q0','X','R','δ(q2,X)=(q0,X,R) — found boundary, next 0'],
+    ['q0','Y','q3','Y','R','δ(q0,Y)=(q3,Y,R) — all 0s matched, verify tail'],
+    ['q3','Y','q3','Y','R','δ(q3,Y)=(q3,Y,R) — sweep matched 1s'],
+    ['q3','B','q4','B','R','δ(q3,B)=(q4,B,R) — clean end, ACCEPT'],
+  ]);
+  const root = document.getElementById('sim-0n1n');
+  new TMSim(root, {
+    delta, start:'q0', accept:new Set(['q4']), blank:'B',
+    presets:[
+      {label:'0011 (accept)', tape:'0011'.split('')},
+      {label:'000111 (accept)', tape:'000111'.split('')},
+      {label:'01 (accept)', tape:'01'.split('')},
+      {label:'001 (reject)', tape:'001'.split('')},
+      {label:'0110 (reject)', tape:'0110'.split('')},
+    ],
+    customInput:{ placeholder:'e.g. 000111', toTape:(s)=> /^[01]+$/.test(s) ? s.split('') : null },
+    renderState:(s)=>s,
+    renderSym:(sym)=> `<span>${sym}</span>`,
+  });
+})();
+
+/* ---------- 2. Monus (proper subtraction) ---------- */
+(function(){
+  const delta = mkDelta([
+    ['q0','0','q1','B','R','find leftmost m-0, blank it'],
+    ['q0','1','q4','B','R','no m-0 left → n≥m, blank everything'],
+    ['q1','0','q1','0','R','skip rest of m-block'],
+    ['q1','1','q2','1','R','found separator, hunt n-block'],
+    ['q2','1','q2','1','R','skip already-matched n-digits'],
+    ['q2','0','q3','1','L','found n-0, convert to 1, reverse'],
+    ['q2','B','q5','B','L','n-block exhausted → m>n, cleanup'],
+    ['q3','0','q3','0','L','walk left over m-block'],
+    ['q3','1','q3','1','L','walk left over separator/matched'],
+    ['q3','B','q0','B','R','found boundary, next m-0'],
+    ['q4','0','q4','B','R','blank remaining m (n≥m case)'],
+    ['q4','1','q4','B','R','blank separator/n too'],
+    ['q4','B','q6','B','R','HALT — result 0'],
+    ['q5','1','q5','B','L','blank matched n-digits + separator'],
+    ['q5','0','q5','0','L','pass over untouched m-digits'],
+    ['q5','B','q6','0','R','restore over-consumed digit, HALT'],
+  ]);
+  const root = document.getElementById('sim-monus');
+  const mk = (m,n)=> '0'.repeat(m)+'1'+'0'.repeat(n);
+  new TMSim(root, {
+    delta, start:'q0', accept:new Set(['q6']), blank:'B',
+    acceptLabel:'<span class="tag" style="background:var(--accept-bg);color:var(--accept-green);">■ halted — result on tape</span>',
+    presets:[
+      {label:'m=2,n=4 (lecture trace)', tape:mk(2,4).split('')},
+      {label:'m=5,n=2', tape:mk(5,2).split('')},
+      {label:'m=3,n=3', tape:mk(3,3).split('')},
+      {label:'m=4,n=0', tape:mk(4,0).split('')},
+      {label:'m=0,n=3', tape:mk(0,3).split('')},
+    ],
+    customInput:{ placeholder:'m,n e.g. 5,2', toTape:(s)=>{
+      const m2 = s.match(/^\s*(\d+)\s*,\s*(\d+)\s*$/);
+      if(!m2) return null;
+      const m=+m2[1], n=+m2[2];
+      if(m>12||n>12) return null;
+      return mk(m,n).split('');
+    }},
+    renderState:(s)=>s,
+    renderSym:(sym)=> `<span>${sym}</span>`,
+  });
+})();
+
+/* ---------- 3. Storage in the state: 01* + 10* ---------- */
+(function(){
+  const delta = mkDelta([
+    ['q0,B','0','q1,0','0','R','remember first symbol = 0'],
+    ['q0,B','1','q1,1','1','R','remember first symbol = 1'],
+    ['q1,0','1','q1,0','1','R','skip the complement symbol'],
+    ['q1,1','0','q1,1','0','R','skip the complement symbol'],
+    ['q1,0','B','q1,B','B','R','clean end, ACCEPT'],
+    ['q1,1','B','q1,B','B','R','clean end, ACCEPT'],
+  ]);
+  const root = document.getElementById('sim-storage');
+  new TMSim(root, {
+    delta, start:'q0,B', accept:new Set(['q1,B']), blank:'B',
+    presets:[
+      {label:'0111 (accept)', tape:'0111'.split('')},
+      {label:'1000 (accept)', tape:'1000'.split('')},
+      {label:'01111 (accept)', tape:'01111'.split('')},
+      {label:'0110 (reject)', tape:'0110'.split('')},
+      {label:'1001 (reject)', tape:'1001'.split('')},
+    ],
+    customInput:{ placeholder:'e.g. 01111', toTape:(s)=> /^[01]+$/.test(s) ? s.split('') : null },
+    renderState:(s)=>{ const [q,d]=s.split(','); return `[${q},${d}]`; },
+    renderSym:(sym)=> `<span>${sym}</span>`,
+  });
+})();
+
+/* ---------- 4. L(wcw) multi-track copy checker ---------- */
+(function(){
+  function two(state, t1, t2, ns, w1, w2, d, desc){
+    return [state, t1+','+t2, ns, w1+','+w2, d, desc];
+  }
+  const rows = [];
+  ['0','1'].forEach(a=>{
+    rows.push(two('q1,B','B',a,'q2,'+a,'*',a,'R','pick up '+a+', check it off'));
+    ['0','1'].forEach(o=> rows.push(two('q2,'+a,'B',o,'q2,'+a,'B',o,'R','skip right, seeking c')));
+    rows.push(two('q2,'+a,'B','c','q3,'+a,'B','c','R','found c, keep going right'));
+    ['0','1'].forEach(o=> rows.push(two('q3,'+a,'*',o,'q3,'+a,'*',o,'R','skip checked symbols')));
+    rows.push(two('q3,'+a,'B',a,'q4,B','*',a,'L','match! check it off, reverse'));
+    rows.push(two('q4,B','*',a,'q4,B','*',a,'L','walk left over checked'));
+  });
+  rows.push(two('q4,B','B','c','q5,B','B','c','L','back at c, decide next move'));
+  ['0','1'].forEach(a=>{
+    rows.push(two('q5,B','B',a,'q6,B','B',a,'L','left of c unchecked → more work'));
+    rows.push(two('q6,B','B',a,'q6,B','B',a,'L','sweep left, unchecked'));
+    rows.push(two('q6,B','*',a,'q1,B','*',a,'R','found boundary, restart cycle'));
+    rows.push(two('q5,B','*',a,'q7,B','*',a,'R','left of c checked → left half done'));
+    rows.push(two('q8,B','*',a,'q8,B','*',a,'R','skip checked, right side'));
+  });
+  rows.push(two('q7,B','B','c','q8,B','B','c','R','back past c'));
+  rows.push(two('q8,B','B','B','q9,B','B','B','R','clean end, ACCEPT'));
+  const delta = mkDelta(rows);
+  const toTape = (s)=> s.split('').map(ch=>'B,'+ch);
+  const root = document.getElementById('sim-wcw');
+  new TMSim(root, {
+    delta, start:'q1,B', accept:new Set(['q9,B']), blank:'B,B',
+    presets:[
+      {label:'011c011 (accept)', tape:toTape('011c011')},
+      {label:'01c01 (accept)', tape:toTape('01c01')},
+      {label:'1010c1010 (accept)', tape:toTape('1010c1010')},
+      {label:'011c010 (reject)', tape:toTape('011c010')},
+      {label:'01c1 (reject)', tape:toTape('01c1')},
+    ],
+    customInput:{ placeholder:'e.g. 101c101', toTape:(s)=> /^[01]+c[01]+$/.test(s) ? toTape(s) : null },
+    renderState:(s)=>{ const [q,d]=s.split(','); return `[${q},${d}]`; },
+    renderSym:(sym)=>{
+      const [t1,t2] = sym.split(',');
+      const top = t1==='*' ? '✓' : '&nbsp;';
+      const bot = t2==='B' ? '·' : t2;
+      return `<span class="track1">${top}</span><span>${bot}</span>`;
+    },
+  });
+})();
+
+/* ---------- 5. Binary adder (subroutine composition) ---------- */
+(function(){
+  const sumTable = {
+    '0,0,0':['0','0'], '0,0,1':['1','0'], '0,1,0':['1','0'], '0,1,1':['0','1'],
+    '1,0,0':['1','0'], '1,0,1':['0','1'], '1,1,0':['0','1'], '1,1,1':['1','1'],
+  };
+  function two(state, t1, t2, ns, w1, w2, d, desc){
+    return [state, t1+','+t2, ns, w1+','+w2, d, desc];
+  }
+  const rows = [];
+  ['0','1'].forEach(ci=>{
+    ['0','1'].forEach(a=>{
+      const S = (q)=> q+','+a+',B,'+ci; // not used directly; states built per-line below
+      rows.push(two('q0,B,B,'+ci,'B',a,'q1,'+a+',B,'+ci,'*',a,'R','pick up bit '+a+' of w1'));
+      ['0','1'].forEach(x=> rows.push(two('q1,'+a+',B,'+ci,'B',x,'q1,'+a+',B,'+ci,'B',x,'R','skip right, seeking c')));
+      rows.push(two('q1,'+a+',B,'+ci,'B','c','q2,'+a+',B,'+ci,'B','c','R','found first c'));
+      ['0','1'].forEach(x=> rows.push(two('q2,'+a+',B,'+ci,'*',x,'q2,'+a+',B,'+ci,'*',x,'R','skip checked bits of w2')));
+      ['0','1'].forEach(b=>{
+        rows.push(two('q2,'+a+',B,'+ci,'B',b,'q3,'+a+','+b+','+ci,'*',b,'R','pick up matching bit '+b));
+        ['0','1','c'].forEach(x=> rows.push(two('q3,'+a+','+b+','+ci,'B',x,'q3,'+a+','+b+','+ci,'B',x,'R','run right to the end')));
+        const [s,co] = sumTable[a+','+b+','+ci];
+        rows.push(two('q3,'+a+','+b+','+ci,'B','B','q4,B,B,'+co,'B',s,'L','write sum bit '+s+', carry '+co));
+      });
+      ['0','1'].forEach(x=> rows.push(two('q4,B,B,'+ci,'B',x,'q4,B,B,'+ci,'B',x,'L','sweep left to second c')));
+      rows.push(two('q4,B,B,'+ci,'B','c','q5,B,B,'+ci,'B','c','L','found second c'));
+      ['0','1'].forEach(x=>{
+        rows.push(two('q5,B,B,'+ci,'B',x,'q5,B,B,'+ci,'B',x,'L','sweep left across w2'));
+        rows.push(two('q5,B,B,'+ci,'*',x,'q5,B,B,'+ci,'*',x,'L','sweep left across w2'));
+      });
+      rows.push(two('q5,B,B,'+ci,'B','c','q6,B,B,'+ci,'B','c','L','found first c'));
+      ['0','1'].forEach(x=>{
+        rows.push(two('q6,B,B,'+ci,'B',x,'q6,B,B,'+ci,'B',x,'L','sweep left, unchecked w1'));
+        rows.push(two('q6,B,B,'+ci,'*',x,'q0,B,B,'+ci,'*',x,'R','found boundary, next column'));
+      });
+      rows.push(two('q0,B,B,'+ci,'B','c','q7,B,B,'+ci,'B','c','R','both numbers consumed'));
+      ['0','1','c'].forEach(x=> rows.push(two('q7,B,B,'+ci,'B',x,'q7,B,B,'+ci,'B',x,'R','run to end of sum')));
+      ['0','1'].forEach(x=> rows.push(two('q7,B,B,'+ci,'*',x,'q7,B,B,'+ci,'*',x,'R','run to end of sum')));
+      rows.push(two('q7,B,B,'+ci,'B','B','q8,B,B,B','B',ci,'R','write final carry, ACCEPT'));
+    });
+  });
+  const delta = mkDelta(rows);
+  const toTape = (w1,w2)=> (w1+'c'+w2+'c').split('').map(ch=>'B,'+ch);
+  const root = document.getElementById('sim-adder');
+  new TMSim(root, {
+    delta, start:'q0,B,B,0', accept:new Set(['q8,B,B,B']), blank:'B,B',
+    presets:[
+      {label:'101+011 (lecture)', tape:toTape('101','011')},
+      {label:'1+1', tape:toTape('1','1')},
+      {label:'111+111', tape:toTape('111','111')},
+      {label:'1000+0001', tape:toTape('1000','0001')},
+    ],
+    customInput:{ placeholder:'w1,w2 e.g. 101,011', toTape:(s)=>{
+      const m = s.match(/^\s*([01]+)\s*,\s*([01]+)\s*$/);
+      if(!m || m[1].length!==m[2].length) return null;
+      return toTape(m[1],m[2]);
+    }},
+    renderState:(s)=>{ const parts=s.split(','); return `[${parts.join(',')}]`; },
+    renderSym:(sym)=>{
+      const [t1,t2] = sym.split(',');
+      const top = t1==='*' ? '✓' : '&nbsp;';
+      const bot = t2==='B' ? '·' : t2;
+      return `<span class="track1">${top}</span><span>${bot}</span>`;
+    },
+  });
+})();
+</script>
+<script>
+/* ============================================================
+   Self-check quiz — same question set discussed in chat,
+   transcribed here as a small standalone graded widget.
+   ============================================================ */
+const QUIZ_DATA = [
+  {id:'q1', prompt:"Why can't any PDA recognize L = {aⁿbⁿcⁿ | n ≥ 0}?",
+   options:[
+     {id:'a', text:"The alphabet has three symbols, which is too many for a PDA"},
+     {id:'b', text:"A single stack can't verify two independent count-equalities at once — by the time it compares c's to a's, the a's are already consumed matching b's"},
+     {id:'c', text:"PDAs can only read their input once, left to right, and this language requires backtracking"},
+     {id:'d', text:"PDAs cannot have more than two states"}],
+   correct:'b', hint:"Think about what the stack has already been used for by the time the c's start arriving.",
+   explanation:"One stack gives you one \u201cmemory channel.\u201d Matching a's against b's uses it up; there's nothing left to independently check c's against a's. This is exactly the motivating gap a Turing machine closes."},
+  {id:'q2', prompt:"In M = (Q, \u03a3, \u0393, \u03b4, q\u2080, B, F), which relationship must always hold?",
+   options:[
+     {id:'a', text:"\u0393 \u2286 \u03a3"},
+     {id:'b', text:"\u03a3 \u2286 \u0393, and B \u2208 \u0393 but B \u2209 \u03a3"},
+     {id:'c', text:"Q \u2286 \u0393"},
+     {id:'d', text:"F must equal Q"}],
+   correct:'b',
+   explanation:"The tape alphabet is always a superset of the input alphabet — the machine needs extra \u201cworking\u201d symbols (X, Y, \u2217, checkmarks...) that never legally appear in the input itself, and the blank is one of those reserved working symbols."},
+  {id:'q3', prompt:"\u03b4(q, X) is undefined for the machine's current state and scanned symbol. What happens?",
+   options:[
+     {id:'a', text:"The machine loops forever by definition"},
+     {id:'b', text:"It automatically transitions to a designated universal reject state"},
+     {id:'c', text:"The machine halts right there — this IS how rejection is implemented, there's no separate \u2018reject\u2019 instruction"},
+     {id:'d', text:"This is a malformed machine and never allowed in a valid construction"}],
+   correct:'c',
+   explanation:"There's no explicit reject instruction in the formalism. Every reject you engineer is really \u2018I deliberately left this (state, symbol) pair out of \u03b4.\u2019"},
+  {id:'q4', prompt:"In the ID X\u2081X\u2082\u2026X\u1d62\u208b\u2081 q X\u1d62\u2026X\u2099, what does the position of q tell you?",
+   options:[
+     {id:'a', text:"The head is scanning X\u1d62\u208b\u2081, one cell before q"},
+     {id:'b', text:"The head is scanning X\u1d62, and the machine is currently in state q"},
+     {id:'c', text:"The head is scanning the rightmost symbol X\u2099"},
+     {id:'d', text:"The machine has taken i steps so far"}],
+   correct:'b',
+   explanation:"q sits immediately to the left of whichever cell is currently being scanned — that's the whole encoding trick that lets one string capture state + head position + tape contents at once."},
+  {id:'q5', prompt:"The classic 0\u207f1\u207f machine has a state q\u2083 that sweeps right over matched 1's (Y's) after every 0 has been crossed off, instead of accepting immediately. Why is that sweep necessary?",
+   options:[
+     {id:'a', text:"It isn't necessary — it's just a stylistic flourish"},
+     {id:'b', text:"To reset the tape back to its original form before halting"},
+     {id:'c', text:"Because matching every 0 to some 1 doesn't rule out extra unmatched 1's left over — e.g. input 001 would wrongly be accepted otherwise"},
+     {id:'d', text:"Because \u03b4 requires the machine to visit every cell at least once"}],
+   correct:'c', hint:"What could still be sitting on the tape, to the right, even after every 0 has found a partner?",
+   explanation:"Matching a prefix isn't the same as matching the whole string. q\u2083's entire job is proof-reading: confirm nothing but Y's (and then blank) remains before accepting."},
+  {id:'q6', prompt:"That same 0\u207f1\u207f machine's start state q\u2080 has no rule for scanning a blank. What does this imply?",
+   options:[
+     {id:'a', text:"It accepts {0\u207f1\u207f | n \u2265 0}, including \u03b5"},
+     {id:'b', text:"It specifically accepts {0\u207f1\u207f | n \u2265 1} — it halt-rejects the empty string"},
+     {id:'c', text:"It's an invalid machine and never halts on any input"},
+     {id:'d', text:"The blank symbol is irrelevant to this question"}],
+   correct:'b',
+   explanation:"Feed it \u03b5 and the head sits on a blank in q\u2080 immediately — no rule fires, instant halt-reject. A classic off-by-one that's easy to miss if you only skim the language description."},
+  {id:'q7', prompt:"On a transition diagram, an arc from q to p labeled \u201c0/X\u2192R\u201d means:",
+   options:[
+     {id:'a', text:"\u03b4(p, X) = (q, 0, R)"},
+     {id:'b', text:"\u03b4(q, 0) = (p, X, R)"},
+     {id:'c', text:"\u03b4(q, X) = (p, 0, R)"},
+     {id:'d', text:"The machine moves right whenever it's in state p"}],
+   correct:'b',
+   explanation:"Read/write, not write/read: the label is (symbol read) / (symbol written), direction. \u03b4(q,0) = (p,X,R)."},
+  {id:'q8', prompt:"The monus (proper subtraction) machine is specified as a 6-tuple, omitting F entirely. Why?",
+   options:[
+     {id:'a', text:"A typo — every TM needs an F"},
+     {id:'b', text:"F is implicitly assumed to equal Q"},
+     {id:'c', text:"It's being used to compute a function via its halting tape contents, not to accept/reject a language — so \u2018accepting states\u2019 don't apply"},
+     {id:'d', text:"Because this particular machine never halts"}],
+   correct:'c',
+   explanation:"Turing's original framing: the machine computes by transforming tape contents, and correctness is a halting claim, not an acceptance claim."},
+  {id:'q9', prompt:"In the monus machine's m>n cleanup phase, why must one specific blanked cell be restored back to a 0 rather than just left blank?",
+   options:[
+     {id:'a', text:"Because the tape must contain an odd number of 0's at halt"},
+     {id:'b', text:"Because that cycle had already optimistically blanked an m-block 0 before discovering there was no partner in the n-block — leaving it blank would under-report the answer by exactly one"},
+     {id:'c', text:"It's purely cosmetic, for readability of the final tape"},
+     {id:'d', text:"Because \u03b4 is not allowed to ever write a blank symbol"}],
+   correct:'b', hint:"What did state q\u2080 already do to the m-block before it found out there was no matching n-digit?",
+   explanation:"This is the single easiest place to introduce an off-by-one in this construction — trace m=3,n=1 by hand if it doesn't click immediately."},
+  {id:'q10', prompt:"L(M) is formally the set of strings w such that:",
+   options:[
+     {id:'a', text:"M halts on w, regardless of what state it halts in"},
+     {id:'b', text:"q\u2080w \u22a2* \u03b1p\u03b2 for some accepting state p \u2208 F, for some tape strings \u03b1, \u03b2"},
+     {id:'c', text:"M never halts on w"},
+     {id:'d', text:"w contains no blank symbols anywhere on the tape"}],
+   correct:'b',
+   explanation:"Reaching ANY accepting configuration, with anything else on the tape, is enough — the rest of the tape's contents at that moment don't matter."},
+  {id:'q11', prompt:"Which of these is NOT a genuine possible outcome of running a TM on one input?",
+   options:[
+     {id:'a', text:"Halt in an accepting state"},
+     {id:'b', text:"Halt in a non-accepting configuration because \u03b4 is undefined there"},
+     {id:'c', text:"Run forever, never halting"},
+     {id:'d', text:"Halt while simultaneously both accepting and rejecting"}],
+   correct:'d',
+   explanation:"A deterministic machine has exactly one run and lands in exactly one of the first three outcomes — never two at once. Loose exam phrasing sometimes blurs (b) and (c) together as \u2018reject\u2019, but they're genuinely different and it matters once decidability enters the picture."},
+  {id:'q12', prompt:"\u201cStorage in the state\u201d and \u201cmultiple tracks\u201d (the wcw-checker trick) both add:",
+   options:[
+     {id:'a', text:"Genuinely new computational power beyond a plain flat-state, single-track TM"},
+     {id:'b', text:"Zero extra power — both are pure notation that always compiles back down to an ordinary 7-tuple"},
+     {id:'c', text:"Extra power only for language recognition, not function computation"},
+     {id:'d', text:"Power equivalent to adding one extra tape"}],
+   correct:'b',
+   explanation:"A state-tuple [q,A] is still just one element of a finite set Q; a tape-symbol-tuple [\u2217,a] is still just one element of a finite \u0393. Nothing about the model itself changed."},
+  {id:'q13', prompt:"A TM has no call stack. If the same subroutine logic needs to be invoked from several places and return to a different place each time, what's the standard fix?",
+   options:[
+     {id:'a', text:"Nothing needed — the TM automatically remembers where to return"},
+     {id:'b', text:"Dedicate a second tape exclusively to storing return addresses"},
+     {id:'c', text:"Make separate copies of the subroutine's states, one per call site, each hard-wired to its own return point"},
+     {id:'d', text:"This scenario is simply impossible to implement with a TM"}],
+   correct:'c',
+   explanation:"Blunt but effective — the binary-adder machine's repeated \u2018sweep to a landmark\u2019 routines are exactly this pattern, inlined."},
+  {id:'q14', prompt:"A k-tape TM's n moves can be simulated by an ordinary single-tape TM in:",
+   options:[
+     {id:'a', text:"O(n) steps — collapsing tapes is essentially free"},
+     {id:'b', text:"O(n\u00b2) steps"},
+     {id:'c', text:"O(2\u207f) steps"},
+     {id:'d', text:"O(n \u00b7 k!) steps"}],
+   correct:'b',
+   explanation:"Same languages, but not free: each of the n simulated moves costs an O(n) sweep across the 2k-track single tape to find and update every head-marker, giving O(n\u00b2) total."},
+  {id:'q15', prompt:"Why must a deterministic simulation of an NTM explore the configuration tree breadth-first (a queue), rather than depth-first (a stack)?",
+   options:[
+     {id:'a', text:"Depth-first is simply harder to code"},
+     {id:'b', text:"Depth-first could get stuck forever down one infinite non-accepting branch and never even try a sibling branch that accepts in two steps"},
+     {id:'c', text:"Queues use less memory than stacks in every case"},
+     {id:'d', text:"It doesn't actually matter which one is used"}],
+   correct:'b',
+   explanation:"BFS guarantees that after finite work, every sequence of up to k moves has been tried for k=1,2,3,\u2026 — so an accepting branch, however deep, is provably eventually reached."},
+  {id:'q16', prompt:"In the worst case, how much more time can determinizing an NTM cost, relative to its own move count n (max branching factor m)?",
+   options:[
+     {id:'a', text:"A small constant-factor overhead only"},
+     {id:'b', text:"Quadratic — O(n\u00b2)"},
+     {id:'c', text:"Exponential — up to n\u00b7m\u207f configurations explored"},
+     {id:'d', text:"None — NTMs and DTMs run in identical time by definition"}],
+   correct:'c',
+   explanation:"Same computability class, wildly different complexity — this exact gap is the informal seed of the P-vs-NP question later in the theory sequence."},
+  {id:'q17', prompt:"Which pair is correctly matched with \u201cstill exactly as powerful as a full TM\u201d?",
+   options:[
+     {id:'a', text:"A one-stack PDA, and a one-counter machine"},
+     {id:'b', text:"A two-stack machine, and a two-counter machine"},
+     {id:'c', text:"A DFA with an extra stack bolted on"},
+     {id:'d', text:"None of these restricted models recover full TM power"}],
+   correct:'b',
+   explanation:"The surprising result: two counters — bare integers, only testable for zero-vs-nonzero — are enough, once you know two stacks already are (a counter machine simulates a two-stack machine's power via clever encoding)."},
+  {id:'q18', prompt:"A computer's instruction set includes a single-step \u201cmultiply\u201d instruction. Why does this break the O(n\u00b3) TM-simulates-computer bound?",
+   options:[
+     {id:'a', text:"It doesn't break anything — multiplication is fine to include"},
+     {id:'b', text:"Multiplication can double a word's length in one instruction, violating the assumption that each instruction grows the longest word by at most one bit — repeated squaring then forces exponential TM time"},
+     {id:'c', text:"Multiplication instructions are simply not Turing-computable"},
+     {id:'d', text:"It only matters if the numbers involved are negative"}],
+   correct:'b', hint:"Two m-bit numbers multiplied together can need how many bits to write down the product?",
+   explanation:"The fix: disallow multiply as a primitive; build it from O(m) additions + shifts instead (grade-school long multiplication), which costs O(m\u00b2) — polynomial, not exponential — and restores the bound."},
+];
+
+(function(){
+  const root = document.getElementById('quizRoot');
+  let answered = {}; // id -> chosen option id
+
+  function score(){
+    const ids = Object.keys(answered);
+    const correct = ids.filter(id => answered[id] === QUIZ_DATA.find(q=>q.id===id).correct).length;
+    return {done: ids.length, correct, total: QUIZ_DATA.length};
+  }
+
+  function renderHeader(){
+    const s = score();
+    const pct = Math.round(100 * s.done / s.total);
+    return `
+      <div class="quiz-header">
+        <div class="quiz-scorebar">
+          <span class="quiz-score">answered <span class="frac">${s.done}/${s.total}</span> &nbsp;·&nbsp; correct <span class="frac">${s.correct}/${s.done || 0}</span></span>
+          <div class="quiz-progress"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+          <button class="btn ghost" id="quizResetBtn" style="font-size:12px;padding:5px 12px;">↺ reset quiz</button>
+        </div>
+      </div>`;
+  }
+
+  function renderSummaryBanner(){
+    const s = score();
+    if(s.done < s.total) return '<div class="quiz-summary-banner" id="quizBanner"></div>';
+    const pct = Math.round(100*s.correct/s.total);
+    let verdict = pct>=90 ? "Exam-ready." : pct>=70 ? "Solid — revisit the ones you missed." : "Worth another pass through the sections above before you trust this.";
+    return `<div class="quiz-summary-banner shown" id="quizBanner">
+      <div class="big">${s.correct} / ${s.total} — ${pct}%</div>
+      <div style="margin-top:6px;color:var(--ink-soft);">${verdict}</div>
+    </div>`;
+  }
+
+  function renderQuestion(q, idx){
+    const picked = answered[q.id];
+    const isAnswered = !!picked;
+    const isCorrect = picked === q.correct;
+    return `
+      <div class="quiz-card ${isAnswered ? 'answered '+(isCorrect?'correct':'incorrect') : ''}" data-qid="${q.id}">
+        <div class="quiz-qnum">Question ${idx+1} of ${QUIZ_DATA.length}</div>
+        <div class="quiz-prompt">${q.prompt}</div>
+        <div class="quiz-options">
+          ${q.options.map(o=>{
+            let cls = 'quiz-opt';
+            if(isAnswered){
+              if(o.id === picked && o.id === q.correct) cls += ' picked-correct';
+              else if(o.id === picked && o.id !== q.correct) cls += ' picked-incorrect';
+              else if(o.id === q.correct) cls += ' reveal-correct';
+            }
+            return `<button class="${cls}" data-oid="${o.id}" ${isAnswered?'disabled':''}>
+                      <span class="oid">${o.id})</span><span>${o.text}</span>
+                    </button>`;
+          }).join('')}
+        </div>
+        ${q.hint ? `<button class="quiz-hint-btn" data-hintfor="${q.id}">show hint</button><div class="quiz-hint" id="hint-${q.id}">${q.hint}</div>` : ''}
+        <div class="quiz-feedback ${isAnswered?'shown':''} ${isCorrect?'correct':'incorrect'}">
+          <span class="verdict">${isCorrect ? '✓ correct' : '✗ not quite — correct answer highlighted above'}</span>
+          <span class="expl">${q.explanation}</span>
+        </div>
+      </div>`;
+  }
+
+  function render(){
+    root.innerHTML = renderHeader() + renderSummaryBanner() +
+      QUIZ_DATA.map((q,i)=>renderQuestion(q,i)).join('');
+    root.querySelectorAll('.quiz-opt').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const card = btn.closest('.quiz-card');
+        const qid = card.dataset.qid;
+        if(answered[qid]) return;
+        answered[qid] = btn.dataset.oid;
+        render();
+      });
+    });
+    root.querySelectorAll('.quiz-hint-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.hintfor;
+        document.getElementById('hint-'+id).classList.toggle('shown');
+      });
+    });
+    const resetBtn = document.getElementById('quizResetBtn');
+    if(resetBtn) resetBtn.addEventListener('click', ()=>{ answered = {}; render(); });
+  }
+  render();
+})();
+</script>
+<script>
+/* ============================================================
+   §11 — Multitape simulator: 2-tape w#w copy-checker, with a
+   toggle that refolds the same run onto one 4-track tape
+   (the exact construction the equivalence proof describes).
+   ============================================================ */
+class MultiTapeSim{
+  constructor(dualRoot, foldedRoot, cfg){
+    this.dualRoot = dualRoot; this.foldedRoot = foldedRoot; this.cfg = cfg;
+    this.load(cfg.presets[0].tapes);
+  }
+  load(tapesInit){
+    this.tapes = tapesInit.map(t=>t.slice());
+    this.heads = this.tapes.map(()=>0);
+    this.state = this.cfg.start;
+    this.steps = 0; this.status = 'running'; this.lastRule = null;
+    this.render();
+  }
+  currentSyms(){
+    return this.tapes.map((t,i)=>{
+      const h = this.heads[i];
+      return (h>=0 && h<t.length) ? t[h] : this.cfg.blank;
+    });
+  }
+  step(){
+    if(this.status !== 'running') return;
+    if(this.cfg.accept.has(this.state)){ this.status='accept'; this.render(); return; }
+    const syms = this.currentSyms();
+    const key = this.state + '::' + syms.join(',');
+    const rule = this.cfg.delta[key];
+    if(!rule){ this.status='reject'; this.render(); return; }
+    for(let i=0;i<this.tapes.length;i++){
+      while(this.heads[i] >= this.tapes[i].length) this.tapes[i].push(this.cfg.blank);
+      if(this.heads[i] < 0){ this.tapes[i].unshift(this.cfg.blank); this.heads[i]=0; }
+      this.tapes[i][this.heads[i]] = rule.writes[i];
+      const d = rule.dirs[i];
+      this.heads[i] += (d==='R') ? 1 : (d==='L') ? -1 : 0;
+    }
+    this.state = rule.ns;
+    this.lastRule = rule.desc;
+    this.steps++;
+    if(this.cfg.accept.has(this.state)) this.status='accept';
+    this.render();
+  }
+  renderDual(){
+    let html = '';
+    for(let i=0;i<this.tapes.length;i++){
+      const t = this.tapes[i], h = this.heads[i];
+      const lo = Math.min(-1, h-4), hi = Math.max(t.length+1, h+5);
+      let cells = '';
+      for(let c=lo;c<hi;c++){
+        const sym = (c>=0 && c<t.length) ? t[c] : this.cfg.blank;
+        cells += `<div class="mts-cell${c===h?' head':''}">${sym}</div>`;
+      }
+      html += `<div class="mts-tape-row"><div class="mts-tape-label">tape ${i+1}</div><div class="mts-tape-wrap"><div class="mts-tape">${cells}</div></div></div>`;
+    }
+    this.dualRoot.innerHTML = html;
+  }
+  renderFolded(){
+    const t1=this.tapes[0], t2=this.tapes[1], h1=this.heads[0], h2=this.heads[1];
+    const lo = Math.min(-1, h1-3, h2-3), hi = Math.max(t1.length+1, t2.length+1, h1+4, h2+4);
+    let cols = '';
+    for(let c=lo;c<hi;c++){
+      const s1 = (c>=0 && c<t1.length) ? t1[c] : this.cfg.blank;
+      const s2 = (c>=0 && c<t2.length) ? t2[c] : this.cfg.blank;
+      cols += `<div class="mts-fold-col">
+        <div class="mts-fold-cell data1">${s1}</div>
+        <div class="mts-fold-cell marker${c===h1?' on':''}">${c===h1?'▲':''}</div>
+        <div class="mts-fold-cell data2">${s2}</div>
+        <div class="mts-fold-cell marker${c===h2?' on':''}">${c===h2?'▲':''}</div>
+      </div>`;
+    }
+    const labels = `<div class="mts-fold-tracklabel">
+        <div>tape 1</div>
+        <div class="marker">head 1</div>
+        <div>tape 2</div>
+        <div class="marker">head 2</div>
+      </div>`;
+    this.foldedRoot.innerHTML = `<div class="mts-fold-row">${labels}<div class="mts-fold-wrap"><div class="mts-fold">${cols}</div></div></div>`;
+  }
+  render(){
+    this.renderDual();
+    this.renderFolded();
+    const root = this.dualRoot.closest('.mts');
+    root.querySelector('.mts-state-val').textContent = this.state;
+    const v = root.querySelector('.mts-verdict');
+    if(this.status==='accept') v.innerHTML = '<span class="tag" style="background:var(--accept-bg);color:var(--accept-green);">✓ accept / halt</span>';
+    else if(this.status==='reject') v.innerHTML = '<span class="tag ox">✗ halt — no rule (reject)</span>';
+    else v.innerHTML = '';
+    root.querySelector('.mts-rule').textContent = this.lastRule ? ('last applied: '+this.lastRule) : 'ready — press step or play';
+    root.querySelector('.mts-steps').textContent = this.steps+' step'+(this.steps===1?'':'s');
+  }
+}
+
+(function(){
+  function mkDelta(rows){
+    const d = {};
+    rows.forEach(([s,syms,ns,writes,dirs,desc])=>{ d[s+'::'+syms] = {ns,writes,dirs,desc}; });
+    return d;
+  }
+  // states: qcopy, qrewind, qcompare, qacc  (verified: 500/500 random trials, see companion notes)
+  const rows = [];
+  ['0','1'].forEach(a=> rows.push(['qcopy', a+',B', 'qcopy', [a,a], ['R','R'], `copy ${a}: write ${a} on both tapes, both heads →`]));
+  rows.push(['qcopy', '#,B', 'qrewind', ['#','B'], ['R','L'], 'found # — step tape1 past it, start rewinding tape2 ←']);
+  ['0','1'].forEach(a=>{ ['0','1'].forEach(b=>{
+    rows.push(['qrewind', a+','+b, 'qrewind', [a,b], ['S','L'], 'tape1 holds still (S); tape2 keeps rewinding ←']);
+  })});
+  ['0','1'].forEach(a=> rows.push(['qrewind', a+',B', 'qcompare', [a,'B'], ['S','R'], 'tape2 hit the left edge of its copy — step right, start comparing']));
+  ['0','1'].forEach(a=> rows.push(['qcompare', a+','+a, 'qcompare', [a,a], ['R','R'], `symbols match (${a}=${a}) — both heads →`]));
+  rows.push(['qcompare', 'B,B', 'qacc', ['B','B'], ['S','S'], 'both tapes exhausted together — ACCEPT']);
+  const delta = mkDelta(rows);
+
+  const toTapes = (s)=> [s.split(''), []];
+
+  const dualRoot = document.getElementById('mts-dual');
+  const foldedRoot = document.getElementById('mts-folded');
+  if(dualRoot && foldedRoot){
+    const sim = new MultiTapeSim(dualRoot, foldedRoot, {
+      delta, start:'qcopy', accept:new Set(['qacc']), blank:'B',
+      presets:[
+        {label:'01#01 (accept)', tapes:toTapes('01#01')},
+        {label:'101#101 (accept)', tapes:toTapes('101#101')},
+        {label:'0#0 (accept)', tapes:toTapes('0#0')},
+        {label:'01#00 (reject)', tapes:toTapes('01#00')},
+        {label:'01#0 (reject — length mismatch)', tapes:toTapes('01#0')},
+      ],
+    });
+    const container = dualRoot.closest('.mts');
+    let currentPresetTapes = sim.cfg.presets[0].tapes;
+    // preset buttons
+    const presetsEl = container.querySelector('.mts-presets');
+    sim.cfg.presets.forEach((p,i)=>{
+      const b = document.createElement('button');
+      b.className = 'chip'+(i===0?' active':'');
+      b.textContent = p.label;
+      b.addEventListener('click', ()=>{
+        presetsEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        b.classList.add('active');
+        currentPresetTapes = p.tapes;
+        pause(); sim.load(p.tapes);
+      });
+      presetsEl.appendChild(b);
+    });
+    // view toggle
+    container.querySelectorAll('.mts-viewtoggle .chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        container.querySelectorAll('.mts-viewtoggle .chip').forEach(c=>c.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.dataset.view;
+        container.querySelectorAll('.mts-view').forEach(v=>v.classList.toggle('active', v.dataset.view===view));
+      });
+    });
+    container.querySelector('.mts-reset').addEventListener('click', ()=>{ pause(); sim.load(currentPresetTapes); });
+    container.querySelector('.mts-step').addEventListener('click', ()=>sim.step());
+    const playBtn = container.querySelector('.mts-play');
+    const speedSel = container.querySelector('.mts-speed');
+    let playing = false, timer=null;
+    function play(){
+      playing = true; playBtn.textContent = '⏸ pause';
+      const iv = ()=>{
+        if(!playing) return;
+        if(sim.status !== 'running'){ pause(); return; }
+        sim.step();
+        timer = setTimeout(iv, +speedSel.value);
+      };
+      timer = setTimeout(iv, +speedSel.value);
+    }
+    function pause(){ playing=false; playBtn.textContent='▶ play'; clearTimeout(timer); }
+    playBtn.addEventListener('click', ()=> playing ? pause() : play());
+  }
+})();
+</script>
+<script>
+/* ============================================================
+   §12 — NTM configuration-tree BFS explorer ("contains 11").
+   A configuration is just (state, headPos) since every rule
+   rewrites the scanned symbol as itself — the shared input
+   string never mutates. Verified against brute-force substring
+   search across many inputs (see companion notes).
+   ============================================================ */
+(function(){
+  const inputEl = document.getElementById('ntmxInputDisplay');
+  const roundsEl = document.getElementById('ntmxRounds');
+  const bannerEl = document.getElementById('ntmxBanner');
+  const statsEl = document.getElementById('ntmxStats');
+  const presetsEl = document.getElementById('ntmxPresets');
+  if(!inputEl) return;
+
+  function successors(state, pos, w){
+    const sym = pos < w.length ? w[pos] : 'B';
+    if(state === 'qs'){
+      if(sym === '0') return [['qs', pos+1, 'skip 0']];
+      if(sym === '1') return [['qs', pos+1, 'ignore this 1'], ['qm', pos+1, 'guess: 11 starts here']];
+      return [];
+    }
+    if(state === 'qm'){
+      if(sym === '1') return [['qacc', pos+1, 'confirmed — accept!']];
+      return []; // wrong guess, dies
+    }
+    return [];
+  }
+
+  let W = '10110';
+  let rounds = []; // array of arrays of {state,pos,note,dead,accept}
+  let done = false;
+
+  function reset(){
+    rounds = [[{state:'qs', pos:0, note:'start', dead:false, accept:false}]];
+    done = false;
+    render();
+  }
+
+  function expandOnce(){
+    if(done) return false;
+    const frontier = rounds[rounds.length-1];
+    const alreadyAccepted = frontier.some(c=>c.state==='qacc');
+    if(alreadyAccepted){ done = true; render(); return false; }
+    let nextFrontier = [];
+    let anyAlive = false;
+    frontier.forEach(cfg=>{
+      const succ = successors(cfg.state, cfg.pos, W);
+      if(succ.length === 0){ cfg.dead = true; }
+      else{
+        anyAlive = true;
+        succ.forEach(([st,pos,note])=> nextFrontier.push({state:st, pos, note, dead:false, accept: st==='qacc'}));
+      }
+    });
+    if(nextFrontier.length === 0){ done = true; render(); return false; }
+    rounds.push(nextFrontier);
+    if(nextFrontier.some(c=>c.accept)){ done = true; }
+    render();
+    return !done;
+  }
+
+  function runAll(){
+    let guard = 0;
+    while(!done && guard < 40){ expandOnce(); guard++; }
+  }
+
+  function miniTape(pos){
+    return W.split('').map((ch,i)=>{
+      const isHead = i===pos;
+      return `<span style="${isHead?'background:var(--navy);color:#fff;border-radius:3px;':''}">${ch}</span>`;
+    }).join('') + (pos>=W.length ? '<b>⊔</b>' : '');
+  }
+
+  function render(){
+    inputEl.innerHTML = 'input: <span class="mono" style="letter-spacing:.2em;font-size:16px;">'+W+'</span>' +
+      '  <span class="small" style="letter-spacing:normal;">(contains "11"? '+(W.includes('11')?'yes':'no')+')</span>';
+    let html = '';
+    let totalExplored = 0;
+    rounds.forEach((frontier, ri)=>{
+      totalExplored += frontier.length;
+      html += `<div class="ntmx-round"><div class="ntmx-round-label">round ${ri} — ${frontier.length} configuration${frontier.length===1?'':'s'} live</div><div class="ntmx-chips">`;
+      frontier.forEach(cfg=>{
+        const cls = cfg.accept ? 'accept' : (cfg.dead ? 'dead' : '');
+        html += `<div class="ntmx-chip ${cls}">
+          <span class="cstate">${cfg.accept?'qacc ✓':cfg.state}</span>
+          <span class="cmini">${miniTape(cfg.pos)}</span>
+          <span class="cmini" style="font-style:italic;">${cfg.note}${cfg.dead?' — dead end':''}</span>
+        </div>`;
+      });
+      html += `</div></div>`;
+    });
+    roundsEl.innerHTML = html;
+    roundsEl.scrollTop = roundsEl.scrollHeight;
+
+    const lastFrontier = rounds[rounds.length-1];
+    const accepted = lastFrontier.some(c=>c.accept);
+    if(done){
+      bannerEl.classList.add('shown');
+      if(accepted){
+        bannerEl.className = 'ntmx-banner shown accept';
+        bannerEl.textContent = `✓ Accepted — a surviving branch reached qacc after ${rounds.length-1} rounds. The moment this appeared, M_D would stop; every other live chip that round is simply abandoned.`;
+      } else {
+        bannerEl.className = 'ntmx-banner shown dead';
+        bannerEl.textContent = `✗ Every branch died without accepting — this input genuinely doesn't contain "11". M_D exhausts the whole (finite) tree and halt-rejects.`;
+      }
+    } else {
+      bannerEl.classList.remove('shown');
+    }
+    statsEl.textContent = `configurations explored so far: ${totalExplored}  ·  current frontier: ${lastFrontier.length}`;
+  }
+
+  document.getElementById('ntmxExpand').addEventListener('click', ()=> expandOnce());
+  document.getElementById('ntmxRunAll').addEventListener('click', ()=> runAll());
+  document.getElementById('ntmxReset').addEventListener('click', ()=> reset());
+
+  const presets = [
+    {label:'10110 (accept, depth 4)', w:'10110'},
+    {label:'11 (accept, fast)', w:'11'},
+    {label:'000 (dies out)', w:'000'},
+    {label:'0000011 (accept, late)', w:'0000011'},
+    {label:'010101 (dies out)', w:'010101'},
+  ];
+  presets.forEach((p,i)=>{
+    const b = document.createElement('button');
+    b.className = 'chip'+(i===0?' active':'');
+    b.textContent = p.label;
+    b.addEventListener('click', ()=>{
+      presetsEl.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+      W = p.w; reset();
+    });
+    presetsEl.appendChild(b);
+  });
+
+  reset();
+})();
+
+/* ============================================================
+   §13 — Tape / two-stack correspondence demo.
+   ============================================================ */
+(function(){
+  const tapeEl = document.getElementById('stkTape');
+  if(!tapeEl) return;
+  const leftEl = document.getElementById('stkLeft');
+  const rightEl = document.getElementById('stkRight');
+  const INIT = ['A','B','C','D','E','F','G'];
+  let tape, head;
+
+  function reset(){ tape = INIT.slice(); head = 3; render(); }
+
+  function render(){
+    tapeEl.innerHTML = tape.map((s,i)=>`<div class="stk-cell${i===head?' head':''}">${s}</div>`).join('');
+    // stack1 = reversed left-of-head (bottom..top rendered via column-reverse, so DOM order = bottom-to-top isn't needed;
+    // flex column-reverse means first child sits at bottom, so we feed items in "bottom first" order = far-left first)
+    const leftItems = tape.slice(0, head); // index0..head-1, index0 = farthest from head = bottom of stack
+    const rightItems = tape.slice(head);   // index head.. = index0 is the head itself = top of stack (rendered last visually via column-reverse? )
+    leftEl.innerHTML = leftItems.map((s,i)=>{
+      const isTop = i === leftItems.length-1;
+      return `<div class="stk-block${isTop?' top':''}">${s}</div>`;
+    }).join('') || '<div class="small" style="color:var(--ink-soft);">(empty)</div>';
+    // right stack: top = current head (first element), so reverse for column-reverse rendering (last child = bottom)
+    const rightRev = rightItems.slice().reverse();
+    rightEl.innerHTML = rightRev.map((s,i)=>{
+      const isTop = i === rightRev.length-1;
+      return `<div class="stk-block${isTop?' top':''}">${s}</div>`;
+    }).join('') || '<div class="small" style="color:var(--ink-soft);">(empty)</div>';
+  }
+
+  document.getElementById('stkLeftBtn').addEventListener('click', ()=>{
+    if(head <= 0) return;
+    head -= 1; render();
+  });
+  document.getElementById('stkRightBtn').addEventListener('click', ()=>{
+    head += 1;
+    if(head >= tape.length) tape.push('·');
+    render();
+  });
+  document.getElementById('stkWriteBtn').addEventListener('click', ()=>{
+    const inp = document.getElementById('stkWriteInput');
+    const v = inp.value.trim();
+    if(!v) return;
+    tape[head] = v[0].toUpperCase();
+    inp.value = '';
+    render();
+  });
+  document.getElementById('stkReset').addEventListener('click', reset);
+  reset();
+})();
+</script>
+<!--SCRIPT_ANCHOR-->
+</body>
+</html>

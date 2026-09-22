@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE213 · Sequence &amp; Collaboration Diagrams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F1E6;
+  --paper-dark:#EBE2CC;
+  --paper-line:#DCD0B0;
+  --ink:#2A241A;
+  --ink-soft:#6B6252;
+  --brass:#A9743A;
+  --brass-dark:#7C5527;
+  --blue:#12233F;
+  --blue-2:#1C3A5E;
+  --blue-line:#7FA8D9;
+  --blue-line-soft:#3E5A80;
+
+  --teal:#0F766E; --teal-bg:#E4F3F0; --teal-bd:#B9DED6;
+  --amber:#B45309; --amber-bg:#FBF0DE; --amber-bd:#EBCE9C;
+  --rose:#BE123C; --rose-bg:#FCE8ED; --rose-bd:#F3BFCD;
+  --sky:#0369A1; --sky-bg:#E4F1FB; --sky-bd:#B9DDF3;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;
+}
+::selection{background:#D9C48B;}
+
+/* ---------- layout shell ---------- */
+.shell{display:flex; max-width:1400px; margin:0 auto;}
+.sidebar{
+  width:250px; flex-shrink:0; position:sticky; top:0; height:100vh;
+  overflow-y:auto; padding:28px 14px 28px 22px; border-right:1px solid var(--paper-line);
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--paper-line); border-radius:4px;}
+.brand{
+  font-family:'Source Serif 4',serif; font-weight:700; font-size:1.05rem; color:var(--blue);
+  margin-bottom:2px;
+}
+.brand small{display:block; font-family:'JetBrains Mono',monospace; font-size:.68rem; color:var(--ink-soft); font-weight:500; letter-spacing:.04em; margin-top:3px;}
+.navlist{list-style:none; padding:0; margin:22px 0 0;}
+.navlist li a{
+  display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--ink-soft);
+  font-size:.87rem; padding:7px 10px; border-radius:7px; margin-bottom:2px;
+  border-left:3px solid transparent; transition:.15s;
+}
+.navlist li a .num{font-family:'JetBrains Mono',monospace; font-size:.72rem; color:var(--brass); flex-shrink:0;}
+.navlist li a:hover{background:var(--paper-dark); color:var(--ink);}
+.navlist li a.active{background:var(--paper-dark); color:var(--blue); border-left-color:var(--brass); font-weight:600;}
+.sidebar-foot{margin-top:26px; padding-top:16px; border-top:1px dashed var(--paper-line); font-size:.74rem; color:var(--ink-soft);}
+
+.main{flex:1; min-width:0; padding:0 0 100px;}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:64px 56px 46px; border-bottom:1px solid var(--paper-line);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,0)),
+    var(--paper);
+  position:relative; overflow:hidden;
+}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace; letter-spacing:.12em; text-transform:uppercase; font-size:.74rem; color:var(--brass-dark); font-weight:600;}
+.hero h1{font-family:'Source Serif 4',serif; font-size:2.6rem; margin:.35em 0 .2em; color:var(--blue); max-width:16ch; font-weight:700;}
+.hero p.lede{max-width:62ch; color:var(--ink-soft); font-size:1.02rem;}
+.hero-diagram{margin-top:28px;}
+
+/* ---------- sections ---------- */
+section.topic{padding:46px 56px; border-bottom:1px solid var(--paper-line); scroll-margin-top:20px;}
+section.topic:nth-child(odd){background:rgba(255,255,255,.35);}
+.topic-head{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+.topic-tag{font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--brass); border:1px solid var(--brass); border-radius:20px; padding:2px 11px; flex-shrink:0;}
+.topic-head h2{font-family:'Source Serif 4',serif; font-size:1.62rem; color:var(--blue); margin:0; font-weight:700;}
+.topic-sub{color:var(--ink-soft); max-width:70ch; margin:6px 0 26px; font-size:.98rem;}
+
+p{max-width:72ch;}
+h3.sub{font-family:'Source Serif 4',serif; font-size:1.12rem; color:var(--blue); margin:26px 0 10px;}
+ul.plain{max-width:70ch; padding-left:1.2em;}
+ul.plain li{margin-bottom:6px;}
+code.inline{background:var(--paper-dark); border:1px solid var(--paper-line); padding:1px 6px; border-radius:5px; font-family:'JetBrains Mono',monospace; font-size:.85em;}
+
+/* ---------- callout boxes ---------- */
+.callout{
+  border-radius:10px; padding:16px 18px; margin:16px 0; max-width:70ch;
+  border:1px solid; font-size:.93rem;
+}
+.callout .callout-label{
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.72rem;
+  letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:7px; margin-bottom:6px;
+}
+.callout.professor{background:var(--teal-bg); border-color:var(--teal-bd); color:#0B4741;}
+.callout.professor .callout-label{color:var(--teal);}
+.callout.examtip{background:var(--amber-bg); border-color:var(--amber-bd); color:#6B3403;}
+.callout.examtip .callout-label{color:var(--amber);}
+.callout.edgecase{background:var(--rose-bg); border-color:var(--rose-bd); color:#7A0E2C;}
+.callout.edgecase .callout-label{color:var(--rose);}
+.callout.brainstorm{background:var(--sky-bg); border-color:var(--sky-bd); color:#03426B;}
+.callout.brainstorm .callout-label{color:var(--sky);}
+
+/* ---------- diagram frame (blueprint) ---------- */
+.blueprint{
+  background:
+    linear-gradient(var(--blue-line-soft) 1px, transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg, var(--blue-line-soft) 1px, transparent 1px) 0 0/26px 26px,
+    var(--blue);
+  background-blend-mode:soft-light, soft-light, normal;
+  border-radius:12px; padding:20px; margin:18px 0 8px; overflow-x:auto;
+  box-shadow:inset 0 0 0 1px rgba(127,168,217,.25);
+}
+.blueprint .cap{font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--blue-line); letter-spacing:.05em; margin-bottom:8px; text-transform:uppercase; opacity:.85;}
+.blueprint svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+
+.uml-title{fill:#EAF2FB; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600;}
+.uml-box{fill:#1C3A5E; stroke:#7FA8D9; stroke-width:1.4;}
+.uml-label{fill:#EAF2FB; font-family:'JetBrains Mono',monospace; font-size:12.5px;}
+.lifeline{stroke:#7FA8D9; stroke-width:1.3; stroke-dasharray:3 3;}
+.activation{fill:#2C4F79; stroke:#9EC0E8; stroke-width:1.2;}
+.msg-label{fill:#F3E4C8; font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+.msg-sync{stroke:#F3E4C8; stroke-width:1.6; fill:none;}
+.msg-async{stroke:#F3E4C8; stroke-width:1.6; fill:none;}
+.msg-return{stroke:#9EC0E8; stroke-width:1.4; fill:none; stroke-dasharray:4 3;}
+.frame-box{fill:none; stroke:#D9A441; stroke-width:1.3;}
+.frame-tab{fill:#2C4F79; stroke:#D9A441; stroke-width:1.2;}
+.frame-label{fill:#F3D48B; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;}
+.cond-label{fill:#BFE0FF; font-family:'JetBrains Mono',monospace; font-size:11px; font-style:italic;}
+.xmark{stroke:#F3A9B8; stroke-width:2;}
+
+/* ---------- code block ---------- */
+.codeblock{
+  background:#12233F; color:#DCE7F3; border-radius:10px; padding:16px 18px;
+  font-family:'JetBrains Mono',monospace; font-size:.83rem; overflow-x:auto; margin:16px 0; max-width:70ch;
+  line-height:1.55;
+}
+.codeblock .kw{color:#8FC7FF;} .codeblock .ty{color:#F3D48B;} .codeblock .cm{color:#7B93B3; font-style:italic;} .codeblock .st{color:#B9E3B0;}
+
+/* ---------- quiz ---------- */
+.quiz-card{
+  background:#fff; border:1px solid var(--paper-line); border-radius:12px; padding:20px 22px; margin:16px 0 22px; max-width:74ch;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+.quiz-q{font-weight:600; margin-bottom:12px; color:var(--ink);}
+.quiz-opts{display:flex; flex-direction:column; gap:8px;}
+.quiz-opt{
+  text-align:left; border:1px solid var(--paper-line); background:var(--paper); border-radius:8px;
+  padding:10px 14px; cursor:pointer; font-family:'Inter',sans-serif; font-size:.92rem; color:var(--ink);
+  transition:.12s;
+}
+.quiz-opt:hover{border-color:var(--brass);}
+.quiz-opt.correct{background:var(--teal-bg); border-color:var(--teal); color:#0B4741; font-weight:600;}
+.quiz-opt.wrong{background:var(--rose-bg); border-color:var(--rose); color:#7A0E2C; font-weight:600;}
+.quiz-opt[disabled]{cursor:default;}
+.quiz-explain{margin-top:12px; padding:12px 14px; border-radius:8px; background:var(--paper-dark); font-size:.88rem; display:none;}
+.quiz-explain.show{display:block;}
+
+/* ---------- confusion table ---------- */
+table.confuse{width:100%; max-width:78ch; border-collapse:collapse; margin:14px 0 22px; font-size:.88rem;}
+table.confuse th{background:var(--blue); color:#EAF2FB; text-align:left; padding:9px 12px; font-family:'JetBrains Mono',monospace; font-weight:600; font-size:.76rem; letter-spacing:.03em; text-transform:uppercase;}
+table.confuse td{padding:9px 12px; border-bottom:1px solid var(--paper-line); vertical-align:top;}
+table.confuse tr:nth-child(even) td{background:rgba(255,255,255,.5);}
+
+/* ---------- tab toggle (message types etc) ---------- */
+.legend{display:flex; gap:18px; flex-wrap:wrap; margin:10px 0 4px; font-size:.82rem; color:var(--ink-soft);}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.legend .swatch{width:22px; height:2px; display:inline-block;}
+.legend .sw-sync{background:#5B4A2A; border-top:2px solid #5B4A2A;}
+.legend .sw-return{border-top:2px dashed #5B4A2A;}
+
+footer.done{padding:40px 56px; color:var(--ink-soft); font-size:.85rem; text-align:center;}
+
+@media(max-width:900px){
+  .sidebar{display:none;}
+  section.topic, .hero{padding:32px 20px;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <nav class="sidebar">
+    <div class="brand">CSE213 · Sequence &amp; Collaboration Diagrams<small>Lectures 7–8 companion</small></div>
+    <ul class="navlist" id="navlist">
+      <li><a href="#intro"><span class="num">01</span>What & Why</a></li>
+      <li><a href="#anatomy"><span class="num">02</span>Key Parts</a></li>
+      <li><a href="#objects"><span class="num">03</span>Representing Objects</a></li>
+      <li><a href="#messages"><span class="num">04</span>Message Types</a></li>
+      <li><a href="#activation"><span class="num">05</span>Activation Bars</a></li>
+      <li><a href="#lifetime"><span class="num">06</span>Object Lifetime</a></li>
+      <li><a href="#frames"><span class="num">07</span>opt / alt / loop</a></li>
+      <li><a href="#example"><span class="num">08</span>Worked Example</a></li>
+      <li><a href="#actors"><span class="num">09</span>Actors & Branching</a></li>
+      <li><a href="#register"><span class="num">10</span>Register: Full Walkthrough</a></li>
+      <li><a href="#collab"><span class="num">11</span>Collaboration Diagrams</a></li>
+      <li><a href="#consistency"><span class="num">12</span>Model Consistency</a></li>
+      <li><a href="#pitfalls"><span class="num">13</span>Exam Pitfalls</a></li>
+      <li><a href="#quiz"><span class="num">14</span>Practice Quiz</a></li>
+    </ul>
+    <div class="sidebar-foot">Follows Lec 7 (Sequence) &amp; Lec 8 (Seq/Collaboration).<br>Builds on: Class Diagrams (Lec 1–16), Design Patterns.</div>
+  </nav>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <div class="hero">
+      <div class="eyebrow">CSE213 — Software Engineering · UML</div>
+      <h1>Sequence &amp; Collaboration Diagrams</h1>
+      <p class="lede">A sequence diagram is a single scenario, frozen in time and stretched out on paper. It answers one question precisely: <em>who talks to whom, in what order, and what do they say?</em> A collaboration diagram tells the exact same story from a different angle — structure first, numbers instead of a timeline. Where a class diagram shows the skeleton of a system, these two show it breathing.</p>
+    </div>
+
+    <!-- ================= 01 INTRO ================= -->
+    <section class="topic" id="intro">
+      <div class="topic-head"><span class="topic-tag">01</span><h2>What is a Sequence Diagram, and why do we need it?</h2></div>
+      <p class="topic-sub">One of UML's "interaction diagrams" — it doesn't describe structure, it describes behavior over time.</p>
+
+      <p>A <strong>sequence diagram</strong> models a <em>single scenario</em> executing in a system — typically one path through a use case. It shows exactly which messages get sent, by whom, to whom, and in what order.</p>
+
+      <ul class="plain">
+        <li>It visualizes the <strong>execution sequence</strong> of a use case — not the whole system, just one story unfolding.</li>
+        <li>It complements the class diagram: the class diagram is the cast list and their relationships; the sequence diagram is one scene of the play, with actual dialogue.</li>
+        <li>It's read like a script <strong>top to bottom</strong> — the vertical axis is time.</li>
+      </ul>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        Think of it as a <strong>subway map through time</strong>: each vertical line is a station (an object), and every train that leaves a station toward another is a message. Nothing about the diagram tells you the station's internal structure — that's the class diagram's job. The sequence diagram only cares about the <em>trips</em>.
+      </div>
+
+      <div class="callout brainstorm">
+        <div class="callout-label">💭 Brainstorm</div>
+        Before scrolling further: if you had to draw "a student submitting an assignment on a portal" as a comic strip with time flowing downward, who are your 3–4 "characters" (objects), and what's the very first message? Hold that scenario in your head — we'll reuse this instinct across every section below.
+      </div>
+    </section>
+
+    <!-- ================= 02 ANATOMY ================= -->
+    <section class="topic" id="anatomy">
+      <div class="topic-head"><span class="topic-tag">02</span><h2>Key Parts of a Sequence Diagram</h2></div>
+      <p class="topic-sub">Three building blocks — participant, message, and the two axes — before any notation details.</p>
+
+      <ul class="plain">
+        <li><strong>Participant</strong> — an object or entity; the "actor" of the diagram. Drawn as a labelled box at the top.</li>
+        <li><strong>Message</strong> — communication between objects, drawn as a horizontal arrow.</li>
+        <li><strong>Axes</strong> —
+          <ul class="plain">
+            <li><strong>Horizontal:</strong> which participant is acting (position = identity)</li>
+            <li><strong>Vertical:</strong> time, flowing <strong>downward</strong> ↓</li>
+          </ul>
+        </li>
+      </ul>
+
+      <p>Every sequence diagram begins with an <strong>unattached "found message"</strong> — an arrow that starts from nowhere (a filled dot or just off-diagram) and hits the first participant. This represents the trigger that kicks off the scenario — usually a user action or an external event.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 2.1 — Email client checking for mail (found message → checkEmail)</div>
+        <svg viewBox="0 0 640 360" width="640" height="360">
+          <rect x="90" y="14" width="110" height="30" class="uml-box"/><text x="145" y="34" text-anchor="middle" class="uml-label">:Client</text>
+          <rect x="440" y="14" width="110" height="30" class="uml-box"/><text x="495" y="34" text-anchor="middle" class="uml-label">:Server</text>
+          <line x1="145" y1="44" x2="145" y2="340" class="lifeline"/>
+          <line x1="495" y1="44" x2="495" y2="340" class="lifeline"/>
+
+          <circle cx="60" cy="60" r="4" fill="#F3E4C8"/>
+          <line x1="64" y1="60" x2="139" y2="60" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="66" y="52" class="msg-label">checkEmail</text>
+          <rect x="139" y="60" width="12" height="270" class="activation"/>
+
+          <line x1="151" y1="80" x2="489" y2="80" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="160" y="72" class="msg-label">sendUnsentEmail</text>
+          <rect x="489" y="80" width="12" height="24" class="activation"/>
+          <line x1="489" y1="104" x2="151" y2="104" class="msg-return" marker-end="url(#arrowStick)"/>
+
+          <line x1="151" y1="130" x2="489" y2="130" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="200" y="122" class="msg-label">newEmail</text>
+          <rect x="489" y="130" width="12" height="24" class="activation"/>
+          <line x1="489" y1="154" x2="151" y2="154" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="220" y="147" class="msg-label">response</text>
+
+          <text x="151" y="178" class="cond-label">[newEmail]</text>
+          <line x1="151" y1="185" x2="489" y2="185" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="230" y="177" class="msg-label">getEmail</text>
+          <rect x="489" y="185" width="12" height="24" class="activation"/>
+          <line x1="489" y1="209" x2="151" y2="209" class="msg-return" marker-end="url(#arrowStick)"/>
+
+          <line x1="151" y1="235" x2="489" y2="235" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="185" y="227" class="msg-label">deleteOldEmail</text>
+          <rect x="489" y="235" width="12" height="24" class="activation"/>
+          <line x1="489" y1="259" x2="151" y2="259" class="msg-return" marker-end="url(#arrowStick)"/>
+        </svg>
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        If a question says "draw the sequence diagram <em>for this use case</em>," always start with a found message (the dot-and-arrow) even if the trigger isn't explicitly named — examiners dock marks for lifelines that start "mid-air" with no found message.
+      </div>
+    </section>
+
+    <!-- ================= 03 OBJECTS ================= -->
+    <section class="topic" id="objects">
+      <div class="topic-head"><span class="topic-tag">03</span><h2>Syntax: Representing Objects</h2></div>
+      <p class="topic-sub">The box-and-lifeline notation, and the three legal ways to label a participant.</p>
+
+      <p>An object is drawn as a <strong>box</strong> with an <strong>underlined</strong> label — underlining is what marks it as an <em>instance</em>, not a class. The general format is:</p>
+      <div class="codeblock"><span class="cm">// general label syntax</span>
+<span class="ty">Objectname</span>:<span class="ty">Classname</span></div>
+
+      <p>Below the box hangs the object's <strong>lifeline</strong>: a dashed vertical line representing how long that object exists within the scenario being modeled.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 3.1 — The three ways to label a participant</div>
+        <svg viewBox="0 0 640 220" width="640" height="220">
+          <rect x="30" y="14" width="150" height="30" class="uml-box"/><text x="105" y="34" text-anchor="middle" class="uml-label" style="text-decoration:underline">Smith:Patient</text>
+          <line x1="105" y1="44" x2="105" y2="200" class="lifeline"/>
+          <text x="105" y="216" text-anchor="middle" class="cond-label">Named object</text>
+
+          <rect x="245" y="14" width="110" height="30" class="uml-box"/><text x="300" y="34" text-anchor="middle" class="uml-label" style="text-decoration:underline">:Patient</text>
+          <line x1="300" y1="44" x2="300" y2="200" class="lifeline"/>
+          <text x="300" y="216" text-anchor="middle" class="cond-label">Anonymous object</text>
+
+          <rect x="430" y="14" width="90" height="30" class="uml-box"/><text x="475" y="34" text-anchor="middle" class="uml-label" style="text-decoration:underline">Smith</text>
+          <line x1="475" y1="44" x2="475" y2="200" class="lifeline"/>
+          <text x="475" y="216" text-anchor="middle" class="cond-label">Unknown class</text>
+        </svg>
+      </div>
+
+      <ul class="plain">
+        <li><strong>Named object</strong> (<code class="inline">Smith:Patient</code>) — use when the diagram has multiple objects of the same class and you must tell them apart (e.g. two <code class="inline">:Distributor</code>s).</li>
+        <li><strong>Anonymous object</strong> (<code class="inline">:Patient</code>) — the common case. When there's only one instance in play, naming it just adds clutter.</li>
+        <li><strong>Object of unknown class</strong> (<code class="inline">Smith</code>) — rare; used when you know an object exists but its class isn't determined/relevant yet.</li>
+      </ul>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        Don't confuse "no name" with "no colon." <code class="inline">:Patient</code> (colon, no name) is a perfectly normal anonymous object — it is <em>not</em> the same notation as "object of unknown class," which drops the colon entirely (<code class="inline">Smith</code>, no class after it). Examiners sometimes test whether you can read this distinction off a diagram.
+      </div>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        Rule of thumb: write the object's name <strong>only if it clarifies the diagram</strong> — i.e., only when you need to disambiguate. Don't name every object out of habit; a sequence diagram cluttered with unnecessary names is harder to read, not easier.
+      </div>
+    </section>
+
+    <!-- ================= 04 MESSAGES ================= -->
+    <section class="topic" id="messages">
+      <div class="topic-head"><span class="topic-tag">04</span><h2>Representing Messages Between Objects</h2></div>
+      <p class="topic-sub">A message is a method call — the arrow's <em>head style</em> and <em>line style</em> together tell you what kind.</p>
+
+      <p>A message is drawn as a <strong>horizontal arrow</strong> pointing to the receiving object, with the message name and arguments written <strong>above</strong> the arrow — e.g. <code class="inline">admit(patientID, roomType)</code>.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 4.1 — The three arrow types, side by side</div>
+        <svg viewBox="0 0 620 260" width="620" height="260">
+          <rect x="30" y="14" width="120" height="30" class="uml-box"/><text x="90" y="34" text-anchor="middle" class="uml-label">:Hospital</text>
+          <rect x="470" y="14" width="120" height="30" class="uml-box"/><text x="530" y="34" text-anchor="middle" class="uml-label">:Controller</text>
+          <line x1="90" y1="44" x2="90" y2="240" class="lifeline"/>
+          <line x1="530" y1="44" x2="530" y2="240" class="lifeline"/>
+
+          <line x1="150" y1="80" x2="524" y2="80" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="160" y="72" class="msg-label">admit(patientID, roomType) — synchronous</text>
+
+          <line x1="150" y1="140" x2="524" y2="140" class="msg-async" marker-end="url(#arrowStickSolid)"/>
+          <text x="160" y="132" class="msg-label">notifyAdmission() — asynchronous</text>
+
+          <line x1="524" y1="200" x2="156" y2="200" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="160" y="192" class="msg-label">roomAssigned — return</text>
+        </svg>
+      </div>
+
+      <ul class="plain">
+        <li><strong>Synchronous message</strong> — solid line, <strong>solid (filled) arrowhead</strong>. The caller blocks and waits for this call to finish. Most method calls in Java are this.</li>
+        <li><strong>Asynchronous message</strong> — solid line, <strong>stick (open, unfilled) arrowhead</strong>. The caller fires it off and continues immediately — no waiting.</li>
+        <li><strong>Return message</strong> — <strong>dashed</strong> line, stick arrowhead. Shows a value/control coming back from a completed call. Often optional to draw if it's obvious, but required whenever the return value matters to the story.</li>
+      </ul>
+
+      <div class="legend">
+        <span><span class="swatch sw-sync"></span>solid + solid head = synchronous</span>
+        <span><span class="swatch sw-sync"></span>solid + open head = asynchronous</span>
+        <span><span class="swatch sw-return"></span>dashed + open head = return</span>
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        A classic trap: examiners draw a dashed arrow going <em>forward</em> (in the same direction as the call) and ask what's wrong. Dashed lines are only valid for <strong>return</strong> messages, which always point <em>backward</em>, toward the caller. A forward-pointing dashed arrow is invalid notation — call it out if you see it.
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        Asynchronous vs. synchronous is easy to mix up under time pressure because both use a solid line. Zoom in on the <em>arrowhead</em> only — solid filled triangle = sync, open "stick"/V-shape = async. Don't rely on line style alone.
+      </div>
+    </section>
+
+    <!-- ================= 05 ACTIVATION ================= -->
+    <section class="topic" id="activation">
+      <div class="topic-head"><span class="topic-tag">05</span><h2>Indicating Method Execution: Activation Bars</h2></div>
+      <p class="topic-sub">The thick box on a lifeline — showing when an object's method is actually "live" on the call stack.</p>
+
+      <p>An <strong>activation</strong> is a thick, narrow box drawn over an object's lifeline, active exactly while that object's method is on the <strong>call stack</strong> — either it's actively running code, or it's paused, waiting on another object's method to return.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 5.1 — A plain activation, and a nested self-call activation</div>
+        <svg viewBox="0 0 620 260" width="620" height="260">
+          <rect x="40" y="14" width="130" height="30" class="uml-box"/><text x="105" y="34" text-anchor="middle" class="uml-label">:Controller</text>
+          <line x1="105" y1="44" x2="105" y2="240" class="lifeline"/>
+          <circle cx="30" cy="70" r="4" fill="#F3E4C8"/>
+          <line x1="34" y1="70" x2="99" y2="70" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <rect x="99" y="70" width="12" height="130" class="activation"/>
+          <line x1="111" y1="90" x2="230" y2="90" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <line x1="230" y1="115" x2="111" y2="115" class="msg-return" marker-end="url(#arrowStick)"/>
+          <line x1="99" y1="200" x2="34" y2="200" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="60" y="222" text-anchor="middle" class="cond-label">plain activation</text>
+
+          <rect x="440" y="14" width="130" height="30" class="uml-box"/><text x="505" y="34" text-anchor="middle" class="uml-label">:Controller</text>
+          <line x1="505" y1="44" x2="505" y2="240" class="lifeline"/>
+          <circle cx="400" cy="70" r="4" fill="#F3E4C8"/>
+          <line x1="404" y1="70" x2="499" y2="70" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <rect x="499" y="70" width="12" height="130" class="activation"/>
+          <line x1="511" y1="95" x2="529" y2="95" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <rect x="529" y="95" width="10" height="40" class="activation"/>
+          <line x1="529" y1="135" x2="513" y2="135" class="msg-return" marker-end="url(#arrowStick)"/>
+          <line x1="499" y1="200" x2="404" y2="200" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="465" y="222" text-anchor="middle" class="cond-label">self-call: nested activation</text>
+        </svg>
+      </div>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        Activation bars answer "who's currently doing work?" at a glance. When you see a stack of <strong>nested</strong> boxes on the same lifeline (one narrow box on top of a wider one), read it as "this object called one of its own methods" — the outer box is the original call still waiting, the inner box is the fresh call sitting on top of it.
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        An activation bar doesn't necessarily mean the CPU is executing that object's code right this instant — it might be idle, blocked, waiting for a synchronous call it made to someone else to return. The box represents stack presence, not CPU activity. This distinction trips people up when reasoning about concurrency-adjacent questions.
+      </div>
+    </section>
+
+    <!-- ================= 06 LIFETIME ================= -->
+    <section class="topic" id="lifetime">
+      <div class="topic-head"><span class="topic-tag">06</span><h2>Lifetime of Objects: Creation & Deletion</h2></div>
+      <p class="topic-sub">Two special notations for when an object is born mid-scenario, or explicitly dies.</p>
+
+      <ul class="plain">
+        <li><strong>Creation</strong> — an arrow labelled <code class="inline">new</code>, pointing at the top of a fresh object box. Because it's created after the scenario started, that box is drawn <strong>lower</strong> than objects present from the beginning.</li>
+        <li><strong>Deletion</strong> — a large <strong>X</strong> at the bottom of the lifeline, marking where the object stops existing.</li>
+      </ul>
+
+      <div class="blueprint">
+        <div class="cap">Fig 6.1 — Handler creates a Query object, uses it, then it's destroyed</div>
+        <svg viewBox="0 0 560 300" width="560" height="300">
+          <rect x="20" y="14" width="120" height="30" class="uml-box"/><text x="80" y="34" text-anchor="middle" class="uml-label">:Handler</text>
+          <line x1="80" y1="44" x2="80" y2="280" class="lifeline"/>
+          <circle cx="10" cy="70" r="4" fill="#F3E4C8"/>
+          <line x1="14" y1="70" x2="74" y2="70" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="16" y="62" class="msg-label">queryDB</text>
+          <rect x="74" y="70" width="12" height="180" class="activation"/>
+
+          <line x1="86" y1="100" x2="330" y2="100" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="200" y="92" class="msg-label">new</text>
+          <rect x="330" y="90" width="110" height="26" class="uml-box"/><text x="385" y="107" text-anchor="middle" class="uml-label">:Query</text>
+          <line x1="385" y1="116" x2="385" y2="220" class="lifeline"/>
+
+          <line x1="86" y1="150" x2="379" y2="150" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="200" y="142" class="msg-label">execute</text>
+          <rect x="379" y="150" width="12" height="30" class="activation"/>
+          <line x1="379" y1="180" x2="86" y2="180" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="200" y="173" class="msg-label">results</text>
+
+          <line x1="384" y1="205" x2="396" y2="219" class="xmark"/>
+          <line x1="396" y1="205" x2="384" y2="219" class="xmark"/>
+
+          <line x1="86" y1="250" x2="18" y2="250" class="msg-return" marker-end="url(#arrowStick)"/>
+        </svg>
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        Java doesn't have explicit object destruction — objects simply fall out of scope and get garbage-collected. So drawing an <strong>X</strong> in a Java-based sequence diagram is a modeling choice to show "this object is logically done being used here," not a literal call to a destructor. Don't write <code class="inline">delete()</code> as if it were a real Java method — that's a C++ habit, and examiners will flag it.
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        "20-minute" style questions on this exact topic tend to ask you to <em>identify the bug</em> in a given diagram — a classic one is an object receiving a message <strong>after</strong> its X mark, i.e. after it was already deleted. Scan lifelines top-to-bottom for any arrow that touches a lifeline below its X — that's an invalid diagram.
+      </div>
+    </section>
+
+    <!-- ================= 07 FRAMES ================= -->
+    <section class="topic" id="frames">
+      <div class="topic-head"><span class="topic-tag">07</span><h2>Alternatives, Options & Loops (Frames)</h2></div>
+      <p class="topic-sub">A frame is a labelled box drawn around part of the diagram to express control flow — conditionals and repetition.</p>
+
+      <table class="confuse">
+        <tr><th>Frame</th><th>Keyword</th><th>Meaning</th></tr>
+        <tr><td><strong>opt</strong></td><td><code class="inline">[condition]</code></td><td>Optional block — runs only <strong>if</strong> the condition holds. No "else."</td></tr>
+        <tr><td><strong>alt</strong></td><td><code class="inline">[condition]</code> / <code class="inline">[else]</code></td><td>If/else — two (or more) regions separated by a horizontal dashed line, exactly one region executes.</td></tr>
+        <tr><td><strong>loop</strong></td><td><code class="inline">[condition or items]</code></td><td>Repetition — e.g. <code class="inline">[for each line item]</code>, runs the enclosed messages repeatedly.</td></tr>
+      </table>
+
+      <div class="blueprint">
+        <div class="cap">Fig 7.1 — loop wrapping an alt: dispatch differently based on order value</div>
+        <svg viewBox="0 0 640 340" width="640" height="340">
+          <rect x="20" y="10" width="90" height="28" class="uml-box"/><text x="65" y="29" text-anchor="middle" class="uml-label">:Order</text>
+          <rect x="230" y="10" width="150" height="28" class="uml-box"/><text x="305" y="29" text-anchor="middle" class="uml-label" style="font-size:11px">careful:Distributor</text>
+          <rect x="470" y="10" width="150" height="28" class="uml-box"/><text x="545" y="29" text-anchor="middle" class="uml-label" style="font-size:11px">regular:Distributor</text>
+          <line x1="65" y1="38" x2="65" y2="320" class="lifeline"/>
+          <line x1="305" y1="38" x2="305" y2="320" class="lifeline"/>
+          <line x1="545" y1="38" x2="545" y2="320" class="lifeline"/>
+
+          <circle cx="10" cy="58" r="4" fill="#F3E4C8"/>
+          <line x1="14" y1="58" x2="59" y2="58" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="14" y="50" class="msg-label">dispatch</text>
+          <rect x="59" y="58" width="12" height="250" class="activation"/>
+
+          <rect x="30" y="80" width="590" height="220" class="frame-box"/>
+          <path d="M30 80 h60 v14 l-8 8 h-52 z" class="frame-tab"/>
+          <text x="40" y="96" class="frame-label">loop</text>
+          <text x="100" y="96" class="cond-label">[for each line item]</text>
+
+          <rect x="55" y="115" width="555" height="150" class="frame-box"/>
+          <path d="M55 115 h50 v14 l-8 8 h-42 z" class="frame-tab"/>
+          <text x="63" y="131" class="frame-label">alt</text>
+          <text x="120" y="131" class="cond-label">[value &gt; 1000]</text>
+
+          <line x1="71" y1="150" x2="299" y2="150" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="130" y="142" class="msg-label">dispatch</text>
+          <rect x="299" y="150" width="12" height="26" class="activation"/>
+
+          <line x1="55" y1="192" x2="610" y2="192" stroke="#D9A441" stroke-width="1" stroke-dasharray="5 4"/>
+          <text x="63" y="208" class="cond-label">[else]</text>
+
+          <line x1="71" y1="225" x2="539" y2="225" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="130" y="217" class="msg-label">dispatch</text>
+          <rect x="539" y="225" width="12" height="26" class="activation"/>
+        </svg>
+      </div>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        Read frames like nested brackets in code: <code class="inline">loop { alt { ... } else { ... } }</code>. The frame's label tab (top-left corner flag) tells you which construct it is; the bracketed text next to it is the guard condition, exactly like an <code class="inline">if</code> statement's condition in Java.
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        The 30-minute "Builder"-adjacent long questions sometimes ask you to <em>translate a frame-heavy sequence diagram into pseudocode or Java</em>. Map directly: <code class="inline">opt</code> → <code class="inline">if</code>, <code class="inline">alt</code> → <code class="inline">if/else</code>, <code class="inline">loop</code> → <code class="inline">for</code>/<code class="inline">while</code>. Practice this both directions — diagram → code, and code → diagram.
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        Don't nest frames sloppily — an <code class="inline">alt</code> region living <em>partially</em> outside its enclosing <code class="inline">loop</code> box is a common hand-drawing mistake in timed exams. Every nested frame's rectangle must sit fully inside its parent's rectangle.
+      </div>
+    </section>
+
+    <!-- ================= 08 EXAMPLE ================= -->
+    <section class="topic" id="example">
+      <div class="topic-head"><span class="topic-tag">08</span><h2>Worked Example: Shopping Cart Checkout</h2></div>
+      <p class="topic-sub">Putting it all together — loop, self-call, and multiple message types in one realistic scenario.</p>
+
+      <p>Scenario: a customer adds items one at a time (looped), then checks out. <code class="inline">:Cart</code> processes its own order internally (a self-call) before confirming back to <code class="inline">:StoreFront</code>, and finally places the item into inventory.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 8.1 — StoreFront / Cart / Inventory</div>
+        <svg viewBox="0 0 620 460" width="620" height="460">
+          <rect x="20" y="10" width="130" height="28" class="uml-box"/><text x="85" y="29" text-anchor="middle" class="uml-label">:StoreFront</text>
+          <rect x="270" y="10" width="100" height="28" class="uml-box"/><text x="320" y="29" text-anchor="middle" class="uml-label">:Cart</text>
+          <rect x="470" y="10" width="120" height="28" class="uml-box"/><text x="530" y="29" text-anchor="middle" class="uml-label">:Inventory</text>
+          <line x1="85" y1="38" x2="85" y2="440" class="lifeline"/>
+          <line x1="320" y1="38" x2="320" y2="440" class="lifeline"/>
+          <line x1="530" y1="38" x2="530" y2="440" class="lifeline"/>
+
+          <rect x="40" y="60" width="12" height="120" class="activation"/>
+          <rect x="60" y="150" width="560" height="180" class="frame-box"/>
+          <path d="M60 150 h50 v14 l-8 8 h-42 z" class="frame-tab"/>
+          <text x="68" y="166" class="frame-label">loop</text>
+
+          <line x1="52" y1="90" x2="314" y2="90" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="140" y="82" class="msg-label">AddItem</text>
+          <rect x="314" y="90" width="12" height="70" class="activation"/>
+          <line x1="326" y1="115" x2="524" y2="115" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="380" y="107" class="msg-label">ReserveItem</text>
+          <rect x="524" y="115" width="12" height="24" class="activation"/>
+          <line x1="524" y1="139" x2="326" y2="139" class="msg-return" marker-end="url(#arrowStick)"/>
+          <line x1="314" y1="160" x2="52" y2="160" class="msg-return" marker-end="url(#arrowStick)"/>
+
+          <rect x="79" y="350" width="12" height="80" class="activation"/>
+          <line x1="52" y1="350" x2="79" y2="350" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="52" y="342" class="msg-label">Checkout</text>
+          <line x1="91" y1="350" x2="314" y2="350" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <rect x="314" y="350" width="12" height="60" class="activation"/>
+
+          <line x1="326" y1="370" x2="344" y2="370" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <rect x="344" y="370" width="10" height="20" class="activation"/>
+          <line x1="344" y1="390" x2="328" y2="390" class="msg-return" marker-end="url(#arrowStick)"/>
+          <text x="356" y="366" class="msg-label">ProcessOrder (self-call)</text>
+
+          <line x1="314" y1="405" x2="91" y2="405" class="msg-sync" marker-end="url(#arrowStickSolid)"/>
+          <text x="150" y="400" class="msg-label">ConfirmOrder</text>
+          <line x1="91" y1="418" x2="314" y2="418" class="msg-return" marker-end="url(#arrowStick)"/>
+
+          <line x1="326" y1="430" x2="524" y2="430" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="350" y="424" class="msg-label" style="font-size:10.5px">PlaceItemInOrder</text>
+        </svg>
+      </div>
+
+      <div class="callout brainstorm">
+        <div class="callout-label">💭 Brainstorm</div>
+        Notice <code class="inline">ProcessOrder</code> is an <strong>asynchronous</strong> call from <code class="inline">:Cart</code> back into itself, while <code class="inline">ConfirmOrder</code> going out to <code class="inline">:StoreFront</code> is drawn with a different head. Sketch this same checkout scenario but add a <code class="inline">:PaymentGateway</code> participant — where does it plug in, and would its call to <code class="inline">:Cart</code> be sync or async in a real system?
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        When a use case has a repeating step ("for each item in the cart..."), that's your trigger phrase for a <code class="inline">loop</code> frame — don't try to draw N copies of the same messages by hand. Recognizing this phrase instantly is worth free marks under time pressure.
+      </div>
+    </section>
+
+    <!-- ================= 09 ACTORS & BRANCHING ================= -->
+    <section class="topic" id="actors">
+      <div class="topic-head"><span class="topic-tag">09</span><h2>Actors, Branching & Object States</h2></div>
+      <p class="topic-sub">Lecture 8 pushes sequence diagrams closer to real systems: humans as participants, mid-activation branching, and objects that can be "busy."</p>
+
+      <p>So far every participant has been an object box. But the very first message in a scenario almost always comes from a <strong>human actor</strong> — drawn with the standard UML stick-figure, exactly like on a use-case diagram, but here it also gets its own lifeline running down the page like any other participant.</p>
+
+      <div class="blueprint">
+        <div class="cap">Fig 9.1 — CustomerP / PrinterP: actor lifeline, branching, and active/inactive states</div>
+        <svg viewBox="0 0 640 380" width="640" height="380">
+          <circle cx="70" cy="24" r="9" fill="none" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="70" y1="33" x2="70" y2="55" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="52" y1="42" x2="88" y2="42" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="70" y1="55" x2="55" y2="72" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="70" y1="55" x2="85" y2="72" stroke="#EAF2FB" stroke-width="1.6"/>
+          <text x="70" y="90" text-anchor="middle" class="uml-label" style="font-size:11px">:CustomerP</text>
+          <line x1="70" y1="96" x2="70" y2="360" class="lifeline"/>
+          <rect x="64" y="96" width="12" height="240" class="activation" fill="#C43B3B" stroke="#F3A9B8"/>
+
+          <circle cx="230" cy="24" r="9" fill="none" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="230" y1="33" x2="230" y2="55" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="212" y1="42" x2="248" y2="42" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="230" y1="55" x2="215" y2="72" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="230" y1="55" x2="245" y2="72" stroke="#EAF2FB" stroke-width="1.6"/>
+          <text x="230" y="90" text-anchor="middle" class="uml-label" style="font-size:11px">:PrinterP</text>
+          <line x1="230" y1="96" x2="230" y2="360" class="lifeline"/>
+          <rect x="224" y="96" width="12" height="240" class="activation" fill="#C43B3B" stroke="#F3A9B8"/>
+
+          <rect x="420" y="60" width="100" height="26" class="uml-box"/><text x="470" y="77" text-anchor="middle" class="uml-label" style="font-size:11px">:Printer</text>
+          <line x1="470" y1="86" x2="470" y2="360" class="lifeline"/>
+          <rect x="464" y="86" width="12" height="220" class="activation" fill="#fff" stroke="#9EC0E8"/>
+
+          <rect x="560" y="60" width="70" height="26" class="uml-box"/><text x="595" y="77" text-anchor="middle" class="uml-label" style="font-size:11px">:Queue</text>
+          <line x1="595" y1="86" x2="595" y2="360" class="lifeline"/>
+
+          <line x1="76" y1="120" x2="224" y2="120" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="90" y="112" class="msg-label" style="font-size:10.5px">PrintFile(file)</text>
+
+          <line x1="236" y1="145" x2="464" y2="145" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="260" y="137" class="msg-label" style="font-size:10.5px">GetStatus()</text>
+
+          <text x="240" y="170" class="cond-label" style="font-size:10px">[Ready]</text>
+          <line x1="236" y1="177" x2="464" y2="177" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="278" y="169" class="msg-label" style="font-size:10.5px">Print()</text>
+          <circle cx="236" cy="177" r="3" fill="#F3D48B"/>
+          <text x="240" y="200" class="cond-label" style="font-size:10px">[Busy]</text>
+          <line x1="236" y1="207" x2="589" y2="207" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="330" y="199" class="msg-label" style="font-size:10.5px">PutInQueue(file)</text>
+          <rect x="589" y="207" width="10" height="35" fill="#2C4F79" stroke="#9EC0E8"/>
+          <text x="240" y="228" class="cond-label" style="font-size:10px">[OutOfService]</text>
+          <text x="285" y="228" class="msg-label" style="font-size:10.5px">CallRepair()</text>
+
+          <line x1="464" y1="255" x2="238" y2="255" class="msg-async" marker-end="url(#arrowStickSolid)"/>
+          <text x="290" y="247" class="msg-label" style="font-size:10.5px">Ready(file) — async</text>
+          <line x1="224" y1="270" x2="76" y2="270" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="90" y="262" class="msg-label" style="font-size:10.5px">Ready(file)</text>
+
+          <line x1="470" y1="295" x2="601" y2="295" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="500" y="287" class="msg-label" style="font-size:10.5px">GetNext()</text>
+          <rect x="589" y="295" width="10" height="30" fill="#2C4F79" stroke="#9EC0E8"/>
+
+          <line x1="64" y1="336" x2="76" y2="350" class="xmark"/>
+          <line x1="76" y1="336" x2="64" y2="350" class="xmark"/>
+          <text x="60" y="365" text-anchor="middle" class="cond-label" style="font-size:10px">Done</text>
+        </svg>
+      </div>
+
+      <ul class="plain">
+        <li><strong>Actor as participant</strong> — a person can own a lifeline exactly like an object does. Its activation bar tracks "the customer is engaged in this scenario," not code execution.</li>
+        <li><strong>Branching</strong> — one activation can send different messages down different guarded paths, exactly like <code class="inline">alt</code>, but drawn informally as forking lines from the same point rather than inside a boxed frame. You'll see both notations across different textbooks — recognize them as equivalent.</li>
+        <li><strong>Active vs. Inactive lifeline</strong> — a plain dashed line with no activation box is <em>inactive</em> (the object exists but is doing nothing right now); the moment a message hits it and a box appears, it becomes <em>active</em>.</li>
+      </ul>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        The Printer example is doing three jobs at once worth separating in your head: it shows an object <strong>querying state before acting</strong> (<code class="inline">GetStatus()</code> before <code class="inline">Print()</code>), it shows <strong>guard-based branching</strong> without a formal <code class="inline">alt</code> box, and it shows an <strong>asynchronous callback</strong> (<code class="inline">Ready(file)</code>) arriving whenever the printer finishes — the customer doesn't sit there blocked waiting.
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        Some textbooks draw the asynchronous arrowhead as a small filled or open <strong>triangle</strong> rather than the "stick"/V shape we used earlier — both mean the same thing (non-blocking call). BUET's slides use this triangle style in the printer example. Don't panic if a past paper's arrowheads look slightly different from your lecture slides; the rule to apply is always "solid line = call, dashed = return; open/unfilled head = async, filled head = sync."
+      </div>
+    </section>
+
+    <!-- ================= 10 REGISTER WALKTHROUGH ================= -->
+    <section class="topic" id="register">
+      <div class="topic-head"><span class="topic-tag">10</span><h2>Full Worked Example: Course Registration</h2></div>
+      <p class="topic-sub">The Lecture 8 running example — from a use-case-style event table to a real, multi-object sequence diagram with iteration and guards.</p>
+
+      <p>Before drawing, Lecture 8 starts from a <strong>typical course of events</strong> table — every step is either an actor action or a system response. This table <em>is</em> your script; the sequence diagram is just that script staged with objects.</p>
+
+      <table class="confuse">
+        <tr><th>#</th><th>Actor (Student)</th><th>Actor (Adviser)</th><th>System Response</th></tr>
+        <tr><td>1–2</td><td>Open registration interface</td><td></td><td>Ask for Student ID, password</td></tr>
+        <tr><td>3–4</td><td>Provide ID, password</td><td></td><td>Show list of unfinished courses</td></tr>
+        <tr><td>5–8</td><td>Select a course</td><td></td><td>Get prerequisites, check results, <strong>if</strong> not passed → message + deselect</td></tr>
+        <tr><td>9–12</td><td>Finalize selection</td><td></td><td>Check credit hours; <strong>if</strong> ok proceed, <strong>else</strong> ask to revise; notify adviser</td></tr>
+        <tr><td>13–17</td><td></td><td>Ask for details, authorize</td><td>Show details, update state, update registration &amp; confirm</td></tr>
+      </table>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        This two/three-column "actor action / system response" table is itself a common exam artifact — you may be asked to <strong>derive</strong> one from a paragraph description, or to go the other way and draw a sequence diagram <strong>directly from a given table</strong>. Each numbered row becomes roughly one message (or one guarded block) on the diagram, in the same top-to-bottom order.
+      </div>
+
+      <div class="blueprint">
+        <div class="cap">Fig 10.1 — Register, Sequence Diagram 1: login</div>
+        <svg viewBox="0 0 640 300" width="640" height="300">
+          <circle cx="40" cy="24" r="8" fill="none" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="40" y1="32" x2="40" y2="50" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="25" y1="38" x2="55" y2="38" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="40" y1="50" x2="27" y2="65" stroke="#EAF2FB" stroke-width="1.6"/>
+          <line x1="40" y1="50" x2="53" y2="65" stroke="#EAF2FB" stroke-width="1.6"/>
+          <text x="40" y="82" text-anchor="middle" class="uml-label" style="font-size:10.5px">A Student</text>
+          <line x1="40" y1="88" x2="40" y2="280" class="lifeline"/>
+          <rect x="34" y="88" width="12" height="180" class="activation" fill="#C43B3B" stroke="#F3A9B8"/>
+
+          <rect x="150" y="40" width="130" height="26" class="uml-box"/><text x="215" y="57" text-anchor="middle" class="uml-label" style="font-size:10.5px">:MainMenuUI</text>
+          <line x1="215" y1="66" x2="215" y2="120" class="lifeline"/>
+          <rect x="209" y="90" width="12" height="20" class="activation"/>
+
+          <rect x="330" y="90" width="100" height="26" class="uml-box"/><text x="380" y="107" text-anchor="middle" class="uml-label" style="font-size:10.5px">:Register</text>
+          <line x1="380" y1="116" x2="380" y2="280" class="lifeline"/>
+          <rect x="374" y="116" width="12" height="150" class="activation"/>
+
+          <rect x="205" y="150" width="115" height="26" class="uml-box"/><text x="262" y="167" text-anchor="middle" class="uml-label" style="font-size:10.5px">:RegisterUI</text>
+          <line x1="262" y1="176" x2="262" y2="280" class="lifeline"/>
+          <rect x="256" y="176" width="12" height="90" class="activation"/>
+
+          <rect x="520" y="150" width="100" height="26" class="uml-box"/><text x="570" y="167" text-anchor="middle" class="uml-label" style="font-size:10.5px">:Student</text>
+          <line x1="570" y1="176" x2="570" y2="280" class="lifeline"/>
+
+          <line x1="46" y1="90" x2="209" y2="90" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="55" y="82" class="msg-label" style="font-size:10px">itemSelected()</text>
+          <text x="222" y="105" class="cond-label" style="font-size:9.5px">[selectedItem=register]</text>
+          <line x1="221" y1="116" x2="374" y2="116" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="260" y="112" class="msg-label" style="font-size:10px">Register()</text>
+
+          <line x1="386" y1="140" x2="564" y2="140" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="420" y="132" class="msg-label" style="font-size:10px">Student()</text>
+          <line x1="374" y1="176" x2="268" y2="176" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="290" y="172" class="msg-label" style="font-size:10px">RegisterUI()</text>
+          <line x1="374" y1="200" x2="268" y2="200" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="290" y="196" class="msg-label" style="font-size:10px">showLogin()</text>
+
+          <line x1="46" y1="225" x2="256" y2="225" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="55" y="217" class="msg-label" style="font-size:10px">login(id, pw)</text>
+          <line x1="268" y1="235" x2="374" y2="235" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="285" y="231" class="msg-label" style="font-size:10px">verifyLogin(id,pw)</text>
+          <line x1="386" y1="245" x2="564" y2="245" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="415" y="241" class="msg-label" style="font-size:9.5px">getStudentInfo(id)</text>
+
+          <text x="290" y="262" class="cond-label" style="font-size:9.5px">[pwAccepted=false] showLogin()</text>
+        </svg>
+      </div>
+
+      <div class="blueprint">
+        <div class="cap">Fig 10.2 — Register, Sequence Diagram 2: course selection loop with prerequisite check</div>
+        <svg viewBox="0 0 640 300" width="640" height="300">
+          <circle cx="30" cy="20" r="7" fill="none" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="30" y1="27" x2="30" y2="42" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="18" y1="32" x2="42" y2="32" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="30" y1="42" x2="20" y2="54" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="30" y1="42" x2="40" y2="54" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="30" y1="66" x2="30" y2="280" class="lifeline"/>
+          <rect x="24" y="66" width="12" height="200" class="activation" fill="#C43B3B" stroke="#F3A9B8"/>
+
+          <rect x="90" y="14" width="110" height="26" class="uml-box"/><text x="145" y="31" text-anchor="middle" class="uml-label" style="font-size:10.5px">:RegisterUI</text>
+          <line x1="145" y1="40" x2="145" y2="280" class="lifeline"/>
+
+          <rect x="250" y="14" width="90" height="26" class="uml-box"/><text x="295" y="31" text-anchor="middle" class="uml-label" style="font-size:10.5px">:Register</text>
+          <line x1="295" y1="40" x2="295" y2="280" class="lifeline"/>
+          <rect x="289" y="40" width="12" height="150" class="activation"/>
+
+          <rect x="410" y="14" width="90" height="26" class="uml-box"/><text x="455" y="31" text-anchor="middle" class="uml-label" style="font-size:10.5px">:Courses</text>
+          <line x1="455" y1="40" x2="455" y2="120" class="lifeline"/>
+
+          <rect x="540" y="14" width="90" height="26" class="uml-box"/><text x="585" y="31" text-anchor="middle" class="uml-label" style="font-size:10.5px">:RegInfos</text>
+          <line x1="585" y1="40" x2="585" y2="120" class="lifeline"/>
+
+          <text x="150" y="55" class="cond-label" style="font-size:9.5px">[pwAccepted=true]</text>
+          <line x1="301" y1="65" x2="449" y2="65" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="340" y="61" class="msg-label" style="font-size:9.5px">Course()</text>
+          <line x1="301" y1="82" x2="449" y2="82" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="330" y="78" class="msg-label" style="font-size:9.5px">*getCourseList()</text>
+          <line x1="301" y1="99" x2="579" y2="99" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="340" y="95" class="msg-label" style="font-size:9.5px">RegInfo() / *getRegInfo(id)</text>
+
+          <line x1="301" y1="118" x2="313" y2="118" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="316" y="114" class="msg-label" style="font-size:9.5px">prepareUnfinishedCourseList()</text>
+
+          <line x1="289" y1="140" x2="151" y2="140" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="170" y="136" class="msg-label" style="font-size:9.5px">showCourseList(*Courses)</text>
+
+          <rect x="55" y="160" width="500" height="105" class="frame-box"/>
+          <path d="M55 160 h50 v14 l-8 8 h-42 z" class="frame-tab"/>
+          <text x="63" y="176" class="frame-label" style="font-size:10px">loop</text>
+
+          <line x1="36" y1="185" x2="139" y2="185" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="45" y="181" class="msg-label" style="font-size:9.5px">selectCourse(Cid)</text>
+          <line x1="151" y1="195" x2="289" y2="195" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <line x1="301" y1="205" x2="313" y2="205" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="316" y="201" class="msg-label" style="font-size:9.5px">checkPreRequisite()</text>
+          <text x="316" y="218" class="cond-label" style="font-size:9.5px">[PRcompleted=true] / addToList(RegInfo)</text>
+          <line x1="289" y1="235" x2="151" y2="235" class="msg-sync" marker-end="url(#arrowSolid)"/>
+          <text x="170" y="231" class="msg-label" style="font-size:9.5px">showError(type) / showConfirmation(type)</text>
+        </svg>
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        The leading <code class="inline">*</code> on <code class="inline">*getCourseList()</code> and <code class="inline">*getRegInfo(id)</code> is a compact shorthand some textbooks use for <strong>"send this message repeatedly"</strong> — an inline alternative to wrapping a single message in a full <code class="inline">loop</code> frame. Recognize both notations; BUET's slides use the asterisk form here even though Lecture 7 taught you the frame form.
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        Notice <code class="inline">checkPreRequisite()</code> is a <strong>self-call</strong> (nested activation, same lifeline) immediately followed by a guard <code class="inline">[PRcompleted=true] / addToList(RegInfo)</code>. The <code class="inline">guard / message</code> format (condition, then a slash, then the action) is standard UML for "conditional message" — expect it in exam-paper diagrams even though Lecture 7's simpler examples didn't use the slash form.
+      </div>
+    </section>
+
+    <!-- ================= 11 COLLABORATION DIAGRAMS ================= -->
+    <section class="topic" id="collab">
+      <div class="topic-head"><span class="topic-tag">11</span><h2>Collaboration Diagrams</h2></div>
+      <p class="topic-sub">Same information as a sequence diagram — structured completely differently, with no time axis at all.</p>
+
+      <ul class="plain">
+        <li>Holds <strong>the same information</strong> as a sequence diagram — same objects, same messages, same guards.</li>
+        <li>Shows the <strong>links</strong> (structural connections) between objects that participate in the collaboration — closer in spirit to an object diagram than to a timeline.</li>
+        <li>Has <strong>no time dimension</strong>. Instead, order is captured entirely with <strong>sequence numbers</strong> written next to each message.</li>
+        <li>Numbers use a <strong>nested style</strong> — e.g. <code class="inline">3</code>, then <code class="inline">3.1</code>, then <code class="inline">3.1.1</code> — to show which messages are nested inside which, mirroring how deep a call sits within another call.</li>
+      </ul>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        If a sequence diagram is a subway map through <em>time</em>, a collaboration diagram is the subway's actual <em>track network</em> — objects sit wherever makes structural sense (often radiating out from a controller), and you follow the numbered labels, not vertical position, to reconstruct "what happened when."
+      </div>
+
+      <table class="confuse">
+        <tr><th>Sequence Diagram</th><th>Collaboration Diagram</th></tr>
+        <tr><td>Order shown by <strong>vertical position</strong> (time flows down)</td><td>Order shown by <strong>sequence numbers</strong> on each message (1, 2, 3.1, 3.2…)</td></tr>
+        <tr><td>Emphasizes the <strong>timing</strong> of an interaction</td><td>Emphasizes the <strong>structure</strong> / links between objects</td></tr>
+        <tr><td>Great for spotting concurrency, async gaps, long waits</td><td>Great for spotting which objects are structurally coupled to which</td></tr>
+        <tr><td>Layout is mostly fixed (lifelines side by side)</td><td>Layout is free — often drawn radially around a central object</td></tr>
+      </table>
+
+      <div class="blueprint">
+        <div class="cap">Fig 11.1 — Register: Collaboration Diagram (same scenario as Fig 10.1–10.2, restructured)</div>
+        <svg viewBox="0 0 640 460" width="640" height="460">
+          <circle cx="320" cy="230" r="34" class="uml-box"/><text x="320" y="234" text-anchor="middle" class="uml-label" style="font-size:11px">Register</text>
+
+          <circle cx="100" cy="140" r="30" class="uml-box"/><text x="100" y="144" text-anchor="middle" class="uml-label" style="font-size:10px">RegisterUI</text>
+          <circle cx="530" cy="140" r="34" class="uml-box"/><text x="530" y="136" text-anchor="middle" class="uml-label" style="font-size:9.5px">AuthorizeReg</text><text x="530" y="148" text-anchor="middle" class="uml-label" style="font-size:9.5px">istrationUI</text>
+          <circle cx="90" cy="380" r="26" class="uml-box"/><text x="90" y="384" text-anchor="middle" class="uml-label" style="font-size:10px">Course</text>
+          <circle cx="320" cy="410" r="30" class="uml-box"/><text x="320" y="414" text-anchor="middle" class="uml-label" style="font-size:10px">Student</text>
+          <circle cx="530" cy="380" r="26" class="uml-box"/><text x="530" y="384" text-anchor="middle" class="uml-label" style="font-size:10px">Result</text>
+          <circle cx="440" cy="410" r="34" class="uml-box"/><text x="440" y="406" text-anchor="middle" class="uml-label" style="font-size:9.5px">Registration</text><text x="440" y="418" text-anchor="middle" class="uml-label" style="font-size:9.5px">Info</text>
+
+          <circle cx="20" cy="60" r="8" fill="none" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="20" y1="67" x2="20" y2="82" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="10" y1="72" x2="30" y2="72" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="20" y1="82" x2="10" y2="95" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="20" y1="82" x2="30" y2="95" stroke="#EAF2FB" stroke-width="1.5"/>
+          <text x="20" y="112" text-anchor="middle" class="uml-label" style="font-size:9.5px">Student</text>
+
+          <circle cx="610" cy="60" r="8" fill="none" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="610" y1="67" x2="610" y2="82" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="600" y1="72" x2="620" y2="72" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="610" y1="82" x2="600" y2="95" stroke="#EAF2FB" stroke-width="1.5"/>
+          <line x1="610" y1="82" x2="620" y2="95" stroke="#EAF2FB" stroke-width="1.5"/>
+          <text x="610" y="112" text-anchor="middle" class="uml-label" style="font-size:9.5px">Adviser</text>
+
+          <line x1="34" y1="95" x2="86" y2="130" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="36" y="108" class="msg-label" style="font-size:9.5px">3. login()</text>
+
+          <line x1="597" y1="95" x2="548" y2="128" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="546" y="108" class="msg-label" style="font-size:9.5px">15. authorize()</text>
+
+          <line x1="128" y1="152" x2="292" y2="216" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="150" y="175" class="msg-label" style="font-size:9.5px">4. verifyLogin()</text>
+
+          <line x1="502" y1="152" x2="348" y2="214" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="440" y="175" class="msg-label" style="font-size:9.5px">16. authorize()</text>
+
+          <line x1="292" y1="252" x2="105" y2="368" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="150" y="320" class="msg-label" style="font-size:9.5px">5. getCourseInfo()</text>
+
+          <line x1="345" y1="258" x2="320" y2="380" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="330" y="330" class="msg-label" style="font-size:9.5px">1. getStudentInfo()</text>
+
+          <line x1="345" y1="252" x2="515" y2="368" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="410" y="320" class="msg-label" style="font-size:9.5px">10. getResult()</text>
+
+          <line x1="350" y1="240" x2="410" y2="400" stroke="#7FA8D9" stroke-width="1.2"/>
+          <text x="380" y="330" class="msg-label" style="font-size:9.5px">6. getRegInfo()</text>
+        </svg>
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        A guaranteed exam skill: given one diagram type, redraw the same scenario as the other. The safest method — list every message from the sequence diagram top-to-bottom, number them <code class="inline">1, 2, 3…</code> (going one level deeper, e.g. <code class="inline">3.1</code>, for anything nested inside another call), then place that number next to a link on the collaboration diagram. You are not inventing new messages, only re-expressing the same ones.
+      </div>
+
+      <div class="callout brainstorm">
+        <div class="callout-label">💭 Brainstorm</div>
+        Look at Fig 11.1: <code class="inline">Register</code> sits at the hub with links radiating to six other objects. What would it mean, structurally, if <code class="inline">Course</code> and <code class="inline">RegistrationInfo</code> had a <strong>direct</strong> link to each other too — and why might that link be missing from this particular collaboration diagram even if such an association exists on the class diagram?
+      </div>
+    </section>
+
+    <!-- ================= 12 MODEL CONSISTENCY ================= -->
+    <section class="topic" id="consistency">
+      <div class="topic-head"><span class="topic-tag">12</span><h2>Model Consistency</h2></div>
+      <p class="topic-sub">Two rules that keep your sequence/collaboration diagrams honest against the rest of your UML model.</p>
+
+      <ul class="plain">
+        <li><strong>Operation allocation must match the class diagram.</strong> If a message <code class="inline">verifyLogin(id, pw)</code> appears on a sequence diagram pointed at <code class="inline">:Register</code>, then the <code class="inline">Register</code> class on your class diagram must actually declare a <code class="inline">verifyLogin(id, pw)</code> operation — same name, same parameter list. A message with no matching operation is a modeling bug, not just a drawing slip.</li>
+        <li><strong>Every sending object needs an object reference to its target.</strong> An object can't send a message to something it has no way of reaching. This reference has to come from somewhere:
+          <ul class="plain">
+            <li>an <strong>association</strong> already exists between the two classes on the class diagram, <em>or</em></li>
+            <li>some <strong>other object passes the reference</strong> to the sender first (e.g. as a parameter, or a return value).</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="callout professor">
+        <div class="callout-label">👨‍🏫 Professor's Note</div>
+        This is why we say sequence/collaboration diagrams and class diagrams are two views of <em>one</em> model, not two separate documents. Every arrow you draw on a sequence diagram is a promise your class diagram has to keep — an operation that exists, reachable through a real reference. Message pathways should always be traced back and sanity-checked this way.
+      </div>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        A frequent "find the design flaw" question gives you a sequence diagram and a class diagram side by side and asks you to spot an <strong>inconsistency</strong> — e.g. a message calling a method the class diagram doesn't declare, or a sender with no association path to reach its target. Always cross-check both directions: message → operation exists? sender → has a reference path?
+      </div>
+    </section>
+
+    <!-- ================= 13 PITFALLS ================= -->
+    <section class="topic" id="pitfalls">
+      <div class="topic-head"><span class="topic-tag">13</span><h2>Exam Pitfalls & Commonly Confused Ideas</h2></div>
+      <p class="topic-sub">Where marks are lost — mixing up notation, or mixing up two diagram types entirely.</p>
+
+      <table class="confuse">
+        <tr><th>Confusion</th><th>How to tell them apart</th></tr>
+        <tr>
+          <td><strong>Sequence vs. Collaboration diagram</strong></td>
+          <td>Sequence = order shown by vertical position on a timeline. Collaboration = order shown by nested sequence numbers (1, 2, 3.1…) on structural links. Same underlying information, different layout logic.</td>
+        </tr>
+        <tr>
+          <td><strong>Sync vs. Async message</strong></td>
+          <td>Both use a solid line. Look only at the <strong>arrowhead</strong>: filled triangle = sync (blocking); open/stick (or open triangle, in some textbooks) = async (fire-and-forget).</td>
+        </tr>
+        <tr>
+          <td><strong>Async vs. Return message</strong></td>
+          <td>Both use an open arrowhead. Look at the <strong>line style</strong>: solid = async call (forward); dashed = return (always backward, to the original caller).</td>
+        </tr>
+        <tr>
+          <td><strong>Activation vs. Lifeline</strong></td>
+          <td>Lifeline (thin dashed line) exists for the object's <em>entire</em> presence. Activation (thick box) exists only while a method is <em>on the stack</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>opt vs. alt</strong></td>
+          <td><code class="inline">opt</code> has no "else." <code class="inline">alt</code> always pairs with a divided region, whether drawn as a boxed frame or as informal branching lines with guard labels.</td>
+        </tr>
+      </table>
+
+      <div class="callout examtip">
+        <div class="callout-label">📝 Exam Tip</div>
+        Trigger-word recognition still applies here: <em>"for all"</em> / <em>"for each"</em> → <code class="inline">loop</code> (or the <code class="inline">*</code> shorthand); <em>"link between objects, no timing shown"</em> → collaboration diagram; <em>"nested numbering like 3.1.1"</em> → collaboration diagram; <em>"draw the timeline of..."</em> → sequence diagram.
+      </div>
+
+      <div class="callout edgecase">
+        <div class="callout-label">⚠️ Edge Case</div>
+        A message arrow pointing to an object's own lifeline that <strong>doesn't</strong> create a nested activation box (i.e., just touches the same activation) is sometimes drawn informally to mean "internal processing note" rather than a real method call — be ready to distinguish a formally nested self-call from this looser notation if a past paper uses it.
+      </div>
+    </section>
+
+    <!-- ================= 14 QUIZ ================= -->
+    <section class="topic" id="quiz">
+      <div class="topic-head"><span class="topic-tag">14</span><h2>Practice Quiz</h2></div>
+      <p class="topic-sub">Instant feedback — click an option to see if you're right, and why.</p>
+
+      <div class="quiz-card" data-answer="1">
+        <div class="quiz-q">Q1. An arrow with an open/stick arrowhead and a <strong>dashed</strong> line represents:</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">A synchronous call</button>
+          <button class="quiz-opt">A return message</button>
+          <button class="quiz-opt">An asynchronous call</button>
+          <button class="quiz-opt">Object creation</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>A return message</strong>. Dashed line + stick head = return, and it always points back toward the original caller.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="2">
+        <div class="quiz-q">Q2. You need to model "for every item in the cart, reserve it in inventory." Which frame do you use?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">opt</button>
+          <button class="quiz-opt">alt</button>
+          <button class="quiz-opt">loop</button>
+          <button class="quiz-opt">A new lifeline per item</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>loop</strong>. "For every item" is the trigger phrase for repetition — never manually duplicate lifelines to represent a loop.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="0">
+        <div class="quiz-q">Q3. In <code class="inline">Smith:Patient</code>, what does the underline signify?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">This is an object instance, not a class</button>
+          <button class="quiz-opt">This object was created during the scenario</button>
+          <button class="quiz-opt">This is the object that sends the found message</button>
+          <button class="quiz-opt">This object will later be deleted</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>This is an object instance, not a class</strong>. Underlining is the universal UML convention for instances (also used for objects in class-diagram-adjacent contexts).</div>
+      </div>
+
+      <div class="quiz-card" data-answer="3">
+        <div class="quiz-q">Q4. On a lifeline, you see an X placed <em>above</em> a message arrow that still touches that lifeline further down. What's wrong?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">Nothing — this is valid, X just marks a checkpoint</button>
+          <button class="quiz-opt">The activation bar is missing</button>
+          <button class="quiz-opt">The message should be dashed instead</button>
+          <button class="quiz-opt">The object is receiving a message after it was already deleted — invalid</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>invalid diagram</strong>. Once an object's lifeline ends at X, nothing may interact with it further down. This is a favorite "spot the bug" exam question.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="1">
+        <div class="quiz-q">Q5. What's the key difference between an <code class="inline">opt</code> frame and an <code class="inline">alt</code> frame?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">opt repeats; alt does not</button>
+          <button class="quiz-opt">alt has a paired else-region (dashed divider); opt has none</button>
+          <button class="quiz-opt">opt is only for creation messages</button>
+          <button class="quiz-opt">There is no difference — they're interchangeable</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>alt has a paired else-region</strong>. opt is a plain "if, no else" — if the guard fails, the enclosed messages simply don't happen.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="2">
+        <div class="quiz-q">Q6. In a collaboration diagram, how is the order of messages shown, since there's no time axis?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">Left-to-right position of the objects</button>
+          <button class="quiz-opt">Arrow thickness</button>
+          <button class="quiz-opt">Nested sequence numbers written next to each message (e.g. 3, 3.1, 3.1.1)</button>
+          <button class="quiz-opt">Color coding of the links</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>nested sequence numbers</strong>. Since layout is free-form, numbers (with dotted nesting to show call depth) are the only thing encoding order.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="3">
+        <div class="quiz-q">Q7. A sequence diagram shows <code class="inline">:Register</code> sending <code class="inline">calculateGPA()</code> to <code class="inline">:Student</code>, but the class diagram's <code class="inline">Student</code> class has no such operation and no association to <code class="inline">Register</code>. What principle is violated?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">Nothing — sequence diagrams are independent of class diagrams</button>
+          <button class="quiz-opt">The message should have been asynchronous</button>
+          <button class="quiz-opt">The lifeline should have an X mark</button>
+          <button class="quiz-opt">Model consistency — both the missing operation and the missing reference path are problems</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>model consistency</strong>. Every message needs a matching class-diagram operation, and every sender needs a reachable reference (association or a passed-in reference) to its target.</div>
+      </div>
+
+      <div class="quiz-card" data-answer="0">
+        <div class="quiz-q">Q8. What does a leading <code class="inline">*</code> before a message name, like <code class="inline">*getCourseList()</code>, typically shorthand for?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt">The message is sent repeatedly (an inline alternative to a loop frame)</button>
+          <button class="quiz-opt">The message is asynchronous</button>
+          <button class="quiz-opt">The message creates a new object</button>
+          <button class="quiz-opt">The message is a return value</button>
+        </div>
+        <div class="quiz-explain">✅ Correct answer: <strong>sent repeatedly</strong>. It's a compact substitute for wrapping a single message in a full <code class="inline">loop</code> frame — same meaning, less drawing.</div>
+      </div>
+    </section>
+
+    <footer class="done">Sequence &amp; Collaboration Diagrams · Lectures 7–8 · CSE213 — next up: UML wrap-up &amp; transition into Design Principles / Patterns.</footer>
+  </main>
+</div>
+
+<!-- shared SVG marker defs -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arrowSolid" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#F3E4C8"/>
+    </marker>
+    <marker id="arrowStick" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#9EC0E8" stroke-width="1.4"/>
+    </marker>
+    <marker id="arrowStickSolid" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#F3E4C8" stroke-width="1.4"/>
+    </marker>
+  </defs>
+</svg>
+
+<script>
+// active nav highlighting
+const sections = document.querySelectorAll('section.topic');
+const navLinks = document.querySelectorAll('.navlist a');
+const map = {};
+navLinks.forEach(a => map[a.getAttribute('href').slice(1)] = a);
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const link = map[entry.target.id];
+    if (!link) return;
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// quiz logic
+document.querySelectorAll('.quiz-card').forEach(card => {
+  const correctIdx = parseInt(card.dataset.answer, 10);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const explain = card.querySelector('.quiz-explain');
+  opts.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      if (card.dataset.answered) return;
+      card.dataset.answered = "1";
+      opts.forEach((b, j) => {
+        b.disabled = true;
+        if (j === correctIdx) b.classList.add('correct');
+        else if (j === i) b.classList.add('wrong');
+      });
+      explain.classList.add('show');
+    });
+  });
+});
+</script>
+</body>
+</html>

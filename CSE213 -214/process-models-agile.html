@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Models &amp; Agile Development — CSE 213</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF1F8; --bg-alt:#DCE8F5; --sheet:#FFFFFF;
+  --ink:#16324F; --ink-soft:#3C5B7A; --ink-faint:#7C93AC;
+  --accent:#C1440E; --accent2:#2E86AB; --good:#3C7A4E; --bad:#B23A3A;
+  --line: rgba(22,50,79,0.28); --line-strong: rgba(22,50,79,0.55);
+  --shadow: 0 1px 0 rgba(22,50,79,0.08);
+  --mono: ui-monospace, "SF Mono", Consolas, "Roboto Mono", monospace;
+  --head: "Space Grotesk", sans-serif;
+  --body: "IBM Plex Serif", Georgia, serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) {
+    --bg:#0F1E33; --bg-alt:#16283F; --sheet:#12233A;
+    --ink:#E7EEF6; --ink-soft:#9FB8DB; --ink-faint:#5E7B9C;
+    --accent:#E8A33D; --accent2:#6FE7DD; --good:#69C98A; --bad:#E97C7C;
+    --line: rgba(231,238,246,0.18); --line-strong: rgba(231,238,246,0.35);
+    --shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1E33; --bg-alt:#16283F; --sheet:#12233A;
+  --ink:#E7EEF6; --ink-soft:#9FB8DB; --ink-faint:#5E7B9C;
+  --accent:#E8A33D; --accent2:#6FE7DD; --good:#69C98A; --bad:#E97C7C;
+  --line: rgba(231,238,246,0.18); --line-strong: rgba(231,238,246,0.35);
+  --shadow: 0 1px 0 rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body);
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: local;
+}
+a{color:var(--accent2);}
+h1,h2,h3,h4{font-family:var(--head); font-weight:600; margin:0 0 .4em 0; letter-spacing:.01em;}
+p{margin:.6em 0;}
+.mono{font-family:var(--mono); letter-spacing:.02em;}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px 80px;}
+
+/* ---------- Title block ---------- */
+.titleblock{
+  border-bottom:2px solid var(--line-strong);
+  padding:22px 20px 16px; margin-bottom:6px;
+  position:sticky; top:0; z-index:50; background:var(--bg);
+}
+.titleblock-inner{max-width:1180px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+.titleblock h1{font-size:1.5rem; margin:0;}
+.titleblock .sub{font-family:var(--mono); font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; margin-top:4px;}
+.tb-fields{display:flex; gap:22px; font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);}
+.tb-fields div span{display:block; color:var(--ink); font-size:.85rem; text-transform:none; letter-spacing:0; margin-top:2px; font-family:var(--body);}
+
+/* ---------- Nav ---------- */
+nav.sheets{
+  display:flex; gap:2px; overflow-x:auto; border-bottom:1px solid var(--line);
+  background:var(--bg); position:sticky; top:76px; z-index:40; padding:0 20px;
+}
+nav.sheets .wrap-inner{display:flex; gap:2px; max-width:1180px; margin:0 auto; width:100%;}
+nav.sheets button{
+  font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
+  background:none; border:none; color:var(--ink-faint); padding:12px 14px; cursor:pointer;
+  border-bottom:2px solid transparent; white-space:nowrap; transition:color .15s;
+}
+nav.sheets button:hover{color:var(--ink);}
+nav.sheets button.active{color:var(--accent); border-bottom-color:var(--accent);}
+
+/* ---------- Sections ---------- */
+.sheet{display:none; padding-top:34px; animation:fade .25s ease;}
+.sheet.active{display:block;}
+@keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+.sheet-head{display:flex; align-items:baseline; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:10px;}
+.sheet-head .num{font-family:var(--mono); color:var(--accent); font-size:.9rem;}
+.sheet-head h2{font-size:1.5rem;}
+.lede{font-size:1.05rem; color:var(--ink-soft); max-width:70ch; margin-bottom:22px;}
+
+/* ---------- Cards / panels ---------- */
+.card{background:var(--sheet); border:1px solid var(--line); border-radius:4px; padding:18px 20px; box-shadow:var(--shadow);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+.note{
+  border-left:3px solid var(--accent); background:var(--bg-alt); padding:12px 16px; margin:18px 0;
+  border-radius:0 4px 4px 0; font-size:.95rem;
+}
+.note .tag{font-family:var(--mono); font-size:.65rem; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); display:block; margin-bottom:4px;}
+
+/* ---------- Activity strip ---------- */
+.activity-strip{display:flex; gap:8px; flex-wrap:wrap; margin:18px 0;}
+.activity-btn{
+  flex:1; min-width:130px; background:var(--sheet); border:1px solid var(--line); border-radius:4px;
+  padding:12px 10px; cursor:pointer; text-align:left; font-family:var(--head); font-weight:600; font-size:.85rem;
+  color:var(--ink-soft); transition:.15s;
+}
+.activity-btn .n{font-family:var(--mono); font-weight:400; font-size:.7rem; color:var(--ink-faint); display:block;}
+.activity-btn.active{border-color:var(--accent); color:var(--accent); background:var(--bg-alt);}
+.activity-detail{margin-top:14px;}
+
+/* ---------- Flow toggle ---------- */
+.flow-toggle{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.flow-toggle button{
+  font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+  padding:8px 14px; border:1px solid var(--line); background:var(--sheet); color:var(--ink-soft);
+  border-radius:20px; cursor:pointer;
+}
+.flow-toggle button.active{background:var(--accent); color:var(--sheet); border-color:var(--accent);}
+svg text{fill:var(--ink); font-family:var(--head);}
+svg .lbl{font-family:var(--mono); fill:var(--ink-soft);}
+.diagram-box{background:var(--sheet); border:1px solid var(--line); border-radius:4px; padding:10px; overflow-x:auto;}
+
+/* ---------- Accordion ---------- */
+.acc-item{border:1px solid var(--line); border-radius:4px; margin-bottom:8px; overflow:hidden; background:var(--sheet);}
+.acc-head{display:flex; justify-content:space-between; align-items:center; padding:12px 16px; cursor:pointer; font-family:var(--head); font-weight:600; font-size:.95rem;}
+.acc-head .plus{font-family:var(--mono); color:var(--accent); font-size:1.1rem;}
+.acc-body{max-height:0; overflow:hidden; transition:max-height .25s ease; padding:0 16px;}
+.acc-item.open .acc-body{max-height:600px; padding:0 16px 14px;}
+.acc-item.open .plus{transform:rotate(45deg);}
+.plus{transition:.2s;}
+
+/* ---------- Pills / tables ---------- */
+.pillrow{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 14px;}
+.pill{font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border-radius:20px; border:1px solid var(--line); color:var(--ink-soft);}
+.pill.good{border-color:var(--good); color:var(--good);}
+.pill.bad{border-color:var(--bad); color:var(--bad);}
+table{width:100%; border-collapse:collapse; font-size:.88rem;}
+th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line);}
+th{font-family:var(--mono); text-transform:uppercase; font-size:.68rem; letter-spacing:.05em; color:var(--ink-faint);}
+tr:last-child td{border-bottom:none;}
+.tblwrap{overflow-x:auto; margin:16px 0;}
+
+/* ---------- Kanban ---------- */
+.kanban{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:18px 0;}
+.kcol{background:var(--sheet); border:1px solid var(--line); border-radius:4px; min-height:220px; padding:10px;}
+.kcol h4{font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:10px; display:flex; justify-content:space-between;}
+.kcard{background:var(--bg-alt); border:1px solid var(--line); border-radius:4px; padding:10px 10px 10px 12px; margin-bottom:8px; cursor:grab; font-size:.85rem; border-left:3px solid var(--accent2); position:relative;}
+.kcard small{display:block; font-family:var(--mono); color:var(--ink-faint); font-size:.65rem; margin-top:3px;}
+.kcard .adv{position:absolute; right:6px; top:6px; background:none; border:none; color:var(--accent); cursor:pointer; font-family:var(--mono); font-size:.8rem;}
+.kcard.dragging{opacity:.4;}
+.kcol.dragover{outline:2px dashed var(--accent);}
+.wiplimit{font-family:var(--mono); font-size:.7rem; color:var(--bad);}
+
+/* ---------- Quiz ---------- */
+.q{background:var(--sheet); border:1px solid var(--line); border-radius:4px; padding:16px 18px; margin-bottom:14px;}
+.q p.qtext{font-family:var(--head); font-weight:600; margin:0 0 10px;}
+.opt{display:block; width:100%; text-align:left; background:var(--bg-alt); border:1px solid var(--line); border-radius:4px; padding:9px 12px; margin-bottom:6px; cursor:pointer; font-family:var(--body); font-size:.92rem; color:var(--ink);}
+.opt:hover{border-color:var(--ink-soft);}
+.opt.correct{border-color:var(--good); background:rgba(60,122,78,0.12); color:var(--good); font-weight:600;}
+.opt.wrong{border-color:var(--bad); background:rgba(178,58,58,0.12); color:var(--bad);}
+.opt[disabled]{cursor:default;}
+.explain{display:none; margin-top:8px; font-size:.87rem; color:var(--ink-soft); border-top:1px dashed var(--line); padding-top:8px;}
+.explain.show{display:block;}
+#quizscore{font-family:var(--mono); font-size:.85rem; color:var(--accent); margin-top:6px;}
+
+/* misc */
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-family:var(--mono); font-size:.7rem; color:var(--ink-faint); margin-top:8px;}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+footer{text-align:center; font-family:var(--mono); font-size:.68rem; color:var(--ink-faint); padding:40px 0 10px;}
+</style>
+</head>
+<body>
+
+<div class="titleblock">
+  <div class="titleblock-inner">
+    <div>
+      <h1>Process Models &amp; Agile Development</h1>
+      <div class="sub">Software is scattered knowledge — a process is how you assemble it</div>
+    </div>
+    <div class="tb-fields">
+      <div>Course<span>CSE 213</span></div>
+      <div>Unit<span>Process Models · Agile</span></div>
+      <div>Sheet<span id="sheetIndicator">01 / 06</span></div>
+    </div>
+  </div>
+</div>
+
+<nav class="sheets"><div class="wrap-inner" id="navWrap"></div></nav>
+
+<div class="wrap">
+
+  <!-- ============ SHEET 0 : WHY PROCESS MODELS ============ -->
+  <section class="sheet" data-sheet="why">
+    <div class="sheet-head"><span class="num">00</span><h2>Why software needs a process at all</h2></div>
+    <p class="lede">Before any diagram, sit with the one idea everything else here builds on.</p>
+
+    <div class="card">
+      <p><strong>Software is embodied knowledge</strong> — it starts out scattered across a client's head, a competitor's product, a stack overflow thread, your teammate's intuition, and nobody's documentation. It is <em>incomplete</em> before you begin, on purpose: nobody has fully thought it through yet.</p>
+      <p>So building software is not a manufacturing task where you assemble known parts. It's a <strong>social learning process</strong> — the team and the client learn what the product actually needs to be <em>while</em> building it, and that learning happens through iteration, not through a single moment of perfect specification.</p>
+      <p>A <strong>process model</strong> is simply the technique you use to break that learning into distinct, manageable phases — a visual road map for organizing both the <em>project</em> (schedules, people, risk) and the <em>product</em> (what gets built, in what order).</p>
+    </div>
+
+    <div class="note"><span class="tag">Professor's framing</span>Every process model you'll see today is really just a different answer to one question: <strong>"When do we let reality — client feedback, a working build, a discovered risk — correct our assumptions?"</strong> Waterfall answers "at the very end." Agile answers "every couple of weeks." Keep asking that question as you go through each model and the whole unit organizes itself.</div>
+
+    <div class="note" style="border-left-color:var(--accent2)"><span class="tag" style="color:var(--accent2)">Common exam confusion</span>Students often conflate three different things that this course keeps separate: a <strong>framework activity</strong> (one of 5 universal jobs — Communication, Planning, Modeling, Construction, Deployment), a <strong>process flow</strong> (how those 5 activities are sequenced — linear, iterative, evolutionary, parallel), and a <strong>prescriptive process model</strong> (a named, complete recipe — Waterfall, Incremental, Prototyping, Spiral — that <em>picks</em> one of those flows and commits to it). Sheet 01 covers the first two; Sheet 02 covers the third.</div>
+  </section>
+
+  <!-- ============ SHEET 1 : GENERIC PROCESS MODEL ============ -->
+  <section class="sheet" data-sheet="generic">
+    <div class="sheet-head"><span class="num">01</span><h2>The generic process model</h2></div>
+    <p class="lede">Five framework activities that appear in <em>every</em> process model you'll ever meet, plus four ways to wire them together.</p>
+
+    <h3>5 framework activities</h3>
+    <p>Click each one — these are the actual verbs examiners use in scenario questions ("which activity is being performed when...").</p>
+    <div class="activity-strip" id="activityStrip"></div>
+    <div class="card activity-detail" id="activityDetail"></div>
+
+    <h3 style="margin-top:34px;">4 process flows</h3>
+    <p>Same 5 activities, four different wiring diagrams. This is the part most students under-revise — toggle between them and watch what actually changes.</p>
+    <div class="flow-toggle" id="flowToggle"></div>
+    <div class="diagram-box"><svg id="flowSvg" viewBox="0 0 900 260" width="100%" height="260"></svg></div>
+    <div class="card" id="flowExplain" style="margin-top:14px;"></div>
+
+    <div class="note"><span class="tag">Edge case</span>A process <em>flow</em> is not tied to any one model — Scrum (agile) actually behaves like a tight <strong>iterative</strong> flow at the sprint level, and the <strong>evolutionary</strong> flow you're about to toggle to is the direct ancestor of both the Prototyping and Spiral models in Sheet 02. Flows are the grammar; models are the sentences.</div>
+  </section>
+
+  <!-- ============ SHEET 2 : PRESCRIPTIVE MODELS ============ -->
+  <section class="sheet" data-sheet="prescriptive">
+    <div class="sheet-head"><span class="num">02</span><h2>Prescriptive process models</h2></div>
+    <p class="lede">Named, complete recipes built on top of the flows you just saw. Four models, each solving for a different amount of uncertainty.</p>
+
+    <!-- Waterfall -->
+    <h3>Waterfall</h3>
+    <div class="diagram-box"><svg viewBox="0 0 900 150" width="100%" height="150" id="waterfallSvg"></svg></div>
+    <p>A strictly <strong>linear</strong> flow. Requirements are gathered once, up front, and the team walks straight through Communication → Planning → Modeling → Construction → Deployment without looping back.</p>
+    <div class="pillrow">
+      <span class="pill">Use when: requirements are well-known and stable</span>
+      <span class="pill">Best for: small, well-understood projects</span>
+    </div>
+    <div class="grid2">
+      <div class="card"><strong style="color:var(--good)">Advantages</strong>
+        <ul><li>Simple to use and implement</li><li>Easy, linear workflow to manage</li><li>Manageable precisely because requirements are locked before work starts</li></ul>
+      </div>
+      <div class="card"><strong style="color:var(--bad)">Disadvantages</strong>
+        <ul><li>Hard for clients to state <em>all</em> requirements up front</li><li>Testing and client evaluation happen last → risk surfaces late, when it's expensive</li><li>No built-in room for iteration</li></ul>
+      </div>
+    </div>
+    <div class="note"><span class="tag">Exam trap</span>"High risk" in Waterfall doesn't mean the model is risky to build — it means <strong>risk is discovered late</strong>. If a requirement was misunderstood, you won't find out until Construction or Deployment, after most of the budget is already spent.</div>
+
+    <!-- Incremental -->
+    <h3 style="margin-top:34px;">Incremental</h3>
+    <div class="diagram-box"><svg viewBox="0 0 900 220" width="100%" height="220" id="incrementalSvg"></svg></div>
+    <p>Ship a <strong>core product</strong> first (basic requirements only), collect client feedback, then ship increment after increment — each one running the full 5-activity pipeline again and adding functionality — until the final version is complete.</p>
+    <div class="pillrow"><span class="pill">Use when: client wants working software with basic features, fast</span></div>
+    <div class="grid2">
+      <div class="card"><strong style="color:var(--good)">Advantages</strong>
+        <ul><li>Flexible to changing requirements</li><li>Errors caught early — client assesses after every increment</li><li>Working software available from the early stage</li><li>Easy to test in pieces; lower initial cost</li></ul>
+      </div>
+      <div class="card"><strong style="color:var(--bad)">Disadvantages</strong>
+        <ul><li>Deciding <em>how</em> to slice the product into increments is genuinely hard</li><li>Total project cost ends up high</li><li>Needs complete upfront planning despite the iteration</li><li>Refining requirements each round can strain the architecture</li></ul>
+      </div>
+    </div>
+
+    <!-- Evolutionary -->
+    <h3 style="margin-top:34px;">Evolutionary models</h3>
+    <p>Used when requirements will keep changing <em>and</em> a full product can't be finished by the deadline — but a limited version can ship early. Unlike Incremental (requirements fixed upfront, refined each round), evolutionary models let requirements <strong>evolve</strong>.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>Prototyping model</h4>
+        <div class="diagram-box"><svg viewBox="0 0 320 320" width="100%" height="260" id="protoSvg"></svg></div>
+        <p>Build a quick, rough prototype from currently-known requirements → client evaluates it → feedback and new requirements roll into the <em>next</em> prototype → repeat until it evolves into an acceptable final product.</p>
+        <div class="pillrow"><span class="pill good">+ active client involvement</span><span class="pill good">+ no need for detailed upfront requirements</span></div>
+        <div class="pillrow"><span class="pill bad">– can slow the process down</span><span class="pill bad">– frequent changes add complexity</span><span class="pill bad">– dissatisfaction can scrap prototypes entirely</span></div>
+      </div>
+      <div class="card">
+        <h4>Spiral model</h4>
+        <div class="diagram-box"><svg viewBox="0 0 320 320" width="100%" height="260" id="spiralSvg"></svg></div>
+        <p>Also delivers a series of increasingly mature versions — but the defining feature is that <strong>every loop starts with risk analysis</strong>. Loop 1 usually yields a basic prototype; each later loop matures the product further, spiraling outward until it's acceptable.</p>
+        <div class="pillrow"><span class="pill good">+ rigorously tackles project risk</span><span class="pill good">+ changes absorbed even late in the process</span></div>
+        <div class="pillrow"><span class="pill bad">– costly and complicated</span><span class="pill bad">– needs real risk-assessment expertise</span></div>
+      </div>
+    </div>
+
+    <div class="note"><span class="tag">The question examiners actually ask</span>"How is Spiral different from Prototyping if both build a series of versions?" Answer: <strong>risk analysis is the spiral's defining ring</strong>. Prototyping cycles communication → quick design → build → feedback with no formal risk step. Spiral inserts planning-with-risk-analysis into every single loop — that's the one fact that separates the two models on paper.</div>
+
+    <h3 style="margin-top:34px;">Comparing all four at a glance</h3>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Model</th><th>Requirements known?</th><th>Client involvement</th><th>Risk handling</th><th>Cost profile</th></tr></thead>
+      <tbody>
+        <tr><td>Waterfall</td><td>Fully, upfront</td><td>Low (front &amp; back only)</td><td>Discovered late</td><td>Low, predictable</td></tr>
+        <tr><td>Incremental</td><td>Mostly known, refined per increment</td><td>After each increment</td><td>Caught earlier than Waterfall</td><td>Higher total cost</td></tr>
+        <tr><td>Prototyping</td><td>Vague / evolving</td><td>Continuous, drives next prototype</td><td>Informal, via feedback</td><td>Can balloon with re-prototyping</td></tr>
+        <tr><td>Spiral</td><td>Evolving</td><td>Per loop</td><td>Formal step every loop</td><td>High, needs expertise</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ SHEET 3 : WHY AGILE ============ -->
+  <section class="sheet" data-sheet="agilewhy">
+    <div class="sheet-head"><span class="num">03</span><h2>Why Agile, and what it actually values</h2></div>
+    <p class="lede">Every model above is slow by modern-business standards. Agile is the industry's answer to "the requirements will keep moving faster than any of those models can react."</p>
+
+    <div class="card">
+      <p><strong>Agile</strong> literally means "moving quickly." The emphasis shifts to rapid, incremental delivery and continuous, active communication with the client — and correspondingly <em>away</em> from heavy upfront analysis, design, and documentation.</p>
+      <p>Practically: the project team recognizes its own plans are short-lived. Some features survive, some change, some get dropped — so the team leans its energy toward <strong>Construction</strong> more than Planning or Modeling, and lets the product emerge through small increments shaped by client feedback.</p>
+    </div>
+    <div class="note" style="border-left-color:var(--bad)"><span class="tag" style="color:var(--bad)">A myth to kill on sight</span>Agile does <strong>not</strong> mean "no planning, no documentation, just start coding." That's the cynical Dilbert-strip version. Real Agile still plans and still documents — just in small, frequent, disposable doses instead of one giant upfront phase.</div>
+
+    <h3 style="margin-top:30px;">The 12 Agile principles — grouped so they're rememberable</h3>
+    <p>These come from the 2001 Agile Manifesto (Kent Beck et al.). Rather than memorizing 12 loose bullets, group them by what they're protecting:</p>
+    <div id="agileAccordion"></div>
+  </section>
+
+  <!-- ============ SHEET 4 : AGILE MODELS ============ -->
+  <section class="sheet" data-sheet="agilemodels">
+    <div class="sheet-head"><span class="num">04</span><h2>Agile process models</h2></div>
+    <p class="lede">Three named agile flavors, each answering "how do we actually run the sprint-to-sprint machinery?" a little differently.</p>
+
+    <!-- XP -->
+    <h3>Extreme Programming (XP)</h3>
+    <p>Kent Beck's idea: whatever engineering practices are known to help, push them to the extreme, from day one. XP prioritizes <strong>customer satisfaction</strong> above all, values simplicity, constant feedback, and mutual respect — and famously uses <strong>pair programming</strong>: two developers sharing one machine, designing, coding, and testing a single user story together.</p>
+    <div class="diagram-box"><svg viewBox="0 0 640 420" width="100%" height="360" id="xpSvg"></svg></div>
+    <p class="lede" style="font-size:.85rem; margin-top:6px;">Nested planning/feedback loops — the outer ring plans in months, the innermost ring iterates in <em>seconds</em>. That compression is the whole point of "extreme."</p>
+    <div class="grid2">
+      <div class="card"><strong style="color:var(--good)">Advantages</strong>
+        <ul><li>Simple code that stays easy to modify</li><li>Testing from day one → more genuinely agile delivery</li><li>Energizing, high-morale team environment</li></ul>
+      </div>
+      <div class="card"><strong style="color:var(--bad)">Disadvantages</strong>
+        <ul><li>Extreme focus on coding can crowd out design, hurting product quality</li><li>Thin documentation risks repeating the same mistakes later</li></ul>
+      </div>
+    </div>
+
+    <!-- Scrum -->
+    <h3 style="margin-top:34px;">Scrum</h3>
+    <p>Named after the rugby formation where players pack tightly to move the ball forward together. It's the most widely used agile model in industry today — lightweight, iterative, incremental, built around a fixed-length cycle called a <strong>sprint</strong>.</p>
+    <div class="diagram-box"><svg viewBox="0 0 760 260" width="100%" height="240" id="scrumSvg"></svg></div>
+    <p>A sprint (2 weeks – 1 month) pulls items from the <strong>product backlog</strong> into a <strong>sprint backlog</strong>, then the team runs Planning → Implementation → Review → Retrospective, with a <strong>Daily Scrum</strong> stand-up synchronizing progress every single day. Unfinished sprint-backlog items return to the product backlog for next time.</p>
+    <p>Click each term for the plain-English definition — these are the words examiners expect you to use precisely:</p>
+    <div class="activity-strip" id="scrumStrip"></div>
+    <div class="card activity-detail" id="scrumDetail"></div>
+    <div class="grid2" style="margin-top:16px;">
+      <div class="card"><strong style="color:var(--good)">Advantages</strong>
+        <ul><li>Flat hierarchy → developers get real freedom to self-organize</li><li>Built for adapting to rapid requirement changes</li><li>Faster time-to-deliverable</li><li>Heavy client involvement; retrospectives catch mistakes before they repeat</li></ul>
+      </div>
+      <div class="card"><strong style="color:var(--bad)">Disadvantages</strong>
+        <ul><li>Works well mainly with <em>small</em> project teams</li></ul>
+      </div>
+    </div>
+
+    <!-- Kanban -->
+    <h3 style="margin-top:34px;">Kanban</h3>
+    <p>Japanese for "signboard." Where Scrum works in timeboxed sprints, Kanban is a <strong>continuous</strong> flow — no sprints, no iterations. Every task becomes a card on a shared board; anyone free "pulls" the next card from left to right as they have capacity.</p>
+    <p class="lede" style="font-size:.9rem;">Try it — drag a card rightward (or tap the <span class="mono">→</span> button), then compare what happens with a full board vs. a lean one.</p>
+    <div class="kanban" id="kanbanBoard"></div>
+    <div class="note"><span class="tag">The lesson this board is built to teach</span>Notice how slow "In Progress" clears when the To-Do column is packed — that's a <strong>work-in-progress (WIP) problem</strong>. The original slide shows it directly: overload every column and the pipeline crawls; keep the workload per card lean and the same board finishes fast. Kanban's whole discipline is limiting how much is "in progress" at once.</div>
+    <div class="grid2">
+      <div class="card"><strong style="color:var(--good)">Advantages</strong>
+        <ul><li>Encourages leadership from every participant — flatter, more expressive team culture</li><li>Adapts to almost any team's working style</li><li>Board makes lead time visible, so workload per card can be tuned</li></ul>
+      </div>
+      <div class="card"><strong style="color:var(--bad)">Disadvantages</strong>
+        <ul><li>No fixed timeframe → a project can drift without a deadline forcing function</li></ul>
+      </div>
+    </div>
+    <div class="note" style="border-left-color:var(--accent2)"><span class="tag" style="color:var(--accent2)">Scrum vs. Kanban — the one-line answer</span>Scrum = fixed-length sprints with a daily stand-up and a retrospective ritual. Kanban = continuous pull, no sprints, discipline enforced by limiting work-in-progress instead of by a clock.</div>
+
+    <div class="card" style="margin-top:20px;"><strong>Jira</strong> — built by Atlassian, Jira is the issue-tracking tool most teams actually run their Scrum or Kanban board inside; it's tooling, not a process model itself.</div>
+  </section>
+
+  <!-- ============ SHEET 5 : CHECKPOINT ============ -->
+  <section class="sheet" data-sheet="checkpoint">
+    <div class="sheet-head"><span class="num">05</span><h2>Self-check</h2></div>
+    <p class="lede">Ten questions built directly around the distinctions this lecture likes to test. No penalty for guessing — the explanation is the point.</p>
+    <div id="quizList"></div>
+    <div id="quizscore"></div>
+  </section>
+
+</div>
+
+<footer>Prepared as a study companion · CSE 213 · Process Models &amp; Agile Development</footer>
+
+<script>
+/* ===================== NAV ===================== */
+const SHEETS = [
+  {id:'why', label:'00 · Why process'},
+  {id:'generic', label:'01 · Generic model'},
+  {id:'prescriptive', label:'02 · Prescriptive'},
+  {id:'agilewhy', label:'03 · Why agile'},
+  {id:'agilemodels', label:'04 · Agile models'},
+  {id:'checkpoint', label:'05 · Self-check'},
+];
+const navWrap = document.getElementById('navWrap');
+SHEETS.forEach((s,i)=>{
+  const b = document.createElement('button');
+  b.textContent = s.label;
+  b.dataset.target = s.id;
+  if(i===0) b.classList.add('active');
+  b.addEventListener('click', ()=>showSheet(s.id));
+  navWrap.appendChild(b);
+});
+function showSheet(id){
+  document.querySelectorAll('.sheet').forEach(el=>el.classList.toggle('active', el.dataset.sheet===id));
+  document.querySelectorAll('nav.sheets button').forEach(b=>b.classList.toggle('active', b.dataset.target===id));
+  const idx = SHEETS.findIndex(s=>s.id===id);
+  document.getElementById('sheetIndicator').textContent = String(idx+1).padStart(2,'0')+' / '+SHEETS.length;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelector('.sheet[data-sheet="why"]').classList.add('active');
+
+/* ===================== SHEET 1: ACTIVITIES ===================== */
+const ACTIVITIES = [
+  {n:'1', name:'Communication', body:'The team talks directly with the client: project initiation and requirement gathering. Everything downstream depends on how well this is done — a misunderstood requirement here is the most expensive kind of bug you will ever ship.'},
+  {n:'2', name:'Planning', body:'Estimating cost, scheduling the work, and tracking progress against that schedule. This is where a project acquires a timeline and a budget.'},
+  {n:'3', name:'Modeling', body:'Analyzing the gathered requirements and designing the algorithm / architecture / flowchart for each software component — the blueprint before construction.'},
+  {n:'4', name:'Construction', body:'Actually implementing and testing the components — where "modeling" turns into working code.'},
+  {n:'5', name:'Deployment', body:'Delivering the product to the client, providing support, and collecting feedback to feed the next cycle of improvement.'},
+];
+const stripEl = document.getElementById('activityStrip');
+const detailEl = document.getElementById('activityDetail');
+function renderActivityDetail(i){
+  document.querySelectorAll('#activityStrip .activity-btn').forEach((b,bi)=>b.classList.toggle('active', bi===i));
+  const a = ACTIVITIES[i];
+  detailEl.innerHTML = `<strong>${a.name}</strong><p style="margin-top:6px;">${a.body}</p>`;
+}
+ACTIVITIES.forEach((a,i)=>{
+  const btn = document.createElement('button');
+  btn.className='activity-btn';
+  btn.innerHTML = `<span class="n">0${a.n}</span>${a.name}`;
+  btn.addEventListener('click', ()=>renderActivityDetail(i));
+  stripEl.appendChild(btn);
+});
+renderActivityDetail(0);
+
+/* ===================== SHEET 1: FLOW DIAGRAMS ===================== */
+const FLOWS = {
+  linear: {
+    label:'Linear',
+    explain:'Each of the 5 activities runs exactly once, strictly in order. This is the flow Waterfall is built on — no loops, no revisits.',
+    draw: (svg)=>{
+      const names=['Communication','Planning','Modeling','Construction','Deployment'];
+      let s=''; const bw=140,bh=60,gap=32,startX=20,y=100;
+      names.forEach((n,i)=>{
+        const x=startX+i*(bw+gap);
+        s+=box(x,y,bw,bh,n);
+        if(i<names.length-1) s+=arrow(x+bw,y+bh/2,x+bw+gap,y+bh/2);
+      });
+      svg.innerHTML = defs()+s;
+    }
+  },
+  iterative: {
+    label:'Iterative',
+    explain:'Same left-to-right order, but one or more activities repeat before the team moves on — feedback loops (arcs below) send you back a step when something needs revisiting.',
+    draw:(svg)=>{
+      const names=['Communication','Planning','Modeling','Construction','Deployment'];
+      let s=''; const bw=140,bh=60,gap=32,startX=20,y=80;
+      names.forEach((n,i)=>{
+        const x=startX+i*(bw+gap);
+        s+=box(x,y,bw,bh,n);
+        if(i<names.length-1) s+=arrow(x+bw,y+bh/2,x+bw+gap,y+bh/2);
+      });
+      // feedback arcs below
+      for(let i=0;i<names.length-1;i++){
+        const x1=startX+i*(bw+gap)+bw/2, x2=startX+(i+1)*(bw+gap)+bw/2;
+        const midY=y+bh+40;
+        s+=`<path d="M${x2},${y+bh} C${x2},${midY} ${x1},${midY} ${x1},${y+bh}" fill="none" stroke="var(--accent2)" stroke-width="2" marker-end="url(#arrow2)"/>`;
+      }
+      s+=`<text x="20" y="${y+bh+65}" class="lbl" font-size="12">repeat before proceeding to the next activity</text>`;
+      svg.innerHTML = defs()+s;
+    }
+  },
+  evolutionary: {
+    label:'Evolutionary',
+    explain:'Activities execute in a circular fashion — each full cycle produces an incremental release and a more complete version of the software than the last.',
+    draw:(svg)=>{
+      const names=['Communication','Planning','Modeling','Construction','Deployment'];
+      const cx=450, cy=130, r=95; let s='';
+      const pts = names.map((n,i)=>{
+        const ang = -Math.PI/2 + i*(2*Math.PI/names.length);
+        return {x:cx+r*Math.cos(ang), y:cy+r*Math.sin(ang), n};
+      });
+      pts.forEach((p,i)=>{ s+=box(p.x-65,p.y-24,130,48,p.n); });
+      for(let i=0;i<pts.length;i++){
+        const a=pts[i], b=pts[(i+1)%pts.length];
+        s+=curvedArrow(a.x,a.y,b.x,b.y,cx,cy);
+      }
+      s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" class="lbl" font-size="12">incremental release</text>`;
+      svg.innerHTML = defs()+s;
+    }
+  },
+  parallel: {
+    label:'Parallel',
+    explain:'Communication and Planning still happen first — but Modeling, Construction, and Deployment then run in parallel lanes on different parts of the system at once.',
+    draw:(svg)=>{
+      let s='';
+      s+=box(20,100,130,60,'Communication');
+      s+=box(190,100,130,60,'Planning');
+      s+=arrow(150,130,190,130);
+      const lanes=['Modeling','Construction','Deployment'];
+      lanes.forEach((n,i)=>{
+        const y=30+i*70;
+        s+=box(380,y,150,50,n);
+        s+=arrow(320,130,380,y+25);
+      });
+      s+=`<text x="380" y="245" class="lbl" font-size="12">running concurrently on different components</text>`;
+      svg.innerHTML = defs()+s;
+    }
+  }
+};
+function defs(){
+  return `<defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/></marker>
+    <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent2)"/></marker>
+  </defs>`;
+}
+function box(x,y,w,h,label){
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="var(--sheet)" stroke="var(--ink-soft)" stroke-width="1.4"/>
+  <text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-size="13" font-weight="600">${label}</text>`;
+}
+function arrow(x1,y1,x2,y2){
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink-soft)" stroke-width="1.6" marker-end="url(#arrow)"/>`;
+}
+function curvedArrow(x1,y1,x2,y2,cx,cy){
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const dx=mx-cx, dy=my-cy, len=Math.hypot(dx,dy)||1;
+  const bulge=28;
+  const cxp=mx+dx/len*bulge, cyp=my+dy/len*bulge;
+  return `<path d="M${x1},${y1} Q${cxp},${cyp} ${x2},${y2}" fill="none" stroke="var(--ink-soft)" stroke-width="1.6" marker-end="url(#arrow)"/>`;
+}
+const flowToggle = document.getElementById('flowToggle');
+const flowSvg = document.getElementById('flowSvg');
+const flowExplain = document.getElementById('flowExplain');
+Object.keys(FLOWS).forEach(key=>{
+  const b=document.createElement('button');
+  b.textContent=FLOWS[key].label;
+  b.dataset.key=key;
+  b.addEventListener('click', ()=>setFlow(key));
+  flowToggle.appendChild(b);
+});
+function setFlow(key){
+  document.querySelectorAll('.flow-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.key===key));
+  FLOWS[key].draw(flowSvg);
+  flowExplain.innerHTML = `<strong>${FLOWS[key].label} flow —</strong> ${FLOWS[key].explain}`;
+}
+setFlow('linear');
+
+/* ===================== SHEET 2: STATIC DIAGRAMS ===================== */
+(function(){
+  const svg = document.getElementById('waterfallSvg');
+  const names=['Communication','Planning','Modeling','Construction','Deployment'];
+  const subs=['requirement gathering','estimating & scheduling','analysis & design','code & test','delivery & feedback'];
+  let s=defs(); const bw=150,bh=64,gap=28,y=40;
+  names.forEach((n,i)=>{
+    const x=20+i*(bw+gap);
+    s+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="var(--sheet)" stroke="var(--ink-soft)" stroke-width="1.4"/>
+        <text x="${x+bw/2}" y="${y+22}" text-anchor="middle" font-size="13" font-weight="600">${n}</text>
+        <text x="${x+bw/2}" y="${y+42}" text-anchor="middle" class="lbl" font-size="10">${subs[i]}</text>`;
+    if(i<names.length-1) s+=arrow(x+bw,y+bh/2,x+bw+gap,y+bh/2);
+  });
+  svg.innerHTML=s;
+})();
+
+(function(){
+  const svg = document.getElementById('incrementalSvg');
+  let s=defs();
+  s+=`<line x1="30" y1="190" x2="30" y2="10" stroke="var(--ink-faint)" stroke-width="1"/>
+      <line x1="30" y1="190" x2="860" y2="190" stroke="var(--ink-faint)" stroke-width="1"/>
+      <text x="14" y="16" class="lbl" font-size="10" transform="rotate(-90 14 100)">features</text>
+      <text x="800" y="208" class="lbl" font-size="10">time</text>`;
+  const steps=[{x:70,y:150,w:120,label:'Increment 1',sub:'core product'},
+               {x:280,y:110,w:150,label:'Increment 2',sub:'+ functionality'},
+               {x:520,y:65,w:150,label:'Increment 3',sub:'+ more'},
+               {x:750,y:30,w:90,label:'…N',sub:'final release'}];
+  steps.forEach(st=>{
+    s+=`<rect x="${st.x}" y="${st.y}" width="${st.w}" height="26" rx="3" fill="var(--sheet)" stroke="var(--accent2)" stroke-width="1.4"/>
+        <text x="${st.x+st.w/2}" y="${st.y+17}" text-anchor="middle" font-size="11" font-weight="600">${st.label}</text>
+        <text x="${st.x+st.w/2}" y="${st.y-6}" text-anchor="middle" class="lbl" font-size="10">${st.sub}</text>`;
+  });
+  for(let i=0;i<steps.length-1;i++){
+    s+=arrow(steps[i].x+steps[i].w, steps[i].y+13, steps[i+1].x, steps[i+1].y+13);
+  }
+  svg.innerHTML=s;
+})();
+
+(function(){
+  const svg = document.getElementById('protoSvg');
+  const names=['Communication','Quick Plan','Modeling\\n(quick design)','Construction\\n(prototype)','Deployment\\n(feedback)'];
+  const cx=160, cy=150, r=100; let s=defs();
+  const pts=names.map((n,i)=>{ const ang=-Math.PI/2+i*(2*Math.PI/names.length); return {x:cx+r*Math.cos(ang), y:cy+r*Math.sin(ang), n};});
+  pts.forEach(p=>{
+    const lines=p.n.split('\\n');
+    s+=`<rect x="${p.x-52}" y="${p.y-20}" width="104" height="40" rx="4" fill="var(--sheet)" stroke="var(--ink-soft)" stroke-width="1.3"/>`;
+    lines.forEach((ln,li)=>{
+      s+=`<text x="${p.x}" y="${p.y-2+li*13}" text-anchor="middle" font-size="10" font-weight="600">${ln}</text>`;
+    });
+  });
+  for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length]; s+=curvedArrow(a.x,a.y,b.x,b.y,cx,cy); }
+  s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" class="lbl" font-size="11">repeat until</text><text x="${cx}" y="${cy+18}" text-anchor="middle" class="lbl" font-size="11">acceptable</text>`;
+  svg.innerHTML=s;
+})();
+
+(function(){
+  const svg = document.getElementById('spiralSvg');
+  const cx=160, cy=160; let s=defs();
+  const rings=[40,66,92,118];
+  const labels=['Planning','Modeling','Construction','Deployment'];
+  rings.forEach((r,i)=>{
+    s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--ink-soft)" stroke-width="1.2" stroke-dasharray="${i===rings.length-1?'0':'0'}"/>`;
+  });
+  s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" class="lbl" font-size="10">start</text>`;
+  const angles=[-135,-45,45,135];
+  labels.forEach((lb,i)=>{
+    const ang = angles[i]*Math.PI/180;
+    const x = cx + (rings[3]+18)*Math.cos(ang);
+    const y = cy + (rings[3]+18)*Math.sin(ang);
+    s+=`<text x="${x}" y="${y}" text-anchor="middle" font-size="11" font-weight="600">${lb}</text>`;
+  });
+  // spiral path
+  let path='M'+cx+','+cy+' ';
+  const turns=3.2, steps=140;
+  for(let t=0;t<=steps;t++){
+    const frac=t/steps;
+    const ang=frac*turns*2*Math.PI - Math.PI/2;
+    const rad=frac*120;
+    const x=cx+rad*Math.cos(ang), y=cy+rad*Math.sin(ang);
+    path+='L'+x.toFixed(1)+','+y.toFixed(1)+' ';
+  }
+  s+=`<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#arrow)"/>`;
+  svg.innerHTML=s;
+})();
+
+/* ===================== SHEET 3: 12 PRINCIPLES ===================== */
+const PRINCIPLES = [
+  {group:'Delivering value', items:[
+    'Top priority is satisfying the customer through early, continuous delivery of valuable software.',
+    'Welcome changing requirements — even late — and turn change into the client\'s competitive advantage.',
+    'Deliver working software frequently (weeks, not months) — the shorter the timescale, the better.'
+  ]},
+  {group:'People & collaboration', items:[
+    'Client and developers must work together, daily, throughout the project.',
+    'Build projects around motivated individuals — give them the environment and trust to get it done.',
+    'Face-to-face conversation is the most efficient way to move information within a team.'
+  ]},
+  {group:'Technical excellence', items:[
+    'Working software is the primary measure of progress — not documents, not plans.',
+    'Agile promotes sustainable development — a pace the team can hold indefinitely.',
+    'Continuous attention to technical excellence and good design keeps a team agile.'
+  ]},
+  {group:'Simplicity & self-organization', items:[
+    'Simplicity — maximizing the amount of work <em>not</em> done — is essential.',
+    'The best architectures, requirements, and designs emerge from self-organizing teams.',
+    'At regular intervals the team reflects on how to improve, then tunes its own behavior.'
+  ]},
+];
+const agileAcc = document.getElementById('agileAccordion');
+PRINCIPLES.forEach((grp,i)=>{
+  const item=document.createElement('div'); item.className='acc-item';
+  item.innerHTML = `<div class="acc-head">${grp.group}<span class="plus">+</span></div>
+    <div class="acc-body"><ul>${grp.items.map(t=>'<li>'+t+'</li>').join('')}</ul></div>`;
+  item.querySelector('.acc-head').addEventListener('click', ()=>item.classList.toggle('open'));
+  agileAcc.appendChild(item);
+});
+agileAcc.children[0].classList.add('open');
+
+/* ===================== SHEET 4: XP DIAGRAM ===================== */
+(function(){
+  const svg = document.getElementById('xpSvg');
+  const cx=200, cy=200; let s=defs();
+  const rings=[
+    {r:170, label:'Release plan', unit:'months'},
+    {r:145, label:'Iteration plan', unit:'weeks'},
+    {r:120, label:'Acceptance test', unit:'days'},
+    {r:95, label:'Stand-up meeting', unit:'one day'},
+    {r:70, label:'Pair negotiation', unit:'hours'},
+    {r:45, label:'Unit test', unit:'minutes'},
+    {r:20, label:'Pair programming / Code', unit:'seconds'},
+  ];
+  rings.forEach((rg,i)=>{
+    s+=`<circle cx="${cx}" cy="${cy}" r="${rg.r}" fill="none" stroke="var(--line-strong)" stroke-width="1"/>`;
+  });
+  rings.forEach((rg,i)=>{
+    const ang = -Math.PI/2 + i*0.42;
+    const x = cx + rg.r*Math.cos(ang);
+    const y = cy + rg.r*Math.sin(ang);
+    s+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--accent)"/>`;
+  });
+  // labels down the right side
+  rings.forEach((rg,i)=>{
+    const y=20+i*22;
+    s+=`<text x="420" y="${y}" font-size="12" font-weight="600">${rg.label}</text>
+        <text x="600" y="${y}" class="lbl" font-size="11">${rg.unit}</text>`;
+  });
+  s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="10" class="lbl">seconds → months</text>`;
+  svg.innerHTML=s;
+})();
+
+/* ===================== SHEET 4: SCRUM DIAGRAM ===================== */
+(function(){
+  const svg = document.getElementById('scrumSvg');
+  let s=defs();
+  s+=box(20,110,140,50,'Product Backlog');
+  s+=box(210,110,140,50,'Sprint Backlog');
+  s+=arrow(160,135,210,135);
+  const cx=480, cy=135, r=80;
+  const stages=['Planning','Implementation','Review','Retrospective','Daily Scrum'];
+  const pts=stages.map((n,i)=>{ const ang=-Math.PI/2+i*(2*Math.PI/stages.length); return {x:cx+r*Math.cos(ang), y:cy+r*Math.sin(ang), n};});
+  pts.forEach(p=>{ s+=`<rect x="${p.x-55}" y="${p.y-16}" width="110" height="32" rx="16" fill="var(--sheet)" stroke="var(--accent2)" stroke-width="1.3"/>
+    <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-size="10.5" font-weight="600">${p.n}</text>`; });
+  for(let i=0;i<pts.length;i++){ const a=pts[i], b=pts[(i+1)%pts.length]; s+=curvedArrow(a.x,a.y,b.x,b.y,cx,cy); }
+  s+=`<text x="${cx}" y="${cy+2}" text-anchor="middle" class="lbl" font-size="11">Sprint</text><text x="${cx}" y="${cy+16}" text-anchor="middle" class="lbl" font-size="10">2 wks – 1 mo</text>`;
+  s+=arrow(cx+r+55,cy,650,135);
+  s+=box(650,110,95,50,'Completed Product');
+  svg.innerHTML=s;
+})();
+
+const SCRUM_TERMS = [
+  {n:'1', name:'Sprint', body:'The unitary cycle of development — usually 2 weeks to 1 month — during which the team works a fixed slice of the backlog.'},
+  {n:'2', name:'Backlog', body:'The client\'s requirements. Product backlog = everything the client wants overall. Sprint backlog = the subset committed to for this sprint.'},
+  {n:'3', name:'Daily Scrum', body:'A short daily meeting to synchronize the team — what was done, what\'s next, what\'s blocking.'},
+  {n:'4', name:'Scrum Master / Product Owner', body:'Scrum Master ≈ the project manager, keeping the process running. Product Owner ≈ the client, representing what the product should become.'},
+  {n:'5', name:'Tickets / Scrum board', body:'Tickets are the subtasks of a sprint; the Scrum board is where the team tracks their status.'},
+];
+const scrumStrip = document.getElementById('scrumStrip');
+const scrumDetail = document.getElementById('scrumDetail');
+function renderScrumDetail(i){
+  document.querySelectorAll('#scrumStrip .activity-btn').forEach((b,bi)=>b.classList.toggle('active', bi===i));
+  const a = SCRUM_TERMS[i];
+  scrumDetail.innerHTML = `<strong>${a.name}</strong><p style="margin-top:6px;">${a.body}</p>`;
+}
+SCRUM_TERMS.forEach((a,i)=>{
+  const btn=document.createElement('button'); btn.className='activity-btn';
+  btn.innerHTML = `<span class="n">0${a.n}</span>${a.name}`;
+  btn.addEventListener('click', ()=>renderScrumDetail(i));
+  scrumStrip.appendChild(btn);
+});
+renderScrumDetail(0);
+
+/* ===================== SHEET 4: KANBAN BOARD ===================== */
+let kanbanState = {
+  todo:[{id:'k1',t:'Design login screen'},{id:'k2',t:'Write API schema'},{id:'k3',t:'Set up CI pipeline'},{id:'k4',t:'Draft onboarding copy'}],
+  progress:[{id:'k5',t:'Implement auth flow'}],
+  done:[{id:'k6',t:'Project kickoff notes'}]
+};
+const COLS = [{key:'todo', label:'To-Do'},{key:'progress', label:'In Progress'},{key:'done', label:'Done!'}];
+function renderKanban(){
+  const board = document.getElementById('kanbanBoard');
+  board.innerHTML='';
+  COLS.forEach((c, ci)=>{
+    const col=document.createElement('div'); col.className='kcol'; col.dataset.key=c.key;
+    const wip = c.key==='progress' && kanbanState[c.key].length>3 ? ' <span class="wiplimit">⚠ over WIP</span>' : '';
+    col.innerHTML = `<h4>${c.label}<span>${kanbanState[c.key].length}</span></h4>`;
+    kanbanState[c.key].forEach(card=>{
+      const el=document.createElement('div'); el.className='kcard'; el.draggable=true; el.dataset.id=card.id;
+      const nextLabel = ci<COLS.length-1 ? '→' : '';
+      el.innerHTML = `${card.t}<small>pull when ready</small>${nextLabel?`<button class="adv" title="advance">${nextLabel}</button>`:''}`;
+      el.addEventListener('dragstart', e=>{ el.classList.add('dragging'); e.dataTransfer.setData('text/plain', card.id); });
+      el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+      const advBtn = el.querySelector('.adv');
+      if(advBtn) advBtn.addEventListener('click', ()=>moveCard(card.id, ci, ci+1));
+      col.appendChild(el);
+    });
+    col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('dragover'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('dragover'));
+    col.addEventListener('drop', e=>{
+      e.preventDefault(); col.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      const fromIdx = COLS.findIndex(cc=>kanbanState[cc.key].some(x=>x.id===id));
+      if(fromIdx>-1) moveCard(id, fromIdx, ci);
+    });
+    board.appendChild(col);
+  });
+}
+function moveCard(id, fromIdx, toIdx){
+  if(fromIdx===toIdx || toIdx<0 || toIdx>=COLS.length) return;
+  const fromKey = COLS[fromIdx].key, toKey = COLS[toIdx].key;
+  const i = kanbanState[fromKey].findIndex(c=>c.id===id);
+  if(i===-1) return;
+  const [card] = kanbanState[fromKey].splice(i,1);
+  kanbanState[toKey].push(card);
+  renderKanban();
+}
+renderKanban();
+
+/* ===================== SHEET 5: QUIZ ===================== */
+const QUIZ = [
+  {q:'Which of these is a "process flow", not a named prescriptive process model?', opts:['Waterfall','Evolutionary','Spiral','Prototyping'], correct:1,
+   ex:'Evolutionary is one of the 4 generic flows (Linear/Iterative/Evolutionary/Parallel). Waterfall, Spiral, and Prototyping are named models built on top of those flows.'},
+  {q:'A client cannot state all requirements before the project starts, but wants a fast, working version of the product with basic features. Which model fits best?', opts:['Waterfall','Incremental','Spiral (pure)','None of these need a model'], correct:1,
+   ex:'Incremental is designed exactly for this: ship a core product fast, then add increments as requirements get refined.'},
+  {q:'What is the single feature that most distinguishes the Spiral model from the Prototyping model?', opts:['Spiral is agile, Prototyping is not','Spiral has a formal risk-analysis step in every loop','Prototyping never gets client feedback','Spiral only has one loop'], correct:1,
+   ex:'Both build successive versions, but Spiral explicitly inserts risk analysis into every single loop — that is its defining trait.'},
+  {q:'In Scrum, what does "sprint backlog" mean?', opts:['Every requirement the client has ever requested','Bugs discovered during testing','The subset of the product backlog committed to for the current sprint','The Scrum Master\'s personal to-do list'], correct:2,
+   ex:'Product backlog = everything. Sprint backlog = just what\'s been pulled in for this sprint.'},
+  {q:'Which agile model has NO concept of a sprint or fixed iteration length?', opts:['Scrum','XP','Kanban','Waterfall'], correct:2,
+   ex:'Kanban is a continuous pull system — work items flow individually, with no sprint boundary.'},
+  {q:'Pair programming — two developers, one machine — is a hallmark of which model?', opts:['Scrum','Kanban','Extreme Programming (XP)','Spiral'], correct:2,
+   ex:'XP promotes pair programming as a core practice for designing, coding, and testing user stories together.'},
+  {q:'What is the main disadvantage of the Waterfall model?', opts:['It is too flexible to changing requirements','Testing and client evaluation happen last, so risk surfaces late','It requires too many daily meetings','It has no defined phases'], correct:1,
+   ex:'Because activities run once, sequentially, problems from misunderstood requirements aren\'t caught until Construction/Deployment — very late and very costly.'},
+  {q:'A Kanban board\'s "In Progress" column is clogging up badly. What does the lecture say is usually the fix?', opts:['Add more columns','Reduce the workload assigned per card (limit WIP)','Switch to Waterfall','Remove the Daily Scrum'], correct:1,
+   ex:'The board demo mirrors the slide: an overloaded column speeds up once the workload per card (WIP) is reduced.'},
+  {q:'Which of the 12 Agile principles is about the *team*, not the *product*?', opts:['Working software is the primary measure of progress','Build projects around motivated individuals and trust them','Welcome changing requirements even late in development','Deliver working software frequently'], correct:1,
+   ex:'"Build projects around motivated individuals, give them what they need, and trust them" is squarely about people, not the artifact being built.'},
+  {q:'True or false: In the Incremental model, requirements are allowed to evolve freely over time the same way they do in Evolutionary models.', opts:['True', 'False — Incremental specifies requirements upfront and refines them each round; Evolutionary lets requirements evolve'], correct:1,
+   ex:'This is the exact distinction the slides draw between Incremental and Evolutionary — memorize it, it is a favorite exam line.'},
+];
+const quizList = document.getElementById('quizList');
+let score=0, answered=0;
+QUIZ.forEach((item, qi)=>{
+  const qDiv = document.createElement('div'); qDiv.className='q';
+  qDiv.innerHTML = `<p class="qtext">${qi+1}. ${item.q}</p>`;
+  item.opts.forEach((opt, oi)=>{
+    const b = document.createElement('button'); b.className='opt'; b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      if(b.disabled) return;
+      const allOpts = qDiv.querySelectorAll('.opt');
+      allOpts.forEach(o=>o.disabled=true);
+      if(oi===item.correct){ b.classList.add('correct'); score++; }
+      else { b.classList.add('wrong'); allOpts[item.correct].classList.add('correct'); }
+      qDiv.querySelector('.explain').classList.add('show');
+      answered++;
+      document.getElementById('quizscore').textContent = `Score: ${score} / ${answered} answered (of ${QUIZ.length})`;
+    });
+    qDiv.appendChild(b);
+  });
+  const ex = document.createElement('div'); ex.className='explain'; ex.textContent = item.ex;
+  qDiv.appendChild(ex);
+  quizList.appendChild(qDiv);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 5 — Regular Operations, Closure &amp; Kleene's Theorem</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#FAF6EE;
+  --paper-raised:#F1E9D8;
+  --paper-card:#FFFDF8;
+  --ink:#201C17;
+  --ink-soft:#5E574B;
+  --ink-faint:#968E7C;
+  --oxblood:#7D2A34;
+  --oxblood-soft:#A5555E;
+  --navy:#22364A;
+  --navy-soft:#4C647C;
+  --gold:#9C7A34;
+  --rule:#DED0AF;
+  --shadow:rgba(32,28,23,0.09);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; color:var(--ink); font-weight:600;}
+p{margin:0 0 16px;}
+a{color:var(--navy);}
+.m{font-style:italic;}
+sup, sub{font-style:italic;}
+code, .lit{
+  font-family:'JetBrains Mono', 'Courier New', monospace;
+  font-style:normal;
+  background:var(--paper-raised);
+  padding:1px 7px;
+  border-radius:3px;
+  font-size:0.87em;
+  color:var(--navy);
+  white-space:nowrap;
+}
+
+/* ---------- progress bar ---------- */
+#progress{position:fixed; top:0; left:0; height:3px; width:0%; background:var(--oxblood); z-index:999; transition:width .08s linear;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:fixed; top:0; left:0; width:278px; height:100vh; overflow-y:auto;
+  background:var(--paper-raised); border-right:1px solid var(--rule);
+  padding:34px 26px 60px; font-size:13.5px; z-index:50;
+}
+.sidebar .brand{font-family:'Fraunces',serif; font-size:19px; font-weight:700; color:var(--oxblood); margin-bottom:2px;}
+.sidebar .brand-sub{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:30px; display:block;}
+.nav-part{margin-bottom:24px;}
+.nav-part-label{
+  font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.1em;
+  font-size:10.5px; color:var(--oxblood); font-weight:700; margin-bottom:9px; display:block;
+}
+.nav-part a{
+  display:block; padding:5px 0 5px 11px; margin-left:-11px; color:var(--ink-soft);
+  text-decoration:none; border-left:2px solid transparent; line-height:1.4;
+}
+.nav-part a:hover{color:var(--ink); border-left-color:var(--rule);}
+.nav-part a.active{color:var(--ink); border-left-color:var(--oxblood); background:rgba(125,42,52,.06); font-weight:600;}
+.nav-toggle{display:none;}
+
+/* ---------- layout ---------- */
+main{margin-left:278px; padding:0 52px 100px;}
+.content{max-width:730px; margin:0 auto;}
+
+/* ---------- hero ---------- */
+.hero{padding:78px 0 50px; border-bottom:1px solid var(--rule); margin-bottom:12px;}
+.hero .kicker{font-family:'JetBrains Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:var(--oxblood); font-size:12.5px;}
+.hero h1{font-size:clamp(34px,5vw,54px); line-height:1.08; margin:16px 0 20px;}
+.hero .lede{font-size:19px; color:var(--ink-soft); max-width:600px;}
+.hero .meta{margin-top:30px; font-size:12.5px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; display:flex; gap:22px; flex-wrap:wrap;}
+
+/* ---------- sections ---------- */
+section{padding-top:56px; scroll-margin-top:24px;}
+.part-divider{padding-top:70px; margin-top:14px; border-top:1px solid var(--rule);}
+.part-label{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
+.eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em; color:var(--oxblood); text-transform:uppercase; margin-bottom:8px;}
+h2{font-size:clamp(26px,3.6vw,34px); margin:0 0 18px; scroll-margin-top:24px;}
+h2 .num{color:var(--oxblood); font-style:normal; margin-right:10px; font-family:'JetBrains Mono',monospace; font-size:.6em; vertical-align:middle;}
+h3{font-size:21px; margin:0 0 10px; scroll-margin-top:24px;}
+.section-intro{font-size:18px; color:var(--ink-soft); margin-bottom:22px;}
+
+/* ---------- boxes ---------- */
+.box{border-left:3px solid var(--oxblood); background:var(--paper-card); padding:22px 26px; border-radius:2px; margin:26px 0; box-shadow:0 1px 6px var(--shadow);}
+.box.definition{border-left-color:var(--navy);}
+.box-label{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--oxblood); margin-bottom:10px; display:block; font-weight:700;}
+.box.definition .box-label{color:var(--navy);}
+.box p:last-child{margin-bottom:0;}
+.box ol, .box ul{margin:10px 0 0; padding-left:22px;}
+.box li{margin-bottom:8px;}
+
+.callout{background:var(--paper-raised); border:1px dashed var(--rule); border-radius:4px; padding:16px 20px; margin:22px 0; font-size:15.5px; color:var(--ink-soft);}
+.callout strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+/* ---------- diagrams ---------- */
+.diagram{margin:28px 0; padding:22px; background:#fff; border:1px solid var(--rule); border-radius:5px; text-align:center;}
+.diagram svg{max-width:100%; height:auto;}
+.diagram-caption{font-size:13px; color:var(--ink-faint); margin-top:12px; font-style:italic;}
+
+/* ---------- proof card + step stair ---------- */
+.proof-card{border:1px solid var(--rule); background:var(--paper-card); border-radius:6px; padding:30px 30px 26px; margin:34px 0; box-shadow:0 2px 12px var(--shadow);}
+.proof-card-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:2px;}
+.proof-tag{font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--oxblood); color:#fff; padding:3px 9px; border-radius:3px; letter-spacing:.04em;}
+.proof-tag.navy{background:var(--navy);}
+.proof-card-head h3{margin:0;}
+.lang-def{font-style:italic; color:var(--ink-soft); margin:6px 0 4px; font-size:16.5px;}
+.step-stair{list-style:none; margin:22px 0 0; padding:0 0 0 54px; position:relative;}
+.step-stair::before{content:''; position:absolute; left:20px; top:6px; bottom:6px; width:2px; background:var(--rule);}
+.step-stair li{position:relative; padding-bottom:22px;}
+.step-stair li:last-child{padding-bottom:0;}
+.step-num{position:absolute; left:-54px; top:0; width:40px; height:40px; border-radius:50%; background:var(--paper); border:2px solid var(--oxblood); color:var(--oxblood); font-family:'JetBrains Mono',monospace; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:15px;}
+.step-num.navy{border-color:var(--navy); color:var(--navy);}
+.step-title{display:block; font-family:'Fraunces',serif; font-weight:600; color:var(--ink); margin-bottom:4px; font-size:16px;}
+.step-body p{margin-bottom:8px; font-size:15.8px;}
+.step-body p:last-child{margin-bottom:0;}
+.math-block{background:var(--paper-raised); border-radius:4px; padding:12px 18px; margin:10px 0; font-style:italic; font-size:16.5px; overflow-x:auto;}
+
+.intuition{margin-top:22px; padding:15px 20px; background:#F5EFDF; border-radius:4px; font-size:15px; color:var(--ink-soft); border:1px dashed var(--rule);}
+.intuition strong{color:var(--navy); font-family:'Fraunces',serif;}
+
+/* ---------- common-errors / notes collapsibles ---------- */
+details.errors{margin-top:20px; border:1px solid var(--rule); border-radius:5px; background:var(--paper-card); overflow:hidden;}
+details.errors summary{cursor:pointer; padding:13px 20px; font-family:'Fraunces',serif; font-weight:600; color:var(--oxblood); list-style:none; display:flex; align-items:center; gap:9px; font-size:15.5px; user-select:none;}
+details.errors summary::-webkit-details-marker{display:none;}
+details.errors summary::before{content:'+'; font-family:'JetBrains Mono',monospace; font-weight:700; width:16px; display:inline-block;}
+details.errors[open] summary::before{content:'–';}
+details.errors[open] summary{border-bottom:1px solid var(--rule);}
+details.errors ul{padding:14px 24px 18px 42px; margin:0;}
+details.errors li{margin-bottom:9px; color:var(--ink-soft); font-size:15px;}
+details.errors li:last-child{margin-bottom:0;}
+
+/* ---------- tables ---------- */
+.table-wrap{overflow-x:auto; margin:24px 0;}
+table{width:100%; border-collapse:collapse; font-size:14.8px; min-width:480px;}
+th{text-align:left; font-family:'Fraunces',serif; font-weight:600; color:var(--navy); padding:11px 15px; border-bottom:2px solid var(--ink); background:var(--paper-raised);}
+td{padding:11px 15px; border-bottom:1px solid var(--rule); vertical-align:top;}
+tr:hover td{background:rgba(125,42,52,.03);}
+
+/* ---------- checklist ---------- */
+.checklist{list-style:none; margin:0; padding:0;}
+.checklist li{display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--rule);}
+.checklist li:last-child{border-bottom:none;}
+.checklist .box-tick{flex:0 0 26px; height:26px; border:2px solid var(--navy); border-radius:5px; margin-top:1px;}
+
+/* ---------- footer ---------- */
+.doc-footer{margin-top:80px; padding-top:28px; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+
+/* ---------- back to top ---------- */
+#top-btn{
+  position:fixed; right:28px; bottom:28px; width:46px; height:46px; border-radius:50%;
+  background:var(--oxblood); color:#fff; border:none; cursor:pointer; font-family:'JetBrains Mono',monospace;
+  font-size:16px; box-shadow:0 3px 12px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .2s;
+  z-index:60;
+}
+#top-btn.show{opacity:1; pointer-events:auto;}
+
+/* ---------- responsive ---------- */
+@media (max-width:940px){
+  .sidebar{transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 24px rgba(0,0,0,.2);}
+  body.nav-open .sidebar{transform:translateX(0);}
+  main{margin-left:0; padding:0 20px 80px;}
+  .hero{padding:88px 0 40px;}
+  .nav-toggle{
+    display:flex; position:fixed; top:16px; left:16px; z-index:70; width:44px; height:44px;
+    background:var(--ink); color:var(--paper); border:none; border-radius:6px; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:16px; cursor:pointer;
+  }
+  .nav-scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40;}
+  body.nav-open .nav-scrim{display:block;}
+}
+@media (max-width:520px){
+  .step-stair{padding-left:46px;}
+  .step-num{left:-46px; width:34px; height:34px; font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+<div class="nav-scrim" id="navScrim"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="brand">Lecture 5</div>
+  <span class="brand-sub">REGULAR OPERATIONS · CLOSURE · KLEENE'S THEOREM</span>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part I · Foundations</span>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#languages-sets">Languages as sets</a>
+    <a href="#three-ops">The three regular operations</a>
+    <a href="#star-epsilon">Why star always contains ε</a>
+    <a href="#regular-def">Regular languages, defined</a>
+    <a href="#closure-def">What is a closure property?</a>
+    <a href="#closure-theorem">Sipser's closure theorem</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part II · Six Closure Proofs</span>
+    <a href="#proof-template">The closure proof template</a>
+    <a href="#union">Closure under union</a>
+    <a href="#concat">Closure under concatenation</a>
+    <a href="#star-closure">Closure under star</a>
+    <a href="#two-directions">Two directions of correctness</a>
+    <a href="#complement">Closure under complement</a>
+    <a href="#intersection">Closure under intersection</a>
+    <a href="#difference">Closure under difference</a>
+    <a href="#reverse">Closure under reverse</a>
+    <a href="#power-closure">The power of closure</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part III · Regular Expressions</span>
+    <a href="#what-regex">What is a regex?</a>
+    <a href="#syntax-semantics">Syntax versus semantics</a>
+    <a href="#formal-def">Formal definition</a>
+    <a href="#semantic-def">The semantic definition L(R)</a>
+    <a href="#shorthands">Regex shorthands</a>
+    <a href="#base-cases">Base cases explained</a>
+    <a href="#precedence">Precedence of operations</a>
+    <a href="#regex-examples">Worked examples</a>
+    <a href="#empty-vs-epsilon">∅ versus ε</a>
+    <a href="#identities">Useful regex identities</a>
+  </div>
+
+  <div class="nav-part">
+    <span class="nav-part-label">Part IV · Kleene's Theorem</span>
+    <a href="#big-picture">The big picture</a>
+    <a href="#kleene-theorem">Kleene's theorem</a>
+    <a href="#lemma1">Lemma 1: RE → NFA</a>
+    <a href="#thompson-example">Converting (ab∪a)*</a>
+    <a href="#lemma2">Lemma 2: DFA → RE</a>
+    <a href="#different-regex">Different regexes, same language</a>
+    <a href="#summary">Summary</a>
+  </div>
+</nav>
+
+<main>
+<div class="content">
+
+  <section class="hero" id="top">
+    <div class="kicker">Theory of Computation · Sheikh Azizul Hakim, BUET</div>
+    <h1>Regular Operations,<br>Closure &amp; Kleene's Theorem</h1>
+    <p class="lede">We have machines that compute. Now we need an algebra to describe what they compute. This is a complete, corner-to-corner study companion to Lecture 5 — from union, concatenation, and star all the way to the full DFA ⇄ NFA ⇄ Regex ⇄ GNFA lifecycle.</p>
+    <div class="meta">
+      <span>75 slides distilled</span>
+      <span>9 closure proofs</span>
+      <span>Full regex formalism</span>
+      <span>Reference: Sipser, Ch. 1</span>
+    </div>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part I</div>
+    <h2 id="roadmap"><span class="num">§0</span>Today's Roadmap</h2>
+    <p class="section-intro">This lecture follows the central arc of Sipser's treatment of regular languages, and it all points toward one repeating idea:</p>
+    <div class="callout"><strong>language operation ⇐⇒ machine construction</strong></div>
+    <div class="box">
+      <ol>
+        <li>Define the three regular operations.</li>
+        <li>Prove regular languages are closed under them.</li>
+        <li>Define regular expressions formally.</li>
+        <li>Prove that regular expressions and finite automata have exactly the same power.</li>
+      </ol>
+    </div>
+    <p>The goal is not to memorize constructions — it's to see the same idea resurface every single time.</p>
+  </section>
+
+  <section id="languages-sets">
+    <div class="eyebrow">Setting the stage</div>
+    <h2><span class="num">§1</span>Languages as Sets</h2>
+    <p>Recall that a language is simply a <em>set of strings</em>. Because languages are sets, we can combine them using ordinary set operations to build new, more complex languages. Fix an alphabet Σ:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Object</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Σ</td><td>a finite set of symbols</td></tr>
+          <tr><td><span class="m">w</span></td><td>a finite string over Σ</td></tr>
+          <tr><td>ε</td><td>the empty string</td></tr>
+          <tr><td>Σ<sup>*</sup></td><td>the set of all strings over Σ</td></tr>
+          <tr><td><span class="m">A</span> ⊆ Σ<sup>*</sup></td><td>a language over Σ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>A <strong>regular operation</strong> takes one or more languages and returns another language. When we write <span class="m">A</span> ∪ <span class="m">B</span>, <span class="m">AB</span>, or <span class="m">A<sup>*</sup></span>, we are talking purely about sets of strings — the machine comes later. That's an important separation to keep straight: a closure proof always answers <em>"if the inputs have machines, can we build a machine for the output language?"</em></p>
+  </section>
+
+  <section id="three-ops">
+    <div class="eyebrow">The algebra of languages</div>
+    <h2><span class="num">§2</span>The Three Regular Operations</h2>
+    <p class="section-intro">Let <span class="m">A</span> and <span class="m">B</span> be languages. Let Σ = {a, b} for the examples, with <span class="m">A</span> = {good, bad} and <span class="m">B</span> = {boy, girl}.</p>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Operation 1</span><h3>Union</h3></div>
+      <div class="lang-def"><span class="m">A</span> ∪ <span class="m">B</span> = { <span class="m">x</span> | <span class="m">x</span> ∈ <span class="m">A</span> or <span class="m">x</span> ∈ <span class="m">B</span> }</div>
+      <p>The union simply takes all strings from <span class="m">A</span> and all strings from <span class="m">B</span> and puts them into a single set.</p>
+      <div class="math-block"><span class="m">A</span> ∪ <span class="m">B</span> = {good, bad, boy, girl}</div>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Operation 2</span><h3>Concatenation</h3></div>
+      <div class="lang-def"><span class="m">A</span> ◦ <span class="m">B</span> = { <span class="m">xy</span> | <span class="m">x</span> ∈ <span class="m">A</span> and <span class="m">y</span> ∈ <span class="m">B</span> }</div>
+      <p>Concatenation attaches a string from <span class="m">A</span> to the front of a string from <span class="m">B</span>, in all possible combinations. We often omit the circle and just write <span class="m">AB</span>.</p>
+      <div class="math-block"><span class="m">A</span> ◦ <span class="m">B</span> = {goodboy, goodgirl, badboy, badgirl}</div>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Operation 3</span><h3>Kleene Star</h3></div>
+      <div class="lang-def"><span class="m">A</span><sup>*</sup> = { <span class="m">x</span><sub>1</sub><span class="m">x</span><sub>2</sub>…<span class="m">x</span><sub><span class="m">k</span></sub> | <span class="m">k</span> ≥ 0 and each <span class="m">x</span><sub><span class="m">i</span></sub> ∈ <span class="m">A</span> }</div>
+      <p>Star is a <em>unary</em> operation — it attaches any number of strings in <span class="m">A</span> together to form a new string. Because <span class="m">k</span> can be 0, the empty string ε is always in <span class="m">A</span><sup>*</sup>, regardless of what <span class="m">A</span> is. Let <span class="m">A</span> = {ab, c}:</p>
+      <div class="math-block"><span class="m">A</span><sup>*</sup> = {ε, ab, c, abab, abc, cab, cc, ababab, …}</div>
+    </div>
+  </section>
+
+  <section id="star-epsilon">
+    <div class="eyebrow">A subtle but important fact</div>
+    <h2><span class="num">§3</span>Why Star Always Contains ε</h2>
+    <p>For a language <span class="m">A</span>, the expression <span class="m">A</span><sup>*</sup> means "concatenate zero or more strings from <span class="m">A</span>." Concatenating <em>zero</em> strings produces the empty string:</p>
+    <div class="math-block"><span class="m">A</span><sup>*</sup> = {ε} ∪ <span class="m">A</span> ∪ <span class="m">AA</span> ∪ <span class="m">AAA</span> ∪ ⋯</div>
+    <p>So ε ∈ <span class="m">A</span><sup>*</sup> for <em>every</em> language <span class="m">A</span> — even the empty language.</p>
+    <div class="callout"><strong>This is why ∅<sup>*</sup> = {ε}, not ∅.</strong> Zero strings from an empty set is still a well-defined (empty) concatenation, and it still equals ε.</div>
+  </section>
+
+  <section id="regular-def">
+    <div class="eyebrow">Naming the class</div>
+    <h2><span class="num">§4</span>Regular Languages</h2>
+    <div class="box definition">
+      <span class="box-label">Definition</span>
+      <p>A language is called a <strong>regular language</strong> if some DFA recognizes it.</p>
+      <p><strong>Alternative definition:</strong> a language is regular if some NFA recognizes it.</p>
+    </div>
+    <p>Both definitions are valid — a DFA is trivially an NFA, and every NFA has an equivalent DFA (the powerset construction).</p>
+    <div class="callout"><strong>The big question this lecture answers:</strong> if we take two regular languages and apply a regular operation to them, is the result still regular?</div>
+  </section>
+
+  <section id="closure-def">
+    <div class="eyebrow">A concept borrowed from algebra</div>
+    <h2><span class="num">§5</span>What Is a Closure Property?</h2>
+    <div class="box definition">
+      <span class="box-label">Definition</span>
+      <p>A collection of objects is <strong>closed</strong> under some operation if applying that operation to members of the collection always returns an object still in the collection.</p>
+    </div>
+    <p><strong>Mathematical examples:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td>ℕ is closed under addition</td><td>3 + 5 = 8 ∈ ℕ</td></tr>
+          <tr><td>ℕ is <em>not</em> closed under subtraction</td><td>3 − 5 = −2 ∉ ℕ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="closure-theorem">
+    <div class="eyebrow">The theorem that anchors Part II</div>
+    <h2><span class="num">§6</span>Sipser's Closure Theorem</h2>
+    <div class="box">
+      <span class="box-label">Theorem</span>
+      <p>The class of regular languages is closed under the regular operations: ∪, ◦, <sup>*</sup>.</p>
+    </div>
+    <p>Sipser proves this early because it becomes the bridge to regular expressions later in the lecture. The proof uses <strong>NFAs</strong> throughout, because ε-transitions make the constructions visually and formally simple.</p>
+    <div class="callout"><strong>Nondeterminism is not a side topic</strong> — it is the cleanest language-design tool available, and every closure proof below leans on it.</div>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part II</div>
+    <h2 id="proof-template"><span class="num">§7</span>A Closure Proof Template</h2>
+    <p class="section-intro">Most closure proofs in this lecture share the same rhythm. Watch this shape repeat in every proof below.</p>
+    <ol class="step-stair">
+      <li><span class="step-num navy">1</span><div class="step-body"><span class="step-title">Start with machines for the inputs</span><p>Let <span class="m">N</span><sub>1</sub> recognize <span class="m">A</span><sub>1</sub> and <span class="m">N</span><sub>2</sub> recognize <span class="m">A</span><sub>2</sub>.</p></div></li>
+      <li><span class="step-num navy">2</span><div class="step-body"><span class="step-title">Describe the operation to simulate</span><p>What must the new machine accept, in terms of what <span class="m">N</span><sub>1</sub> and <span class="m">N</span><sub>2</sub> do?</p></div></li>
+      <li><span class="step-num navy">3</span><div class="step-body"><span class="step-title">Build a new finite automaton</span><p>Usually by wiring <span class="m">N</span><sub>1</sub> and <span class="m">N</span><sub>2</sub> together with new states and ε-transitions.</p></div></li>
+      <li><span class="step-num navy">4</span><div class="step-body"><span class="step-title">Argue both directions</span><p>Every accepted string belongs to the target language, <em>and</em> every target-language string is accepted. For regular operations, the construction is usually the heart of the proof.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="union">
+    <div class="eyebrow">Proof 1 of 6</div>
+    <h2><span class="num">§8</span>Closure under Union</h2>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A₁ ∪ A₂ is regular</h3></div>
+      <p>If <span class="m">A</span><sub>1</sub> and <span class="m">A</span><sub>2</sub> are regular, then <span class="m">A</span><sub>1</sub> ∪ <span class="m">A</span><sub>2</sub> is regular. <strong>Proof idea:</strong> <span class="m">M</span> should accept <span class="m">w</span> if either <span class="m">M</span><sub>1</sub> accepts <span class="m">w</span> or <span class="m">M</span><sub>2</sub> accepts <span class="m">w</span>. We could simulate both DFAs at once by tracking pairs of states — but nondeterminism gives a cleaner tool: just <em>guess</em> which machine will accept.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="uArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+          <line x1="20" y1="100" x2="62" y2="100" stroke="#201C17" stroke-width="1.6" marker-end="url(#uArrow)"/>
+          <circle cx="90" cy="100" r="24" fill="#fff" stroke="#7D2A34" stroke-width="2.2"/>
+          <text x="90" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#7D2A34">q₀</text>
+          <path d="M112,88 C160,50 200,45 235,55" fill="none" stroke="#22364A" stroke-width="1.6" marker-end="url(#uArrow)"/>
+          <text x="170" y="55" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="14" fill="#22364A">ε</text>
+          <path d="M112,112 C160,150 200,155 235,145" fill="none" stroke="#22364A" stroke-width="1.6" marker-end="url(#uArrow)"/>
+          <text x="170" y="152" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="14" fill="#22364A">ε</text>
+          <rect x="240" y="25" width="300" height="65" rx="8" fill="#F1E9D8" stroke="#DED0AF" stroke-width="1.4"/>
+          <text x="390" y="62" text-anchor="middle" font-family="'Fraunces',serif" font-size="16" fill="#201C17">N₁ &nbsp; (recognizes A₁)</text>
+          <rect x="240" y="115" width="300" height="65" rx="8" fill="#F1E9D8" stroke="#DED0AF" stroke-width="1.4"/>
+          <text x="390" y="152" text-anchor="middle" font-family="'Fraunces',serif" font-size="16" fill="#201C17">N₂ &nbsp; (recognizes A₂)</text>
+        </svg>
+        <p class="diagram-caption">A new start state q₀ with ε-transitions to the start states of N₁ and N₂.</p>
+      </div>
+      <div class="box definition">
+        <span class="box-label">Formal construction</span>
+        <p>Let <span class="m">N</span><sub>1</sub>=(<span class="m">Q</span><sub>1</sub>,Σ,δ<sub>1</sub>,<span class="m">q</span><sub>1</sub>,<span class="m">F</span><sub>1</sub>) and <span class="m">N</span><sub>2</sub>=(<span class="m">Q</span><sub>2</sub>,Σ,δ<sub>2</sub>,<span class="m">q</span><sub>2</sub>,<span class="m">F</span><sub>2</sub>). Construct <span class="m">N</span>=(<span class="m">Q</span>,Σ,δ,<span class="m">q</span><sub>0</sub>,<span class="m">F</span>) where:</p>
+        <div class="math-block"><span class="m">Q</span> = <span class="m">Q</span><sub>1</sub> ∪ <span class="m">Q</span><sub>2</sub> ∪ {<span class="m">q</span><sub>0</sub>}, &nbsp; <span class="m">F</span> = <span class="m">F</span><sub>1</sub> ∪ <span class="m">F</span><sub>2</sub>, &nbsp; δ(<span class="m">q</span><sub>0</sub>,ε) = {<span class="m">q</span><sub>1</sub>,<span class="m">q</span><sub>2</sub>}</div>
+        <p>All old transitions are kept unchanged.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="concat">
+    <div class="eyebrow">Proof 2 of 6</div>
+    <h2><span class="num">§9</span>Closure under Concatenation</h2>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A₁ ◦ A₂ is regular</h3></div>
+      <p>Given <span class="m">w</span>, we want to split it as <span class="m">w</span> = <span class="m">xy</span> with <span class="m">x</span> ∈ <span class="m">A</span><sub>1</sub> and <span class="m">y</span> ∈ <span class="m">A</span><sub>2</sub> — but we don't know where the split point is. <strong>NFA to the rescue:</strong> the machine guesses the split point, non-deterministically, at every accepting state of <span class="m">N</span><sub>1</sub>.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="cArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+          <line x1="10" y1="70" x2="42" y2="70" stroke="#201C17" stroke-width="1.6" marker-end="url(#cArrow)"/>
+          <rect x="48" y="35" width="200" height="70" rx="8" fill="#F1E9D8" stroke="#DED0AF" stroke-width="1.4"/>
+          <text x="148" y="76" text-anchor="middle" font-family="'Fraunces',serif" font-size="16" fill="#201C17">N₁</text>
+          <line x1="248" y1="70" x2="310" y2="70" stroke="#22364A" stroke-width="1.6" marker-end="url(#cArrow)"/>
+          <text x="279" y="58" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="14" fill="#22364A">ε</text>
+          <rect x="312" y="35" width="200" height="70" rx="8" fill="#F1E9D8" stroke="#DED0AF" stroke-width="1.4"/>
+          <text x="412" y="76" text-anchor="middle" font-family="'Fraunces',serif" font-size="16" fill="#201C17">N₂</text>
+        </svg>
+        <p class="diagram-caption">Every accept state of N₁ gets an ε-transition to the start state of N₂; N₁'s accept states stop being accepting.</p>
+      </div>
+      <div class="box definition">
+        <span class="box-label">Formal construction</span>
+        <p><span class="m">N</span> starts in the start state of <span class="m">N</span><sub>1</sub> and accepts in the accepting states of <span class="m">N</span><sub>2</sub>. The key added transition:</p>
+        <div class="math-block">δ(<span class="m">r</span>,ε) ∋ <span class="m">q</span><sub>2</sub> &nbsp; for every <span class="m">r</span> ∈ <span class="m">F</span><sub>1</sub></div>
+        <p>Interpretation: after reading a prefix <span class="m">x</span> ∈ <span class="m">A</span><sub>1</sub>, the machine may jump into <span class="m">N</span><sub>2</sub> and try to read the rest as <span class="m">y</span> ∈ <span class="m">A</span><sub>2</sub>. For <span class="m">w</span> = <code>001101</code>, the guess might land at <code>00|1101</code>, <code>001|101</code>, or <code>0011|01</code> — a DFA would need to check all of these indirectly, but the NFA states the idea directly.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="star-closure">
+    <div class="eyebrow">Proof 3 of 6</div>
+    <h2><span class="num">§10</span>Closure under Star</h2>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A* is regular</h3></div>
+      <p>Given <span class="m">N</span><sub>1</sub> for <span class="m">A</span>, we need <span class="m">A</span><sup>*</sup> to accept sequences of strings from <span class="m">A</span> — including zero of them, so we must also accept ε. When <span class="m">N</span><sub>1</sub> finishes one string in <span class="m">A</span>, it should non-deterministically loop back to the start to try reading another.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 520 190" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="sArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+          <line x1="10" y1="95" x2="52" y2="95" stroke="#201C17" stroke-width="1.6" marker-end="url(#sArrow)"/>
+          <circle cx="78" cy="95" r="24" fill="#fff" stroke="#7D2A34" stroke-width="2.2"/>
+          <circle cx="78" cy="95" r="18" fill="#fff" stroke="#7D2A34" stroke-width="1.6"/>
+          <text x="78" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#7D2A34">q₀</text>
+          <line x1="102" y1="95" x2="170" y2="95" stroke="#22364A" stroke-width="1.6" marker-end="url(#sArrow)"/>
+          <text x="136" y="83" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="14" fill="#22364A">ε</text>
+          <rect x="175" y="55" width="270" height="80" rx="8" fill="#F1E9D8" stroke="#DED0AF" stroke-width="1.4"/>
+          <text x="310" y="100" text-anchor="middle" font-family="'Fraunces',serif" font-size="16" fill="#201C17">N₁ &nbsp; (recognizes A)</text>
+          <path d="M300,55 C260,10 130,15 90,73" fill="none" stroke="#22364A" stroke-width="1.6" marker-end="url(#sArrow)"/>
+          <text x="200" y="24" text-anchor="middle" font-style="italic" font-family="'Source Serif 4',serif" font-size="14" fill="#22364A">ε &nbsp;(loop back from every old accept state)</text>
+        </svg>
+        <p class="diagram-caption">q₀ is a new accepting start state. It ε-jumps into N₁, and every old accept state ε-loops back to N₁'s start.</p>
+      </div>
+      <div class="box definition">
+        <span class="box-label">Formal construction</span>
+        <p>Let <span class="m">N</span><sub>1</sub>=(<span class="m">Q</span><sub>1</sub>,Σ,δ<sub>1</sub>,<span class="m">q</span><sub>1</sub>,<span class="m">F</span><sub>1</sub>). Create a new start state <span class="m">q</span><sub>0</sub> that is <em>also</em> accepting:</p>
+        <div class="math-block"><span class="m">Q</span> = <span class="m">Q</span><sub>1</sub> ∪ {<span class="m">q</span><sub>0</sub>}, &nbsp; <span class="m">F</span> = <span class="m">F</span><sub>1</sub> ∪ {<span class="m">q</span><sub>0</sub>}, &nbsp; δ(<span class="m">q</span><sub>0</sub>,ε) ∋ <span class="m">q</span><sub>1</sub>, &nbsp; and δ(<span class="m">r</span>,ε) ∋ <span class="m">q</span><sub>1</sub> for every <span class="m">r</span> ∈ <span class="m">F</span><sub>1</sub></div>
+        <p>The new accepting start state accounts for exactly zero repetitions — i.e. ε.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="two-directions">
+    <div class="eyebrow">What "correctness" actually means</div>
+    <h2><span class="num">§11</span>Two Directions in a Correctness Proof</h2>
+    <p>For a constructed machine <span class="m">N</span> and target language <span class="m">L</span>, a full proof requires <em>both</em> directions:</p>
+    <div class="box">
+      <ul>
+        <li><span class="m">L</span>(<span class="m">N</span>) ⊆ <span class="m">L</span> — the machine accepts nothing extra.</li>
+        <li><span class="m">L</span> ⊆ <span class="m">L</span>(<span class="m">N</span>) — the machine accepts everything required.</li>
+      </ul>
+    </div>
+    <p><strong>Example for union:</strong> if <span class="m">N</span> accepts <span class="m">w</span>, some branch went into <span class="m">N</span><sub>1</sub> or <span class="m">N</span><sub>2</sub> and was accepted there, so <span class="m">w</span> ∈ <span class="m">A</span><sub>1</sub> ∪ <span class="m">A</span><sub>2</sub>. Conversely, if <span class="m">w</span> ∈ <span class="m">A</span><sub>1</sub> ∪ <span class="m">A</span><sub>2</sub>, choose the branch that heads into whichever machine accepts it.</p>
+  </section>
+
+  <section id="complement">
+    <div class="eyebrow">Proof 4 of 6 — the DFA-only trap</div>
+    <h2><span class="num">§12</span>Closure under Complement</h2>
+    <div class="box definition">
+      <span class="box-label">Definition</span>
+      <p>The complement of <span class="m">A</span>, written <span class="m">A̅</span>, is every string in Σ<sup>*</sup> that is <em>not</em> in <span class="m">A</span>: &nbsp; <span class="m">A̅</span> = Σ<sup>*</sup> \ <span class="m">A</span>.</p>
+    </div>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A̅ is regular</h3></div>
+      <p><strong>Proof idea:</strong> if <span class="m">M</span> recognizes <span class="m">A</span>, build <span class="m">M′</span> that does the exact opposite — if <span class="m">M</span> accepts, <span class="m">M′</span> rejects, and vice versa.</p>
+      <div class="box definition">
+        <span class="box-label">Formal construction</span>
+        <p>Let <span class="m">M</span>=(<span class="m">Q</span>,Σ,δ,<span class="m">q</span><sub>0</sub>,<span class="m">F</span>) be a DFA recognizing <span class="m">A</span>. Construct <span class="m">M′</span>=(<span class="m">Q</span>,Σ,δ,<span class="m">q</span><sub>0</sub>,<span class="m">F′</span>), where the <em>only</em> change is which states accept:</p>
+        <div class="math-block"><span class="m">F′</span> = <span class="m">Q</span> \ <span class="m">F</span></div>
+      </div>
+      <div class="callout"><strong>Warning — this only works for DFAs.</strong> If you flip the accept states of an NFA, the result does not necessarily recognize the complement. An NFA accepts if <em>any</em> path reaches an accept state — flipping states doesn't invert that "any path" logic correctly.</div>
+      <div class="callout"><strong>The DFA must be complete first.</strong> Every δ(q, a) must be defined for every state q and symbol a. If a transition is missing, add a dead (rejecting) state and route the missing transition there — otherwise "getting stuck" is silently different from "ending in a non-accepting state," and the flip breaks.</div>
+      <div class="diagram">
+        <svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg">
+          <defs><marker id="mArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+          <text x="20" y="20" font-family="'JetBrains Mono',monospace" font-size="11" fill="#968E7C">M — strings ending in 0</text>
+          <line x1="10" y1="70" x2="42" y2="70" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/>
+          <circle cx="68" cy="70" r="22" fill="#fff" stroke="#22364A" stroke-width="2"/>
+          <text x="68" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#22364A">q₀</text>
+          <circle cx="180" cy="70" r="22" fill="#fff" stroke="#7D2A34" stroke-width="2"/>
+          <circle cx="180" cy="70" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+          <text x="180" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">q₁</text>
+          <path d="M90,60 C120,40 150,40 158,58" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="124" y="38" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">0</text>
+          <path d="M158,82 C150,100 120,100 90,80" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="124" y="108" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">1</text>
+          <path d="M56,50 C40,25 96,25 80,48" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="58" y="20" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">1</text>
+          <path d="M192,50 C208,25 152,25 168,48" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="192" y="20" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">0</text>
+
+          <text x="330" y="20" font-family="'JetBrains Mono',monospace" font-size="11" fill="#968E7C">M′ — ε or strings ending in 1</text>
+          <line x1="320" y1="70" x2="352" y2="70" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/>
+          <circle cx="378" cy="70" r="22" fill="#fff" stroke="#7D2A34" stroke-width="2"/>
+          <circle cx="378" cy="70" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+          <text x="378" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">q₀</text>
+          <circle cx="490" cy="70" r="22" fill="#fff" stroke="#22364A" stroke-width="2"/>
+          <text x="490" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#22364A">q₁</text>
+          <path d="M400,60 C430,40 460,40 468,58" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="434" y="38" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">0</text>
+          <path d="M468,82 C460,100 430,100 400,80" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#mArrow)"/><text x="434" y="108" font-size="12" font-family="JetBrains Mono, monospace" fill="#201C17">1</text>
+        </svg>
+        <p class="diagram-caption">Only the accept states change (q₁ → q₀). Every transition arrow stays exactly the same.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="intersection">
+    <div class="eyebrow">Proof 5 of 6 — two independent routes</div>
+    <h2><span class="num">§13</span>Closure under Intersection</h2>
+    <div class="box definition"><span class="box-label">Definition</span><p><span class="m">A</span> ∩ <span class="m">B</span> = { <span class="m">x</span> | <span class="m">x</span> ∈ <span class="m">A</span> and <span class="m">x</span> ∈ <span class="m">B</span> }</p></div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Route 1</span><h3>Product Construction</h3></div>
+      <p>Let <span class="m">M</span><sub>1</sub>=(<span class="m">Q</span><sub>1</sub>,Σ,δ<sub>1</sub>,<span class="m">q</span><sub>1</sub>,<span class="m">F</span><sub>1</sub>) and <span class="m">M</span><sub>2</sub>=(<span class="m">Q</span><sub>2</sub>,Σ,δ<sub>2</sub>,<span class="m">q</span><sub>2</sub>,<span class="m">F</span><sub>2</sub>) be DFAs. Build <span class="m">M</span> to run both simultaneously — its states are <em>pairs</em>:</p>
+      <div class="box definition">
+        <ul>
+          <li>States: <span class="m">Q</span> = <span class="m">Q</span><sub>1</sub> × <span class="m">Q</span><sub>2</sub> = { (<span class="m">r</span><sub>1</sub>,<span class="m">r</span><sub>2</sub>) | <span class="m">r</span><sub>1</sub>∈<span class="m">Q</span><sub>1</sub>, <span class="m">r</span><sub>2</sub>∈<span class="m">Q</span><sub>2</sub> }</li>
+          <li>Start state: <span class="m">q</span><sub>0</sub> = (<span class="m">q</span><sub>1</sub>, <span class="m">q</span><sub>2</sub>)</li>
+          <li>Transitions: δ((<span class="m">r</span><sub>1</sub>,<span class="m">r</span><sub>2</sub>), <span class="m">a</span>) = (δ<sub>1</sub>(<span class="m">r</span><sub>1</sub>,<span class="m">a</span>), δ<sub>2</sub>(<span class="m">r</span><sub>2</sub>,<span class="m">a</span>))</li>
+          <li>Accept states: <span class="m">F</span> = <span class="m">F</span><sub>1</sub> × <span class="m">F</span><sub>2</sub> — a pair state is accepting only when <em>both</em> coordinates are accepting.</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 560 150" xmlns="http://www.w3.org/2000/svg">
+          <text x="20" y="24" font-family="'JetBrains Mono',monospace" font-size="11" fill="#7D2A34">M₁</text>
+          <circle cx="60" cy="50" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.8"/><text x="60" y="55" text-anchor="middle" font-size="11" font-family="JetBrains Mono, monospace" fill="#7D2A34">r</text>
+          <text x="20" y="104" font-family="'JetBrains Mono',monospace" font-size="11" fill="#22364A">M₂</text>
+          <circle cx="60" cy="130" r="16" fill="#fff" stroke="#22364A" stroke-width="1.8"/><text x="60" y="135" text-anchor="middle" font-size="11" font-family="JetBrains Mono, monospace" fill="#22364A">s</text>
+          <path d="M78,55 C150,90 220,90 280,88" stroke="#DED0AF" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+          <path d="M78,125 C150,95 220,95 280,90" stroke="#DED0AF" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+          <rect x="285" y="65" width="120" height="46" rx="6" fill="#F1E9D8" stroke="#7D2A34" stroke-width="1.8"/>
+          <text x="345" y="93" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#201C17">(r, s)</text>
+          <text x="345" y="130" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="13" fill="#5E574B">after reading the same prefix</text>
+        </svg>
+        <p class="diagram-caption">A product state (r,s) means: after the same input prefix, M₁ is in r and M₂ is in s — two programs run side by side.</p>
+      </div>
+    </div>
+
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag navy">Route 2</span><h3>De Morgan's Laws</h3></div>
+      <p>A faster route relies on what we already proved. Recall De Morgan's law for sets:</p>
+      <div class="math-block"><span class="m">A</span> ∩ <span class="m">B</span> = <span class="m">A̅</span> ∪ <span class="m">B̅</span></div>
+      <p>We already showed closure under complement (twice) and union — so <span class="m">A̅</span> ∪ <span class="m">B̅</span> is regular, and its complement <span class="m">A</span> ∩ <span class="m">B</span> is therefore regular too. No new machine required.</p>
+    </div>
+  </section>
+
+  <section id="difference">
+    <div class="eyebrow">Proof 6 of 6, part one — free from earlier work</div>
+    <h2><span class="num">§14</span>Closure under Difference</h2>
+    <div class="box definition"><span class="box-label">Definition</span><p><span class="m">A</span> \ <span class="m">B</span> = { <span class="m">x</span> | <span class="m">x</span> ∈ <span class="m">A</span> and <span class="m">x</span> ∉ <span class="m">B</span> }</p></div>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A \ B is regular</h3></div>
+      <p>Notice that <span class="m">A</span> \ <span class="m">B</span> is simply the intersection of <span class="m">A</span> with the complement of <span class="m">B</span>:</p>
+      <div class="math-block"><span class="m">A</span> \ <span class="m">B</span> = <span class="m">A</span> ∩ <span class="m">B̅</span></div>
+      <p>Since regular languages are closed under complement <em>and</em> intersection, they are automatically closed under difference. No new construction needed — this is a one-line consequence of two earlier proofs.</p>
+    </div>
+  </section>
+
+  <section id="reverse">
+    <div class="eyebrow">Proof 6 of 6, part two — arrows in reverse</div>
+    <h2><span class="num">§15</span>Closure under Reverse</h2>
+    <div class="box definition"><span class="box-label">Definition</span><p>The reverse of <span class="m">w</span> = <span class="m">c</span><sub>1</sub><span class="m">c</span><sub>2</sub>…<span class="m">c</span><sub><span class="m">n</span></sub> is <span class="m">w</span><sup><span class="m">R</span></sup> = <span class="m">c</span><sub><span class="m">n</span></sub>…<span class="m">c</span><sub>2</sub><span class="m">c</span><sub>1</sub>. The reverse of a language is <span class="m">A</span><sup><span class="m">R</span></sup> = { <span class="m">w</span><sup><span class="m">R</span></sup> | <span class="m">w</span> ∈ <span class="m">A</span> }.</p></div>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Theorem</span><h3>A<sup style="font-style:normal">R</sup> is regular</h3></div>
+      <p><strong>Proof idea:</strong> if <span class="m">M</span> accepts a string by reading it forwards, build a new machine that accepts by reading it backwards — simply reverse every arrow in the transition diagram.</p>
+      <ol class="step-stair">
+        <li><span class="step-num navy">1</span><div class="step-body"><p>Reverse the direction of every transition arrow.</p></div></li>
+        <li><span class="step-num navy">2</span><div class="step-body"><p>The old start state becomes the new single accept state.</p></div></li>
+        <li><span class="step-num navy">3</span><div class="step-body"><p>Create a brand-new start state.</p></div></li>
+        <li><span class="step-num navy">4</span><div class="step-body"><p>Draw ε-transitions from the new start state to <em>all</em> of the old accept states.</p></div></li>
+      </ol>
+      <div class="callout"><strong>Why build an NFA, not a DFA?</strong> Reversing arrows can turn a deterministic machine into a nondeterministic one — two reversed arrows on the same symbol might now leave the very same state.</div>
+    </div>
+  </section>
+
+  <section id="power-closure">
+    <div class="eyebrow">Putting the toolkit to work</div>
+    <h2><span class="num">§16</span>The Power of Closure Properties</h2>
+    <p>Once closure properties are established, we can prove new languages regular <em>without ever drawing a state diagram.</em></p>
+    <div class="proof-card">
+      <div class="proof-card-head"><span class="proof-tag">Example</span><h3>Contains 101, but doesn't end in 11</h3></div>
+      <p>Let <span class="m">L</span> be the language of strings over {0,1} that contain <code>101</code> but do not end in <code>11</code>. Is <span class="m">L</span> regular?</p>
+      <div class="box">
+        <ul>
+          <li><span class="m">L</span><sub>1</sub> = { <span class="m">w</span> | <span class="m">w</span> contains 101 } — regular (a small DFA recognizes it).</li>
+          <li><span class="m">L</span><sub>2</sub> = { <span class="m">w</span> | <span class="m">w</span> ends in 11 } — regular.</li>
+          <li><span class="m">L</span> = <span class="m">L</span><sub>1</sub> \ <span class="m">L</span><sub>2</sub>, and regular languages are closed under difference.</li>
+        </ul>
+      </div>
+      <div class="intuition"><strong>Yes, L is regular.</strong> The proof is modular: prove the small pieces regular, then combine them with a closure property. A second example: if <span class="m">A</span> = strings containing 101 and <span class="m">B</span> = strings of even length, then <span class="m">A</span> ∩ <span class="m">B</span> is regular too, for the same reason.</div>
+    </div>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part III</div>
+    <h2 id="what-regex"><span class="num">§17</span>What Is a Regular Expression?</h2>
+    <p class="section-intro">We use the regular operations to build up expressions describing languages, exactly as arithmetic operations (+, ×) build up expressions describing numbers.</p>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td><strong>Arithmetic</strong></td><td>(5 + 3) × 4 evaluates to 32</td></tr>
+          <tr><td><strong>Language</strong></td><td>(0 ∪ 1)0<sup>*</sup> evaluates to: a 0 or 1, followed by any number of 0s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>These expressions are called <strong>Regular Expressions (RE)</strong>.</p>
+  </section>
+
+  <section id="syntax-semantics">
+    <div class="eyebrow">Two layers of meaning</div>
+    <h2><span class="num">§18</span>Syntax Versus Semantics</h2>
+    <p>A regular expression is a piece of <em>syntax</em>. Its <em>meaning</em> is a language. We write <span class="m">L</span>(<span class="m">R</span>) for the language described by regex <span class="m">R</span>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Expression</th><th>Syntax?</th><th>Language</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>a symbol expression</td><td>{0}</td></tr>
+          <tr><td>0<sup>*</sup></td><td>star expression</td><td>{ε, 0, 00, 000, …}</td></tr>
+          <tr><td>0 ∪ 1</td><td>union expression</td><td>{0, 1}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="formal-def">
+    <div class="eyebrow">Six rules, applied inductively</div>
+    <h2><span class="num">§19</span>Formal Definition of a Regular Expression</h2>
+    <p><span class="m">R</span> is a regular expression if <span class="m">R</span> is one of:</p>
+    <div class="box definition">
+      <ol>
+        <li><span class="m">a</span>, for some <span class="m">a</span> in the alphabet Σ</li>
+        <li>ε (the empty string)</li>
+        <li>∅ (the empty set)</li>
+        <li>(<span class="m">R</span><sub>1</sub> ∪ <span class="m">R</span><sub>2</sub>), where <span class="m">R</span><sub>1</sub> and <span class="m">R</span><sub>2</sub> are regular expressions</li>
+        <li>(<span class="m">R</span><sub>1</sub> ◦ <span class="m">R</span><sub>2</sub>), where <span class="m">R</span><sub>1</sub> and <span class="m">R</span><sub>2</sub> are regular expressions</li>
+        <li>(<span class="m">R</span><sub>1</sub><sup>*</sup>), where <span class="m">R</span><sub>1</sub> is a regular expression</li>
+      </ol>
+    </div>
+    <p>This tells us exactly what syntactic structures are valid — and it's the reason <strong>structural induction</strong> becomes the natural proof technique for anything involving regular expressions, later in this lecture.</p>
+  </section>
+
+  <section id="semantic-def">
+    <div class="eyebrow">What each rule means</div>
+    <h2><span class="num">§20</span>The Semantic Definition L(R)</h2>
+    <p>Sipser's definition is inductive — the language of <span class="m">R</span> is defined recursively, mirroring the syntax rules exactly:</p>
+    <div class="box definition">
+      <div class="math-block">
+        <span class="m">L</span>(<span class="m">a</span>) = {<span class="m">a</span>} &nbsp;&nbsp; <span class="m">L</span>(ε) = {ε} &nbsp;&nbsp; <span class="m">L</span>(∅) = ∅<br>
+        <span class="m">L</span>(<span class="m">R</span><sub>1</sub>∪<span class="m">R</span><sub>2</sub>) = <span class="m">L</span>(<span class="m">R</span><sub>1</sub>)∪<span class="m">L</span>(<span class="m">R</span><sub>2</sub>)<br>
+        <span class="m">L</span>(<span class="m">R</span><sub>1</sub><span class="m">R</span><sub>2</sub>) = <span class="m">L</span>(<span class="m">R</span><sub>1</sub>)<span class="m">L</span>(<span class="m">R</span><sub>2</sub>)<br>
+        <span class="m">L</span>(<span class="m">R</span><sub>1</sub><sup>*</sup>) = <span class="m">L</span>(<span class="m">R</span><sub>1</sub>)<sup>*</sup>
+      </div>
+    </div>
+  </section>
+
+  <section id="shorthands">
+    <div class="eyebrow">Conveniences, not extra power</div>
+    <h2><span class="num">§21</span>Regular Expression Shorthands</h2>
+    <p>The formal definition is intentionally small. In practice, these shorthands make expressions readable:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Shorthand</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Σ</td><td>union of all alphabet symbols</td></tr>
+          <tr><td><span class="m">R</span><sup>+</sup></td><td><span class="m">RR</span><sup>*</sup></td></tr>
+          <tr><td><span class="m">R</span>?</td><td><span class="m">R</span> ∪ ε</td></tr>
+          <tr><td><span class="m">R</span><sup><span class="m">k</span></sup></td><td><span class="m">R</span> concatenated with itself <span class="m">k</span> times</td></tr>
+          <tr><td>[0-9]</td><td>0 ∪ 1 ∪ ⋯ ∪ 9</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="base-cases">
+    <div class="eyebrow">The atoms</div>
+    <h2><span class="num">§22</span>Base Cases Explained</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Expression R</th><th>Language L(R)</th></tr></thead>
+        <tbody>
+          <tr><td><span class="m">a</span></td><td>{a}</td></tr>
+          <tr><td>ε</td><td>{ε}</td></tr>
+          <tr><td>∅</td><td>{ } — the empty set</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout"><strong>Notice the distinction:</strong> ε represents the language containing one string (which happens to be empty). ∅ represents the language containing no strings at all.</div>
+  </section>
+
+  <section id="precedence">
+    <div class="eyebrow">Order of operations</div>
+    <h2><span class="num">§23</span>Precedence of Operations</h2>
+    <p>Just like BEDMAS/PEMDAS in algebra, regex operations have a strict order — highest to lowest:</p>
+    <div class="box">
+      <ol>
+        <li>Star (<sup>*</sup>)</li>
+        <li>Concatenation (◦, usually omitted)</li>
+        <li>Union (∪)</li>
+      </ol>
+    </div>
+    <p><code>0 ∪ 10*</code> means <span class="m">0</span> ∪ (1 ◦ (0<sup>*</sup>)) — <em>not</em> (0 ∪ 10)<sup>*</sup> and <em>not</em> (0 ∪ 1) ◦ 0<sup>*</sup>.</p>
+  </section>
+
+  <section id="regex-examples">
+    <div class="eyebrow">Reading regexes fluently</div>
+    <h2><span class="num">§24</span>Five Worked Examples</h2>
+    <p class="section-intro">Let Σ = {0, 1} throughout.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Expression</th><th>Language, in English</th></tr></thead>
+        <tbody>
+          <tr><td>0<sup>*</sup>10<sup>*</sup></td><td>strings containing <em>exactly</em> a single 1</td></tr>
+          <tr><td>Σ<sup>*</sup>1Σ<sup>*</sup></td><td>strings containing <em>at least</em> one 1</td></tr>
+          <tr><td>1<sup>*</sup>∅</td><td>∅ — concatenating anything with ∅ yields ∅ (like multiplying by 0)</td></tr>
+          <tr><td>∅<sup>*</sup></td><td>{ε} — star always contains ε, even when the base set is empty</td></tr>
+          <tr><td>Σ<sup>*</sup>1Σ<sup>*</sup>1Σ<sup>*</sup></td><td>strings containing <em>at least two</em> 1s (three Σ<sup>*</sup> blocks: before, between, after the two chosen 1s)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout"><strong>Translating English → regex.</strong> "Every string ends in 00" → <code>(0∪1)*00</code>. "Strings of even length" → <code>((0∪1)(0∪1))*</code>, i.e. <code>(ΣΣ)*</code> — pairs of symbols, repeated any number of times.</div>
+  </section>
+
+  <section id="empty-vs-epsilon">
+    <div class="eyebrow">The single most common mistake</div>
+    <h2><span class="num">§25</span>Common Mistake: ∅ Versus ε</h2>
+    <p>These two symbols look similar and are <em>never</em> interchangeable:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symbol</th><th>Language</th><th># of strings</th></tr></thead>
+        <tbody>
+          <tr><td>∅</td><td>no strings</td><td>0</td></tr>
+          <tr><td>ε</td><td>the empty string only</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="math-block"><span class="m">R</span>∅ = ∅ &nbsp;&nbsp;&nbsp; <span class="m">R</span>ε = <span class="m">R</span></div>
+  </section>
+
+  <section id="identities">
+    <div class="eyebrow">Simplifying like algebra</div>
+    <h2><span class="num">§26</span>Useful Regex Identities</h2>
+    <p>For any regular expression <span class="m">R</span>:</p>
+    <div class="box">
+      <ul>
+        <li><span class="m">R</span> ∪ ∅ = <span class="m">R</span></li>
+        <li><span class="m">R</span> ◦ ε = <span class="m">R</span></li>
+        <li><span class="m">R</span> ∪ <span class="m">R</span> = <span class="m">R</span></li>
+        <li>(<span class="m">R</span><sup>*</sup>)<sup>*</sup> = <span class="m">R</span><sup>*</sup></li>
+        <li><span class="m">R</span> ◦ ∅ = ∅</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="part-divider">
+    <div class="part-label">Part IV</div>
+    <h2 id="big-picture"><span class="num">§27</span>The Big Picture</h2>
+    <p class="section-intro">We now have three models on the table — DFA, NFA, and Regular Expressions — plus one bridge machine, the GNFA, used only to build the proof.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="bpArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+        <circle cx="130" cy="70" r="46" fill="#F1E9D8" stroke="#22364A" stroke-width="2"/>
+        <text x="130" y="76" text-anchor="middle" font-family="'Fraunces',serif" font-weight="600" font-size="17" fill="#22364A">DFA</text>
+        <circle cx="420" cy="70" r="46" fill="#F1E9D8" stroke="#22364A" stroke-width="2"/>
+        <text x="420" y="76" text-anchor="middle" font-family="'Fraunces',serif" font-weight="600" font-size="17" fill="#22364A">NFA</text>
+        <circle cx="275" cy="245" r="46" fill="#F1E9D8" stroke="#7D2A34" stroke-width="2"/>
+        <text x="275" y="251" text-anchor="middle" font-family="'Fraunces',serif" font-weight="600" font-size="16" fill="#7D2A34">Regex</text>
+        <rect x="248" y="150" width="90" height="34" rx="6" fill="#fff" stroke="#9C7A34" stroke-width="1.6"/>
+        <text x="293" y="172" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#9C7A34">GNFA</text>
+
+        <path d="M180,55 C260,35 290,35 372,55" fill="none" stroke="#201C17" stroke-width="1.5" marker-end="url(#bpArrow)"/>
+        <text x="275" y="35" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12.5" fill="#5E574B">trivial (a DFA is an NFA)</text>
+        <path d="M372,88 C290,110 260,110 180,88" fill="none" stroke="#201C17" stroke-width="1.5" marker-end="url(#bpArrow)"/>
+        <text x="275" y="118" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12.5" fill="#5E574B">powerset construction</text>
+
+        <path d="M305,225 C330,180 340,120 340,100" fill="none" stroke="#7D2A34" stroke-width="1.5" marker-end="url(#bpArrow)"/>
+        <text x="400" y="160" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12.5" fill="#7D2A34">Lemma 1: Thompson's construction</text>
+
+        <path d="M290,184 C285,205 280,220 278,235" fill="none" stroke="#9C7A34" stroke-width="1.5" marker-end="url(#bpArrow)"/>
+        <path d="M130,116 C170,150 210,155 248,167" fill="none" stroke="#9C7A34" stroke-width="1.5" marker-end="url(#bpArrow)"/>
+        <text x="150" y="200" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12.5" fill="#9C7A34">Lemma 2: state ripping</text>
+      </svg>
+      <p class="diagram-caption">DFA and NFA convert freely into one another; the GNFA exists purely to bridge DFA and Regex. Kleene's Theorem is what guarantees the whole circle closes.</p>
+    </div>
+  </section>
+
+  <section id="kleene-theorem">
+    <div class="eyebrow">The unifying result</div>
+    <h2><span class="num">§28</span>Kleene's Theorem</h2>
+    <div class="box">
+      <span class="box-label">Theorem (Kleene)</span>
+      <p>A language is regular if and only if some regular expression describes it.</p>
+    </div>
+    <p>This splits into two independent lemmas, proved separately below:</p>
+    <div class="box definition">
+      <ul>
+        <li><strong>Lemma 1:</strong> if a language is described by a regular expression, it is regular (it can be converted to an NFA).</li>
+        <li><strong>Lemma 2:</strong> if a language is regular (recognized by a DFA), it can be described by a regular expression.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="lemma1">
+    <div class="eyebrow">Direction one</div>
+    <h2><span class="num">§29</span>Proof of Lemma 1: RE → NFA</h2>
+    <p class="section-intro">We prove this by <strong>structural induction</strong> on the definition of a regular expression — the grammar from §19 tells us exactly which cases to handle.</p>
+    <ol class="step-stair">
+      <li><span class="step-num">1</span><div class="step-body"><span class="step-title">Handle the atomic expressions</span><p>Build NFAs directly for the three base cases: <span class="m">R</span> = <span class="m">a</span>, <span class="m">R</span> = ε, and <span class="m">R</span> = ∅.</p></div></li>
+      <li><span class="step-num">2</span><div class="step-body"><span class="step-title">Assume the smaller pieces are done</span><p>Assume <span class="m">R</span><sub>1</sub> and <span class="m">R</span><sub>2</sub> already have NFAs — this is the inductive hypothesis.</p></div></li>
+      <li><span class="step-num">3</span><div class="step-body"><span class="step-title">Build the three inductive cases</span><p>Construct NFAs for <span class="m">R</span><sub>1</sub>∪<span class="m">R</span><sub>2</sub>, <span class="m">R</span><sub>1</sub><span class="m">R</span><sub>2</sub>, and <span class="m">R</span><sub>1</sub><sup>*</sup> — by simply plugging <span class="m">N</span><sub>1</sub> and <span class="m">N</span><sub>2</sub> into the <em>exact same</em> union, concatenation, and star constructions already proved in Part II.</p></div></li>
+    </ol>
+    <div class="callout"><strong>This is why the closure proofs came first.</strong> No new machine-building ideas are needed here — this systematic translation from regex to NFA is often called <strong>Thompson's Construction</strong>, and it's just the closure proofs applied recursively.</div>
+    <div class="diagram">
+      <svg viewBox="0 0 560 130" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="baseArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+        <text x="70" y="20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">R = a</text>
+        <line x1="15" y1="55" x2="42" y2="55" stroke="#201C17" stroke-width="1.4" marker-end="url(#baseArrow)"/>
+        <circle cx="60" cy="55" r="16" fill="#fff" stroke="#22364A" stroke-width="1.8"/>
+        <line x1="76" y1="55" x2="112" y2="55" stroke="#201C17" stroke-width="1.4" marker-end="url(#baseArrow)"/>
+        <text x="94" y="45" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12" fill="#201C17">a</text>
+        <circle cx="130" cy="55" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.8"/><circle cx="130" cy="55" r="11" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+
+        <text x="270" y="20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">R = ε</text>
+        <line x1="220" y1="55" x2="247" y2="55" stroke="#201C17" stroke-width="1.4" marker-end="url(#baseArrow)"/>
+        <circle cx="266" cy="55" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.8"/><circle cx="266" cy="55" r="11" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+
+        <text x="450" y="20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">R = ∅</text>
+        <line x1="400" y1="55" x2="427" y2="55" stroke="#201C17" stroke-width="1.4" marker-end="url(#baseArrow)"/>
+        <circle cx="446" cy="55" r="16" fill="#fff" stroke="#22364A" stroke-width="1.8"/>
+        <text x="446" y="95" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12" fill="#5E574B">no accept state reachable</text>
+      </svg>
+      <p class="diagram-caption">The three base-case NFAs: a single a-labeled hop, an already-accepting single state, and an unreachable accept (nothing accepted).</p>
+    </div>
+  </section>
+
+  <section id="thompson-example">
+    <div class="eyebrow">Seeing the induction run</div>
+    <h2><span class="num">§30</span>Worked Example: Converting (ab ∪ a)* to an NFA</h2>
+    <ol class="step-stair">
+      <li><span class="step-num">1</span><div class="step-body"><span class="step-title">Build base NFAs</span><p>One tiny NFA for <span class="m">a</span>, one for <span class="m">b</span>.</p></div></li>
+      <li><span class="step-num">2</span><div class="step-body"><span class="step-title">Concatenate to get ab</span><p>Wire an ε-transition from the accept state of the <span class="m">a</span>-NFA to the start state of the <span class="m">b</span>-NFA (the concatenation construction from §9).</p></div></li>
+      <li><span class="step-num">3</span><div class="step-body"><span class="step-title">Union with a to get (ab ∪ a)</span><p>Add a new start state with ε-transitions into both the <span class="m">ab</span>-machine and a fresh <span class="m">a</span>-machine (the union construction from §8).</p></div></li>
+      <li><span class="step-num">4</span><div class="step-body"><span class="step-title">Apply star to the whole machine</span><p>Wrap the result in the star construction from §10: a new accepting start state, plus ε-loops back from every accept state.</p></div></li>
+    </ol>
+    <div class="diagram">
+      <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="thArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+        <line x1="15" y1="110" x2="47" y2="110" stroke="#201C17" stroke-width="1.5" marker-end="url(#thArrow)"/>
+        <circle cx="70" cy="110" r="22" fill="#fff" stroke="#7D2A34" stroke-width="2.2"/><circle cx="70" cy="110" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+        <text x="70" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">q₀</text>
+
+        <path d="M92,98 C140,55 190,50 230,60" fill="none" stroke="#22364A" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="150" y="52" text-anchor="middle" font-style="italic" font-size="12" fill="#22364A">ε</text>
+        <circle cx="250" cy="62" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+        <path d="M265,62 C300,62 320,62 335,62" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="300" y="52" text-anchor="middle" font-style="italic" font-size="12" fill="#201C17">a</text>
+        <circle cx="352" cy="62" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+        <path d="M367,62 C385,62 395,62 410,62" fill="none" stroke="#22364A" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="388" y="52" text-anchor="middle" font-style="italic" font-size="12" fill="#22364A">ε</text>
+        <circle cx="428" cy="62" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+        <path d="M443,62 C465,62 480,62 495,62" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="470" y="52" text-anchor="middle" font-style="italic" font-size="12" fill="#201C17">b</text>
+        <circle cx="512" cy="62" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+
+        <path d="M92,122 C140,155 190,158 230,150" fill="none" stroke="#22364A" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="150" y="168" text-anchor="middle" font-style="italic" font-size="12" fill="#22364A">ε</text>
+        <circle cx="250" cy="150" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+        <path d="M265,150 C300,150 320,150 335,150" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <text x="300" y="140" text-anchor="middle" font-style="italic" font-size="12" fill="#201C17">a</text>
+        <circle cx="352" cy="150" r="15" fill="#fff" stroke="#201C17" stroke-width="1.6"/>
+
+        <path d="M367,150 C420,150 460,120 505,80" fill="none" stroke="#7D2A34" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <path d="M527,62 C560,90 560,130 527,150" fill="none" stroke="#7D2A34" stroke-width="1.4" marker-end="url(#thArrow)"/>
+        <circle cx="512" cy="150" r="22" fill="#fff" stroke="#7D2A34" stroke-width="2.2"/><circle cx="512" cy="150" r="16" fill="#fff" stroke="#7D2A34" stroke-width="1.4"/>
+        <text x="512" y="155" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">q₀</text>
+
+        <path d="M527,80 C580,60 585,170 527,165" fill="none" stroke="#7D2A34" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#thArrow)"/>
+        <text x="600" y="120" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12" fill="#7D2A34">star loop back</text>
+      </svg>
+      <p class="diagram-caption">The finished (ab ∪ a)* NFA — two branches (ab and a) joined by union, then wrapped by star.</p>
+    </div>
+    <div class="intuition"><strong>The takeaway.</strong> Every regular expression, no matter how complicated, can be built this way — one base case or one closure construction at a time. Nothing new is invented; the machine is just assembled from the pieces already proved.</div>
+  </section>
+
+  <section id="lemma2">
+    <div class="eyebrow">Direction two — the harder half</div>
+    <h2><span class="num">§31</span>Proof of Lemma 2: DFA → RE</h2>
+    <p class="section-intro">If a language is regular, some DFA recognizes it. We need an algorithm converting that DFA into a regular expression — and for that we introduce a new machine.</p>
+    <div class="box definition">
+      <span class="box-label">Definition — GNFA</span>
+      <p>A <strong>Generalized Nondeterministic Finite Automaton</strong> is an NFA whose transitions are labeled by <em>entire regular expressions</em>, not just single symbols or ε. A transition from <span class="m">q</span><sub><span class="m">i</span></sub> to <span class="m">q</span><sub><span class="m">j</span></sub> labeled <span class="m">R</span> means: the machine may travel from <span class="m">q</span><sub><span class="m">i</span></sub> to <span class="m">q</span><sub><span class="m">j</span></sub> by reading any block of input matching <span class="m">R</span>.</p>
+    </div>
+    <div class="math-block">δ : (<span class="m">Q</span> \ {<span class="m">q</span><sub>accept</sub>}) × (<span class="m">Q</span> \ {<span class="m">q</span><sub>start</sub>}) → 𝓡</div>
+    <p>where 𝓡 is the set of all regular expressions over Σ. Every allowed ordered pair of states has exactly one regex label; if there's no real way to move from <span class="m">p</span> to <span class="m">q</span>, that label is simply ∅.</p>
+
+    <h3>The Strict Sipser Form</h3>
+    <p>For the conversion algorithm to work cleanly, we force the GNFA into a strict shape:</p>
+    <div class="box">
+      <ol>
+        <li>The start state has transitions going to <em>every</em> other state, but nothing comes in.</li>
+        <li>There is a single accept state, with transitions coming in from every other state, but nothing goes out.</li>
+        <li>The start state and accept state are different.</li>
+        <li>Except for start and accept, exactly one arrow goes from every state to every other state — including from each state to itself.</li>
+      </ol>
+    </div>
+
+    <h3>Preparing a DFA for the Algorithm</h3>
+    <ol class="step-stair">
+      <li><span class="step-num">1</span><div class="step-body"><p>Add a new start state with an ε-transition to the old start state.</p></div></li>
+      <li><span class="step-num">2</span><div class="step-body"><p>Add a new single accept state with ε-transitions coming in from all old accept states.</p></div></li>
+      <li><span class="step-num">3</span><div class="step-body"><p>If any required transition is missing, add it with the label ∅.</p></div></li>
+      <li><span class="step-num">4</span><div class="step-body"><p>If a state has multiple parallel transitions to another state (say, on <span class="m">a</span> and on <span class="m">b</span>), combine them with union: <span class="m">a</span> ∪ <span class="m">b</span>.</p></div></li>
+    </ol>
+    <div class="callout"><strong>Why bother with new start/accept states?</strong> They guarantee that exactly two states remain at the very end of the algorithm — and the single label left between them <em>is</em> the answer, with no extra case-handling required.</div>
+
+    <h3>The Core Idea: State Ripping</h3>
+    <p>Once in strict GNFA form, we successively remove ("rip") internal states one at a time, repairing the transitions between every remaining pair so the recognized language never changes. Eventually only the start and accept states remain — the single transition between them is the final regular expression.</p>
+    <div class="box definition">
+      <span class="box-label">The Ripping Formula</span>
+      <p>To rip state <span class="m">q</span><sub>rip</sub>, update the direct label between every remaining pair <span class="m">q</span><sub><span class="m">i</span></sub>, <span class="m">q</span><sub><span class="m">j</span></sub>:</p>
+      <div class="math-block">R<sub>new</sub>(<span class="m">q</span><sub><span class="m">i</span></sub>,<span class="m">q</span><sub><span class="m">j</span></sub>) = R<sub>old</sub>(<span class="m">q</span><sub><span class="m">i</span></sub>,<span class="m">q</span><sub><span class="m">j</span></sub>) ∪ ( R(<span class="m">q</span><sub><span class="m">i</span></sub>,<span class="m">q</span><sub>rip</sub>) ◦ (R(<span class="m">q</span><sub>rip</sub>,<span class="m">q</span><sub>rip</sub>))<sup>*</sup> ◦ R(<span class="m">q</span><sub>rip</sub>,<span class="m">q</span><sub><span class="m">j</span></sub>) )</div>
+      <p>In words: the old machine could go directly from <span class="m">q</span><sub><span class="m">i</span></sub> to <span class="m">q</span><sub><span class="m">j</span></sub>, <em>or</em> it could detour through <span class="m">q</span><sub>rip</sub> — possibly looping on <span class="m">q</span><sub>rip</sub>'s self-transition any number of times along the way.</p>
+    </div>
+    <div class="diagram">
+      <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="rArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#201C17"/></marker></defs>
+        <text x="150" y="20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">before ripping q(rip)</text>
+        <circle cx="60" cy="120" r="26" fill="#fff" stroke="#22364A" stroke-width="2"/><text x="60" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">qᵢ</text>
+        <circle cx="230" cy="60" r="26" fill="#fff" stroke="#7D2A34" stroke-width="2"/><text x="230" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#7D2A34">q(rip)</text>
+        <circle cx="230" cy="180" r="26" fill="#fff" stroke="#22364A" stroke-width="2"/><text x="230" y="185" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">qⱼ</text>
+        <path d="M84,105 C130,80 175,68 204,60" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#rArrow)"/><text x="130" y="65" font-size="11" font-style="italic" fill="#201C17">R₁</text>
+        <path d="M204,180 C175,150 130,130 84,132" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#rArrow)"/><text x="140" y="165" font-size="11" font-style="italic" fill="#201C17">R₃</text>
+        <path d="M56,95 C10,60 10,180 56,145" fill="none" stroke="#201C17" stroke-width="1.4" marker-end="url(#rArrow)"/><text x="10" y="120" font-size="11" font-style="italic" fill="#201C17">R₄</text>
+        <path d="M250,88 C275,110 275,130 250,152" fill="none" stroke="#7D2A34" stroke-width="1.4" marker-end="url(#rArrow)"/><text x="280" y="122" font-size="11" font-style="italic" fill="#7D2A34">R₂</text>
+
+        <text x="470" y="20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#968E7C">after ripping q(rip)</text>
+        <circle cx="400" cy="120" r="26" fill="#fff" stroke="#22364A" stroke-width="2"/><text x="400" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">qᵢ</text>
+        <circle cx="570" cy="120" r="26" fill="#fff" stroke="#22364A" stroke-width="2"/><text x="570" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#22364A">qⱼ</text>
+        <path d="M426,120 C470,120 500,120 544,120" fill="none" stroke="#201C17" stroke-width="1.5" marker-end="url(#rArrow)"/>
+        <text x="484" y="150" text-anchor="middle" font-family="'Source Serif 4',serif" font-style="italic" font-size="12" fill="#201C17">R₄ ∪ R₁R₂*R₃</text>
+      </svg>
+      <p class="diagram-caption">Ripping folds the detour through q(rip) — including any number of self-loops — directly into a single new label.</p>
+    </div>
+  </section>
+
+  <section id="different-regex">
+    <div class="eyebrow">A useful reminder</div>
+    <h2><span class="num">§32</span>Different Regexes Can Describe the Same Language</h2>
+    <p>Regular expressions are not unique. For "strings ending in 1," all three of these describe exactly the same language:</p>
+    <div class="box">
+      <ul>
+        <li>(0 ∪ 1)<sup>*</sup>1</li>
+        <li>0<sup>*</sup>1(1 ∪ 00<sup>*</sup>1)<sup>*</sup></li>
+        <li>Σ<sup>*</sup>1</li>
+      </ul>
+    </div>
+    <div class="callout"><strong>The GNFA algorithm gives <em>a</em> correct expression — not necessarily the prettiest one.</strong> Simplification afterward (using the identities from §26) is a separate, optional step.</div>
+  </section>
+
+  <section id="summary">
+    <div class="eyebrow">Closing the lecture</div>
+    <h2><span class="num">§33</span>Summary of Kleene's Theorem</h2>
+    <div class="box">
+      <ol>
+        <li>Regular expressions precisely define patterns, algebraically.</li>
+        <li>Any RE converts into an NFA — using base structures and the closure constructions (Lemma 1, Thompson's Construction).</li>
+        <li>Every NFA is equivalent to a DFA (powerset construction).</li>
+        <li>Any DFA converts back into a regular expression — using the GNFA and state ripping (Lemma 2).</li>
+      </ol>
+    </div>
+    <div class="callout"><strong>Therefore:</strong> DFAs, NFAs, and Regular Expressions all describe exactly the same class of languages — <strong>the regular languages</strong>. Every arrow in the "big picture" diagram closes the circle.</div>
+    <div class="doc-footer">
+      <span>Theory of Computation · Lecture 5 · Sheikh Azizul Hakim, BUET</span>
+      <span>Study companion built for exam prep</span>
+    </div>
+  </section>
+
+
+</div>
+</main>
+
+<button id="top-btn" aria-label="Back to top">↑</button>
+
+<script>
+// ---- scroll progress bar ----
+const progressBar = document.getElementById('progress');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progressBar.style.width = scrolled + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+// ---- mobile nav toggle ----
+const navToggle = document.getElementById('navToggle');
+const navScrim = document.getElementById('navScrim');
+navToggle.addEventListener('click', () => document.body.classList.toggle('nav-open'));
+navScrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
+document.querySelectorAll('.sidebar a').forEach(a=>{
+  a.addEventListener('click', ()=> document.body.classList.remove('nav-open'));
+});
+
+// ---- scrollspy ----
+const navLinks = Array.from(document.querySelectorAll('.sidebar a'));
+const targets = navLinks
+  .map(a => document.querySelector(a.getAttribute('href')))
+  .filter(Boolean);
+
+const spy = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    const id = '#' + entry.target.id;
+    const link = navLinks.find(a => a.getAttribute('href') === id);
+    if(!link) return;
+    if(entry.isIntersecting){
+      navLinks.forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+}, {rootMargin: '-15% 0px -75% 0px', threshold: 0});
+
+targets.forEach(t => spy.observe(t));
+
+// ---- back to top button ----
+const topBtn = document.getElementById('top-btn');
+document.addEventListener('scroll', ()=>{
+  topBtn.classList.toggle('show', window.scrollY > 600);
+}, {passive:true});
+topBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+</script>
+</body>
+</html>

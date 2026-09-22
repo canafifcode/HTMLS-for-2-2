@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSE213 — ERD to Class Diagram</title>
+<style>
+  :root{
+    --paper:#f6f1e6;
+    --paper-dark:#ece3d0;
+    --ink:#3a3226;
+    --ink-soft:#6b5f4d;
+    --line:#d8cbae;
+    --teal:#0f766e;
+    --teal-bg:#e3f2ef;
+    --amber:#b45309;
+    --amber-bg:#fdf1dd;
+    --rose:#be123c;
+    --rose-bg:#fbe4e9;
+    --sky:#0369a1;
+    --sky-bg:#e2f1fa;
+    --accent:#8a5a2b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+    line-height:1.65;
+  }
+  h1,h2,h3,h4,.tabbar,button{font-family:'Trebuchet MS',Tahoma,sans-serif;}
+  h1{font-size:1.9rem;margin:.2em 0;color:var(--accent);}
+  h2{font-size:1.5rem;color:var(--accent);border-bottom:2px solid var(--line);padding-bottom:.3em;margin-top:0;}
+  h3{font-size:1.15rem;color:var(--ink);margin-bottom:.3em;}
+  .header{
+    text-align:center;
+    padding:2rem 1rem 1rem;
+    background:linear-gradient(180deg,var(--paper-dark),var(--paper));
+    border-bottom:3px double var(--accent);
+  }
+  .header p{color:var(--ink-soft);font-style:italic;margin-top:.2em;}
+  .tabbar{
+    position:sticky;top:0;z-index:50;
+    display:flex;flex-wrap:wrap;gap:.35rem;
+    background:var(--paper-dark);
+    border-bottom:2px solid var(--line);
+    padding:.6rem .8rem;
+    justify-content:center;
+  }
+  .tabbar button{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:.45rem .8rem;
+    font-size:.85rem;
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition:.15s;
+  }
+  .tabbar button:hover{background:#fff;color:var(--ink);}
+  .tabbar button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .wrap{max-width:960px;margin:0 auto;padding:1.5rem 1.2rem 4rem;}
+  section{display:none;animation:fade .25s ease;}
+  section.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .card{
+    background:#fffdf8;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:1.1rem 1.3rem;
+    margin:1rem 0;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+  .callout{
+    border-radius:8px;
+    padding:.8rem 1rem;
+    margin:1rem 0;
+    border-left:5px solid;
+    font-size:.95rem;
+  }
+  .prof{background:var(--teal-bg);border-color:var(--teal);}
+  .exam{background:var(--amber-bg);border-color:var(--amber);}
+  .edge{background:var(--rose-bg);border-color:var(--rose);}
+  .brain{background:var(--sky-bg);border-color:var(--sky);}
+  .callout b{display:block;margin-bottom:.25em;font-family:'Trebuchet MS',sans-serif;font-size:.85rem;letter-spacing:.03em;text-transform:uppercase;}
+  .prof b{color:var(--teal);} .exam b{color:var(--amber);} .edge b{color:var(--rose);} .brain b{color:var(--sky);}
+  code, pre{font-family:'Consolas','Menlo',monospace;}
+  pre{
+    background:#2b2620;
+    color:#f1e9d8;
+    padding:1rem;
+    border-radius:8px;
+    overflow-x:auto;
+    font-size:.85rem;
+    line-height:1.5;
+  }
+  .kw{color:#7fb4ff;} .tp{color:#8fd19e;} .cm{color:#8a8477;} .str{color:#e0b96e;}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;}
+  th{background:var(--paper-dark);}
+  svg{max-width:100%;height:auto;display:block;margin:.8rem auto;}
+  .svgwrap{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:1rem;overflow-x:auto;}
+  .quiz-q{background:#fffdf8;border:1px solid var(--line);border-radius:10px;padding:1rem 1.2rem;margin:1rem 0;}
+  .opt{
+    display:block;width:100%;text-align:left;
+    background:var(--paper);border:1px solid var(--line);border-radius:6px;
+    padding:.55rem .8rem;margin:.35rem 0;cursor:pointer;font-family:Georgia,serif;font-size:.93rem;
+  }
+  .opt:hover{background:#fff;}
+  .opt.correct{background:#dcf5e3;border-color:#2f9e57;font-weight:bold;}
+  .opt.wrong{background:#f9d8dc;border-color:var(--rose);}
+  .explain{display:none;margin-top:.6rem;padding:.6rem .8rem;background:var(--teal-bg);border-left:4px solid var(--teal);border-radius:6px;font-size:.9rem;}
+  .explain.show{display:block;}
+  .navbtns{display:flex;justify-content:space-between;margin-top:2rem;}
+  .navbtns button{background:var(--accent);color:#fff;border:none;padding:.6rem 1.1rem;border-radius:6px;cursor:pointer;font-size:.9rem;}
+  .navbtns button:disabled{opacity:.35;cursor:default;}
+  .badge{display:inline-block;background:var(--accent);color:#fff;border-radius:20px;padding:.15em .7em;font-size:.75rem;font-family:'Trebuchet MS',sans-serif;margin-right:.4em;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CSE213 · Software Engineering</h1>
+  <p>Lecture 6 — From ERD to Class Diagram</p>
+</div>
+
+<div class="tabbar" id="tabbar"></div>
+
+<div class="wrap" id="content"></div>
+
+<script>
+const sections = [
+  {id:"scenario", label:"1. The Scenario"},
+  {id:"classes", label:"2. Finding Classes"},
+  {id:"relationships", label:"3. Finding Relationships"},
+  {id:"erd", label:"4. The ERD"},
+  {id:"association", label:"5. Many-to-Many"},
+  {id:"uml", label:"6. ERD → UML"},
+  {id:"attributes", label:"7. Attributes"},
+  {id:"operations", label:"8. Operations"},
+  {id:"quiz", label:"9. Quiz Yourself"},
+];
+
+const tabbar = document.getElementById('tabbar');
+const content = document.getElementById('content');
+
+sections.forEach(s=>{
+  const b = document.createElement('button');
+  b.textContent = s.label;
+  b.dataset.id = s.id;
+  b.onclick = ()=>showSection(s.id);
+  tabbar.appendChild(b);
+});
+
+function showSection(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('active', s.id===id));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nav(currentId){
+  const i = sections.findIndex(s=>s.id===currentId);
+  const prev = sections[i-1], next = sections[i+1];
+  return `<div class="navbtns">
+    <button ${!prev?'disabled':''} onclick="showSection('${prev?prev.id:''}')">← ${prev?prev.label:''}</button>
+    <button ${!next?'disabled':''} onclick="showSection('${next?next.id:''}')">${next?next.label:''} →</button>
+  </div>`;
+}
+
+content.innerHTML = `
+
+<section id="scenario">
+  <h2>The Example Scenario</h2>
+  <div class="card">
+    <p>Every ERD-to-class exercise starts the same way: <b>a paragraph of prose that hides a data model inside it.</b> Your job as a designer is to read it slowly, sentence by sentence, and translate English into structure. Here's ours:</p>
+    <p style="font-style:italic;background:var(--paper-dark);padding:.9rem 1.1rem;border-radius:8px;">
+    "The University of Toronto has several departments. Each department is managed by a chair, and at least one professor.
+    Professors must be assigned to one, but possibly more departments. At least one professor teaches each course, but a
+    professor may be on sabbatical and not teach any course. Each course may be taught more than once by different professors.
+    We know of the department name, the professor name, the professor employee id, the course names, the course schedule,
+    the term/year that the course is taught, the departments the professor is assigned to, the department that offers the course."
+    </p>
+  </div>
+
+  <div class="callout prof">
+    <b>Professor's Note</b>
+    This is a deliberately "messy" paragraph — the way real requirements documents read. There's no diagram handed to you; you have to <i>extract</i> one. The skill being tested here isn't UML syntax, it's <b>requirements analysis</b>: turning natural language into nouns (candidate classes), verbs (candidate relationships), and facts (candidate attributes).
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip — the three-pass reading technique</b>
+    On an exam, re-read the paragraph three separate times, each time hunting for one thing only:
+    <ol style="margin:.3em 0 0 1.1em;">
+      <li><b>Pass 1 — Nouns:</b> underline every noun phrase. These are candidate classes.</li>
+      <li><b>Pass 2 — Verbs:</b> underline every verb connecting two nouns ("managed by", "assigned to", "teaches"). These are candidate relationships.</li>
+      <li><b>Pass 3 — Facts:</b> underline "we know of..." style phrases. These are candidate attributes.</li>
+    </ol>
+    This is exactly the order the slides use, and exactly the order we'll follow below.
+  </div>
+</section>
+
+<section id="classes">
+  <h2>Step 1 — Finding Entity / Class Candidates</h2>
+  <div class="card">
+    <p>Scanning the paragraph for noun phrases that represent "things the system needs to remember," we get five candidates:</p>
+    <table>
+      <tr><th>Candidate</th><th>Why it qualifies</th></tr>
+      <tr><td><b>Department</b></td><td>Has its own identity (a name) and its own facts.</td></tr>
+      <tr><td><b>Chair</b></td><td>A distinct role with its own responsibility (manages a department).</td></tr>
+      <tr><td><b>Professor</b></td><td>Has identifying data (name, employee id) and participates in multiple relationships.</td></tr>
+      <tr><td><b>Course</b></td><td>Has its own name and is offered by a department.</td></tr>
+      <tr><td><b>Course Section</b></td><td>Implied — the same course can be "taught more than once by different professors," which hints at an offering/section concept distinct from the course itself.</td></tr>
+    </table>
+  </div>
+
+  <div class="callout edge">
+    <b>Edge Case — is "Chair" really a separate class?</b>
+    This is the single trickiest judgment call in the whole exercise. A chair is <i>always</i> also a professor — "managed by a chair, and at least one professor" implies the chair is drawn from the pool of professors, not a separate kind of person. That's a signal for <b>generalization/specialization</b> (an "is-a" relationship), not an independent, unrelated entity. We'll model Chair as a <i>role/subtype</i> of Professor rather than a totally separate person.
+  </div>
+
+  <div class="callout brain">
+    <b>Brainstorm</b>
+    Before reading further: if Chair is a subtype of Professor, what extra attribute (if any) would Chair need that a regular Professor doesn't have? And should "Chair" have its own Employee ID, or reuse the Professor's? Think about it — we'll answer this in the attributes section.
+  </div>
+
+  ${nav("classes")}
+</section>
+
+<section id="relationships">
+  <h2>Step 2 — Finding Relationships</h2>
+  <p>Once you have your class candidates, build a <b>relationship matrix</b> — a grid where each cell asks "how does the row entity relate to the column entity?" This forces you to systematically check every pair instead of relying on memory.</p>
+
+  <div class="svgwrap">
+    <table>
+      <tr><th></th><th>department</th><th>chair</th><th>professor</th><th>course</th></tr>
+      <tr><td><b>department</b></td><td>—</td><td>managed by</td><td>is assigned</td><td>offers</td></tr>
+      <tr><td><b>chair</b></td><td>manages</td><td>—</td><td>is a</td><td></td></tr>
+      <tr><td><b>professor</b></td><td>assigned to</td><td></td><td>—</td><td>teaches</td></tr>
+      <tr><td><b>course</b></td><td>offered by</td><td></td><td>taught by</td><td>—</td></tr>
+    </table>
+  </div>
+
+  <div class="callout prof">
+    <b>Professor's Note</b>
+    Notice the matrix is roughly symmetric across the diagonal — "manages" and "managed by" are the same relationship read in opposite directions. You only need to draw <b>one line</b> per relationship on the diagram, but the matrix helps you name both directions so you can choose the clearest label later.
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip</b>
+    Empty cells are fine and expected! Not every entity relates directly to every other entity (e.g. department and course don't need a <i>direct</i> "chair ↔ course" relationship here). Don't force relationships that aren't in the text — a common mistake is inventing associations the requirements never stated.
+  </div>
+
+  ${nav("relationships")}
+</section>
+
+<section id="erd">
+  <h2>Step 3 — Drawing the ERD with Min–Max Cardinality</h2>
+  <p>Now we place each relationship on a diagram and attach <b>(min, max)</b> pairs to each end — the number of times an instance on that side <i>must</i> (min) and <i>can</i> (max) participate.</p>
+
+  <div class="svgwrap">
+    <svg viewBox="0 0 760 620" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS, sans-serif">
+      <!-- boxes -->
+      <rect x="260" y="20" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="340" y="48" text-anchor="middle" font-size="15">Department</text>
+      <rect x="560" y="20" width="140" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="630" y="48" text-anchor="middle" font-size="15">Chair</text>
+      <rect x="260" y="280" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="340" y="308" text-anchor="middle" font-size="15">Professor</text>
+      <rect x="60" y="530" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="140" y="558" text-anchor="middle" font-size="15">Course</text>
+
+      <!-- managed by -->
+      <line x1="420" y1="43" x2="560" y2="43" stroke="#3a3226"/>
+      <polygon points="480,30 505,43 480,56" fill="none" stroke="#3a3226"/>
+      <text x="493" y="38" text-anchor="middle" font-size="12">Managed by</text>
+      <text x="430" y="35" font-size="11">(1,1)</text>
+      <text x="525" y="35" font-size="11">(1,1)</text>
+
+      <!-- is assigned -->
+      <line x1="340" y1="66" x2="340" y2="280" stroke="#3a3226"/>
+      <polygon points="327,160 340,185 353,160" fill="none" stroke="#3a3226"/>
+      <text x="410" y="178" text-anchor="middle" font-size="12">Is assigned</text>
+      <text x="350" y="90" font-size="11">(1,*)</text>
+      <text x="350" y="260" font-size="11">(1,*)</text>
+
+      <!-- is a -->
+      <line x1="420" y1="295" x2="560" y2="180" stroke="#3a3226"/>
+      <line x1="560" y1="180" x2="630" y2="66" stroke="#3a3226"/>
+      <polygon points="565,215 592,222 578,240" fill="none" stroke="#3a3226"/>
+      <text x="620" y="215" text-anchor="middle" font-size="12">Is a</text>
+      <text x="430" y="290" font-size="11">(0,1)</text>
+      <text x="600" y="90" font-size="11">(1,1)</text>
+
+      <!-- offers -->
+      <path d="M260,303 C150,303 60,350 60,450 L60,530" fill="none" stroke="#3a3226"/>
+      <polygon points="45,420 60,445 75,420" fill="none" stroke="#3a3226"/>
+      <text x="20" y="420" text-anchor="middle" font-size="12">offers</text>
+      <text x="235" y="295" font-size="11">(1,*)</text>
+      <text x="70" y="525" font-size="11">(1,1)</text>
+
+      <!-- teaches -->
+      <line x1="290" y1="326" x2="170" y2="530" stroke="#3a3226"/>
+      <polygon points="220,420 233,444 246,418" fill="none" stroke="#3a3226"/>
+      <text x="280" y="430" text-anchor="middle" font-size="12">Teaches</text>
+      <text x="292" y="345" font-size="11">(0,*)</text>
+      <text x="185" y="510" font-size="11">(1,*)</text>
+    </svg>
+    <p style="text-align:center;color:var(--ink-soft);font-size:.85rem;">Diamonds mark each relationship; (min, max) labels sit next to the entity they constrain.</p>
+  </div>
+
+  <table>
+    <tr><th>Relationship</th><th>Reading</th><th>Min–Max meaning</th></tr>
+    <tr><td>Department — Managed by — Chair</td><td>1↔1</td><td>Every department has exactly one chair; every chair manages exactly one department.</td></tr>
+    <tr><td>Department — Is assigned — Professor</td><td>(1,*)↔(1,*)</td><td>Many-to-many: a professor works in ≥1 department; a department has ≥1 professor.</td></tr>
+    <tr><td>Professor — Is a — Chair</td><td>(0,1)↔(1,1)</td><td>A professor may or may not be a chair (0 or 1); every chair <i>is</i> exactly one professor.</td></tr>
+    <tr><td>Department — offers — Course</td><td>(1,*)↔(1,1)</td><td>A department offers ≥1 courses; each course is offered by exactly one department.</td></tr>
+    <tr><td>Professor — Teaches — Course</td><td>(0,*)↔(1,*)</td><td>Many-to-many: a professor may teach 0 or more courses (sabbatical!); each course is taught ≥1 time.</td></tr>
+  </table>
+
+  <div class="callout edge">
+    <b>Edge Case — the sabbatical professor</b>
+    "A professor may be on sabbatical and not teach any course" is exactly why the Professor side of <i>Teaches</i> is <b>(0,*)</b> rather than (1,*). If the paragraph hadn't mentioned sabbaticals, you might have assumed every professor teaches at least one course. Always let the min value come from an explicit textual justification, not an assumption.
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip — reading order of (min, max)</b>
+    In this course's notation, the pair sits <i>next to</i> the entity whose participation it constrains — read it as "this entity participates min-to-max times in the relationship." A classic exam trap is mixing up which side owns which pair; always ask "how many <u>of this entity</u> can appear per one instance <u>of the other</u>?"
+  </div>
+
+  ${nav("erd")}
+</section>
+
+<section id="association">
+  <h2>Step 4 — Resolving Many-to-Many with Association Classes</h2>
+  <p>Two relationships above are <b>many-to-many</b>: <i>Is assigned</i> (Department↔Professor) and <i>Teaches</i> (Professor↔Course). Relational-style ERDs can't store attributes directly on a many-to-many line, and some attributes clearly <i>belong to the relationship itself</i>, not to either entity alone. The fix: turn the relationship into an <b>association class</b> (sometimes called an "aggregate" or "gerund" entity).</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Dept-Prof (resolves "is assigned")</h3>
+      <p>Composite identifying attributes: <b>Dept. Name + Employee ID</b> — this pair uniquely identifies one assignment record. Notice the department itself only needs a non-identifying (hollow-circle) <i>Chair Employee ID</i> as a foreign key back to Professor.</p>
+    </div>
+    <div class="card">
+      <h3>Prof-Course (resolves "teaches")</h3>
+      <p>Composite identifying attributes: <b>Employee ID + Course name</b>, plus non-identifying attributes <b>Schedule</b> and <b>Term</b>. These belong to the <i>act of teaching</i> — a specific offering — not to the professor or the course alone.</p>
+    </div>
+  </div>
+
+  <div class="svgwrap">
+    <svg viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS, sans-serif">
+      <rect x="240" y="10" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="320" y="38" text-anchor="middle" font-size="14">Department</text>
+      <circle cx="405" cy="20" r="4" fill="#3a3226"/><text x="415" y="24" font-size="11">Dept. Name</text>
+      <circle cx="405" cy="40" r="4" fill="none" stroke="#3a3226"/><text x="415" y="44" font-size="11">Chair Emp. ID (fk)</text>
+
+      <line x1="320" y1="56" x2="320" y2="110" stroke="#3a3226"/>
+      <text x="330" y="80" font-size="11">Is assigned</text>
+      <text x="330" y="70" font-size="10">(1,*)</text><text x="330" y="105" font-size="10">(1,1)</text>
+
+      <rect x="230" y="110" width="180" height="50" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="320" y="132" text-anchor="middle" font-size="13">Dept-Prof</text>
+      <circle cx="420" cy="120" r="4" fill="#3a3226"/><text x="430" y="124" font-size="10">Dept. Name</text>
+      <circle cx="420" cy="136" r="4" fill="#3a3226"/><text x="430" y="140" font-size="10">Employee ID</text>
+
+      <line x1="320" y1="160" x2="320" y2="210" stroke="#3a3226"/>
+      <text x="335" y="188" font-size="11">has</text>
+      <text x="330" y="178" font-size="10">(1,1)</text><text x="330" y="205" font-size="10">(1,*)</text>
+
+      <rect x="240" y="210" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="320" y="238" text-anchor="middle" font-size="14">Professor</text>
+      <circle cx="405" cy="222" r="4" fill="#3a3226"/><text x="415" y="226" font-size="11">Employee ID</text>
+
+      <line x1="320" y1="256" x2="320" y2="310" stroke="#3a3226"/>
+      <text x="335" y="284" font-size="11">Teaches</text>
+      <text x="330" y="274" font-size="10">(0,*)</text><text x="330" y="305" font-size="10">(1,1)</text>
+
+      <rect x="220" y="310" width="200" height="66" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="320" y="330" text-anchor="middle" font-size="13">Prof-Course</text>
+      <circle cx="430" cy="318" r="4" fill="#3a3226"/><text x="440" y="322" font-size="10">Employee ID</text>
+      <circle cx="430" cy="332" r="4" fill="#3a3226"/><text x="440" y="336" font-size="10">Course name</text>
+      <circle cx="430" cy="346" r="4" fill="none" stroke="#3a3226"/><text x="440" y="350" font-size="10">Schedule</text>
+      <circle cx="430" cy="360" r="4" fill="none" stroke="#3a3226"/><text x="440" y="364" font-size="10">Term</text>
+
+      <line x1="220" y1="345" x2="100" y2="345" stroke="#3a3226"/>
+      <line x1="100" y1="345" x2="100" y2="450" stroke="#3a3226"/>
+      <text x="120" y="400" font-size="11">has</text>
+      <text x="150" y="345" font-size="10">(1,1)</text><text x="105" y="440" font-size="10">(1,*)</text>
+
+      <rect x="20" y="450" width="160" height="46" fill="#fffdf8" stroke="#3a3226"/>
+      <text x="100" y="478" text-anchor="middle" font-size="14">Course</text>
+      <circle cx="175" cy="462" r="4" fill="#3a3226"/><text x="185" y="466" font-size="11">Course name</text>
+    </svg>
+    <p style="text-align:center;color:var(--ink-soft);font-size:.85rem;">Filled dots = identifying attributes; hollow dots = non-identifying (incl. foreign key) attributes.</p>
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip — the filled-vs-hollow dot convention</b>
+    A <b>filled circle</b> means the attribute is part of the entity's identifying key. A <b>hollow circle</b> means it's a regular or foreign-key attribute. On an association class, its identifying key is almost always the <i>combination</i> of the foreign keys pointing back to the two entities it connects — that composite key is what makes it uniquely identify "this professor, in this department" or "this professor, teaching this course, this term."
+  </div>
+
+  <div class="callout edge">
+    <b>Edge Case — why does Prof-Course need Term as part of identity, but doesn't have it?</b>
+    Look closely: <i>Schedule</i> and <i>Term</i> are hollow (non-identifying), while only <i>Employee ID + Course name</i> are filled. That means this model assumes a professor teaches a given course <b>at most once</b> total — Term is just descriptive data, not part of what makes the row unique. If the real requirement were "a professor could teach the same course in multiple different terms," Term would need to move into the identifying key too. This is a great "what if" to bring up in an exam answer to show you understand key design, not just the notation.
+  </div>
+
+  <div class="callout brain">
+    <b>Brainstorm</b>
+    Why doesn't <i>Managed by</i> (Department↔Chair) or <i>offers</i> (Department↔Course) need an association class? What's different about their multiplicities compared to <i>Is assigned</i> and <i>Teaches</i>?
+    <br><span style="color:var(--teal-bg);">.</span>
+    <details style="margin-top:.4em;"><summary style="cursor:pointer;color:var(--sky);">Reveal answer</summary>
+    Because neither side of those two relationships is many-to-many — at most one side has a "*". A 1:1 or 1:N relationship can be represented with a simple foreign key; only M:N relationships create the "which combination is this row about" problem that forces a resolving/association class.</details>
+  </div>
+
+  ${nav("association")}
+</section>
+
+<section id="uml">
+  <h2>Step 5 — Translating the ERD into a UML Class Diagram</h2>
+  <p>This is the payoff step: take everything above and redraw it in UML notation. Three translation rules do almost all the work:</p>
+
+  <div class="card">
+    <h3>Rule 1 — Multiplicity carries over directly</h3>
+    <p>ERD's (min, max) becomes UML's <code>min..max</code>. A max of "*" stays "*". So (1,*) → <code>1..*</code>, and (0,*) → <code>0..*</code>.</p>
+    <h3>Rule 2 — "Is a" becomes generalization (inheritance)</h3>
+    <p>Chair is a specialized Professor, so in UML we draw a hollow-triangle arrow from <b>Chair up to Professor</b>. The (0,1)/(1,1) multiplicities disappear — inheritance in UML doesn't carry multiplicities the way associations do; instead, "0 or 1 professors are also chairs" is now expressed structurally (some Professor objects are Chair objects, some aren't).</p>
+    <h3>Rule 3 — Ownership-style relationships become aggregation (hollow diamond)</h3>
+    <p>Where one entity "has/contains/offers" the other in a whole–part sense, place a hollow diamond at the <b>whole</b> side. Here: Department aggregates Course (via <i>offers</i>) and Department aggregates Professor (via <i>assigned</i>, since the many-to-many "Dept-Prof" concept collapses back into a plain aggregation once we're just drawing classes, not relational tables). Plain associations (no diamond) are used for relationships with no whole–part feel, like <i>teaches</i> and <i>manages</i>.</p>
+  </div>
+
+  <div class="svgwrap">
+    <svg viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg" font-family="Trebuchet MS, sans-serif">
+      <rect x="40" y="30" width="170" height="60" fill="#fffdf8" stroke="#3a3226" stroke-width="1.5"/>
+      <line x1="40" y1="55" x2="210" y2="55" stroke="#3a3226"/>
+      <text x="125" y="48" text-anchor="middle" font-size="15" font-weight="bold">Course</text>
+
+      <rect x="480" y="30" width="170" height="60" fill="#fffdf8" stroke="#3a3226" stroke-width="1.5"/>
+      <line x1="480" y1="55" x2="650" y2="55" stroke="#3a3226"/>
+      <text x="565" y="48" text-anchor="middle" font-size="15" font-weight="bold">Professor</text>
+
+      <rect x="40" y="380" width="170" height="60" fill="#fffdf8" stroke="#3a3226" stroke-width="1.5"/>
+      <line x1="40" y1="405" x2="210" y2="405" stroke="#3a3226"/>
+      <text x="125" y="398" text-anchor="middle" font-size="15" font-weight="bold">Department</text>
+
+      <rect x="480" y="380" width="170" height="60" fill="#fffdf8" stroke="#3a3226" stroke-width="1.5"/>
+      <line x1="480" y1="405" x2="650" y2="405" stroke="#3a3226"/>
+      <text x="565" y="398" text-anchor="middle" font-size="15" font-weight="bold">Chair</text>
+
+      <!-- teaches: Course - Professor -->
+      <line x1="210" y1="55" x2="480" y2="55" stroke="#3a3226"/>
+      <polygon points="220,48 205,55 220,62" fill="#3a3226"/>
+      <text x="345" y="45" text-anchor="middle" font-size="12">teaches</text>
+      <text x="225" y="72" font-size="11">0..*</text>
+      <text x="440" y="72" font-size="11">0..*</text>
+
+      <!-- assigned: Professor - Department (aggregation, diamond at Department) -->
+      <path d="M565,90 C565,240 210,240 210,405" fill="none" stroke="#3a3226"/>
+      <polygon points="210,405 200,393 220,393" fill="none" stroke="#3a3226"/>
+      <text x="390" y="230" text-anchor="middle" font-size="12">assigned</text>
+      <text x="530" y="105" font-size="11">0..*</text>
+      <text x="225" y="395" font-size="11">1..*</text>
+
+      <!-- offers: Department - Course (aggregation diamond at Department) -->
+      <polygon points="210,380 225,368 240,380 225,392" fill="#fffdf8" stroke="#3a3226"/>
+      <line x1="240" y1="380" x2="125" y2="90" stroke="#3a3226"/>
+      <text x="270" y="230" text-anchor="middle" font-size="12">offers</text>
+      <text x="140" y="105" font-size="11">1..*</text>
+      <text x="245" y="375" font-size="11">1</text>
+
+      <!-- manages: Department - Chair -->
+      <line x1="210" y1="410" x2="480" y2="410" stroke="#3a3226"/>
+      <polygon points="220,403 205,410 220,417" fill="#3a3226"/>
+      <text x="345" y="400" text-anchor="middle" font-size="12">manages</text>
+      <text x="225" y="428" font-size="11">1</text>
+      <text x="440" y="428" font-size="11">1</text>
+
+      <!-- inheritance: Chair -> Professor -->
+      <line x1="565" y1="380" x2="565" y2="90" stroke="#3a3226"/>
+      <polygon points="550,90 565,65 580,90" fill="#fffdf8" stroke="#3a3226"/>
+    </svg>
+    <p style="text-align:center;color:var(--ink-soft);font-size:.85rem;">Hollow triangle = generalization (Chair extends Professor). Hollow diamond = aggregation, sitting at the "whole" (Department).</p>
+  </div>
+
+  <div class="callout edge">
+    <b>Edge Case — where did Dept-Prof and Prof-Course go?</b>
+    This is the detail students most often miss on exams. The <b>association classes were a relational-modeling device</b> — they existed in the ERD because a many-to-many relationship can't be stored as a simple foreign key in a table. But <b>UML class diagrams support many-to-many associations natively</b> (an association line can have <code>*</code> on both ends). So unless the association itself needs its own attributes or behavior that don't belong to the objects it connects, you simply drop the resolving class and draw a direct <code>0..*</code>–<code>0..*</code> (or aggregation) association instead.
+    <br><br>
+    If <i>Prof-Course</i>'s Schedule/Term genuinely need to be modeled as first-class data with their own identity (e.g. the professor needs to update a specific offering's schedule independent of the course or professor), you'd keep it as a real class — often called an <b>association class</b> in UML too, drawn as a class box connected to the association line with a dashed line. Both slides 3–4 (ERD) and slide 5 (UML) are technically "correct" depending on how much detail the exam question wants; know both and be ready to justify your choice.
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip — aggregation vs. association: the ownership test</b>
+    Ask: <i>"if the whole is deleted, does the part still make sense as a standalone object?"</i> A Course still makes sense without its Department in principle, but the modeler decided "offers" is a strong enough containment relationship to warrant the diamond — every course must belong to exactly one department, so it behaves like a part. Compare that to "teaches," where a Professor and a Course clearly exist independently of each other; that's a plain association, no diamond.
+  </div>
+
+  ${nav("uml")}
+</section>
+
+<section id="attributes">
+  <h2>Step 6 — Adding Attributes</h2>
+  <p>With structure locked in, attach the data facts from the requirements paragraph to the class where they logically belong.</p>
+
+  <pre><span class="kw">public class</span> <span class="tp">Course</span> {
+    <span class="kw">private</span> String name;
+    <span class="kw">private</span> String schedule;
+    <span class="kw">private</span> String term;
+}
+
+<span class="kw">public class</span> <span class="tp">Professor</span> {
+    <span class="kw">private</span> String name;
+    <span class="kw">private</span> String employeeId;
+}
+
+<span class="kw">public class</span> <span class="tp">Department</span> {
+    <span class="kw">private</span> String name;
+}
+
+<span class="kw">public class</span> <span class="tp">Chair extends</span> Professor {
+    <span class="kw">private boolean</span> isChair;
+}</pre>
+
+  <div class="callout prof">
+    <b>Professor's Note</b>
+    Notice <code>Chair</code> inherits <code>name</code> and <code>employeeId</code> for free through <code>extends Professor</code> — it doesn't redeclare them. This is the payoff of modeling "is a" as inheritance rather than a plain association: no duplicated data, and it's structurally impossible for a Chair to lack an Employee ID.
+  </div>
+
+  <div class="callout edge">
+    <b>Edge Case — is "isChair" attribute redundant?</b>
+    Good exam-answer material: if <code>Chair</code> is already its own subclass, an <code>isChair</code> boolean on it is arguably redundant — the object's <i>type</i> already tells you it's a chair (<code>obj instanceof Chair</code>). This slide's choice to still add the field is a modeling judgment call, not a strict rule. It could make sense if you needed to track chair status as something that changes over time (e.g. a term-limited role) rather than a permanent type, in which case a boolean flag on Professor might have been the better design instead of subclassing at all!
+  </div>
+
+  <div class="callout brain">
+    <b>Brainstorm</b>
+    Where would you put "Chair Employee ID (fk to Professor)" now that we're in UML instead of a relational ERD? 
+    <details style="margin-top:.4em;"><summary style="cursor:pointer;color:var(--sky);">Reveal answer</summary>
+    Nowhere as an attribute — that's what the "manages" <b>association</b> between Department and Chair already expresses. Foreign keys are a relational-database concept for representing links; in UML, the association line itself <i>is</i> the link, so you never need a separate foreign-key attribute for it.</details>
+  </div>
+
+  ${nav("attributes")}
+</section>
+
+<section id="operations">
+  <h2>Step 7 — Adding Operations / Behaviors</h2>
+  <p>The final layer: what can each class <i>do</i>? Operations come from the responsibilities implied by the scenario, not the raw requirements paragraph — this is where you start doing real object-oriented design rather than just data modeling.</p>
+
+  <pre><span class="kw">public class</span> <span class="tp">Course</span> {
+    <span class="kw">private</span> String name, schedule, term;
+    <span class="kw">public void</span> modifySchedule(String newSchedule) { ... }
+}
+
+<span class="kw">public class</span> <span class="tp">Professor</span> {
+    <span class="kw">private</span> String name, employeeId;
+    <span class="kw">public void</span> prepareMaterial() { ... }
+    <span class="kw">public void</span> teachLecture() { ... }
+    <span class="kw">public void</span> evaluateAssignments() { ... }
+}
+
+<span class="kw">public class</span> <span class="tp">Department</span> {
+    <span class="kw">private</span> String name;
+    <span class="kw">public void</span> addCourse(Course c) { ... }
+    <span class="kw">public void</span> addProfessor(Professor p) { ... }
+    <span class="kw">public void</span> removeCourse(Course c) { ... }
+    <span class="kw">public void</span> removeProfessor(Professor p) { ... }
+    <span class="kw">public void</span> changeChair(Chair newChair) { ... }
+}
+
+<span class="kw">public class</span> <span class="tp">Chair extends</span> Professor {
+    <span class="kw">private boolean</span> isChair;
+    <span class="kw">public void</span> createPolicy() { ... }
+    <span class="kw">public void</span> evaluateProfessor(Professor p) { ... }
+}</pre>
+
+  <div class="callout prof">
+    <b>Professor's Note</b>
+    Look at where the operations landed: <code>addCourse</code>, <code>addProfessor</code>, and <code>changeChair</code> all live on <b>Department</b>, because Department is the aggregation "owner" — it's structurally the class responsible for managing what belongs to it. This is a direct payoff of the aggregation diamond you drew earlier: whoever holds the diamond typically also holds the add/remove responsibility for the parts it aggregates.
+  </div>
+
+  <div class="callout exam">
+    <b>Exam Tip — aggregation ⇒ management operations</b>
+    A recurring exam pattern: "given this class diagram, propose reasonable operations for class X." Use the associations as your guide — a class at the hollow-diamond end of an aggregation typically gets add/remove-style operations for its parts; a subclass in a generalization typically gets operations specific to its specialized role (like <code>createPolicy()</code> only makes sense for a Chair, not every Professor).
+  </div>
+
+  <div class="callout edge">
+    <b>Edge Case — should evaluateProfessor() take a Professor parameter?</b>
+    Yes, and this is worth noticing: <code>Chair.evaluateProfessor(Professor p)</code> takes another Professor as an argument — that's the "manages"/"is assigned" relationships showing up as method signatures, not just diagram lines. Whenever a class has an association to another class, its operations are allowed (and often expected) to reference that other class as a parameter or return type. This is how associations on a diagram translate into working code.
+  </div>
+
+  ${nav("operations")}
+</section>
+
+<section id="quiz">
+  <h2>Quiz Yourself</h2>
+  <p>Scenario-based questions in the exact style you'll see on the exam. Answers are hidden until you pick one.</p>
+  <div id="quiz-container"></div>
+</section>
+
+`;
+
+// ---- Quiz data & rendering ----
+const quiz = [
+  {
+    q: "In the ERD, the relationship between Department and Professor ('Is assigned') has multiplicity (1,*) on both ends. What does this force you to do when moving to a purely relational/table-based design?",
+    opts: [
+      "Nothing — store a foreign key on either table",
+      "Create a resolving/association class (junction entity) with a composite key",
+      "Merge Department and Professor into one table",
+      "Delete the relationship since it's ambiguous"
+    ],
+    correct: 1,
+    explain: "Many-to-many relationships can't be represented with a single foreign key in a relational design — you need a junction/association entity (here, Dept-Prof) whose composite key references both sides."
+  },
+  {
+    q: "Why does the UML class diagram NOT show 'Dept-Prof' or 'Prof-Course' as classes, even though the ERD did?",
+    opts: [
+      "UML doesn't support many-to-many relationships at all",
+      "They were merged into Department automatically",
+      "UML associations can express many-to-many directly, so the resolving class is unnecessary unless it needs its own attributes/identity",
+      "The professor made an error in the slides"
+    ],
+    correct: 2,
+    explain: "Association/junction classes are a relational-modeling workaround for tables. UML supports 0..* – 0..* associations natively, so you only keep a resolving class if the relationship itself needs first-class attributes or behavior."
+  },
+  {
+    q: "Why is Chair modeled with a generalization arrow to Professor rather than a plain association?",
+    opts: [
+      "Because Chair has more attributes than Professor",
+      "Because every Chair 'is a' Professor — it's a specialized role, not an independently existing entity",
+      "Because UML requires every class to have a parent",
+      "Because Department manages Chair"
+    ],
+    correct: 1,
+    explain: "'Is a' relationships signal generalization/specialization. A chair doesn't exist independently of being a professor, so Chair extends Professor rather than merely associating with it."
+  },
+  {
+    q: "The aggregation diamond for 'offers' sits on the Department side. What test justifies placing it there rather than on Course?",
+    opts: [
+      "Alphabetical order of class names",
+      "Department is the 'whole' that structurally owns/contains its Courses — every Course must belong to exactly one Department",
+      "Department has fewer attributes",
+      "Courses are always taught before Departments are created"
+    ],
+    correct: 1,
+    explain: "The diamond goes on the 'whole' side of a whole-part relationship. Since every course must be offered by exactly one department (max multiplicity 1 on that end), Department plays the containing/whole role."
+  },
+  {
+    q: "Why is the Professor side of the 'Teaches' relationship (0,*) instead of (1,*)?",
+    opts: [
+      "It's a typo in the original slide",
+      "Because the requirements explicitly state a professor may be on sabbatical and teach nothing",
+      "Because professors are less important than courses",
+      "Because Teaches is always optional in every ERD"
+    ],
+    correct: 1,
+    explain: "The paragraph explicitly says a professor 'may be on sabbatical and not teach any course' — that textual justification is exactly why the minimum is 0, not 1. Always trace multiplicities back to explicit text."
+  },
+  {
+    q: "In the refined ERD, why does Department show 'Chair Employee ID' as a hollow (non-identifying) circle rather than filled?",
+    opts: [
+      "Because it's a foreign key referencing Professor's identifying attribute, not part of Department's own identity",
+      "Because employee IDs are never important",
+      "Because it's optional data that might be deleted",
+      "Because Chair doesn't really need an ID"
+    ],
+    correct: 0,
+    explain: "Filled circles mark attributes that are part of an entity's own identifying key. Chair Employee ID identifies a Professor elsewhere in the model — here it's just a foreign-key reference, so it's hollow."
+  }
+];
+
+const qc = document.getElementById('quiz-container');
+quiz.forEach((item, qi)=>{
+  const div = document.createElement('div');
+  div.className = 'quiz-q';
+  div.innerHTML = `<h3><span class="badge">Q${qi+1}</span>${item.q}</h3>` +
+    item.opts.map((o,oi)=>`<button class="opt" data-qi="${qi}" data-oi="${oi}">${o}</button>`).join('') +
+    `<div class="explain" id="exp-${qi}">${item.explain}</div>`;
+  qc.appendChild(div);
+});
+
+qc.addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('opt')) return;
+  const qi = +e.target.dataset.qi, oi = +e.target.dataset.oi;
+  const parent = e.target.parentElement;
+  const buttons = parent.querySelectorAll('.opt');
+  const correctIdx = quiz[qi].correct;
+  buttons.forEach((b,i)=>{
+    b.disabled = true;
+    if(i===correctIdx) b.classList.add('correct');
+    else if(i===oi) b.classList.add('wrong');
+  });
+  document.getElementById('exp-'+qi).classList.add('show');
+});
+
+showSection('scenario');
+</script>
+</body>
+</html>

@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#f2f2f3">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f2f2f3"></rect>
+    <rect x="60" y="60" width="1080" height="680" fill="none" stroke="#5980a6" stroke-width="6"></rect>
+    <line x1="60" y1="60" x2="90" y2="60" stroke="#5980a6" stroke-width="6"></line>
+    <line x1="60" y1="60" x2="60" y2="90" stroke="#5980a6" stroke-width="6"></line>
+    <line x1="1140" y1="740" x2="1110" y2="740" stroke="#5980a6" stroke-width="6"></line>
+    <line x1="1140" y1="740" x2="1140" y2="710" stroke="#5980a6" stroke-width="6"></line>
+    <text x="600" y="380" font-family="Georgia,serif" font-size="220" fill="#5980a6" text-anchor="middle">∗</text>
+    <text x="600" y="500" font-family="Arial,sans-serif" font-size="46" letter-spacing="6" fill="#1d1f20" text-anchor="middle">CONVOLUTION</text>
+  </svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-da0e1c42-b8b8-4dd1-bd49-45ad47dcee21/styles.css">
+<script src="_ds/industry-da0e1c42-b8b8-4dd1-bd49-45ad47dcee21/_ds_bundle.js"></script>
+<style>
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+a{color:var(--color-accent)}
+a:hover{color:var(--color-accent-700)}
+</style>
+</helmet>
+
+<div style="background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);min-height:100vh">
+<div style="{{ layoutStyle }};gap:0;align-items:start">
+
+<aside style="{{ sidebarStyle }}">
+  <div style="padding:0 22px 15px;border-bottom:1px solid var(--color-divider);margin-bottom:12px">
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:7px">CSE 219 · BUET</div>
+    <div style="font-family:var(--font-heading);font-size:22px;font-weight:600;line-height:1.12">Lecture 4<br>Convolution, Causality and Stability</div>
+  </div>
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ mobileToggleOnClick }}" style="width:calc(100% - 44px);margin:0 22px 12px;text-align:left;font-family:var(--font-heading);font-weight:600;font-size:14px;background:none;border:1px solid var(--color-divider);color:var(--color-accent-700);padding:9px 12px;cursor:pointer">{{ mobileToggleLabel }} <span style="color:var(--color-accent)">▾</span></button>
+  </sc-if>
+  <div style="display:{{ tabstripDisplay }};flex-direction:column;border-left:1px solid var(--color-divider);margin-left:22px">
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);padding:4px 0 6px 12px">Orientation</div>
+    <sc-for list="{{ g0 }}" as="tab" hint-placeholder-count="1">
+      <button onClick="{{ tab.onClick }}" style="{{ tab.style }}"><span style="{{ tab.numStyle }}">{{ tab.num }}</span>{{ tab.title }}</button>
+    </sc-for>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);padding:16px 0 6px 12px">The method</div>
+    <sc-for list="{{ g1 }}" as="tab" hint-placeholder-count="2">
+      <button onClick="{{ tab.onClick }}" style="{{ tab.style }}"><span style="{{ tab.numStyle }}">{{ tab.num }}</span>{{ tab.title }}</button>
+    </sc-for>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);padding:16px 0 6px 12px">Worked examples</div>
+    <sc-for list="{{ g2 }}" as="tab" hint-placeholder-count="6">
+      <button onClick="{{ tab.onClick }}" style="{{ tab.style }}"><span style="{{ tab.numStyle }}">{{ tab.num }}</span>{{ tab.title }}</button>
+    </sc-for>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);padding:16px 0 6px 12px">System properties</div>
+    <sc-for list="{{ g3 }}" as="tab" hint-placeholder-count="4">
+      <button onClick="{{ tab.onClick }}" style="{{ tab.style }}"><span style="{{ tab.numStyle }}">{{ tab.num }}</span>{{ tab.title }}</button>
+    </sc-for>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);padding:16px 0 6px 12px">Revision</div>
+    <sc-for list="{{ g4 }}" as="tab" hint-placeholder-count="2">
+      <button onClick="{{ tab.onClick }}" style="{{ tab.style }}"><span style="{{ tab.numStyle }}">{{ tab.num }}</span>{{ tab.title }}</button>
+    </sc-for>
+  </div>
+  <div style="margin:22px 22px 0;padding-top:14px;border-top:1px solid var(--color-divider);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:.11em;color:color-mix(in srgb, var(--color-text) 55%, transparent);line-height:1.7">70 SLIDES<br>15 SECTIONS<br>2 INTERACTIVE LABS</div>
+</aside>
+
+<main style="{{ mainStyle }}">
+<div style="max-width:900px;margin:0 auto;padding:0 30px 90px">
+
+<header style="border-bottom:2px solid var(--color-text);padding:34px 0 18px;margin-bottom:34px">
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:10px">CSE 219 · Signals and Linear Systems · BUET</div>
+  <h1 style="font-family:var(--font-heading);font-weight:600;font-size:clamp(30px,5.4vw,50px);line-height:1.06;margin:0 0 8px">Convolution, Causality and Stability</h1>
+  <p style="color:color-mix(in srgb, var(--color-text) 60%, transparent);font-style:italic;font-size:16px;margin:0">Lecture 4 — the full deck, worked out, with the reasoning the slides leave implicit.</p>
+  <div style="margin-top:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);letter-spacing:.06em">INSTRUCTOR: ANIK SAHA &nbsp;·&nbsp; 70 SLIDES &nbsp;·&nbsp; 14 SECTIONS &nbsp;·&nbsp; 2 INTERACTIVE LABS</div>
+</header>
+
+<!-- 0 -->
+<section data-screen-label="00" style="display:{{ s0 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">The shape of this lecture</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Orientation · how the 70 slides fit together</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Lecture 3 told you <em>why</em> convolution is the universal input–output rule for an LTI system. Lecture 4 does two things: it makes you <em>fluent</em> at actually computing convolutions, and then it shows that two of the most important system properties — causality and stability — are both readable straight off <em>h</em>.</p>
+
+  <p>That second point is the quiet punchline of the whole lecture. For a general system, "is it causal?" and "is it stable?" are questions about infinitely many possible inputs. For an <em>LTI</em> system, both collapse into a single one-line test on one signal. That is an enormous reduction, and it is only true because of convolution.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Roadmap</span>
+    <table class="table">
+      <tr><th style="width:64px">Slides</th><th>Content</th><th style="width:110px">Here</th></tr>
+      <tr><td>2–9</td><td>Recap of the reflect–shift–multiply–add recipe, discrete and continuous</td><td>§1, §2</td></tr>
+      <tr><td>11–19</td><td>Example 2.2 — two short finite sequences</td><td>§3</td></tr>
+      <tr><td>20–27</td><td>Example 2.3 — αⁿu[n] ∗ u[n], the geometric sum</td><td>§4</td></tr>
+      <tr><td>28–34</td><td>Example 2.5 — a left-sided input</td><td>§5</td></tr>
+      <tr><td>35–40</td><td>Example 2.6 — the continuous-time integrator</td><td>§6</td></tr>
+      <tr><td>41–47</td><td>Distributivity, and Example 2.10 by splitting</td><td>§7</td></tr>
+      <tr><td>48–52</td><td>Two one-sided exponentials — neither signal is a step</td><td>§8</td></tr>
+      <tr><td>53–56</td><td>Causality: h(t) = 0 for t &lt; 0</td><td>§9</td></tr>
+      <tr><td>57–59</td><td>BIBO stability: h is absolutely integrable/summable</td><td>§10</td></tr>
+      <tr><td>60–62</td><td>The two periodicity puzzles</td><td>§11</td></tr>
+      <tr><td>63–69</td><td>Classification practice and the minimum-delay problem</td><td>§12</td></tr>
+      <tr><td>—</td><td>Exam kit, formula sheet, self-check</td><td>§13, §14</td></tr>
+    </table>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The one sentence to carry out of Lecture 4</span>
+    <p style="margin:0">Everything an LTI system will ever do — to every input, forever — is encoded in one signal <em>h</em>. Convolution reads that encoding to produce outputs; the support of <em>h</em> decides causality; the area under |<em>h</em>| decides stability.</p>
+  </div>
+
+  <h3>How to use this page</h3>
+  <p>Sections run left to right in slide order — the tab strip scrolls. Two sections contain live labs where you can drag the shift parameter and watch the overlap, the product, and the accumulating output. Margin notes are consistent throughout:</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:inline-block">Exam alert</span><p style="margin:0">A place this specific lecture has historically been tested, or a step markers deduct for skipping.</p></div>
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:inline-block">Edge case</span><p style="margin:0">The boundary the slide glosses over — n = 0, the strict-vs-weak inequality, the α = 1 case.</p></div>
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:inline-block">Brainstorm</span><p style="margin:0">A "why is it like that" question worth sitting with. These build the intuition that makes exam problems fast.</p></div>
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:inline-block">Key result</span><p style="margin:0">Memorise-and-move-on material. If you can state these cold, half the lecture is secure.</p></div>
+  </div>
+</section>
+
+<!-- 1 -->
+<section data-screen-label="01" style="display:{{ s1 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">The recipe, in discrete time</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 2–5 · reflect, shift, multiply, add</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">"Keep the first signal just as is, flip the second, slide rightward, find overlaps, then multiply-and-add." That single sentence from slide 2 is the entire computational content of convolution. The rest is bookkeeping.</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:19px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y[n] = (x ∗ h)[n] = Σ(k=−∞ to ∞) x[k]·h[n − k]</div>
+
+  <h3>Reading the formula honestly</h3>
+  <p>There are <em>two</em> different indices in that expression and confusing them is the single most common source of errors in this course. Keep them strictly separate:</p>
+
+  <table class="table">
+    <tr><th>Symbol</th><th>Role</th><th>Status inside the sum</th></tr>
+    <tr><td>k</td><td>The dummy summation index. It sweeps over every sample of the input.</td><td><strong>Varies.</strong> It is consumed by the sum and does not appear in the answer.</td></tr>
+    <tr><td>n</td><td>The output time you are currently computing.</td><td><strong>Frozen.</strong> Fixed for the whole sum. Change it and you do a brand-new sum.</td></tr>
+  </table>
+
+  <p>Slide 4 makes this concrete: you sweep across the entire k-axis of x[k], collapse everything into one number, and that number is deposited at a <em>single</em> location n on the output axis. To fill in the whole output signal, you repeat the sweep once per output sample.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · notation discipline</span>
+    <p style="margin:0">Once you write the sum, n must be treated as a constant. Writing something like "y[n] = Σ x[n]h[n−k]" — an n where a k should be — is fatal, because it silently pulls x out of the sum. Examiners look for this specific slip.</p>
+  </div>
+
+  <h3>Why h[n − k] is a reflection followed by a shift</h3>
+  <p>Slide 5 walks it in two moves, and it is worth understanding rather than memorising, because the sign conventions trip up almost everyone once.</p>
+
+  <div style="margin:18px 0">
+    <div style="display:flex;gap:14px;margin-bottom:14px;align-items:flex-start">
+      <div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600;margin-top:2px">1</div>
+      <div><p style="font-weight:600;margin:0 0 4px">Reflect: h[k] → h[−k]</p><p style="margin:0">Replacing k by −k mirrors the signal about the vertical axis. A sample that lived at k = 3 now lives at k = −3.</p></div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600;margin-top:2px">2</div>
+      <div><p style="font-weight:600;margin:0 0 4px">Shift right by n: h[−k] → h[n − k]</p><p style="margin:0">Wherever h[0] sat before, it now sits at k = n. Slide 5 checks exactly this: for h[2 − k], the value h[0] appears at k = 2.</p></div>
+    </div>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The anchor trick</span>
+    <p style="margin:0">Never re-derive the reflected picture from scratch. Just find where h[0] lands — it lands at k = n, always — and then remember that the reflected copy extends <em>backwards</em> (to smaller k) along whatever direction h originally extended forwards. If h[k] is nonzero on 0 ≤ k ≤ 2, then h[n−k] is nonzero on n−2 ≤ k ≤ n.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · which signal do you flip?</span>
+    <p style="margin:0">Convolution is commutative, so x ∗ h = h ∗ x and you may flip <em>either</em> one. Slide 58 quietly exploits this ("yes, we shuffled it!"). Practical rule: <strong>flip the simpler signal</strong> — usually the one with shorter or more regular support. Flipping a step function gives you a clean half-line window; flipping a messy finite sequence gives you a mess.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · what is convolution really doing?</span>
+    <p style="margin:0">Look at the sum again: y[n] = Σ x[k]h[n−k]. Read it as: the output <em>now</em> (at time n) is a weighted sum of <em>every</em> input sample, where an input that arrived at time k gets weight h[n−k] — a weight that depends only on <em>how long ago</em> it arrived. That "how long ago" is exactly the elapsed time n − k. So h is a memory profile: it says how strongly the system still remembers an impulse that hit it m samples ago. Causality will say the system cannot remember the future; stability will say the total memory must be finite.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section data-screen-label="02" style="display:{{ s2 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">The same recipe, in continuous time</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 6–8 · the sum becomes an integral</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Nothing conceptual changes. Samples become a continuum, the dummy index k becomes a dummy variable τ, and "add over k" becomes "integrate over τ".</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:19px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y(t) = (x ∗ h)(t) = ∫(−∞ to ∞) x(τ)·h(t − τ)·dτ</div>
+
+  <table class="table">
+    <tr><th>Step</th><th>Discrete time</th><th>Continuous time</th></tr>
+    <tr><td>1 · Pick the output location</td><td>choose n</td><td>choose t</td></tr>
+    <tr><td>2 · Reflect</td><td>h[k] → h[−k]</td><td>h(τ) → h(−τ)</td></tr>
+    <tr><td>3 · Shift</td><td>h[−k] → h[n−k]</td><td>h(−τ) → h(t−τ)</td></tr>
+    <tr><td>4 · Multiply on the overlap</td><td>x[k]·h[n−k]</td><td>x(τ)·h(t−τ)</td></tr>
+    <tr><td>5 · Accumulate</td><td>sum over k</td><td>integrate over τ</td></tr>
+  </table>
+
+  <h3>What actually gets harder in continuous time</h3>
+  <p>The recipe is identical, but two practical differences matter for exam work:</p>
+  <ul>
+    <li><strong>The answer comes in cases, and the case boundaries are the interesting part.</strong> In discrete time you can often just tabulate. In continuous time you must determine, as a function of t, what the <em>limits of integration</em> are. Slide 7 shows the general picture: the overlap runs between limits that themselves depend on t.</li>
+    <li><strong>Most of the work is finding the overlap, not doing the integral.</strong> The integrals in this lecture are all elementary — exponentials. If you set the limits correctly, the calculus takes one line.</li>
+  </ul>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The overlap procedure that never fails</span>
+    <p>Write down two inequalities and intersect them.</p>
+    <ol style="margin:0">
+      <li>Where is x(τ) nonzero? → an inequality in τ alone.</li>
+      <li>Where is h(t−τ) nonzero? → an inequality in τ involving t. <em>Solve it for τ, and remember that dividing by −1 flips the inequality.</em></li>
+      <li>Intersect. If the intersection is empty for some range of t, that range gives y(t) = 0.</li>
+      <li>The values of t where the intersection <em>changes form</em> are your case boundaries.</li>
+    </ol>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · the sign flip in step 2</span>
+    <p style="margin:0">This is where marks are lost. Example: h(t−τ) = u(t−τ) is nonzero when t − τ ≥ 0, i.e. τ ≤ t — <strong>not</strong> τ ≥ t. The reflection turns a right-sided signal into a left-sided window. Slide 49 uses exactly this. Write the inequality in the original argument first, then solve; never guess the direction.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · why single points don't matter</span>
+    <p style="margin:0">In continuous time, whether you write τ ≤ t or τ &lt; t has no effect on the integral: a single point has zero measure. This is why slide 39's answer works whether you call the boundary t &gt; 0 or t ≥ 0. In <em>discrete</em> time the opposite is true — including or excluding k = n changes the answer by a whole sample. Be strict discretely, relaxed continuously.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · why is it t − τ and not τ − t?</span>
+    <p style="margin:0">Suppose the system were memoryless with h = δ. Then y(t) = ∫x(τ)δ(t−τ)dτ = x(t) by the sifting property — the identity system, exactly as it should be. Now try the wrong sign: ∫x(τ)h(τ−t)dτ with h = δ gives the same answer, because δ is even — so this test doesn't distinguish them. Use a delay instead: h(t) = δ(t−2). The correct formula gives y(t) = x(t−2), a delay. The wrong sign gives x(t+2), an <em>advance</em> — a system that predicts the future. The minus sign is what keeps time pointing forwards.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section data-screen-label="03" style="display:{{ s3 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Example 2.2 — two short finite sequences</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 11–19 · the fully mechanical case</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Both signals have finite support, so the whole convolution is a handful of additions. Do this one until it is muscle memory, because every harder example is this one with an infinite sum bolted on.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p>x[k] has two nonzero samples: x[0] = 0.5 and x[1] = 2.<br>h[k] = 1 for k = 0, 1, 2 and zero elsewhere — a three-tap running sum.</p>
+    <p style="margin:0">Compute y[n] = x[n] ∗ h[n].</p>
+  </div>
+
+  <h3>Before computing: predict the answer's support</h3>
+  <p>This costs three seconds and catches most errors. If x is nonzero on [a₁, b₁] and h on [a₂, b₂], then y is nonzero only on [a₁+a₂, b₁+b₂]. Here: [0+0, 1+2] = <strong>[0, 3]</strong>. So expect exactly four possibly-nonzero output samples, and expect zeros outside. Slide 19 confirms it.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Support and length rule</span>
+    <p style="margin:0">Supports <strong>add</strong>. Lengths obey length(y) = length(x) + length(h) − 1. Here 2 + 3 − 1 = 4. ✓</p>
+  </div>
+
+  <h3>The five regimes of the slide</h3>
+  <p>Recall the anchor trick: h[n−k] occupies k ∈ [n−2, n], as slide 12 draws. Now slide it past x, which sits at k ∈ {0, 1}.</p>
+
+  <table class="table">
+    <tr><th>Regime</th><th>Window of h[n−k]</th><th>Overlapping samples of x</th><th>y[n]</th></tr>
+    <tr><td>n &lt; 0</td><td>[n−2, n], entirely left of 0</td><td>none</td><td>0</td></tr>
+    <tr><td>n = 0</td><td>[−2, 0]</td><td>x[0] = 0.5</td><td>0.5 × 1 = 0.5</td></tr>
+    <tr><td>n = 1</td><td>[−1, 1]</td><td>x[0], x[1]</td><td>0.5 + 2 = 2.5</td></tr>
+    <tr><td>n = 2</td><td>[0, 2]</td><td>x[0], x[1]</td><td>0.5 + 2 = 2.5</td></tr>
+    <tr><td>n = 3</td><td>[1, 3]</td><td>x[1] = 2</td><td>2</td></tr>
+    <tr><td>n &gt; 3</td><td>[n−2, n], entirely right of 1</td><td>none</td><td>0</td></tr>
+  </table>
+
+  <div style="display:inline-grid;grid-template-columns:auto auto;gap:4px 18px;text-align:left;border-left:2px solid var(--color-text);padding:8px 0 8px 12px;margin:18px 0;font-family:var(--font-heading);font-size:17px">
+    <span style="text-align:right">0.5,</span><span>n = 0</span>
+    <span style="text-align:right">2.5,</span><span>n = 1</span>
+    <span style="text-align:right">2.5,</span><span>n = 2</span>
+    <span style="text-align:right">2,</span><span>n = 3</span>
+    <span style="text-align:right">0,</span><span>otherwise</span>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · why the plateau at 2.5?</span>
+    <p style="margin:0">h is a window of three ones — a moving sum of the last three inputs. Since x is only two samples long, once the window fully covers x it keeps covering it for a while, and the output flattens. Widen h to four ones and the plateau lengthens by one; narrow it to a single 1 and h = δ and the output is just x back again. The width of h is the system's memory span.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · a zero sample inside x</span>
+    <p style="margin:0">Suppose x were {0.5, 0, 2} at k = 0, 1, 2. The support rule now predicts [0, 4], five samples — and it is right, even though one input sample is zero. Support is about the <em>outermost</em> nonzero samples, not the count of nonzero samples. Don't compress out interior zeros.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · showing your work</span>
+    <p style="margin:0">Full credit here almost always requires the sketch of h[n−k] for at least one representative n, plus an explicit statement of the overlap range in each regime. A bare table of numbers, even if correct, tends to be marked down. Draw one picture, state the ranges, then tabulate.</p>
+  </div>
+
+  <h3>Convolution lab</h3>
+  <p>Drag n and watch the mechanism: the top panel shows x[k] fixed with the reflected-and-shifted h[n−k] sliding past it, the middle shows the product sequence being summed, and the bottom fills in y[n] one sample at a time. All four discrete examples from the lecture are loaded.</p>
+
+  <div class="blueprint" style="padding:18px;margin:24px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:9px;margin-bottom:14px;gap:10px;flex-wrap:wrap">
+      <span style="font-family:var(--font-heading);font-weight:600;font-size:16px">Discrete-time convolution</span>
+      <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);font-style:italic">reflect, slide, multiply, add</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:14px">
+      <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Example</label>
+      <select class="input" value="{{ dtPreset }}" onChange="{{ dtOnPresetChange }}" style="width:auto">
+        <option value="e22">2.2 — finite sequences</option>
+        <option value="e23">2.3 — αⁿu[n] ∗ u[n]</option>
+        <option value="e25">2.5 — 2ⁿu[−n] ∗ u[n]</option>
+        <option value="e210">2.10 — split input ∗ u[n]</option>
+      </select>
+      <sc-if value="{{ dtShowAlpha }}" hint-placeholder-val="{{ false }}">
+        <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">α = <strong style="font-family:ui-monospace,monospace">{{ dtAlphaLabel }}</strong></label>
+        <input type="range" min="0.1" max="0.95" step="0.05" value="{{ dtAlpha }}" onChange="{{ dtOnAlphaChange }}" style="accent-color:var(--color-accent);width:170px">
+      </sc-if>
+      <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">shift n = <strong style="font-family:ui-monospace,monospace">{{ dtN }}</strong></label>
+      <input type="range" min="{{ dtNMin }}" max="{{ dtNMax }}" step="1" value="{{ dtN }}" onChange="{{ dtOnNChange }}" style="accent-color:var(--color-accent);width:190px">
+      <button class="btn btn-primary" onClick="{{ dtOnPlayClick }}">{{ dtPlayLabel }}</button>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">{{ dtNoteText }}</div>
+
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:10px 0 2px">x[k] in ink · reflected-and-shifted h[n−k] in accent (scaled)</div>
+    <div style="overflow-x:auto">
+      <svg viewBox="{{ dtViewBox1 }}" style="min-width:640px" font-family="ui-monospace,monospace" font-size="9">
+        <line x1="{{ dtAxisX1 }}" y1="{{ dtY01 }}" x2="{{ dtAxisXend1 }}" y2="{{ dtY01 }}" stroke="var(--color-text)" stroke-width="1"></line>
+        <sc-for list="{{ dtTick1 }}" as="tk" hint-placeholder-count="10">
+          <text x="{{ tk.x }}" y="{{ tk.labelY }}" fill="color-mix(in srgb, var(--color-text) 55%, transparent)" text-anchor="middle">{{ tk.label }}</text>
+        </sc-for>
+        <sc-for list="{{ dtXStems }}" as="p" hint-placeholder-count="12">
+          <line x1="{{ p.x }}" y1="{{ p.y0 }}" x2="{{ p.x }}" y2="{{ p.y1 }}" stroke="var(--color-text)" stroke-width="1.6"></line>
+          <circle cx="{{ p.x }}" cy="{{ p.y1 }}" r="3" fill="var(--color-text)"></circle>
+        </sc-for>
+        <sc-for list="{{ dtHStems }}" as="p" hint-placeholder-count="12">
+          <line x1="{{ p.x }}" y1="{{ p.y0 }}" x2="{{ p.x }}" y2="{{ p.y1 }}" stroke="var(--color-accent-700)" stroke-width="1.6"></line>
+          <circle cx="{{ p.x }}" cy="{{ p.y1 }}" r="2.6" fill="var(--color-accent-700)"></circle>
+        </sc-for>
+        <line x1="{{ dtVlineX }}" y1="16" x2="{{ dtVlineX }}" y2="{{ dtY01 }}" stroke="var(--color-accent)" stroke-width="1.2" stroke-dasharray="3 3"></line>
+      </svg>
+    </div>
+
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:12px 0 2px">product x[k]·h[n−k] — its total is one output sample</div>
+    <div style="overflow-x:auto">
+      <svg viewBox="{{ dtViewBox2 }}" style="min-width:640px">
+        <line x1="{{ dtAxisX2 }}" y1="{{ dtY02 }}" x2="{{ dtAxisXend2 }}" y2="{{ dtY02 }}" stroke="var(--color-text)" stroke-width="1"></line>
+        <sc-for list="{{ dtBars }}" as="b" hint-placeholder-count="6">
+          <rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.width }}" height="{{ b.height }}" fill="var(--color-accent)" opacity=".7"></rect>
+        </sc-for>
+      </svg>
+    </div>
+
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:12px 0 2px">output y[n] — filled up to the current n</div>
+    <div style="overflow-x:auto">
+      <svg viewBox="{{ dtViewBox3 }}" style="min-width:640px" font-family="ui-monospace,monospace" font-size="9">
+        <line x1="{{ dtAxisX3 }}" y1="{{ dtY03 }}" x2="{{ dtAxisXend3 }}" y2="{{ dtY03 }}" stroke="var(--color-text)" stroke-width="1"></line>
+        <sc-for list="{{ dtTick3 }}" as="tk" hint-placeholder-count="10">
+          <text x="{{ tk.x }}" y="{{ tk.labelY }}" fill="color-mix(in srgb, var(--color-text) 55%, transparent)" text-anchor="middle">{{ tk.label }}</text>
+        </sc-for>
+        <sc-for list="{{ dtOutAfter }}" as="p" hint-placeholder-count="10">
+          <line x1="{{ p.x }}" y1="{{ p.y0 }}" x2="{{ p.x }}" y2="{{ p.y1 }}" stroke="var(--color-divider)" stroke-width="2"></line>
+        </sc-for>
+        <sc-for list="{{ dtOutBefore }}" as="p" hint-placeholder-count="10">
+          <line x1="{{ p.x }}" y1="{{ p.y0 }}" x2="{{ p.x }}" y2="{{ p.y1 }}" stroke="var(--color-text)" stroke-width="2"></line>
+        </sc-for>
+        <sc-if value="{{ dtHasDot }}" hint-placeholder-val="{{ false }}">
+          <circle cx="{{ dtDotX }}" cy="{{ dtDotY }}" r="4.5" fill="var(--color-accent-700)" stroke="var(--color-bg)" stroke-width="1.4"></circle>
+        </sc-if>
+      </svg>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--color-surface);padding:10px 14px;margin-top:14px;white-space:pre-wrap;line-height:1.65">{{ dtReadout }}</div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section data-screen-label="04" style="display:{{ s4 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Example 2.3 — the geometric sum</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 20–27 · αⁿu[n] ∗ u[n], with 0 &lt; α &lt; 1</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">The first example with infinite support. The mechanics are unchanged; what's new is that the overlap now contains infinitely many candidate samples, and you must recognise the resulting sum.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p style="margin:0">x[n] = αⁿu[n], &nbsp; h[n] = u[n], &nbsp; 0 &lt; α &lt; 1. Find y[n].</p>
+  </div>
+
+  <h3>Step 1 · the reflected step is a left-facing window</h3>
+  <p>h[k] = u[k] is nonzero for k ≥ 0. Reflecting gives u[−k], nonzero for k ≤ 0. Shifting by n gives u[n−k], nonzero for k ≤ n — an infinite window with a hard <em>right</em> edge at k = n, exactly as slide 21 draws.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Memorise this pair</span>
+    <p style="margin:0">u[k] ⟹ k ≥ 0 &nbsp;(right-sided). &nbsp; u[n−k] ⟹ k ≤ n &nbsp;(left-sided, edge at n).<br>Convolving anything with u therefore means "sum everything up to now" — <strong>u is the running-accumulator system.</strong> That framing alone predicts the shape of the answer before you compute anything.</p>
+  </div>
+
+  <h3>Step 2 · intersect the two supports</h3>
+  <p>x[k] lives on k ≥ 0; h[n−k] lives on k ≤ n. Intersection: <strong>0 ≤ k ≤ n</strong>. This is empty precisely when n &lt; 0.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-size:11px">Case n &lt; 0</span><p style="margin:8px 0 0">No common k. y[n] = 0.</p></div>
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-size:11px">Case n ≥ 0</span><p style="margin:8px 0 0">Product is αᵏ on 0 ≤ k ≤ n, zero elsewhere (slide 24).</p></div>
+  </div>
+
+  <h3>Step 3 · sum the finite geometric series</h3>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:18px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y[n] = Σ(k=0 to n) αᵏ = 1 + α + α² + ⋯ + αⁿ = (1 − α^(n+1)) / (1 − α)</div>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:18px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y[n] = [(1 − α^(n+1)) / (1 − α)]&thinsp;u[n]</div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · count the terms</span>
+    <p style="margin:0">The sum from k = 0 to n has <strong>n + 1</strong> terms, not n. That is precisely where the exponent n+1 in the numerator comes from. The single most common error in this example is writing (1 − αⁿ)/(1 − α). Sanity-check at n = 0: the sum is just the single term 1, and (1 − α¹)/(1 − α) = 1 ✓, whereas the wrong version gives 0 ✗.</p>
+  </div>
+
+  <h3>Step 4 · read the shape</h3>
+  <p>As n → ∞, α^(n+1) → 0, so y[n] → 1/(1 − α). The output climbs monotonically from 1 and saturates — slide 27. Physically: the accumulator keeps adding, but the increments shrink geometrically, so the total converges.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · what if α ≥ 1?</span>
+    <p>The problem <em>states</em> 0 &lt; α &lt; 1, and that restriction is load-bearing. Explore the alternatives, because they are natural exam variations:</p>
+    <ul style="margin:0">
+      <li><strong>α = 1:</strong> the closed form 0/0 breaks down. Go back to the sum: 1 + 1 + ⋯ + 1 = n + 1. So y[n] = (n+1)u[n], a ramp. This is u ∗ u — the accumulator fed a constant.</li>
+      <li><strong>α &gt; 1:</strong> the closed form is still algebraically valid for each finite n, but the output now <em>grows without bound</em>. The system is still stable (h = u is not, actually — see below), but the input itself is unbounded.</li>
+      <li><strong>α &lt; 0:</strong> formula still holds; the output oscillates as it converges to 1/(1−α).</li>
+    </ul>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · the system here is <em>not</em> stable</span>
+    <p style="margin:0">h[n] = u[n] has Σ|h[n]| = ∞, so by §10's test the accumulator is <strong>BIBO unstable</strong>. Yet here it produced a bounded output. No contradiction: BIBO stability requires <em>every</em> bounded input to give a bounded output. The particular input αⁿu[n] happens to decay fast enough. Feed it the bounded input x[n] = u[n] instead and you get the unbounded ramp (n+1)u[n] — one counterexample is all it takes. <strong>This example and §10 are designed to be read together.</strong></p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section data-screen-label="05" style="display:{{ s5 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Example 2.5 — a left-sided input</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 28–34 · 2ⁿu[−n] ∗ u[n]</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Same accumulator, but now the input lives in the <em>past</em> and grows toward n = 0. The case split moves, and the geometric sum becomes an infinite one.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p style="margin:0">x[n] = 2ⁿu[−n], &nbsp; h[n] = u[n].</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · is 2ⁿu[−n] growing or decaying?</span>
+    <p style="margin:0">Read it carefully. u[−n] is nonzero for n ≤ 0, so we only ever evaluate 2ⁿ at negative n: 2⁰ = 1, 2⁻¹ = ½, 2⁻² = ¼, … The signal <strong>decays as you move left</strong> and peaks at n = 0. Despite the base being 2, this is a decaying, absolutely-summable signal. Students routinely mis-sketch this as exploding.</p>
+  </div>
+
+  <h3>The two cases</h3>
+  <p>x[k] lives on k ≤ 0. h[n−k] lives on k ≤ n. The intersection is k ≤ min(0, n) — and that min is what creates the split. Note there is no n for which the overlap is empty, so y is never identically zero.</p>
+
+  <table class="table">
+    <tr><th>Case</th><th>Overlap</th><th>Sum</th><th>Value</th></tr>
+    <tr><td>n &lt; 0</td><td>k ≤ n</td><td>Σ(k=−∞ to n) 2ᵏ = 2ⁿ + 2ⁿ⁻¹ + ⋯</td><td>2ⁿ⁺¹</td></tr>
+    <tr><td>n ≥ 0</td><td>k ≤ 0</td><td>Σ(k=−∞ to 0) 2ᵏ = ⋯ + ⅛ + ¼ + ½ + 1</td><td>2</td></tr>
+  </table>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Summing a left-infinite geometric series</span>
+    <p>The trick on slides 32–33: factor out the <em>largest</em> term, which is the one at the right edge.</p>
+    <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:10px auto;padding:10px">Σ(k=−∞ to n) 2ᵏ = 2ⁿ(1 + ½ + ¼ + ⋯) = 2ⁿ · 1/(1 − ½) = 2ⁿ · 2 = 2ⁿ⁺¹</div>
+    <p style="margin:0">General form: a two-sided-decaying tail summed leftwards from its largest term rⁿ with ratio 1/r gives rⁿ/(1 − 1/r) = rⁿ⁺¹/(r − 1). Here r = 2 and the denominator is 1.</p>
+  </div>
+
+  <div style="display:inline-grid;grid-template-columns:auto auto;gap:4px 18px;text-align:left;border-left:2px solid var(--color-text);padding:8px 0 8px 12px;margin:18px 0;font-family:var(--font-heading);font-size:17px">
+    <span style="text-align:right">2ⁿ⁺¹,</span><span>n &lt; 0</span>
+    <span style="text-align:right">2,</span><span>n ≥ 0</span>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · check continuity at the seam</span>
+    <p style="margin:0">At n = −1 the first branch gives 2⁰ = 1; at n = 0 the second gives 2. The jump from 1 to 2 is exactly x[0] = 1, the last sample the accumulator swallowed. Whenever your answer comes in cases, evaluate both branches near the boundary and confirm the step matches the sample you just added. It catches off-by-one errors instantly.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · why does the output stop changing after n = 0?</span>
+    <p style="margin:0">Because the accumulator has, by then, already collected <em>everything</em> the input will ever deliver — x is zero for all n &gt; 0. From that moment the running total is frozen at Σx[k] = 2. So the final constant value of x ∗ u is always the <strong>total sum of the input</strong>, whenever that sum converges. Use this as a one-second check on any convolution-with-a-step problem.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section data-screen-label="06" style="display:{{ s6 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Example 2.6 — the continuous integrator</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 35–40 · e^(−at)u(t) ∗ u(t), a &gt; 0</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">The continuous twin of Example 2.3. Convolving with u(t) is integration from −∞ to now, so this is "the running integral of a decaying exponential".</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p style="margin:0">x(t) = e^(−at)u(t), &nbsp; h(t) = u(t), &nbsp; a &gt; 0.</p>
+  </div>
+
+  <h3>Finding the overlap</h3>
+  <ul>
+    <li>x(τ) = e^(−aτ)u(τ) is nonzero for <strong>τ ≥ 0</strong>.</li>
+    <li>h(t−τ) = u(t−τ) is nonzero when t−τ ≥ 0, i.e. <strong>τ ≤ t</strong>.</li>
+    <li>Intersection: <strong>0 ≤ τ ≤ t</strong> — empty exactly when t &lt; 0.</li>
+  </ul>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:17px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y(t) = ∫(0 to t) e^(−aτ)dτ = [−(1/a)e^(−aτ)] from 0 to t = (1/a)(1 − e^(−at))</div>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:18px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y(t) = (1/a)(1 − e^(−at))&thinsp;u(t)</div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Three checks worth doing every time</span>
+    <ul style="margin:0">
+      <li><strong>Initial value:</strong> y(0) = (1/a)(1 − 1) = 0 ✓ — an integral over a zero-width interval must vanish.</li>
+      <li><strong>Final value:</strong> y(∞) = 1/a ✓ — and indeed ∫₀^∞e^(−aτ)dτ = 1/a, the total area of the input. Same principle as §5's brainstorm.</li>
+      <li><strong>Initial slope:</strong> y′(0⁺) = e⁰ = 1 = x(0⁺) ✓ — the derivative of a running integral is the integrand.</li>
+    </ul>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · a → 0</span>
+    <p style="margin:0">Let a → 0⁺. Then x(t) → u(t), and the answer should become the ramp t&thinsp;u(t). Check: (1/a)(1 − e^(−at)) ≈ (1/a)(at − a²t²/2 + ⋯) → t ✓. The 1/a blow-up and the vanishing bracket cancel exactly. This is the continuous analogue of the α → 1 case in §4.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · don't lose the u(t)</span>
+    <p style="margin:0">Writing y(t) = (1/a)(1 − e^(−at)) without the trailing u(t) is wrong: that expression is <em>negative</em> for t &lt; 0, whereas the true answer is zero there. Either attach the step or state the cases explicitly. Half-credit lives here.</p>
+  </div>
+
+  <h3>Continuous convolution lab</h3>
+  <p>Slide t and watch the shaded overlap grow. The area of the shaded region <em>is</em> y(t), plotted below as it accumulates.</p>
+
+  <div class="blueprint" style="padding:18px;margin:24px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--color-divider);padding-bottom:9px;margin-bottom:14px;gap:10px;flex-wrap:wrap">
+      <span style="font-family:var(--font-heading);font-weight:600;font-size:16px">Continuous-time convolution</span>
+      <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);font-style:italic">sliding overlap and its area</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:14px">
+      <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Example</label>
+      <select class="input" value="{{ ctPreset }}" onChange="{{ ctOnPresetChange }}" style="width:auto">
+        <option value="e26">2.6 — e^(−at)u(t) ∗ u(t)</option>
+        <option value="two">§8 — eᵗu(−t) ∗ e⁻ᵗu(t)</option>
+      </select>
+      <sc-if value="{{ ctShowA }}" hint-placeholder-val="{{ true }}">
+        <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">a = <strong style="font-family:ui-monospace,monospace">{{ ctALabel }}</strong></label>
+        <input type="range" min="0.3" max="3" step="0.1" value="{{ ctA }}" onChange="{{ ctOnAChange }}" style="accent-color:var(--color-accent);width:170px">
+      </sc-if>
+      <label style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">shift t = <strong style="font-family:ui-monospace,monospace">{{ ctTLabel }}</strong></label>
+      <input type="range" min="-40" max="60" step="1" value="{{ ctT }}" onChange="{{ ctOnTChange }}" style="accent-color:var(--color-accent);width:190px">
+      <button class="btn btn-primary" onClick="{{ ctOnPlayClick }}">{{ ctPlayLabel }}</button>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">{{ ctNoteText }}</div>
+
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:10px 0 2px">x(τ) solid ink · h(t−τ) dashed accent · shaded = their product</div>
+    <div style="overflow-x:auto">
+      <svg viewBox="{{ ctViewBox1 }}" style="min-width:640px">
+        <line x1="{{ ctAxisX1 }}" y1="{{ ctY0p1 }}" x2="{{ ctAxisXend1 }}" y2="{{ ctY0p1 }}" stroke="var(--color-text)" stroke-width="1"></line>
+        <sc-for list="{{ ctTick1 }}" as="tk" hint-placeholder-count="8">
+          <text x="{{ tk.x }}" y="{{ ctTickY1 }}" fill="color-mix(in srgb, var(--color-text) 55%, transparent)" text-anchor="middle" font-size="9" font-family="ui-monospace,monospace">{{ tk.label }}</text>
+        </sc-for>
+        <path d="{{ ctAreaPath }}" fill="var(--color-accent)" opacity=".22"></path>
+        <path d="{{ ctXPath }}" fill="none" stroke="var(--color-text)" stroke-width="2"></path>
+        <path d="{{ ctHPath }}" fill="none" stroke="var(--color-accent-700)" stroke-width="1.8" stroke-dasharray="5 3"></path>
+        <line x1="{{ ctVlineX1 }}" y1="16" x2="{{ ctVlineX1 }}" y2="{{ ctPanelBottom1 }}" stroke="var(--color-accent)" stroke-width="1.2" stroke-dasharray="3 3"></line>
+      </svg>
+    </div>
+
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:12px 0 2px">y(t) = area of the shaded region, traced as t advances</div>
+    <div style="overflow-x:auto">
+      <svg viewBox="{{ ctViewBox2 }}" style="min-width:640px">
+        <line x1="{{ ctAxisX2 }}" y1="{{ ctY0p2 }}" x2="{{ ctAxisXend2 }}" y2="{{ ctY0p2 }}" stroke="var(--color-text)" stroke-width="1"></line>
+        <sc-for list="{{ ctTick2 }}" as="tk" hint-placeholder-count="10">
+          <text x="{{ tk.x }}" y="{{ ctTickY2 }}" fill="color-mix(in srgb, var(--color-text) 55%, transparent)" text-anchor="middle" font-size="9" font-family="ui-monospace,monospace">{{ tk.label }}</text>
+        </sc-for>
+        <path d="{{ ctYPathAll }}" fill="none" stroke="var(--color-divider)" stroke-width="2"></path>
+        <path d="{{ ctYPathBefore }}" fill="none" stroke="var(--color-accent-700)" stroke-width="2.4"></path>
+        <circle cx="{{ ctDotX }}" cy="{{ ctDotY }}" r="4.5" fill="var(--color-accent-700)" stroke="var(--color-bg)" stroke-width="1.4"></circle>
+      </svg>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--color-surface);padding:10px 14px;margin-top:14px;white-space:pre-wrap;line-height:1.65">{{ ctReadout }}</div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section data-screen-label="07" style="display:{{ s7 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Distributivity, and Example 2.10</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 41–47 · split a hard input into two easy ones</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Convolution distributes over addition. That is not a curiosity — it is a problem-solving strategy, and slide 43's "oops, different expressions on the left and right side!" is the cue to use it.</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:17px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">x ∗ (h₁ + h₂) = x ∗ h₁ + x ∗ h₂ &nbsp;&nbsp;&nbsp;&nbsp; (x₁ + x₂) ∗ h = x₁ ∗ h + x₂ ∗ h</div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · where does distributivity come from?</span>
+    <p style="margin:0">Two ways to see it. <strong>Algebraically:</strong> the convolution sum is linear in each argument, and sums pull apart. <strong>Systemically:</strong> the second identity is exactly the <em>superposition</em> half of linearity — feed a sum of inputs, get the sum of outputs. The first identity says something different and more interesting: two systems in <strong>parallel</strong>, with their outputs added, form a single LTI system whose impulse response is h₁ + h₂. Compare with the associativity result (systems in <strong>cascade</strong> ⟹ impulse responses convolve). Parallel adds, series convolves.</p>
+  </div>
+
+  <h3>Example 2.10</h3>
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p style="margin:0">x[n] = (½)ⁿu[n] + 2ⁿu[−n], &nbsp; h[n] = u[n].</p>
+  </div>
+
+  <p>Attempting this directly is painful: the formula for x[k] <em>changes</em> at k = 0, so any single sum has to be broken up anyway. Slide 44's move is to break it up <em>at the top</em> instead:</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">x₁[n] = (½)ⁿu[n] &nbsp;&nbsp;·&nbsp;&nbsp; x₂[n] = 2ⁿu[−n] &nbsp;&nbsp;⟹&nbsp;&nbsp; y = x₁∗h + x₂∗h = y₁ + y₂</div>
+
+  <p>And now <em>both pieces are already solved</em>:</p>
+
+  <table class="table">
+    <tr><th>Piece</th><th>Source</th><th>Result</th></tr>
+    <tr><td>y₁ = (½)ⁿu[n] ∗ u[n]</td><td>Example 2.3 with α = ½</td><td>(2 − 2⁻ⁿ)u[n]</td></tr>
+    <tr><td>y₂ = 2ⁿu[−n] ∗ u[n]</td><td>Example 2.5, verbatim</td><td>2ⁿ⁺¹ for n &lt; 0; &nbsp; 2 for n ≥ 0</td></tr>
+  </table>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · the algebra in y₁</span>
+    <p style="margin:0">Example 2.3 gives (1 − α^(n+1))/(1 − α). With α = ½: denominator ½, so the whole thing is 2(1 − (½)^(n+1)) = 2 − 2·2⁻ⁿ⁻¹ = 2 − 2⁻ⁿ. Check n = 0: 2 − 1 = 1 ✓ (only the k = 0 term contributes). Check n → ∞: → 2 ✓ = total input sum Σ(½)ᵏ.</p>
+  </div>
+
+  <h3>Adding the pieces</h3>
+  <p>Careful: the two answers have <em>different</em> case structures, but both break at n = 0, so they align.</p>
+  <ul>
+    <li><strong>n &lt; 0:</strong> y₁ = 0 (its u[n] kills it) and y₂ = 2ⁿ⁺¹. So y = 2ⁿ⁺¹.</li>
+    <li><strong>n ≥ 0:</strong> y = (2 − 2⁻ⁿ) + 2 = 4 − 2⁻ⁿ.</li>
+  </ul>
+
+  <div style="display:inline-grid;grid-template-columns:auto auto;gap:4px 18px;text-align:left;border-left:2px solid var(--color-text);padding:8px 0 8px 12px;margin:18px 0;font-family:var(--font-heading);font-size:17px">
+    <span style="text-align:right">2ⁿ⁺¹,</span><span>n &lt; 0</span>
+    <span style="text-align:right">4 − 2⁻ⁿ,</span><span>n ≥ 0</span>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Sanity check on the final value</span>
+    <p style="margin:0">The output must converge to the total sum of the input. Here x is <em>defined</em> as the sum of the two expressions, so x[0] = 1 + 1 = 2, matching the total 2 + 2 = 4 = y[∞]. Slide 47 draws exactly this.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · the double-counted sample</span>
+    <p style="margin:0">Notice x[0] = (½)⁰ + 2⁰ = 2, because both u[n] and u[−n] equal 1 at n = 0. Slide 42's sketch shows the value 2 at the origin. If a problem instead defines the signal piecewise ("(½)ⁿ for n &gt; 0, 2ⁿ for n ≤ 0"), the origin is counted <em>once</em> and your split must subtract the duplicate. Read which one you were given.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section data-screen-label="08" style="display:{{ s8 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Two one-sided exponentials</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 48–52 · when neither signal is a step</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Every earlier example had u as one of the two signals, which made the reflected window trivially a half-line. Here both signals decay, so the integrand is genuinely a function of τ on both sides. This is the template for real exam problems.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The problem</span>
+    <p style="margin:0">x(t) = eᵗu(−t) &nbsp;(left-sided, peaks at 0), &nbsp; h(t) = e⁻ᵗu(t) &nbsp;(right-sided, peaks at 0).</p>
+  </div>
+
+  <h3>Step 1 · the two supports</h3>
+  <ul>
+    <li>x(τ) = eᵗu(−τ) ≠ 0 ⟺ <strong>τ ≤ 0</strong>.</li>
+    <li>h(t−τ) = e⁻⁽ᵗ⁻ᵗᵃᵘ⁾u(t−τ) ≠ 0 ⟺ <strong>τ ≤ t</strong>.</li>
+    <li>Overlap: τ ≤ min(0, t). <strong>Never empty</strong> — so y(t) is nonzero for all t, and there is no "no overlap" case here.</li>
+  </ul>
+
+  <h3>Step 2 · the integrand simplifies beautifully</h3>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:17px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">x(τ)h(t−τ) = eᵗ · e⁻⁽ᵗ⁻ᵗᵃᵘ⁾ = e⁻ᵗ&thinsp;e²ᵗᵃᵘ</div>
+  <p>Because t is frozen, e⁻ᵗ is a <em>constant</em> and pulls straight out of the integral. Everything left is ∫e²ᵗᵃᵘdτ.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The general move</span>
+    <p style="margin:0">Whenever the integrand factors as (function of t only) × (function of τ only), pull the t-part out. What remains is a pure τ-integral whose only t-dependence is in the <em>limits</em>. This is why exponential-times-exponential problems are tractable at all.</p>
+  </div>
+
+  <h3>Step 3 · two cases from the min</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-size:11px">Case t &lt; 0 → min is t</span><p style="margin:8px 0 0;font-family:var(--font-heading);font-size:15px">y(t) = e⁻ᵗ∫₋∞ᵗe²ᵗᵃᵘdτ = e⁻ᵗ·e²ᵗ/2 = ½eᵗ</p></div>
+    <div class="blueprint" style="padding:14px 16px"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i><span class="tag tag-neutral" style="font-size:11px">Case t ≥ 0 → min is 0</span><p style="margin:8px 0 0;font-family:var(--font-heading);font-size:15px">y(t) = e⁻ᵗ∫₋∞⁰e²ᵗᵃᵘdτ = e⁻ᵗ·½ = ½e⁻ᵗ</p></div>
+  </div>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:18px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">y(t) = ½e^(−|t|)</div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · why is the answer even?</span>
+    <p style="margin:0">Look at the inputs: h(t) = e⁻ᵗu(t) and x(t) = eᵗu(−t) = h(−t). So we are convolving a signal with its own reflection. That operation is <strong>autocorrelation</strong>, and the autocorrelation of any real signal is always an even function — with its maximum at the origin, which is precisely where the two copies align best. The peak value ½ is ∫h² = ∫₀^∞e⁻²ᵗdt = ½, the energy of h. Recognising this structure lets you predict the entire shape before integrating.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · what if both decay at the <em>same</em> rate on the same side?</span>
+    <p style="margin:0">Try x = h = e⁻ᵗu(t). Now the overlap is 0 ≤ τ ≤ t and the integrand is e⁻ᵗe⁻⁽ᵗ⁻ᵗᵃᵘ⁾ = e⁻ᵗ, <em>independent of τ</em>. The integral is just e⁻ᵗ × (length t), giving y(t) = t&thinsp;e⁻ᵗu(t). That extra factor of t is the hallmark of a repeated rate — and it is exactly h₂ from slide 63. Equal rates produce a t; distinct rates a ≠ b produce (e⁻ᵃᵗ − e⁻ᵇᵗ)/(b − a). Know both.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · one signal on each side is the easy case</span>
+    <p style="margin:0">Because x is left-sided and h right-sided, the overlap is never empty and there are only <strong>two</strong> cases. If instead both were right-sided you would get "no overlap" plus "partial overlap" — also two cases, but with a zero region. If both have <em>finite</em> support you can get four or five cases. Count your cases before integrating: the number of case boundaries equals the number of distinct "edge collision" events as the sliding signal passes.</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section data-screen-label="09" style="display:{{ s9 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Causality — no time travel, please</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 53–56 · h(t) = 0 for t &lt; 0</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">A causal system's output at time t depends only on the input up to time t. For a general system that is a statement about infinitely many inputs. For an LTI system it collapses into a statement about one signal.</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:17px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)"><strong>Continuous:</strong>&nbsp; causal ⟺ h(t) = 0 for all t &lt; 0<br><strong>Discrete:</strong>&nbsp; causal ⟺ h[n] = 0 for all n &lt; 0</div>
+
+  <h3>Why the test is exactly this</h3>
+  <p>Slide 55 gives the intuition and it is worth stating precisely, because "prove the causality condition" is a standard exam item.</p>
+
+  <div style="margin:18px 0">
+    <div style="display:flex;gap:14px;margin-bottom:14px;align-items:flex-start">
+      <div style="flex:0 0 auto;width:30px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600;margin-top:2px">⟸</div>
+      <div><p style="font-weight:600;margin:0 0 4px">If h(t) = 0 for t &lt; 0, the system is causal.</p><p style="margin:0">Write y(t) = ∫h(τ)x(t−τ)dτ (the commuted form). Since h(τ) vanishes for τ &lt; 0, the integral runs only over τ ≥ 0, so it only ever reads x at arguments t − τ ≤ t. Past and present only. ✓</p></div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:0 0 auto;width:30px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600;margin-top:2px">⟹</div>
+      <div><p style="font-weight:600;margin:0 0 4px">If the system is causal, then h(t) = 0 for t &lt; 0.</p><p style="margin:0">h is by definition the response to δ(t), an input that is zero everywhere before t = 0. A causal system fed an input that is zero up to time 0 must produce an output that is zero up to time 0. Hence h(t) = 0 for t &lt; 0. ✓ Slide 55's caption — "nothing before" the poke — is exactly this argument.</p></div>
+    </div>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The reading of the picture</span>
+    <p style="margin:0">Causality is a statement about the <strong>support</strong> of h, and nothing else. Its size, sign, shape, and growth rate are all irrelevant. Ask one question: <em>is there any nonzero value strictly to the left of the origin?</em> If yes, non-causal. If no, causal.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · the boundary point t = 0</span>
+    <p style="margin:0">The condition is h(t) = 0 for t &lt; <strong>0</strong>, strictly. A nonzero value <em>at</em> t = 0 is perfectly causal — indeed h = δ(t) is the identity system, the most causal system there is. Likewise h[0] ≠ 0 is fine in discrete time; that is just an instantaneous (memoryless) contribution.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · causal ≠ memoryless</span>
+    <p style="margin:0">Two different properties. <strong>Memoryless</strong> means output at t depends only on the input <em>at</em> t — for LTI that forces h(t) = cδ(t). <strong>Causal</strong> only forbids the future. Every memoryless system is causal; almost no causal system is memoryless.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · are non-causal systems useless?</span>
+    <p style="margin:0">Not at all — they are just not implementable in <em>real time</em>. If your independent variable is space rather than time (image processing) there is no arrow of causality to respect: a blur kernel centred on a pixel reads neighbours on both sides. And if you have recorded data stored on disk, "the future" is already available, so offline filtering with a non-causal h is routine. Non-causality is a constraint on <em>streaming</em>, not on mathematics.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · causality of an <em>input signal</em></span>
+    <p style="margin:0">The lecture also uses the word for signals (slides 68–69): a signal is called causal if it is zero for t &lt; 0. Same condition, different object. Read whether you are being asked about a system's h or about a signal x.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section data-screen-label="10" style="display:{{ s10 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Stability — bounded in, bounded out</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 57–59 · absolute integrability of h</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">BIBO stability: <em>every</em> input bounded by some B must produce an output bounded by some finite number. Again, for LTI systems it reduces to one integral.</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:17px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)"><strong>Continuous:</strong>&nbsp; stable ⟺ ∫(−∞ to ∞) |h(t)|dt &lt; ∞ <br><strong>Discrete:</strong>&nbsp; stable ⟺ Σ(n=−∞ to ∞) |h[n]| &lt; ∞</div>
+
+  <h3>The sufficiency argument (slide 58)</h3>
+  <p>Start from the commuted form — slide 58's "yes, we shuffled it!" is doing real work here, because it puts h in the position with the free variable.</p>
+
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">|y(t)| = |∫h(τ)x(t−τ)dτ| ≤ ∫|h(τ)||x(t−τ)|dτ ≤ B∫|h(τ)|dτ</div>
+
+  <p>Three moves, each worth naming in an exam answer: (1) the magnitude of an integral is at most the integral of the magnitude — the triangle inequality; (2) |x(t−τ)| ≤ B because a bound that holds for all times holds for the shifted argument too; (3) B is a constant and comes out. If ∫|h| is finite, the output is bounded by B∫|h| — a bound that does not depend on t. Stable.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The necessity half (worth knowing, not on the slides)</span>
+    <p style="margin:0">The slides prove "absolutely integrable ⟹ stable". The converse is proved by exhibiting one bad input. In discrete time, choose x[n] = sign(h[−n]), which is bounded by 1. Then y[0] = Σh[k]x[−k] = Σh[k]·sign(h[k]) = Σ|h[k]|. So if the sum diverges, this bounded input already blows the output up at a single time instant. Hence stability <em>requires</em> absolute summability. Quoting this construction earns full marks on "prove the condition is necessary and sufficient".</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · decaying is not enough</span>
+    <p style="margin:0">A signal can tend to zero and still fail the test. h[n] = 1/n for n ≥ 1 decays to zero, but Σ1/n diverges — <strong>unstable</strong>. Meanwhile h[n] = 1/n² converges — stable. "It goes to zero" is not the test; "the <em>total area</em> is finite" is the test. Exponential decay always passes; polynomial decay needs checking.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · bounded h does not imply stable</span>
+    <p style="margin:0">h[n] = u[n] is bounded by 1 everywhere, yet Σ|h| = ∞. The accumulator is unstable. Conversely, h can be unbounded and still stable if the spike is narrow enough — e.g. h(t) = t⁻¹ᐟ² on (0,1] is unbounded at 0 but has finite area 2. Boundedness of h and stability are independent properties.</p>
+  </div>
+
+  <table class="table">
+    <tr><th>h</th><th>∫|h| or Σ|h|</th><th>Stable?</th><th>Causal?</th></tr>
+    <tr><td>δ(t)</td><td>1</td><td>yes</td><td>yes</td></tr>
+    <tr><td>u(t)</td><td>∞</td><td>no</td><td>yes</td></tr>
+    <tr><td>e⁻ᵃᵗu(t), a &gt; 0</td><td>1/a</td><td>yes</td><td>yes</td></tr>
+    <tr><td>e⁺ᵃᵗu(t), a &gt; 0</td><td>∞</td><td>no</td><td>yes</td></tr>
+    <tr><td>eᵃᵗu(−t), a &gt; 0</td><td>1/a</td><td>yes</td><td>no</td></tr>
+    <tr><td>cos(ω₀t)</td><td>∞</td><td>no</td><td>no</td></tr>
+    <tr><td>rect on [−1,1]</td><td>2</td><td>yes</td><td>no</td></tr>
+  </table>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · the four quadrants</span>
+    <p style="margin:0">Causality and stability are <strong>logically independent</strong> — every one of the four combinations occurs, as the table shows. Do not let an exam sentence like "the system is causal, therefore…" smuggle in a stability claim. Test each property separately, from its own picture: support for causality, area for stability.</p>
+  </div>
+</section>
+
+<!-- 11 -->
+<section data-screen-label="11" style="display:{{ s11 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">The two periodicity puzzles</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 60–62 · can h be periodic?</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Two short questions with the same striking answer: only the trivial h = 0 survives. These are exactly the kind of one-line reasoning problems that appear on exams, so learn the arguments, not just the verdicts.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Question 1</span>
+    <p style="margin:0">If the LTI system is <strong>causal</strong>, can h(t) be periodic?</p>
+  </div>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Answer · no, except for h ≡ 0</h4>
+  <p>Suppose h has period T &gt; 0 and is nonzero somewhere, say h(t₀) ≠ 0. Periodicity means the value repeats in <em>both</em> directions:</p>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:14px auto;padding:10px">h(t₀) = h(t₀ − T) = h(t₀ − 2T) = ⋯ = h(t₀ − kT) = ⋯</div>
+  <p>Since T &gt; 0 and k can be any positive integer, eventually t₀ − kT &lt; 0. So there is a strictly negative time at which h is nonzero — contradicting causality. Therefore only h ≡ 0 can be both.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The idea in one line</span>
+    <p style="margin:0">Periodicity propagates values <em>backwards</em> without limit; causality forbids anything to the left of the origin. A periodic signal has no beginning, and causality demands one.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Question 2</span>
+    <p style="margin:0">If the LTI system is <strong>stable</strong>, can h(t) be periodic?</p>
+  </div>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Answer · again no, except for h ≡ 0</h4>
+  <p>If h is periodic with period T and nonzero, then ∫(one period)|h| = A &gt; 0. The whole axis contains infinitely many periods, each contributing the same A:</p>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:14px auto;padding:10px">∫(−∞ to ∞)|h(t)|dt = ⋯ + A + A + A + ⋯ = ∞</div>
+  <p>which fails the stability test. Only h ≡ 0 is both stable and periodic.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · why must A be strictly positive?</span>
+    <p style="margin:0">This is the subtle step. If h is nonzero <em>somewhere</em> in a period, is the integral of |h| over that period necessarily positive? For any reasonable (piecewise-continuous) signal, yes: a nonzero value at a point of continuity persists over a small interval, giving positive area. It could fail only for pathological signals that are nonzero on a set of measure zero — and those are zero as far as every integral in this course is concerned. Note the absolute value is essential: without it, a signal like cos could integrate to zero over each period and the argument would collapse.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · the sharper statement</span>
+    <p style="margin:0">Question 2's argument never used periodicity in full. All it needed was: <em>|h| does not decay</em>. Generalise it — <strong>if h(t) does not tend to 0 as |t| → ∞, the system is unstable.</strong> Periodic, constant, oscillating, growing: all unstable. The converse is false (see §10's 1/n example), so "decays to zero" is necessary but not sufficient. That asymmetry is a favourite true/false item.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · answer the question that was asked</span>
+    <p style="margin:0">Both answers are "no, except the trivial case". Say the trivial case out loud. h ≡ 0 <em>is</em> periodic (every T is a period), it <em>is</em> causal, and it <em>is</em> stable — it's the system that outputs nothing. Answers that assert a flat "no" without the exception are usually docked a mark.</p>
+  </div>
+</section>
+
+<!-- 12 -->
+<section data-screen-label="12" style="display:{{ s12 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Classification practice</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Slides 63–69 · decide causality and stability, then the delay problem</div>
+
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Two systems, then a short design question. The method is always the same: sketch the support, then compute the area.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">System 1</span>
+    <p style="margin:0">h₁(t) = e²ᵗu(−2 − t)</p>
+  </div>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Step 1 · unpack the step's argument</h4>
+  <p>This is the whole difficulty of the problem. u(−2 − t) = 1 requires its argument to be non-negative:</p>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:14px auto;padding:10px">−2 − t ≥ 0 &nbsp;⟺&nbsp; −t ≥ 2 &nbsp;⟺&nbsp; <strong>t ≤ −2</strong></div>
+  <p>So h₁ lives entirely on t ≤ −2 — well to the left of the origin.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · the inequality flip</span>
+    <p style="margin:0">Dividing (or multiplying) by −1 reverses the inequality. Going from −t ≥ 2 to t ≥ −2 instead of t ≤ −2 is the single most-repeated mistake in this section, and it flips both answers. Substitute one test value to confirm: at t = −5, is −2 − (−5) = 3 ≥ 0? Yes → t = −5 is in the support → the support extends leftward ✓.</p>
+  </div>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Step 2 · causality</h4>
+  <p>h₁ is nonzero at, for instance, t = −3, which is before t = 0. <strong>Not causal.</strong> The system responds three seconds before it is poked.</p>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Step 3 · stability</h4>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:14px auto;padding:10px">∫(−∞ to −2)e²ᵗdt = [½e²ᵗ] from −∞ to −2 = ½e⁻⁴ − 0 = ½e⁻⁴ &lt; ∞</div>
+  <p><strong>Stable.</strong> Note why: on the region where the signal actually lives, e²ᵗ is being evaluated at very negative t, so it is <em>decaying</em> as we move left. The positive exponent is a decoy.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · when is e^(at)u(−t−c) stable?</span>
+    <p style="margin:0">Whenever a &gt; 0, because the exponential decays in the leftward direction. If instead a &lt; 0 the same signal would <em>grow</em> without bound as t → −∞ and the system would be unstable. Rule of thumb: <strong>a right-sided exponential is stable if the exponent is negative; a left-sided exponential is stable if the exponent is positive.</strong> The exponent must always point "inward", back toward the origin.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">System 2</span>
+    <p style="margin:0">h₂(t) = t&thinsp;e⁻ᵗu(t)</p>
+  </div>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Causality</h4>
+  <p>u(t) forces h₂ = 0 for t &lt; 0. <strong>Causal.</strong></p>
+
+  <h4 style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin:26px 0 8px">Stability</h4>
+  <p>On t ≥ 0 the integrand is non-negative, so the absolute value does nothing:</p>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:16px;margin:14px auto;padding:10px">∫₀^∞ t&thinsp;e⁻ᵗdt = Γ(2) = 1! = 1 &lt; ∞</div>
+  <p><strong>Stable.</strong> By parts: ∫te⁻ᵗ = [−te⁻ᵗ]₀^∞ + ∫e⁻ᵗ = 0 + 1.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Worth memorising</span>
+    <p style="margin:0">∫₀^∞ tⁿe⁻ᵃᵗdt = n!/aⁿ⁺¹. With n = 1, a = 1 you get 1 instantly. This one integral covers most stability questions involving polynomial×exponential impulse responses.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · exponentials always win</span>
+    <p style="margin:0">h₂ starts at 0, rises to a maximum at t = 1 (differentiate: e⁻ᵗ(1−t) = 0), then decays. The factor t grows without bound, yet the area stays finite — because exponential decay beats <em>any</em> polynomial growth. So t¹⁰⁰e⁻ᵗu(t) is also stable, with area 100!. Multiplying by a polynomial never destroys stability of an exponentially-decaying h.</p>
+  </div>
+
+  <h3>The minimum-delay problem</h3>
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Slides 68–69</span>
+    <p style="margin:0">Let x(t) = e⁻²ᵗu(t + 2) and y(t) = x(t − a). Find the minimum a for which y is causal.</p>
+  </div>
+
+  <p>u(t + 2) = 1 ⟺ t + 2 ≥ 0 ⟺ t ≥ −2. So x switches on at t = −2 — it is nonzero before the origin and therefore not causal as it stands.</p>
+  <p>Delaying by a moves the whole signal right by a, so the switch-on point moves from −2 to −2 + a. Causality of y requires the start to be at or after the origin:</p>
+  <div style="display:block;text-align:center;font-family:var(--font-heading);font-size:18px;margin:18px auto;padding:14px 10px;background:var(--color-surface);border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)">−2 + a ≥ 0 &nbsp;⟹&nbsp; a ≥ 2 &nbsp;⟹&nbsp; a_min = 2</div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Edge case · at exactly a = 2</span>
+    <p style="margin:0">The signal turns on precisely at t = 0. That satisfies "zero for all t &lt; 0", so a = 2 works and the minimum is attained (it is a closed condition, not an open one). Had the problem said "zero for all t ≤ 0", no minimum would exist — you would need a &gt; 2 with no smallest value. Read the inequality you are given.</p>
+  </div>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Exam alert · x(t − a) shifts right for positive a</span>
+    <p style="margin:0">Replacing t by t − a delays (shifts right) by a. Verify with one point rather than trusting memory: the sample that was at t = −2 now occurs when t − a = −2, i.e. at t = a − 2, which is to the right of −2 when a &gt; 0 ✓. The exponential factor e⁻²ᵗ is a red herring — only the step's argument determines the support.</p>
+  </div>
+</section>
+
+<!-- 13 -->
+<section data-screen-label="13" style="display:{{ s13 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Exam kit</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Consolidated formulas, procedures, and the errors that cost marks</div>
+
+  <h3>One-page formula sheet</h3>
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-outline" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Definitions</span>
+    <p style="margin:0;text-align:center;font-family:var(--font-heading);font-size:16px">y[n] = Σₖ x[k]h[n−k] &nbsp;&nbsp;&nbsp;&nbsp; y(t) = ∫ x(τ)h(t−τ)dτ</p>
+  </div>
+
+  <table class="table">
+    <tr><th>Result</th><th>Statement</th></tr>
+    <tr><td>Support rule</td><td>supp(x)=[a₁,b₁], supp(h)=[a₂,b₂] ⟹ supp(y)⊆[a₁+a₂,b₁+b₂]; length = Lₓ + Lₕ − 1</td></tr>
+    <tr><td>Identity</td><td>x ∗ δ = x; &nbsp; x ∗ δ(t−t₀) = x(t−t₀)</td></tr>
+    <tr><td>Commutative</td><td>x ∗ h = h ∗ x &nbsp;(flip whichever is simpler)</td></tr>
+    <tr><td>Distributive</td><td>x ∗ (h₁+h₂) = x∗h₁ + x∗h₂ &nbsp;(parallel systems add)</td></tr>
+    <tr><td>Associative</td><td>(x∗h₁)∗h₂ = x∗(h₁∗h₂) &nbsp;(cascaded systems convolve)</td></tr>
+    <tr><td>Finite geometric</td><td>Σₖ₌₀ⁿ αᵏ = (1−α^(n+1))/(1−α), α≠1; &nbsp; = n+1 if α=1</td></tr>
+    <tr><td>Left-infinite geometric</td><td>Σ(k=−∞ to n) rᵏ = r^(n+1)/(r−1) for r &gt; 1</td></tr>
+    <tr><td>Gamma integral</td><td>∫₀^∞ tⁿe⁻ᵃᵗdt = n!/aⁿ⁺¹</td></tr>
+    <tr><td>Ex 2.3</td><td>αⁿu[n] ∗ u[n] = [(1−α^(n+1))/(1−α)]u[n]</td></tr>
+    <tr><td>Ex 2.5</td><td>2ⁿu[−n] ∗ u[n] = 2ⁿ⁺¹ (n&lt;0), 2 (n≥0)</td></tr>
+    <tr><td>Ex 2.6</td><td>e⁻ᵃᵗu(t) ∗ u(t) = (1/a)(1−e⁻ᵃᵗ)u(t)</td></tr>
+    <tr><td>Autocorrelation</td><td>eᵗu(−t) ∗ e⁻ᵗu(t) = ½e⁻|ᵗ|</td></tr>
+    <tr><td>Equal-rate pair</td><td>e⁻ᵃᵗu(t) ∗ e⁻ᵃᵗu(t) = te⁻ᵃᵗu(t)</td></tr>
+    <tr><td>Distinct-rate pair</td><td>e⁻ᵃᵗu(t) ∗ e⁻ᵇᵗu(t) = (e⁻ᵃᵗ−e⁻ᵇᵗ)/(b−a) · u(t)</td></tr>
+    <tr><td>Causal ⟺</td><td>h(t)=0 ∀t&lt;0 &nbsp;/&nbsp; h[n]=0 ∀n&lt;0</td></tr>
+    <tr><td>Stable ⟺</td><td>∫|h|&lt;∞ &nbsp;/&nbsp; Σ|h|&lt;∞</td></tr>
+  </table>
+
+  <h3>Procedure to follow under time pressure</h3>
+  <div style="margin:18px 0">
+    <div style="display:flex;gap:14px;margin-bottom:12px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">1</div><div><p style="font-weight:600;margin:0 0 4px">Identify the supports of both signals.</p><p style="margin:0">Write them as inequalities. Predict the output support by adding endpoints.</p></div></div>
+    <div style="display:flex;gap:14px;margin-bottom:12px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">2</div><div><p style="font-weight:600;margin:0 0 4px">Decide which signal to flip.</p><p style="margin:0">Flip the simpler one. If one is a step, flip the step.</p></div></div>
+    <div style="display:flex;gap:14px;margin-bottom:12px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">3</div><div><p style="font-weight:600;margin:0 0 4px">Write the flipped support as an inequality in k (or τ) involving n (or t).</p><p style="margin:0">Solve carefully; flip the inequality if you divide by −1.</p></div></div>
+    <div style="display:flex;gap:14px;margin-bottom:12px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">4</div><div><p style="font-weight:600;margin:0 0 4px">Intersect. Identify where the form of the intersection changes.</p><p style="margin:0">Those are your cases. Enumerate them before computing anything.</p></div></div>
+    <div style="display:flex;gap:14px;margin-bottom:12px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">5</div><div><p style="font-weight:600;margin:0 0 4px">In each case, write the product and sum/integrate over the overlap only.</p><p style="margin:0">Pull out anything that does not depend on the dummy variable.</p></div></div>
+    <div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:0 0 auto;width:26px;height:26px;border:1px solid var(--color-accent);color:var(--color-accent-700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;font-weight:600">6</div><div><p style="font-weight:600;margin:0 0 4px">Assemble, then check.</p><p style="margin:0">Boundary continuity, initial value, final value = total input area, and support consistency with step 1.</p></div></div>
+  </div>
+
+  <h3>The ten errors that cost the most marks</h3>
+  <table class="table">
+    <tr><th>#</th><th>Error</th><th>Fix</th></tr>
+    <tr><td>1</td><td>Mixing up n and k inside the sum</td><td>n is frozen; only k varies</td></tr>
+    <tr><td>2</td><td>Not flipping the inequality when solving u(t−τ)≥0</td><td>τ ≤ t, not τ ≥ t. Test one value.</td></tr>
+    <tr><td>3</td><td>Writing (1−αⁿ)/(1−α) instead of α^(n+1)</td><td>The sum has n+1 terms; check at n=0</td></tr>
+    <tr><td>4</td><td>Dropping the trailing u(t) or u[n] from the answer</td><td>State cases or attach the step</td></tr>
+    <tr><td>5</td><td>Reading 2ⁿu[−n] as a growing signal</td><td>It is evaluated only at n≤0, so it decays leftward</td></tr>
+    <tr><td>6</td><td>Assuming decaying h ⟹ stable</td><td>1/n decays but Σ1/n=∞</td></tr>
+    <tr><td>7</td><td>Assuming causal ⟹ stable, or vice versa</td><td>Independent; all four combinations exist</td></tr>
+    <tr><td>8</td><td>Forgetting the |·| in the stability integral</td><td>∫h can be finite while ∫|h| is infinite (e.g. cos)</td></tr>
+    <tr><td>9</td><td>Answering "no" to the periodicity puzzles without the h≡0 exception</td><td>Always name the trivial case</td></tr>
+    <tr><td>10</td><td>Skipping the sketch of the reflected signal</td><td>Method marks live in that picture</td></tr>
+  </table>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-neutral" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Brainstorm · what would a hard exam question look like?</span>
+    <p style="margin:0">Likely candidates, all reachable from this lecture: (i) convolve two rectangular pulses of different widths — a four-case trapezoid, testing whether you can enumerate cases; (ii) give h(t) = e⁻ᵃᵗu(t+3) and ask for causality, stability, <em>and</em> the minimum delay making it causal — three parts, one signal; (iii) state y and h and ask what x was (deconvolution by matching supports); (iv) two systems in cascade, asking for the overall h and whether the cascade of two unstable systems can be stable. That last one is a genuinely good question — think about h₁ = δ′ and h₂ = u before reading on.</p>
+  </div>
+</section>
+
+<!-- 14 -->
+<section data-screen-label="14" style="display:{{ s14 }};animation:fadeIn .2s ease">
+  <h2 style="margin:0 0 6px">Self-check</h2>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--color-divider)">Twelve questions across the whole lecture · answers explained</div>
+  <p style="font-size:17px;color:color-mix(in srgb, var(--color-text) 68%, transparent);border-left:3px solid var(--color-accent);padding-left:16px;margin-bottom:26px">Answer before you click. The explanations are written to be useful even when you get it right — several of them contain material that isn't stated anywhere else on this page.</p>
+
+  <sc-for list="{{ quizQuestions }}" as="q" hint-placeholder-count="12">
+    <div class="blueprint" style="padding:18px 20px;margin:18px 0">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.15em;color:var(--color-accent-700);text-transform:uppercase;margin-bottom:8px">Question {{ q.qi1 }} of 12</div>
+      <p style="font-size:16px;margin:0 0 12px">{{ q.stem }}</p>
+      <sc-for list="{{ q.options }}" as="opt" hint-placeholder-count="4">
+        <button onClick="{{ opt.onClick }}" style="display:block;width:100%;text-align:left;background:transparent;border:1px solid var(--color-divider);padding:10px 14px;margin-bottom:8px;cursor:pointer;font-family:var(--font-body);font-size:15px;{{ opt.style }}">{{ opt.label }}</button>
+      </sc-for>
+      <div style="display:{{ q.explDisplay }};margin-top:10px;padding:12px 15px;background:var(--color-surface);border-left:3px solid var(--color-accent);font-size:14.5px">{{ q.explanation }}</div>
+    </div>
+  </sc-for>
+  <div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.08em;padding:14px 18px;background:var(--color-accent-900);color:var(--color-bg);text-align:center;margin-top:16px">{{ scoreText }}</div>
+
+  <h3 style="margin-top:44px">Where this goes next</h3>
+  <p>Lecture 5 asks a different question about the same machinery: instead of computing x ∗ h directly, what if we choose inputs that convolution treats especially simply? Complex exponentials turn out to pass through an LTI system unchanged except for a scale factor — they are eigenfunctions of convolution. That observation converts the messy sliding integral into ordinary multiplication, and it is the reason Fourier analysis exists.</p>
+
+  <div class="blueprint" style="padding:20px 22px;margin:20px 0 40px">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <span class="tag tag-accent" style="font-family:var(--font-heading);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">The bridge to Lecture 5</span>
+    <p style="margin:0">If x(t) = e^(jωt), then y(t) = ∫h(τ)e^(jω(t−τ))dτ = e^(jωt) · ∫h(τ)e^(−jωτ)dτ. The input comes back out, multiplied by a number that depends only on ω. That number is H(ω) — the frequency response — and notice that it exists precisely when h is absolutely integrable. Stability is what makes the frequency response well-defined.</p>
+  </div>
+</section>
+
+<div style="margin-top:60px;padding-top:20px;border-top:2px solid var(--color-text);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);letter-spacing:.06em;text-align:center">CSE 219 · SIGNALS AND LINEAR SYSTEMS · LECTURE 4 STUDY EDITION</div>
+
+</div>
+</main>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SECTION_TITLES = [
+  "Map of the lecture","Recipe — discrete","Recipe — continuous",
+  "Example 2.2","Example 2.3","Example 2.5","Example 2.6",
+  "Distributive property","Two exponentials",
+  "Causality","Stability","Periodicity puzzles","Classification practice",
+  "Exam kit","Self-check"
+];
+
+const DT = {
+  e22:{ name:"Example 2.2", kmin:-4, kmax:8, nmin:-4, nmax:8, alpha:false,
+        x:function(k){ return k===0?0.5 : k===1?2 : 0; },
+        h:function(k){ return (k>=0&&k<=2)?1:0; },
+        note:"x = {0.5, 2} at k = 0,1  ·  h = three unit taps at k = 0,1,2" },
+  e23:{ name:"Example 2.3", kmin:-6, kmax:14, nmin:-5, nmax:14, alpha:true,
+        x:function(k,a){ return k>=0?Math.pow(a,k):0; },
+        h:function(k){ return k>=0?1:0; },
+        note:"x[k] = αᵏu[k]  ·  h[k] = u[k] (accumulator)" },
+  e25:{ name:"Example 2.5", kmin:-12, kmax:8, nmin:-8, nmax:8, alpha:false,
+        x:function(k){ return k<=0?Math.pow(2,k):0; },
+        h:function(k){ return k>=0?1:0; },
+        note:"x[k] = 2ᵏu[−k] (decays leftward)  ·  h[k] = u[k]" },
+  e210:{ name:"Example 2.10", kmin:-10, kmax:10, nmin:-8, nmax:10, alpha:false,
+        x:function(k){ return (k>=0?Math.pow(0.5,k):0) + (k<=0?Math.pow(2,k):0); },
+        h:function(k){ return k>=0?1:0; },
+        note:"x[k] = (½)ᵏu[k] + 2ᵏu[−k]  ·  note x[0] = 2" }
+};
+const KEXT = 60;
+
+const CT = {
+  e26:{ name:"Example 2.6", tmin:-4, tmax:6, usesA:true,
+        x:function(T,a){ return T>=0?Math.exp(-a*T):0; },
+        hshift:function(T,t){ return (t-T)>=0?1:0; },
+        note:"x(τ) = e^(−aτ)u(τ)  ·  h(t−τ) = u(t−τ), a unit window ending at τ = t" },
+  two:{ name:"Two exponentials", tmin:-4, tmax:6, usesA:false,
+        x:function(T){ return T<=0?Math.exp(T):0; },
+        hshift:function(T,t){ return (t-T)>=0?Math.exp(-(t-T)):0; },
+        note:"x(τ) = eᵗu(−τ)  ·  h(t−τ) = e^(−(t−τ))u(t−τ)" }
+};
+const TAU_MIN=-7, TAU_MAX=8, NGRID=90, YGRID=70;
+
+const QS=[
+ {q:"In the sum y[n] = Σₖ x[k]h[n−k], what is the status of n?",
+  o:["It varies along with k","It is frozen for the entire sum","It equals k at the peak","It is the length of x"],
+  a:1, e:"n is the output location you chose before starting; it is constant throughout the sum. Only k varies. Changing n means starting a completely new sum."},
+ {q:"h[k] is nonzero for 0 ≤ k ≤ 2. Over which k is h[n−k] nonzero?",
+  o:["n ≤ k ≤ n+2","n−2 ≤ k ≤ n","−2 ≤ k ≤ 0","0 ≤ k ≤ n"],
+  a:1, e:"Reflection puts h[0] at k = n and makes the signal extend backwards. Anchor on h[0] → k = n, then extend left by the original forward extent."},
+ {q:"x has 4 nonzero samples, h has 6. How many samples can y have?",
+  o:["10","24","9","6"],
+  a:2, e:"length(y) = length(x) + length(h) − 1 = 4 + 6 − 1 = 9. Equivalently, supports add: [a₁+a₂, b₁+b₂]. Some of those 9 could be zero by cancellation, but 9 is the span."},
+ {q:"Σ(k=0 to n) αᵏ equals:",
+  o:["(1 − αⁿ)/(1 − α)","(1 − α^(n+1))/(1 − α)","αⁿ/(1 − α)","1/(1 − α) for all n"],
+  a:1, e:"There are n+1 terms, hence the exponent n+1. Test at n = 0: the sum is 1, and (1−α)/(1−α) = 1 ✓. The distractor gives 0 there. If α = 1 the formula is invalid and the sum is n+1."},
+ {q:"The signal 2ⁿu[−n]:",
+  o:["Grows without bound as n → ∞","Decays as n decreases, peaking at n = 0","Is zero everywhere","Is periodic"],
+  a:1, e:"u[−n] restricts to n ≤ 0, where 2ⁿ takes values 1, ½, ¼, … So it decays leftward and peaks at n = 0 with value 1. Base 2 is misleading — always check where the step lets you evaluate."},
+ {q:"u(t − τ) is nonzero for which τ?",
+  o:["τ ≥ t","τ ≤ t","τ ≥ 0","τ ≤ 0"],
+  a:1, e:"The argument must be non-negative: t − τ ≥ 0 ⟹ τ ≤ t. Dividing by −1 flips the inequality. Reflection converts a right-sided step into a left-sided window with a hard edge at t."},
+ {q:"An LTI system is causal if and only if:",
+  o:["h is bounded","∫|h| < ∞","h(t) = 0 for all t < 0","h is even"],
+  a:2, e:"Causality is purely a statement about the support of h: nothing to the left of the origin. Note h(0) ≠ 0 is allowed — h = δ(t) is causal. Size and shape are irrelevant."},
+ {q:"Which impulse response is causal but NOT stable?",
+  o:["e−ᵗu(t)","u(t)","e²ᵗu(−2−t)","δ(t)"],
+  a:1, e:"u(t) is zero for t < 0 (causal) but ∫|u| = ∞ (unstable). It is the accumulator: feed it the bounded input u(t) and the output is the unbounded ramp. The other three are all stable."},
+ {q:"h[n] = 1/n for n ≥ 1, zero otherwise. Is the system stable?",
+  o:["Yes — h decays to zero","No — the harmonic series diverges","Yes — h is bounded","Cannot be determined"],
+  a:1, e:"Σ1/n diverges, so the system is BIBO unstable despite h → 0 and h being bounded. 'Decays to zero' is necessary but not sufficient; finite total area is the actual test. Compare 1/n², which is stable."},
+ {q:"Can a nonzero periodic h(t) belong to a causal LTI system?",
+  o:["Yes, if the period is large enough","Yes, if it starts at t = 0","No — periodicity forces nonzero values at negative t","Only in discrete time"],
+  a:2, e:"Any nonzero value h(t₀) repeats backwards at t₀ − kT, and for large enough k that time is negative. Only the trivial h ≡ 0 is both causal and periodic — and you should name that exception in an exam answer."},
+ {q:"h₁(t) = e²ᵗu(−2 − t). This system is:",
+  o:["Causal and stable","Not causal, but stable","Causal, not stable","Neither"],
+  a:1, e:"u(−2−t) = 1 requires −2 − t ≥ 0, i.e. t ≤ −2, so h₁ is nonzero before the origin → not causal. Its area is ∫ from −∞ to −2 of e^(2t)dt = ½e⁻⁴ < ∞ → stable. The positive exponent is a decoy: on t ≤ −2 the exponential is decaying leftward."},
+ {q:"x(t) = e−²ᵗu(t + 2) and y(t) = x(t − a). Minimum a making y causal?",
+  o:["0","1","2","4"],
+  a:2, e:"x switches on at t = −2. A right shift by a moves that to −2 + a, and causality needs −2 + a ≥ 0, so a ≥ 2 with a = 2 attained (the condition is h = 0 for t < 0, strictly, so switching on exactly at 0 is fine). The exponential factor is irrelevant — only the step's argument sets the support."}
+];
+
+function ticksFor(a,b,step){ const t=[]; for(let i=Math.ceil(a/step)*step;i<=b;i+=step) t.push(+i.toFixed(2)); return t; }
+function makePanel(xmin,xmax,vmin,vmax,w,h){
+  const L=38,R=12,T=16,B=24;
+  return { xmin,xmax,vmin,vmax,w,h,L,R,T,B,
+    px:function(x){ return L + (x-xmin)/(xmax-xmin)*(w-L-R); },
+    py:function(v){ return T + (1-(v-vmin)/(vmax-vmin))*(h-T-B); }
+  };
+}
+function toPath(pts,panel){ return pts.map((p,i)=>(i?'L':'M')+panel.px(p.x).toFixed(2)+' '+panel.py(p.y).toFixed(2)).join(' '); }
+function toAreaPath(pts,panel){
+  if(!pts.length) return '';
+  const y0=panel.py(0);
+  let d = 'M'+panel.px(pts[0].x).toFixed(2)+' '+y0.toFixed(2)+' ';
+  pts.forEach(function(p){ d += 'L'+panel.px(p.x).toFixed(2)+' '+panel.py(p.y).toFixed(2)+' '; });
+  d += 'L'+panel.px(pts[pts.length-1].x).toFixed(2)+' '+y0.toFixed(2)+' Z';
+  return d;
+}
+
+class Component extends DCLogic {
+  state = {
+    activeTab: 0, mobileOpen: false, isMobile: false,
+    dtPreset: 'e22', dtAlpha: 0.6, dtN: 0, dtPlaying: false,
+    ctPreset: 'e26', ctA: 1.0, ctT: 0, ctPlaying: false,
+    quizAnswers: {}
+  };
+
+  componentDidMount(){
+    this._mq = window.matchMedia('(max-width: 980px)');
+    this.setState({isMobile: this._mq.matches});
+    this._mqHandler = (e) => this.setState({isMobile: e.matches});
+    this._mq.addEventListener('change', this._mqHandler);
+  }
+  componentWillUnmount(){
+    if(this._mq) this._mq.removeEventListener('change', this._mqHandler);
+    if(this._dtTimer) clearInterval(this._dtTimer);
+    if(this._ctTimer) clearInterval(this._ctTimer);
+  }
+
+  selectTab(i){ this.setState({activeTab:i, mobileOpen:false}); }
+  toggleMobileNav(){ this.setState(s=>({mobileOpen:!s.mobileOpen})); }
+
+  setDtPreset(v){ this.setState({dtPreset:v}); }
+  setDtAlpha(v){ this.setState({dtAlpha:+v}); }
+  setDtN(v){ this.setState({dtN:Math.round(+v)}); }
+  toggleDtPlay(){
+    if(this.state.dtPlaying){ clearInterval(this._dtTimer); this._dtTimer=null; this.setState({dtPlaying:false}); return; }
+    const P = DT[this.state.dtPreset];
+    this.setState({dtPlaying:true, dtN:P.nmin});
+    this._dtTimer = setInterval(()=>{
+      this.setState(s=>{
+        const PP = DT[s.dtPreset];
+        const n = s.dtN+1;
+        if(n>PP.nmax){ clearInterval(this._dtTimer); this._dtTimer=null; return {dtPlaying:false}; }
+        return {dtN:n};
+      });
+    }, 420);
+  }
+
+  setCtPreset(v){ this.setState({ctPreset:v}); }
+  setCtA(v){ this.setState({ctA:+v}); }
+  setCtT(v){ this.setState({ctT:Math.round(+v)}); }
+  toggleCtPlay(){
+    if(this.state.ctPlaying){ clearInterval(this._ctTimer); this._ctTimer=null; this.setState({ctPlaying:false}); return; }
+    this.setState({ctPlaying:true, ctT:-40});
+    this._ctTimer = setInterval(()=>{
+      this.setState(s=>{
+        const v = s.ctT+2;
+        if(v>60){ clearInterval(this._ctTimer); this._ctTimer=null; return {ctPlaying:false}; }
+        return {ctT:v};
+      });
+    }, 90);
+  }
+
+  answerQuiz(qi,oi){
+    if(this.state.quizAnswers[qi]!==undefined) return;
+    const next = Object.assign({}, this.state.quizAnswers, {[qi]:oi});
+    this.setState({quizAnswers: next});
+  }
+
+  computeDT(){
+    const s = this.state;
+    const P = DT[s.dtPreset];
+    const a = s.dtAlpha;
+    const n = Math.max(P.nmin, Math.min(P.nmax, s.dtN));
+    const xv = k => P.x(k,a), hv = k => P.h(k,a);
+    const xs=[], hs=[], pr=[];
+    for(let k=P.kmin;k<=P.kmax;k++){ xs.push({k,v:xv(k)}); hs.push({k,v:hv(n-k)}); pr.push({k,v:xv(k)*hv(n-k)}); }
+    const ys=[]; let ymax=0;
+    for(let m=P.nmin;m<=P.nmax;m++){
+      let sum=0;
+      for(let kk=P.kmin-KEXT; kk<=P.kmax+KEXT; kk++) sum += xv(kk)*hv(m-kk);
+      ys.push({k:m,v:sum}); if(sum>ymax) ymax=sum;
+    }
+    const xmaxv = Math.max(1, ...xs.map(p=>p.v));
+    const pmaxv = Math.max(0.001, ...pr.map(p=>p.v));
+    const tk = ticksFor(P.kmin,P.kmax,(P.kmax-P.kmin)>16?4:2);
+    const ytk = ticksFor(P.nmin,P.nmax,(P.nmax-P.nmin)>16?4:2);
+
+    const panel1 = makePanel(P.kmin-0.5,P.kmax+0.5,-0.12*xmaxv,xmaxv*1.2,680,150);
+    const panel2 = makePanel(P.kmin-0.5,P.kmax+0.5,-0.12*pmaxv,pmaxv*1.2,680,120);
+    const panel3 = makePanel(P.nmin-0.5,P.nmax+0.5,-0.12*Math.max(ymax,1),Math.max(ymax,1)*1.2,680,140);
+    const y01=panel1.py(0), y02=panel2.py(0), y03=panel3.py(0);
+
+    const xStems = xs.filter(p=>Math.abs(p.v)>1e-9).map(p=>({x:panel1.px(p.k)-2.5,y0:y01,y1:panel1.py(p.v)}));
+    const hStems = hs.filter(p=>Math.abs(p.v)>1e-9).map(p=>({x:panel1.px(p.k)+2.5,y0:y01,y1:panel1.py(p.v*xmaxv*0.85)}));
+    const barW = Math.max(3,(panel2.w-panel2.L-panel2.R)/(P.kmax-P.kmin)*0.55);
+    const bars = pr.filter(p=>Math.abs(p.v)>1e-9).map(p=>{ const X=panel2.px(p.k), Y=panel2.py(p.v); return {x:X-barW/2, y:Math.min(Y,y02), width:barW, height:Math.abs(Y-y02)}; });
+    const outBefore = ys.filter(p=>p.k<=n && Math.abs(p.v)>1e-9).map(p=>({x:panel3.px(p.k),y0:y03,y1:panel3.py(p.v)}));
+    const outAfter = ys.filter(p=>p.k>n && Math.abs(p.v)>1e-9).map(p=>({x:panel3.px(p.k),y0:y03,y1:panel3.py(p.v)}));
+    const cur = ys.find(p=>p.k===n);
+
+    const tick1 = tk.map(v=>({x:panel1.px(v),label:v}));
+    const tick3 = ytk.map(v=>({x:panel3.px(v),label:v}));
+
+    let terms=[], tot=0;
+    for(let k2=P.kmin-KEXT;k2<=P.kmax+KEXT;k2++){ const v=xv(k2)*hv(n-k2); if(Math.abs(v)>1e-12){ tot+=v; if(terms.length<7) terms.push('x['+k2+']h['+(n-k2)+']='+(+v.toFixed(4))); } }
+    let lo=null,hi=null;
+    for(let k3=P.kmin-KEXT;k3<=P.kmax+KEXT;k3++){ if(Math.abs(xv(k3)*hv(n-k3))>1e-12){ if(lo===null) lo=k3; hi=k3; } }
+    const ovl = lo===null ? 'empty — no common nonzero k' : ((lo<=P.kmin-KEXT+1?'−∞':lo)+' ≤ k ≤ '+hi);
+    const readout = 'n = '+n+'\noverlap of x[k] and h[n−k]:  '+ovl+'\nnonzero terms:  '+(terms.length? terms.join('  +  ') : 'none')+'\ny['+n+'] = '+(+tot.toFixed(5));
+
+    return {
+      n, note:P.note, nmin:P.nmin, nmax:P.nmax,
+      viewBox1:'0 0 680 150', viewBox2:'0 0 680 120', viewBox3:'0 0 680 140',
+      y01,y02,y03, xStems,hStems,vlineX:panel1.px(n), bars, outBefore, outAfter,
+      hasDot: !!cur, dotX: cur?panel3.px(n):0, dotY: cur?panel3.py(cur.v):0,
+      tick1: tick1.map(t=>Object.assign({},t,{labelY:y01+15})),
+      tick3: tick3.map(t=>Object.assign({},t,{labelY:y03+15})),
+      readout,
+      axisX1:panel1.L, axisXend1:panel1.w-panel1.R,
+      axisX2:panel2.L, axisXend2:panel2.w-panel2.R,
+      axisX3:panel3.L, axisXend3:panel3.w-panel3.R
+    };
+  }
+
+  computeCT(){
+    const s = this.state;
+    const P = CT[s.ctPreset];
+    const a = s.ctA;
+    const t = s.ctT/10;
+    const dT = (TAU_MAX-TAU_MIN)/NGRID;
+    const xc=[],hc=[],pc=[]; let maxv=0.001;
+    for(let i=0;i<=NGRID;i++){
+      const T = TAU_MIN+i*dT;
+      const xv = P.x(T,a), hv = P.hshift(T,t,a), pv = xv*hv;
+      xc.push({x:T,y:xv}); hc.push({x:T,y:hv}); pc.push({x:T,y:pv});
+      if(xv>maxv) maxv=xv; if(hv>maxv) maxv=hv;
+    }
+    const yc=[]; let ymax=0.001;
+    for(let j=0;j<=YGRID;j++){
+      const tt = P.tmin+(P.tmax-P.tmin)*j/YGRID;
+      let sum=0;
+      for(let i2=0;i2<=NGRID;i2++){ const T2=TAU_MIN+i2*dT; const w=(i2===0||i2===NGRID)?0.5:1; sum += w*P.x(T2,a)*P.hshift(T2,tt,a)*dT; }
+      yc.push({x:tt,y:sum}); if(sum>ymax) ymax=sum;
+    }
+    let ynow=0;
+    for(let i3=0;i3<=NGRID;i3++){ const T3=TAU_MIN+i3*dT; const w3=(i3===0||i3===NGRID)?0.5:1; ynow += w3*P.x(T3,a)*P.hshift(T3,t,a)*dT; }
+
+    const panel1 = makePanel(TAU_MIN,TAU_MAX,-0.12*maxv,maxv*1.25,680,160);
+    const panel2 = makePanel(P.tmin,P.tmax,-0.12*ymax,ymax*1.25,680,150);
+    const y0p1 = panel1.py(0), y0p2 = panel2.py(0);
+
+    const tick1 = ticksFor(TAU_MIN,TAU_MAX,2).map(v=>({x:panel1.px(v),label:v}));
+    const tick2 = ticksFor(P.tmin,P.tmax,1).map(v=>({x:panel2.px(v),label:v}));
+
+    let closed;
+    if(s.ctPreset==='e26'){ closed = t<0 ? '0 (no overlap)' : '(1/a)(1 − e^(−at)) = '+(+((1/a)*(1-Math.exp(-a*t))).toFixed(5)); }
+    else { closed = '½e^(−|t|) = '+(+(0.5*Math.exp(-Math.abs(t))).toFixed(5)); }
+    let ov;
+    if(s.ctPreset==='e26') ov = t<0 ? 'empty  (x needs τ ≥ 0, h needs τ ≤ t < 0)' : '0 ≤ τ ≤ '+t.toFixed(1);
+    else ov = '−∞ < τ ≤ min(0, '+t.toFixed(1)+') = '+Math.min(0,t).toFixed(1);
+    const readout = 't = '+t.toFixed(1)+'\noverlap in τ:      '+ov+'\nnumerical area:    '+(+ynow.toFixed(5))+'\nclosed form:       '+closed;
+
+    return {
+      t, note:P.note, usesA:P.usesA,
+      viewBox1:'0 0 680 160', viewBox2:'0 0 680 150',
+      xPath: toPath(xc,panel1), hPath: toPath(hc,panel1), areaPath: toAreaPath(pc,panel1),
+      vlineX1: panel1.px(t), panelBottom1: panel1.h-panel1.B, y0p1,
+      tick1: tick1.map(tk=>Object.assign({},tk,{})), tickY1: y0p1+15,
+      yPathAll: toPath(yc,panel2), yPathBefore: toPath(yc.filter(p=>p.x<=t),panel2),
+      dotX: panel2.px(t), dotY: panel2.py(ynow), y0p2,
+      tick2: tick2.map(tk=>Object.assign({},tk,{})), tickY2: y0p2+15,
+      readout,
+      axisX1:panel1.L, axisXend1:panel1.w-panel1.R,
+      axisX2:panel2.L, axisXend2:panel2.w-panel2.R
+    };
+  }
+
+  renderVals(){
+    const s = this.state;
+    const vals = {};
+
+    vals.isMobile = s.isMobile;
+    vals.mobileOpen = s.mobileOpen;
+    vals.mobileToggleOnClick = () => this.toggleMobileNav();
+    vals.mobileToggleLabel = SECTION_TITLES[s.activeTab];
+    vals.tabstripDisplay = s.isMobile ? (s.mobileOpen ? 'flex' : 'none') : 'flex';
+    vals.layoutStyle = s.isMobile ? 'display:flex;flex-direction:column' : 'display:flex;flex-direction:row';
+    vals.sidebarStyle = s.isMobile
+      ? 'width:100%;background:var(--color-surface);border-right:none;border-bottom:1px solid var(--color-divider);padding:20px 0'
+      : 'position:sticky;top:0;height:100vh;width:270px;flex:0 0 270px;background:var(--color-surface);border-right:1px solid var(--color-divider);overflow-y:auto;padding:20px 0 40px';
+    vals.mainStyle = s.isMobile ? 'flex:1;min-width:0' : 'flex:1;min-width:0';
+
+    const tabs = SECTION_TITLES.map((title,i)=>{
+      const active = s.activeTab===i;
+      return {
+        i, num:String(i).padStart(2,'0'), title,
+        style: 'display:flex;gap:11px;align-items:baseline;width:100%;text-align:left;background:none;border:none;border-left:3px solid '+(active?'var(--color-accent)':'transparent')+';cursor:pointer;padding:7px 18px 7px 16px;color:'+(active?'var(--color-accent-700)':'color-mix(in srgb, var(--color-text) 65%, transparent)')+';font-family:var(--font-body);font-size:14px;font-weight:'+(active?'600':'400'),
+        numStyle: 'font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:'+(active?'var(--color-accent-700)':'color-mix(in srgb, var(--color-text) 40%, transparent)')+';flex:0 0 17px',
+        onClick: () => this.selectTab(i)
+      };
+    });
+    for(let i=0;i<SECTION_TITLES.length;i++) vals['s'+i] = s.activeTab===i ? 'block' : 'none';
+    vals.g0 = tabs.slice(0,1);
+    vals.g1 = tabs.slice(1,3);
+    vals.g2 = tabs.slice(3,9);
+    vals.g3 = tabs.slice(9,13);
+    vals.g4 = tabs.slice(13,15);
+
+    const dt = this.computeDT();
+    vals.dtPreset = s.dtPreset;
+    vals.dtShowAlpha = DT[s.dtPreset].alpha;
+    vals.dtAlpha = s.dtAlpha;
+    vals.dtAlphaLabel = s.dtAlpha.toFixed(2);
+    vals.dtN = dt.n;
+    vals.dtNMin = dt.nmin;
+    vals.dtNMax = dt.nmax;
+    vals.dtNoteText = dt.note;
+    vals.dtPlayLabel = s.dtPlaying ? 'Stop' : 'Animate';
+    vals.dtOnPresetChange = (e)=>this.setDtPreset(e.target.value);
+    vals.dtOnAlphaChange = (e)=>this.setDtAlpha(e.target.value);
+    vals.dtOnNChange = (e)=>this.setDtN(e.target.value);
+    vals.dtOnPlayClick = () => this.toggleDtPlay();
+    vals.dtViewBox1 = dt.viewBox1; vals.dtViewBox2 = dt.viewBox2; vals.dtViewBox3 = dt.viewBox3;
+    vals.dtY01 = dt.y01; vals.dtY02 = dt.y02; vals.dtY03 = dt.y03;
+    vals.dtAxisX1 = dt.axisX1; vals.dtAxisXend1 = dt.axisXend1;
+    vals.dtAxisX2 = dt.axisX2; vals.dtAxisXend2 = dt.axisXend2;
+    vals.dtAxisX3 = dt.axisX3; vals.dtAxisXend3 = dt.axisXend3;
+    vals.dtXStems = dt.xStems; vals.dtHStems = dt.hStems; vals.dtVlineX = dt.vlineX;
+    vals.dtBars = dt.bars; vals.dtOutBefore = dt.outBefore; vals.dtOutAfter = dt.outAfter;
+    vals.dtHasDot = dt.hasDot; vals.dtDotX = dt.dotX; vals.dtDotY = dt.dotY;
+    vals.dtTick1 = dt.tick1; vals.dtTick3 = dt.tick3;
+    vals.dtReadout = dt.readout;
+
+    const ct = this.computeCT();
+    vals.ctPreset = s.ctPreset;
+    vals.ctShowA = CT[s.ctPreset].usesA;
+    vals.ctA = s.ctA;
+    vals.ctALabel = s.ctA.toFixed(1);
+    vals.ctT = s.ctT;
+    vals.ctTLabel = (s.ctT/10).toFixed(1);
+    vals.ctNoteText = ct.note;
+    vals.ctPlayLabel = s.ctPlaying ? 'Stop' : 'Animate';
+    vals.ctOnPresetChange = (e)=>this.setCtPreset(e.target.value);
+    vals.ctOnAChange = (e)=>this.setCtA(e.target.value);
+    vals.ctOnTChange = (e)=>this.setCtT(e.target.value);
+    vals.ctOnPlayClick = () => this.toggleCtPlay();
+    vals.ctViewBox1 = ct.viewBox1; vals.ctViewBox2 = ct.viewBox2;
+    vals.ctAxisX1 = ct.axisX1; vals.ctAxisXend1 = ct.axisXend1;
+    vals.ctAxisX2 = ct.axisX2; vals.ctAxisXend2 = ct.axisXend2;
+    vals.ctXPath = ct.xPath; vals.ctHPath = ct.hPath; vals.ctAreaPath = ct.areaPath;
+    vals.ctVlineX1 = ct.vlineX1; vals.ctPanelBottom1 = ct.panelBottom1; vals.ctY0p1 = ct.y0p1;
+    vals.ctTick1 = ct.tick1; vals.ctTickY1 = ct.tickY1;
+    vals.ctYPathAll = ct.yPathAll; vals.ctYPathBefore = ct.yPathBefore;
+    vals.ctDotX = ct.dotX; vals.ctDotY = ct.dotY; vals.ctY0p2 = ct.y0p2;
+    vals.ctTick2 = ct.tick2; vals.ctTickY2 = ct.tickY2;
+    vals.ctReadout = ct.readout;
+
+    vals.quizQuestions = QS.map((q,qi)=>{
+      const selected = s.quizAnswers[qi];
+      const answered = selected!==undefined;
+      const options = q.o.map((label,oi)=>{
+        const isCorrect = oi===q.a;
+        const isSelected = selected===oi;
+        let style = 'border-color:var(--color-divider)';
+        if(answered && isCorrect) style = 'background:var(--color-accent-100);border-color:var(--color-accent-700);color:var(--color-accent-800)';
+        else if(answered && isSelected) style = 'background:var(--color-neutral-200);border-color:var(--color-neutral-500);color:var(--color-neutral-800)';
+        return { oi, label: String.fromCharCode(65+oi)+'. '+label, style, onClick: () => this.answerQuiz(qi,oi) };
+      });
+      return { qi, qi1: qi+1, stem:q.q, options, explanation:q.e, explDisplay: answered?'block':'none' };
+    });
+    let answeredCount=0, correctCount=0;
+    Object.keys(s.quizAnswers).forEach(k=>{ answeredCount++; if(s.quizAnswers[k]===QS[+k].a) correctCount++; });
+    vals.scoreText = answeredCount+' / 12 answered' + (answeredCount===12 ? '  ·  read every explanation before moving on' : '');
+
+    return vals;
+  }
+}
+</script>
+</body>
+</html>

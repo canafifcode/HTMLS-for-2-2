@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSE209 · Chapter 2 — Instructions: Language of the Computer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d14; --panel:#121722; --panel2:#1a2131; --panel3:#0f1420;
+  --border:#262e42; --border-soft:#1c2436;
+  --text:#e4e9f5; --text-dim:#8b93ab; --text-faint:#5d6580;
+  --accent:#5b9dff; --accent-soft:#5b9dff22;
+  --trap:#ffb454; --trap-soft:#ffb45418;
+  --good:#5fd68a; --good-soft:#5fd68a18;
+  --pink:#ff7eb6; --pink-soft:#ff7eb618;
+  --purple:#b39dff; --purple-soft:#b39dff18;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);height:100%;}
+body{display:flex;overflow:hidden;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--panel3);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+#sidebar{
+  width:270px;min-width:270px;height:100vh;background:var(--panel3);
+  border-right:1px solid var(--border-soft);display:flex;flex-direction:column;
+}
+#sidebar-head{padding:20px 18px 14px;border-bottom:1px solid var(--border-soft);}
+#sidebar-head .course{font-size:11px;letter-spacing:1.5px;color:var(--accent);font-weight:700;text-transform:uppercase;}
+#sidebar-head h1{font-size:16px;margin:6px 0 2px;line-height:1.3;font-weight:800;}
+#sidebar-head .sub{font-size:12px;color:var(--text-dim);}
+#nav{flex:1;overflow-y:auto;padding:10px 10px 20px;}
+.nav-btn{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;
+  border:none;color:var(--text-dim);padding:10px 12px;border-radius:9px;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:500;margin-bottom:3px;transition:.15s;line-height:1.35;
+}
+.nav-btn:hover{background:var(--panel2);color:var(--text);}
+.nav-btn.active{background:var(--accent-soft);color:var(--accent);font-weight:700;}
+.nav-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:7px;background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--text-faint);
+}
+.nav-btn.active .nav-num{background:var(--accent);color:#0a0d14;}
+#progress-wrap{padding:12px 18px 16px;border-top:1px solid var(--border-soft);}
+#progress-label{font-size:11px;color:var(--text-faint);margin-bottom:6px;display:flex;justify-content:space-between;}
+#progress-bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;}
+#progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));width:0%;transition:width .3s;}
+
+#main{flex:1;height:100vh;overflow-y:auto;position:relative;}
+.page{display:none;padding:44px 56px 90px;max-width:900px;margin:0 auto;animation:fadeIn .25s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.eyebrow{font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+.page h2{font-size:30px;margin:0 0 6px;font-weight:800;letter-spacing:-.5px;}
+.page .dek{color:var(--text-dim);font-size:15px;margin-bottom:32px;line-height:1.6;}
+h3.subhead{font-size:19px;margin:38px 0 12px;font-weight:700;color:var(--text);border-left:3px solid var(--accent);padding-left:12px;}
+h4.minihead{font-size:15px;margin:22px 0 8px;font-weight:700;color:var(--text);}
+p{line-height:1.75;font-size:14.5px;color:var(--text);margin:10px 0;}
+ul,ol{line-height:1.75;font-size:14.5px;padding-left:22px;}
+li{margin:5px 0;}
+strong{color:#fff;font-weight:700;}
+code{font-family:var(--mono);background:var(--panel2);padding:2px 6px;border-radius:5px;font-size:.9em;color:#a8d4ff;}
+.reg{color:var(--pink);font-family:var(--mono);}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:18px 0;}
+.callout{border-radius:12px;padding:16px 20px;margin:20px 0;border:1px solid;}
+.callout-title{font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.trap{background:var(--trap-soft);border-color:#ffb45444;}
+.trap .callout-title{color:var(--trap);}
+.good{background:var(--good-soft);border-color:#5fd68a44;}
+.good .callout-title{color:var(--good);}
+.aside{background:var(--purple-soft);border-color:#b39dff44;}
+.aside .callout-title{color:var(--purple);}
+.principle{background:var(--accent-soft);border-color:#5b9dff44;}
+.principle .callout-title{color:var(--accent);}
+
+pre.code{
+  background:var(--panel3);border:1px solid var(--border);border-radius:10px;padding:16px 18px;
+  font-family:var(--mono);font-size:13px;line-height:1.9;overflow-x:auto;color:#c9d6f0;margin:14px 0;
+}
+pre.code .cm{color:var(--text-faint);}
+
+table.corr{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+table.corr th{background:var(--panel2);color:var(--text-faint);font-family:var(--sans);text-transform:uppercase;
+  letter-spacing:.5px;font-size:10.5px;font-weight:700;text-align:left;padding:9px 12px;border:1px solid var(--border);}
+table.corr td{border:1px solid var(--border);padding:9px 12px;vertical-align:top;font-family:var(--mono);color:var(--text);}
+table.corr td.expl{font-family:var(--sans);color:var(--text-dim);font-size:12.5px;line-height:1.5;}
+table.corr tr:nth-child(even) td{background:var(--panel3);}
+
+.bitfield{display:flex;border-radius:10px;overflow:hidden;margin:16px 0;border:1px solid var(--border);}
+.bf-seg{border-right:1px solid var(--border);padding:12px 4px;text-align:center;background:var(--panel2);}
+.bf-seg:last-child{border-right:none;}
+.bf-name{display:block;font-family:var(--mono);font-weight:700;color:var(--accent);font-size:13px;}
+.bf-bits{display:block;font-size:10.5px;color:var(--text-faint);margin-top:5px;}
+
+.test-box{background:var(--panel);border:1px dashed var(--border);border-radius:12px;padding:18px 20px;margin:20px 0;}
+.test-q{font-size:14px;margin:0 0 12px;}
+.test-q .tag{background:var(--accent);color:#0a0d14;font-size:10px;font-weight:800;padding:2px 8px;border-radius:5px;margin-right:8px;letter-spacing:.5px;}
+.reveal-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text-dim);padding:7px 14px;border-radius:8px;
+  cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600;transition:.15s;}
+.reveal-btn:hover{border-color:var(--accent);color:var(--accent);}
+.test-a{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:13.5px;line-height:1.7;color:var(--text-dim);}
+.test-a.shown{display:block;}
+.test-a strong{color:var(--good);}
+
+table.regtab{width:100%;border-collapse:collapse;font-size:12.5px;margin:14px 0;}
+table.regtab th{background:var(--panel2);padding:8px 10px;text-align:left;color:var(--text-faint);font-size:10.5px;text-transform:uppercase;border:1px solid var(--border);}
+table.regtab td{padding:7px 10px;border:1px solid var(--border);font-family:var(--mono);}
+table.regtab tr:nth-child(even) td{background:var(--panel3);}
+.svar{color:var(--good);} .tvar{color:var(--pink);} .avar{color:#7ec8ff;} .spec{color:var(--trap);}
+
+.stackdiag{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;max-width:420px;}
+.stackrow{padding:12px 16px;font-family:var(--mono);font-size:12.5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.stackrow:last-child{border-bottom:none;}
+.stackrow .lab{font-family:var(--sans);color:var(--text-dim);}
+
+#pagenav{display:flex;justify-content:space-between;margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);}
+.pnav-btn{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 18px;cursor:pointer;
+  color:var(--text);font-family:var(--sans);max-width:290px;text-align:left;transition:.15s;}
+.pnav-btn:hover{border-color:var(--accent);}
+.pnav-btn .pn-lab{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;}
+.pnav-btn .pn-title{font-size:13.5px;font-weight:700;margin-top:3px;}
+.pnav-btn.next{text-align:right;margin-left:auto;}
+.pnav-btn:disabled{opacity:.3;cursor:default;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div id="sidebar-head">
+    <div class="course">CSE209 · Computer Architecture</div>
+    <h1>Chapter 2</h1>
+    <div class="sub">Instructions: Language of the Computer</div>
+  </div>
+  <div id="nav">
+    <button class="nav-btn" data-page="p0"><span class="nav-num">2.1</span><span>Introduction to ISAs</span></button>
+    <button class="nav-btn" data-page="p1"><span class="nav-num">2.2</span><span>Arithmetic Operations</span></button>
+    <button class="nav-btn" data-page="p2"><span class="nav-num">2.3</span><span>Operands: Reg &amp; Memory</span></button>
+    <button class="nav-btn" data-page="p3"><span class="nav-num">2.4</span><span>Signed &amp; Unsigned Numbers</span></button>
+    <button class="nav-btn" data-page="p4"><span class="nav-num">2.5</span><span>Representing Instructions</span></button>
+    <button class="nav-btn" data-page="p5"><span class="nav-num">2.6</span><span>Logical Operations</span></button>
+    <button class="nav-btn" data-page="p6"><span class="nav-num">2.7</span><span>Making Decisions</span></button>
+    <button class="nav-btn" data-page="p7"><span class="nav-num">2.8</span><span>Procedures &amp; the Stack</span></button>
+    <button class="nav-btn" data-page="p8"><span class="nav-num">2.9</span><span>Communicating: Characters</span></button>
+    <button class="nav-btn" data-page="p9"><span class="nav-num">2.10</span><span>32-bit Addressing</span></button>
+    <button class="nav-btn" data-page="p10"><span class="nav-num">2.11</span><span>Synchronization</span></button>
+    <button class="nav-btn" data-page="p11"><span class="nav-num">2.12</span><span>Translation &amp; Linking</span></button>
+    <button class="nav-btn" data-page="p12"><span class="nav-num">2.19</span><span>Fallacies &amp; Wrap-up</span></button>
+  </div>
+  <div id="progress-wrap">
+    <div id="progress-label"><span>Progress</span><span id="progress-text">1 / 13</span></div>
+    <div id="progress-bar"><div id="progress-fill"></div></div>
+  </div>
+</nav>
+<main id="main">
+<div class="page active" id="p0">
+  <div class="eyebrow">§2.1 Introduction</div>
+  <h2>Instruction Sets & the MIPS ISA</h2>
+  <p class="dek">Before we touch a single MIPS instruction, we need to agree on what an "instruction set" even is — it's the contract between software and hardware, and everything else in this chapter is us learning to read and write in that contract's language.</p>
+
+  <h3 class="subhead">What is an Instruction Set?</h3>
+  <p>An <strong>instruction set</strong> is the complete repertoire of instructions a particular computer's hardware understands and can execute directly. Think of it as a vocabulary — every processor architecture (MIPS, x86, ARM, RISC-V) has its own vocabulary, but historically, most instruction sets share a surprising amount of common structure: arithmetic, memory access, and control flow always show up in some form.</p>
+  <p>Early computers were built with <strong>very simple instruction sets</strong>. This wasn't a limitation of ambition — it was a deliberate simplification that made the hardware implementation dramatically easier to build correctly. That lesson never went away: many of today's most successful modern processors (and certainly the one we're about to study) still lean hard into simplicity.</p>
+
+  <div class="callout aside">
+    <div class="callout-title">💡 The Big Idea</div>
+    <p style="margin:0;">The <strong>Instruction Set Architecture (ISA)</strong> is an abstract interface — it says nothing about how the hardware actually implements each instruction internally. Two completely different physical chips can implement the exact same ISA (say, MIPS) using totally different internal designs, pipeline depths, or clock speeds, and yet run the exact same compiled binary correctly. This separation of "what" (ISA) from "how" (microarchitecture) is one of the most powerful ideas in computer science.</p>
+  </div>
+
+  <h3 class="subhead">Why MIPS?</h3>
+  <p>This course (like the textbook) uses <strong>MIPS</strong> as its running example throughout. A few reasons this is a great teaching choice:</p>
+  <ul>
+    <li>It originated as the <strong>Stanford MIPS</strong> project and was commercialized by MIPS Technologies.</li>
+    <li>It has historically held a <strong>large share of the embedded core market</strong> — think consumer electronics, network/storage equipment, cameras, printers.</li>
+    <li>Above all: it's <strong>typical of many modern ISAs</strong>. The regularities you learn here transfer almost directly to how you'd reason about ARM or RISC-V.</li>
+  </ul>
+  <p style="color:var(--text-faint);font-size:13px;">Reference: MIPS Reference Data tear-out card, and Appendixes B and E of the textbook.</p>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why did early computer designers favor simple instruction sets, and why does that reasoning still matter today?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a"><strong>Answer:</strong> Simple instruction sets are dramatically easier to implement correctly in hardware. Fewer, more regular instructions mean less complex control logic, which directly enables higher performance at lower cost — this is exactly Design Principle #1 ("Simplicity favors regularity"), which you'll meet formally in the next section, and it still drives modern RISC-style ISA design (ARM, RISC-V) today.</div>
+  </div>
+
+  <div id="pagenav0"></div>
+</div>
+<div class="page" id="p1">
+  <div class="eyebrow">§2.2 Operations of the Computer Hardware</div>
+  <h2>Arithmetic Operations</h2>
+  <p class="dek">Every MIPS arithmetic instruction obeys one rigid shape. Once you internalize that shape, translating C expressions into MIPS becomes mechanical.</p>
+
+  <h3 class="subhead">The Three-Operand Rule</h3>
+  <p>MIPS add and subtract always take <strong>exactly three operands</strong>: two sources and one destination.</p>
+  <pre class="code">add a, b, c   <span class="cm"># a gets b + c</span></pre>
+  <p><strong>Every</strong> arithmetic instruction in MIPS has this form. There is no version of <code>add</code> that takes two operands, or four. This rigidity is not an accident.</p>
+
+  <div class="callout principle">
+    <div class="callout-title">⚙️ Design Principle #1 — Simplicity favors regularity</div>
+    <p style="margin:0;">Forcing every arithmetic instruction into the identical 3-operand shape makes the hardware that decodes and executes it dramatically simpler. Regularity in the instruction format directly translates into simpler control logic, which enables higher performance at lower cost. You'll see this principle resurface constantly through the chapter — it's the single most important idea in MIPS's design.</p>
+  </div>
+
+  <h3 class="subhead">Worked Example: Translating a C Expression</h3>
+  <p><strong>C code:</strong></p>
+  <pre class="code">f = (g + h) - (i + j);</pre>
+  <p>This expression has <strong>two</strong> operations nested together — but a MIPS instruction can only perform <strong>one</strong> operation. The compiler must break this into a sequence of simple three-operand instructions, using temporary registers to hold intermediate results.</p>
+  <p><strong>Compiled MIPS code:</strong></p>
+  <pre class="code">add t0, g, h   <span class="cm"># temp t0 = g + h</span>
+add t1, i, j   <span class="cm"># temp t1 = i + j</span>
+sub f,  t0, t1 <span class="cm"># f = t0 - t1</span></pre>
+
+  <table class="corr">
+    <tr><th>C sub-expression</th><th>MIPS line</th><th>What's happening</th></tr>
+    <tr><td>(g + h)</td><td>add t0, g, h</td><td class="expl">Computes g+h once, stashes it in a scratch register t0 since it will be needed again in the next line.</td></tr>
+    <tr><td>(i + j)</td><td>add t1, i, j</td><td class="expl">Computes i+j into a second scratch register t1 — MIPS can't nest expressions, so this has to be its own instruction.</td></tr>
+    <tr><td>… - …</td><td>sub f, t0, t1</td><td class="expl">Only now, with both partial sums ready in registers, can the subtraction happen — and it writes directly into f.</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;"><strong>Operand order matters for subtract!</strong> <code>sub d, s, t</code> means <code>d = s − t</code>, <strong>not</strong> <code>t − s</code>. Students under exam pressure frequently flip this. Always read subtract operands left-to-right exactly like the C expression they came from.</p>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">You cannot write a single instruction like <code>add f, g, h, i, j</code> — MIPS arithmetic instructions perform exactly <strong>one</strong> operation on exactly <strong>two</strong> source operands. Any C expression with more than one operator needs one MIPS instruction <em>per operator</em>, chained together with temporary registers.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Translate <code>x = (a - b) + (c - d);</code> into MIPS, using <code>t0</code> and <code>t1</code> as temporaries.</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">
+      <pre class="code" style="margin:0;">sub t0, a, b   <span class="cm"># t0 = a - b</span>
+sub t1, c, d   <span class="cm"># t1 = c - d</span>
+add x,  t0, t1 <span class="cm"># x = t0 + t1</span></pre>
+      Same pattern as the worked example: compute each parenthesized sub-expression into its own temp register first, then combine them in the final instruction.
+    </div>
+  </div>
+
+  <div id="pagenav1"></div>
+</div>
+<div class="page" id="p2">
+  <div class="eyebrow">§2.3 Operands of the Computer Hardware</div>
+  <h2>Operands: Registers, Memory & Immediates</h2>
+  <p class="dek">MIPS arithmetic instructions never touch memory directly — this single fact shapes almost everything else in this section.</p>
+
+  <h3 class="subhead">Register Operands</h3>
+  <p>Arithmetic instructions operate exclusively on <strong>register operands</strong>. MIPS provides a <strong>32 × 32-bit register file</strong>: 32 registers, numbered 0–31, each holding a 32-bit "word." These are reserved for the hardware's most frequently accessed data.</p>
+
+  <div class="callout principle">
+    <div class="callout-title">⚙️ Design Principle #2 — Smaller is faster</div>
+    <p style="margin:0;">Compare 32 registers to main memory's millions of locations. A smaller storage structure can be built with faster access circuitry. This is exactly why the register file is capped at 32 — enough to hold the hot working set of a typical computation, small enough to stay blazingly fast.</p>
+  </div>
+
+  <h4 class="minihead">Assembler Register Names</h4>
+  <table class="regtab">
+    <tr><th>Name</th><th>Purpose</th></tr>
+    <tr><td class="tvar">$t0 – $t9</td><td>Temporary values</td></tr>
+    <tr><td class="svar">$s0 – $s7</td><td>Saved variables</td></tr>
+  </table>
+
+  <h4 class="minihead">Worked Example</h4>
+  <p><strong>C:</strong> <code>f = (g + h) - (i + j);</code> with f…j mapped to <code class="reg">$s0…$s4</code></p>
+  <pre class="code">add $t0, $s1, $s2
+add $t1, $s3, $s4
+sub $s0, $t0, $t1</pre>
+  <p>Identical structure to the arithmetic example from §2.2 — we've simply swapped in real register names.</p>
+
+  <h3 class="subhead">Memory Operands</h3>
+  <p>Registers are great for scalars, but composite data — arrays, structs, anything dynamically sized — lives in <strong>main memory</strong>. To operate on it arithmetically, MIPS must first <strong>load</strong> the value from memory into a register, compute, then optionally <strong>store</strong> the result back.</p>
+  <ul>
+    <li>Memory is <strong>byte-addressed</strong>: every address identifies one 8-bit byte.</li>
+    <li>A <strong>word</strong> is 4 bytes = 32 bits, and words must be <strong>aligned</strong>: a word's address must be a multiple of 4.</li>
+    <li>MIPS is <strong>Big-Endian</strong>: the most-significant byte sits at the <em>lowest</em> address of a word (the opposite of x86's Little-Endian, where the least-significant byte comes first).</li>
+  </ul>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — the #1 pitfall of this whole chapter</div>
+    <p style="margin:0;"><strong>Sequential words are NOT at sequential addresses.</strong> Because each address is a byte, consecutive words sit at addresses 0, 4, 8, 12, … — <em>not</em> 0, 1, 2, 3. If you're walking a word array with a pointer, you increment by <strong>4</strong>, never by 1. The textbook flags this explicitly as a "pitfall" (§2.19) precisely because so many students get burned by it.</p>
+  </div>
+
+  <h4 class="minihead">Worked Example 1 — Load then Add</h4>
+  <p><strong>C:</strong> <code>g = h + A[8];</code> — g in <code class="reg">$s1</code>, h in <code class="reg">$s2</code>, base address of A in <code class="reg">$s3</code></p>
+  <p>Index 8 needs a <strong>byte offset</strong> of 8 × 4 bytes/word = <strong>32</strong>.</p>
+  <pre class="code">lw $t0, 32($s3)   <span class="cm"># load word: t0 = A[8]</span>
+add $s1, $s2, $t0 <span class="cm"># g = h + A[8]</span></pre>
+
+  <h4 class="minihead">Worked Example 2 — Load, Compute, Store</h4>
+  <p><strong>C:</strong> <code>A[12] = h + A[8];</code> — h in <code class="reg">$s2</code>, base of A in <code class="reg">$s3</code></p>
+  <p>Index 8 → offset 32. Index 12 → offset 48.</p>
+  <pre class="code">lw $t0, 32($s3)   <span class="cm"># load word: t0 = A[8]</span>
+add $t0, $s2, $t0 <span class="cm"># t0 = h + A[8]</span>
+sw $t0, 48($s3)   <span class="cm"># store word: A[12] = t0</span></pre>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Never use an array index directly as the byte offset. Always multiply the index by the element's byte size (4 for a word-sized <code>int</code>). Index 8 is offset <strong>32</strong>, not 8 — this scaling step is the single most common arithmetic slip on memory-operand exam problems.</p>
+  </div>
+
+  <h3 class="subhead">Registers vs. Memory</h3>
+  <p>Registers are always faster to access than memory. Operating on memory-resident data costs extra load/store instructions, so a good compiler keeps as many variables in registers as it can, only <strong>"spilling"</strong> the least-frequently-used ones to memory. Register allocation is one of the most heavily studied problems in compiler design for exactly this reason.</p>
+
+  <h3 class="subhead">Immediate Operands</h3>
+  <p>Sometimes the second operand isn't a variable at all — it's a constant baked right into the instruction:</p>
+  <pre class="code">addi $s3, $s3, 4</pre>
+  <p>There's <strong>no separate "subtract immediate"</strong> instruction — you just <code>addi</code> a negative constant:</p>
+  <pre class="code">addi $s2, $s1, -1</pre>
+
+  <div class="callout principle">
+    <div class="callout-title">⚙️ Design Principle #3 — Make the common case fast</div>
+    <p style="margin:0;">Small constants show up constantly in real programs — loop counters, array index bumps, small offsets. Giving them a direct, single-instruction path (rather than forcing a separate load of the constant into a register first) is a textbook example of optimizing for the common case.</p>
+  </div>
+
+  <h4 class="minihead">The Constant Zero</h4>
+  <p>Register <code class="reg">$zero</code> (register 0) is hardwired to the value 0 and <strong>cannot be overwritten</strong> — any write to it is silently discarded. It's surprisingly useful, e.g. for moving a value between registers:</p>
+  <pre class="code">add $t2, $s1, $zero   <span class="cm"># t2 = s1 + 0, i.e. t2 = s1</span></pre>
+  <p style="color:var(--text-faint);font-size:13px;">Keep this in the back of your mind — it resurfaces in §2.12 as exactly how the <code>move</code> pseudoinstruction is implemented.</p>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why can't MIPS have an instruction like x86's "add memory-to-memory" (adding two values that both live in RAM, with no registers involved)?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">MIPS is a strict <strong>load/store architecture</strong>: <code>lw</code>/<code>sw</code> are the only instructions permitted to touch memory; every arithmetic instruction only ever reads/writes registers. This is Design Principle #1 (regularity) again — keeping arithmetic instructions memory-free means the hardware datapath for "compute" never has to also handle a slow, unpredictable-latency memory access, which simplifies and speeds up the common arithmetic path.</div>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Given a word array, what byte offset reaches element <code>A[20]</code>?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">20 × 4 bytes = <strong>80</strong>. Instruction: <code>lw $t0, 80($s3)</code> (assuming base of A is in $s3).</div>
+  </div>
+
+  <div id="pagenav2"></div>
+</div>
+<div class="page" id="p3">
+  <div class="eyebrow">§2.4 Signed and Unsigned Numbers</div>
+  <h2>Signed & Unsigned Numbers</h2>
+  <p class="dek">The exact same 32 bits mean two completely different numbers depending on whether you interpret them as signed or unsigned. Nearly every trap in this section comes from forgetting that.</p>
+
+  <h3 class="subhead">Unsigned Binary Integers</h3>
+  <p>For an <strong>n</strong>-bit unsigned number, the range is <strong>0 to 2ⁿ − 1</strong>. For 32 bits: <strong>0 to 4,294,967,295</strong>.</p>
+  <pre class="code">0000 0000 0000 0000 0000 0000 0000 1011<sub>2</sub>
+= 1×2<sup>3</sup> + 0×2<sup>2</sup> + 1×2<sup>1</sup> + 1×2<sup>0</sup>
+= 8 + 0 + 2 + 1 = 11<sub>10</sub></pre>
+
+  <h3 class="subhead">2's-Complement Signed Integers</h3>
+  <p>For an <strong>n</strong>-bit signed number, the range is <strong>−2ⁿ⁻¹ to +2ⁿ⁻¹ − 1</strong>. For 32 bits: <strong>−2,147,483,648 to +2,147,483,647</strong>.</p>
+  <pre class="code">1111 1111 1111 1111 1111 1111 1111 1100<sub>2</sub>
+= −1×2<sup>31</sup> + 1×2<sup>30</sup> + … + 1×2<sup>2</sup> + 0×2<sup>1</sup> + 0×2<sup>0</sup>
+= −2,147,483,648 + 2,147,483,644 = −4<sub>10</sub></pre>
+  <p>Note the trick: bit 31 is weighted <strong>negatively</strong> (−2³¹); every other bit keeps its normal positive weight. That single negative weight on the top bit is the entire mechanism of 2's-complement.</p>
+
+  <h4 class="minihead">Key Facts</h4>
+  <ul>
+    <li><strong>Bit 31 is the sign bit</strong>: 1 → negative, 0 → non-negative.</li>
+    <li><strong>Non-negative numbers</strong> have identical bit patterns under unsigned and 2's-complement interpretation — they only diverge once the sign bit is set.</li>
+    <li>Landmark patterns:</li>
+  </ul>
+  <table class="regtab">
+    <tr><th>Value</th><th>Bit Pattern</th></tr>
+    <tr><td>0</td><td>0000&nbsp;0000&nbsp;…&nbsp;0000</td></tr>
+    <tr><td>−1</td><td>1111&nbsp;1111&nbsp;…&nbsp;1111</td></tr>
+    <tr><td>Most-negative</td><td>1000&nbsp;0000&nbsp;…&nbsp;0000</td></tr>
+    <tr><td>Most-positive</td><td>0111&nbsp;1111&nbsp;…&nbsp;1111</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — a favorite trick question</div>
+    <p style="margin:0;"><strong>−(−2ⁿ⁻¹) cannot be represented!</strong> The most-negative number (1000…0) has no positive counterpart in n-bit 2's-complement — negating it "wraps around" back to itself. In 32-bit MIPS, that means you cannot represent +2,147,483,648.</p>
+  </div>
+
+  <h3 class="subhead">Signed Negation</h3>
+  <p>To negate a 2's-complement number: <strong>complement every bit, then add 1.</strong> (Complement = flip each bit: 1→0, 0→1.)</p>
+  <p><strong>Worked example — negate +2:</strong></p>
+  <pre class="code">+2  = 0000 0000 … 0010<sub>2</sub>
+complement → 1111 1111 … 1101<sub>2</sub>
++ 1            → 1111 1111 … 1110<sub>2</sub>  = −2</pre>
+
+  <h3 class="subhead">Sign Extension</h3>
+  <p><strong>Sign extension</strong> widens a number to more bits while preserving its numeric value. For signed values, you <strong>replicate the sign bit</strong> leftward. MIPS instructions that sign-extend include:</p>
+  <ul>
+    <li><code>addi</code> — extends the immediate value</li>
+    <li><code>lb</code>, <code>lh</code> — extend the loaded byte/halfword</li>
+    <li><code>beq</code>, <code>bne</code> — extend the branch displacement</li>
+  </ul>
+  <p><strong>Unsigned</strong> values, by contrast, extend with 0s (that's exactly what <code>lbu</code>/<code>lhu</code> do).</p>
+  <p><strong>Worked example — 8-bit to 16-bit:</strong></p>
+  <pre class="code">+2:  0000 0010  →  0000 0000 0000 0010
+−2:  1111 1110  →  1111 1111 1111 1110</pre>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Mixing up sign-extend vs. zero-extend is one of <strong>the</strong> classic exam gotchas — especially <code>lb</code> (sign-extends) vs. <code>lbu</code> (zero-extends). Ask yourself: "does this instruction care about signedness?" If the loaded value is being used as a raw byte/character (like in <code>strcpy</code>, later in §2.9), zero-extension via <code>lbu</code> is correct even though the value is technically "unsigned" — you don't want a high-bit-set character byte accidentally turning negative.</p>
+  </div>
+
+  <div class="callout aside">
+    <div class="callout-title">🔍 Beyond the Slides — the "u" suffix trap</div>
+    <p style="margin:0;">MIPS also has <code>addu</code>, <code>addiu</code>, <code>subu</code>. Despite the "u," these do <strong>not</strong> mean "treat operands as unsigned" — the arithmetic bit pattern produced is identical either way in 2's-complement. What "u" actually means is: <strong>don't trigger an overflow exception</strong>. Crucially, <code>addiu</code> <em>still sign-extends</em> its 16-bit immediate, exactly like <code>addi</code>. This is a genuinely common point of confusion worth knowing even if your slides don't dwell on it.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>What is the 2's-complement decimal value of <code>1111 1111 1111 1111 1111 1111 1111 1111</code>? What is its unsigned decimal value?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">Signed: <strong>−1</strong> (all-1s is always −1 in 2's-complement). Unsigned: <strong>4,294,967,295</strong> (2³² − 1). Same bits, two entirely different numbers — this exact pair reappears in the <code>slt</code> vs <code>sltu</code> worked example in §2.7.</div>
+  </div>
+
+  <div id="pagenav3"></div>
+</div>
+<div class="page" id="p4">
+  <div class="eyebrow">§2.5 Representing Instructions in the Computer</div>
+  <h2>Representing Instructions</h2>
+  <p class="dek">Every MIPS instruction is a rigid 32-bit binary word — this section is where "regularity" stops being an abstract slogan and becomes a literal bit layout you can hand-decode.</p>
+
+  <p>Instructions are encoded in binary — called <strong>machine code</strong>. MIPS instructions are always exactly <strong>32 bits</strong>, using a small number of formats that encode an operation code (opcode), register numbers, and so on. Regularity, again.</p>
+
+  <h4 class="minihead">Register Numbers</h4>
+  <table class="regtab">
+    <tr><th>Name</th><th>Register #</th></tr>
+    <tr><td class="tvar">$t0 – $t7</td><td>8 – 15</td></tr>
+    <tr><td class="svar">$s0 – $s7</td><td>16 – 23</td></tr>
+    <tr><td class="tvar">$t8 – $t9</td><td>24 – 25</td></tr>
+  </table>
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;"><code>$t8</code>/<code>$t9</code> are <strong>not</strong> contiguous with <code>$t0</code>–<code>$t7</code>! They jump to register numbers 24–25 (after the $s registers), not 16–17. This numbering gap is a favorite "decode this instruction by hand" exam trick.</p>
+  </div>
+
+  <h3 class="subhead">MIPS R-format Instructions</h3>
+  <p>Used for register-to-register arithmetic (like <code>add</code>, <code>sub</code>, <code>and</code>, <code>or</code>, shifts).</p>
+  <div class="bitfield">
+    <div class="bf-seg" style="flex:6"><span class="bf-name">op</span><span class="bf-bits">6 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rs</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rd</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">shamt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:6"><span class="bf-name">funct</span><span class="bf-bits">6 bits</span></div>
+  </div>
+  <ul>
+    <li><strong>op</strong> — operation code (opcode); for <em>all</em> R-format instructions this is 0 ("special")</li>
+    <li><strong>rs</strong> — first source register number</li>
+    <li><strong>rt</strong> — second source register number</li>
+    <li><strong>rd</strong> — destination register number</li>
+    <li><strong>shamt</strong> — shift amount (00000 unless the instruction is a shift)</li>
+    <li><strong>funct</strong> — function code; since <code>op</code> is always 0 for R-format, <strong>funct is what actually distinguishes add from sub from and…</strong></li>
+  </ul>
+
+  <h4 class="minihead">Worked Example: <code>add $t0, $s1, $s2</code></h4>
+  <table class="corr">
+    <tr><th>Field</th><th>op</th><th>rs</th><th>rt</th><th>rd</th><th>shamt</th><th>funct</th></tr>
+    <tr><td class="expl">Meaning</td><td>special</td><td>$s1</td><td>$s2</td><td>$t0</td><td>0</td><td>add</td></tr>
+    <tr><td class="expl">Decimal</td><td>0</td><td>17</td><td>18</td><td>8</td><td>0</td><td>32</td></tr>
+    <tr><td class="expl">Binary</td><td>000000</td><td>10001</td><td>10010</td><td>01000</td><td>00000</td><td>100000</td></tr>
+  </table>
+  <p>Concatenated: <code>00000010001100100100000000100000</code><sub>2</sub> = <strong>0x02324020</strong> in hex.</p>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — the #1 encoding mistake</div>
+    <p style="margin:0;">In assembly <strong>text</strong>, the order is <code>add rd, rs, rt</code> (destination <em>first</em>). But in the <strong>binary encoding</strong>, the field order is <code>rs, rt, rd</code> — destination sits in the <strong>middle</strong>! When hand-encoding or hand-decoding an R-format instruction, this mismatch between assembly order and bit-field order trips up almost everyone the first time.</p>
+  </div>
+
+  <h3 class="subhead">Hexadecimal</h3>
+  <p>Base 16 — a compact way to write bit strings, since <strong>4 bits map exactly to 1 hex digit.</strong></p>
+  <table class="regtab">
+    <tr><td>0 = 0000</td><td>4 = 0100</td><td>8 = 1000</td><td>c = 1100</td></tr>
+    <tr><td>1 = 0001</td><td>5 = 0101</td><td>9 = 1001</td><td>d = 1101</td></tr>
+    <tr><td>2 = 0010</td><td>6 = 0110</td><td>a = 1010</td><td>e = 1110</td></tr>
+    <tr><td>3 = 0011</td><td>7 = 0111</td><td>b = 1011</td><td>f = 1111</td></tr>
+  </table>
+  <p><strong>Example:</strong> <code>eca8 6420</code><sub>16</sub> = <code>1110 1100 1010 1000 0110 0100 0010 0000</code><sub>2</sub></p>
+
+  <h3 class="subhead">MIPS I-format Instructions</h3>
+  <p>Used for immediate arithmetic (<code>addi</code>) and load/store (<code>lw</code>, <code>sw</code>).</p>
+  <div class="bitfield">
+    <div class="bf-seg" style="flex:6"><span class="bf-name">op</span><span class="bf-bits">6 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rs</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:16"><span class="bf-name">constant or address</span><span class="bf-bits">16 bits</span></div>
+  </div>
+  <ul>
+    <li><strong>rt</strong> here is a destination <em>or</em> source register, depending on the instruction.</li>
+    <li>The 16-bit field is either a <strong>constant</strong> (range −2¹⁵ to +2¹⁵ − 1, because it's sign-extended) or, for loads/stores, an <strong>address offset</strong> added to the base register in <code>rs</code>.</li>
+  </ul>
+
+  <div class="callout principle">
+    <div class="callout-title">⚙️ Design Principle #4 — Good design demands good compromises</div>
+    <p style="margin:0;">Having two formats (R and I) complicates instruction decoding slightly compared to having just one — but keeping the formats as similar as possible (op always in the same bit position, rs/rt always in the same place) balances the flexibility of a 16-bit immediate field against the cost of extra decode logic. This principle is the "grown-up" answer to almost every "why didn't MIPS just do X instead" question in this chapter.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why does the R-format need a separate <code>funct</code> field at all — why not just use more opcode bits?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">All R-format instructions share the same 6-bit opcode (0, "special") so that they can also share the exact same field layout as each other (rs/rt/rd/shamt/funct in fixed positions) — this is the regularity principle again. The <code>funct</code> field then does the job of distinguishing add/sub/and/or/etc. within that shared format, rather than forcing every R-type operation to have a unique opcode (which would break the uniform layout).</div>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Decode: <code>op=0, rs=9($t1), rt=10($t2), rd=11($t3), shamt=0, funct=34 (sub)</code>. Write the assembly instruction.</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a"><code>sub $t3, $t1, $t2</code> — remember: rd (destination) comes first in assembly text, even though it sits in the middle of the bit encoding.</div>
+  </div>
+
+  <div id="pagenav4"></div>
+</div>
+<div class="page" id="p5">
+  <div class="eyebrow">§2.6 Logical Operations</div>
+  <h2>Logical Operations</h2>
+  <p class="dek">These instructions manipulate individual bits rather than whole numeric values — masking, setting, inverting, and shifting.</p>
+
+  <table class="regtab">
+    <tr><th>Operation</th><th>C</th><th>Java</th><th>MIPS</th></tr>
+    <tr><td>Shift left</td><td>&lt;&lt;</td><td>&lt;&lt;</td><td>sll</td></tr>
+    <tr><td>Shift right</td><td>&gt;&gt;</td><td>&gt;&gt;&gt;</td><td>srl</td></tr>
+    <tr><td>Bitwise AND</td><td>&amp;</td><td>&amp;</td><td>and, andi</td></tr>
+    <tr><td>Bitwise OR</td><td>|</td><td>|</td><td>or, ori</td></tr>
+    <tr><td>Bitwise NOT</td><td>~</td><td>~</td><td>nor</td></tr>
+  </table>
+  <p>These are useful whenever you need to extract or insert specific groups of bits within a word — flags, packed fields, character manipulation, and so on.</p>
+
+  <h3 class="subhead">Shift Operations</h3>
+  <p>The <code>shamt</code> field says how many bit positions to shift.</p>
+  <ul>
+    <li><strong>Shift left logical (sll)</strong> — shifts left, filling with 0s on the right. Shifting left by <em>i</em> bits <strong>multiplies by 2ⁱ</strong>.</li>
+    <li><strong>Shift right logical (srl)</strong> — shifts right, filling with 0s on the left. Shifting right by <em>i</em> bits <strong>divides by 2ⁱ, but only for unsigned values</strong>.</li>
+  </ul>
+  <div class="bitfield">
+    <div class="bf-seg" style="flex:6"><span class="bf-name">op</span><span class="bf-bits">6 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rs</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rd</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">shamt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:6"><span class="bf-name">funct</span><span class="bf-bits">6 bits</span></div>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;"><code>srl</code> fills the vacated high bits with <strong>0</strong>, no matter what. If you use it to "divide" a <strong>negative</strong> signed number by a power of 2, you'll destroy the sign bit and get garbage. MIPS actually provides <code>sra</code> (shift right <em>arithmetic</em>) which replicates the sign bit instead, for correct signed division-by-power-of-2. If your exam asks you to halve a signed value via shifting, reach for <code>sra</code>, not <code>srl</code>.</p>
+  </div>
+
+  <h3 class="subhead">AND — Masking Bits</h3>
+  <p>Useful to <strong>select some bits, clear the rest to 0.</strong> A result bit is 1 only where <em>both</em> operand bits are 1.</p>
+  <pre class="code">and $t0, $t1, $t2
+
+$t1  0000 0000 0000 0000 0000 1101 1100 0000
+$t2  0000 0000 0000 0000 0011 1100 0000 0000
+─────────────────────────────────────────────
+$t0  0000 0000 0000 0000 0000 1100 0000 0000</pre>
+  <p>Wherever <code>$t2</code> has a 0, the result is forced to 0 regardless of <code>$t1</code> — that's the "masking" behavior in action.</p>
+
+  <h3 class="subhead">OR — Setting Bits</h3>
+  <p>Useful to <strong>include bits</strong>: set some bits to 1 while leaving others unchanged.</p>
+  <pre class="code">or $t0, $t1, $t2
+
+$t1  0000 0000 0000 0000 0000 1101 1100 0000
+$t2  0000 0000 0000 0000 0011 1100 0000 0000
+─────────────────────────────────────────────
+$t0  0000 0000 0000 0000 0011 1101 1100 0000</pre>
+
+  <h3 class="subhead">NOT via NOR</h3>
+  <p>MIPS has <strong>no direct NOT instruction</strong>. Instead it provides a 3-operand <code>nor</code>, and <code>a NOR b == NOT(a OR b)</code>. OR-ing any value with <code class="reg">$zero</code> leaves it unchanged, so NOR-ing with $zero gives you a clean bitwise NOT:</p>
+  <pre class="code">nor $t0, $t1, $zero
+
+$t1  0000 0000 0000 0000 0011 1100 0000 0000
+$t0  1111 1111 1111 1111 1100 0011 1111 1111</pre>
+
+  <div class="callout aside">
+    <div class="callout-title">🤔 Why NOR and not a dedicated NOT?</div>
+    <p style="margin:0;">Adding a whole new instruction (and thus a whole new opcode/funct combination and possibly a new instruction <em>format</em> for a single-operand op) would break the clean 3-operand regularity every other R-format instruction shares. Instead, MIPS reuses the existing 3-operand shape and gets NOT "for free" by NOR-ing with the always-zero register. Regularity wins again.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Given <code>$t1 = 1010 1010</code> and <code>$t2 = 0000 1111</code> (8-bit for simplicity), compute <code>and $t0,$t1,$t2</code>, <code>or $t0,$t1,$t2</code>, and <code>nor $t0,$t1,$zero</code>.</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">
+      AND: <code>1010 1010 &amp; 0000 1111 = 0000 1010</code><br>
+      OR: <code>1010 1010 | 0000 1111 = 1010 1111</code><br>
+      NOR with $zero (= NOT $t1): <code>~(1010 1010) = 0101 0101</code>
+    </div>
+  </div>
+
+  <div id="pagenav5"></div>
+</div>
+<div class="page" id="p6">
+  <div class="eyebrow">§2.7 Instructions for Making Decisions</div>
+  <h2>Making Decisions</h2>
+  <p class="dek">This is where MIPS starts to feel like a real programming language — if-statements and loops both compile down to the same handful of branch instructions.</p>
+
+  <h3 class="subhead">The Three Core Instructions</h3>
+  <ul>
+    <li><code>beq rs, rt, L1</code> — <strong>if (rs == rt)</strong> branch to the instruction labeled L1</li>
+    <li><code>bne rs, rt, L1</code> — <strong>if (rs != rt)</strong> branch to the instruction labeled L1</li>
+    <li><code>j L1</code> — unconditional jump to L1</li>
+  </ul>
+  <p>If the condition is false, execution just falls through to the next sequential instruction.</p>
+
+  <h3 class="subhead">Compiling If Statements</h3>
+  <p><strong>C code:</strong></p>
+  <pre class="code">if (i == j) f = g + h;
+else        f = g - h;</pre>
+  <p>f, g, i, j mapped to <code class="reg">$s0, $s1, $s3, $s4</code> respectively (h in <code class="reg">$s2</code>).</p>
+  <table class="corr">
+    <tr><th>C</th><th>MIPS</th><th>Purpose</th></tr>
+    <tr><td>if (i == j)</td><td>bne $s3, $s4, Else</td><td class="expl"><strong>Inverted condition!</strong> If i≠j, jump straight to the "else" branch, skipping the "then" code entirely.</td></tr>
+    <tr><td>f = g + h;</td><td>add $s0, $s1, $s2</td><td class="expl">The "then" body — only reached if we didn't branch away above.</td></tr>
+    <tr><td>(end of if)</td><td>j Exit</td><td class="expl">Having run the "then" branch, we must jump <em>over</em> the "else" branch to avoid falling into it.</td></tr>
+    <tr><td>else f = g - h;</td><td>Else: sub $s0, $s1, $s2</td><td class="expl">The "else" body, landed on directly by the bne above.</td></tr>
+    <tr><td>(after if/else)</td><td>Exit: …</td><td class="expl">Both paths converge here.</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — the single most common if/else mistake</div>
+    <p style="margin:0;">Compilers branch on the <strong>opposite (negated)</strong> condition of the C source, then let the "true" case simply fall through. C says <code>if (i == j)</code>, but the MIPS uses <strong>bne</strong>, not beq! Students under time pressure instinctively reach for the branch that matches the C keyword literally and get it backwards. Always ask: "what condition sends me <em>away</em> from the code I'm currently looking at?"</p>
+  </div>
+
+  <h3 class="subhead">Compiling Loop Statements</h3>
+  <p><strong>C code:</strong></p>
+  <pre class="code">while (save[i] == k) i += 1;</pre>
+  <p>i in <code class="reg">$s3</code>, k in <code class="reg">$s5</code>, address of <code>save</code> in <code class="reg">$s6</code>.</p>
+  <table class="corr">
+    <tr><th>MIPS</th><th>Purpose</th></tr>
+    <tr><td>Loop: sll $t1, $s3, 2</td><td class="expl">t1 = i × 4 (scale the index into a byte offset — save[] is a word array, so each element is 4 bytes; this is the exact same "×4" idea from the memory-operand examples in §2.3, just done via a shift instead of multiplication).</td></tr>
+    <tr><td>add $t1, $t1, $s6</td><td class="expl">t1 = address of save[i] (base address + scaled offset).</td></tr>
+    <tr><td>lw $t0, 0($t1)</td><td class="expl">t0 = save[i] — load the actual array element.</td></tr>
+    <tr><td>bne $t0, $s5, Exit</td><td class="expl"><strong>Inverted condition again!</strong> C says "while equal, keep looping" — MIPS says "the moment they're <em>not</em> equal, exit."</td></tr>
+    <tr><td>addi $s3, $s3, 1</td><td class="expl">i += 1 — only reached if we didn't exit above.</td></tr>
+    <tr><td>j Loop</td><td class="expl">Jump back to re-check the condition — this is what makes it a loop rather than a one-shot if.</td></tr>
+    <tr><td>Exit: …</td><td class="expl">Landed on directly by the bne once the condition goes false.</td></tr>
+  </table>
+
+  <h4 class="minihead">Basic Blocks</h4>
+  <p>A <strong>basic block</strong> is a maximal sequence of instructions with <strong>no embedded branches</strong> (except possibly at the very end) and <strong>no branch targets</strong> (except possibly at the very beginning). Compilers identify basic blocks as the fundamental unit for optimization, and advanced processors can accelerate execution across a whole basic block at once since control flow within it is fully predictable.</p>
+
+  <h3 class="subhead">More Conditional Operations: slt</h3>
+  <p><code>beq</code>/<code>bne</code> can only test equality — for <, >, ≤, ≥ we need help:</p>
+  <ul>
+    <li><code>slt rd, rs, rt</code> — <code>if (rs &lt; rt) rd = 1; else rd = 0;</code></li>
+    <li><code>slti rt, rs, constant</code> — <code>if (rs &lt; constant) rt = 1; else rt = 0;</code></li>
+  </ul>
+  <p>Combine with beq/bne to build any comparison:</p>
+  <pre class="code">slt $t0, $s1, $s2   <span class="cm"># t0 = 1 if s1 &lt; s2</span>
+bne $t0, $zero, L    <span class="cm"># branch to L if s1 &lt; s2 was true</span></pre>
+
+  <div class="callout aside">
+    <div class="callout-title">🤔 Why isn't there a direct <code>blt</code> or <code>bge</code> instruction?</div>
+    <p style="margin:0;">The hardware comparators for &lt; and ≥ are inherently <strong>slower</strong> than those for = and ≠. Folding a slow comparison directly into a branch instruction means <em>every</em> branch — including the far more common equality checks — would be limited by that slower comparator's timing, since the whole CPU shares one clock speed. So MIPS keeps beq/bne fast and common, and makes &lt;/≥ comparisons a deliberate two-instruction combo. This is Design Principle #4 (good compromises) in action: a real cost (extra instruction) accepted for a real benefit (a faster clock for everyone).</p>
+  </div>
+
+  <h3 class="subhead">Signed vs. Unsigned Comparison</h3>
+  <p><strong>Signed comparison:</strong> <code>slt</code>, <code>slti</code>. <strong>Unsigned comparison:</strong> <code>sltu</code>, <code>sltui</code>.</p>
+  <p><strong>Worked example</strong> — this single example is arguably the highest-yield trap in the entire chapter:</p>
+  <pre class="code">$s0 = 1111 1111 1111 1111 1111 1111 1111 1111
+$s1 = 0000 0000 0000 0000 0000 0000 0000 0001
+
+slt  $t0, $s0, $s1   <span class="cm"># signed:   −1 &lt; +1  → $t0 = 1</span>
+sltu $t0, $s0, $s1   <span class="cm"># unsigned: 4,294,967,295 &gt; 1 → $t0 = 0</span></pre>
+  <p><strong>Identical bit patterns, opposite comparison results</strong> — purely because of how the instruction chose to interpret the sign bit. This is exactly the same $s0 pattern from the §2.4 self-test.</p>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Always check the problem statement for whether values should be treated as signed or unsigned before picking <code>slt</code> vs <code>sltu</code>. Using the wrong one silently produces a "valid-looking" but <strong>completely wrong</strong> answer — there's no error, no crash, just a flipped comparison. This is a favorite way to write a subtle, hard-to-catch exam question.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Translate: <code>if (a &gt;= b) x = 1; else x = 0;</code> (signed a, b) into MIPS using slt.</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">
+      <pre class="code" style="margin:0;">slt $t0, $a, $b     <span class="cm"># t0 = 1 if a &lt; b</span>
+bne $t0, $zero, Else <span class="cm"># if a &lt; b, we do NOT have a&gt;=b</span>
+addi $x, $zero, 1    <span class="cm"># a &gt;= b case: x = 1</span>
+j Exit
+Else: addi $x, $zero, 0
+Exit: …</pre>
+      Notice we still negate: we test the <em>opposite</em> of "a≥b" (i.e. "a&lt;b") to decide when to jump away from the true-case code — same pattern as the if/else walkthrough above.
+    </div>
+  </div>
+
+  <div id="pagenav6"></div>
+</div>
+<div class="page" id="p7">
+  <div class="eyebrow">§2.8 Supporting Procedures in Computer Hardware</div>
+  <h2>Procedures & the Stack</h2>
+  <p class="dek">Procedure calls are where every idea so far — registers, memory operands, branches — comes together into one coordinated protocol. This section is dense; take it slow.</p>
+
+  <h3 class="subhead">Six Steps of a Procedure Call</h3>
+  <ol>
+    <li>Place parameters in registers</li>
+    <li>Transfer control to the procedure</li>
+    <li>Acquire storage for the procedure</li>
+    <li>Perform the procedure's operations</li>
+    <li>Place the result in a register for the caller</li>
+    <li>Return to the place of call</li>
+  </ol>
+  <p style="color:var(--text-faint);font-size:13px;">This exact 6-step list is a favorite short-answer recall question — worth memorizing verbatim.</p>
+
+  <h3 class="subhead">Full Register Usage Convention</h3>
+  <table class="regtab">
+    <tr><th>Register</th><th>Number(s)</th><th>Role</th></tr>
+    <tr><td class="spec">$zero</td><td>0</td><td>Hardwired constant 0</td></tr>
+    <tr><td class="spec">$at</td><td>1</td><td>Assembler temporary (reserved for pseudoinstruction expansion)</td></tr>
+    <tr><td class="avar">$v0, $v1</td><td>2 – 3</td><td>Result / return values</td></tr>
+    <tr><td class="avar">$a0 – $a3</td><td>4 – 7</td><td>Arguments</td></tr>
+    <tr><td class="tvar">$t0 – $t7</td><td>8 – 15</td><td><strong>Caller-saved</strong> temporaries</td></tr>
+    <tr><td class="svar">$s0 – $s7</td><td>16 – 23</td><td><strong>Callee-saved</strong> variables</td></tr>
+    <tr><td class="tvar">$t8, $t9</td><td>24 – 25</td><td><strong>Caller-saved</strong> temporaries</td></tr>
+    <tr><td class="spec">$gp</td><td>28</td><td>Global pointer (static data)</td></tr>
+    <tr><td class="spec">$sp</td><td>29</td><td>Stack pointer</td></tr>
+    <tr><td class="spec">$fp</td><td>30</td><td>Frame pointer</td></tr>
+    <tr><td class="spec">$ra</td><td>31</td><td>Return address</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — caller-saved vs. callee-saved</div>
+    <p style="margin:0;"><strong>$t</strong> registers can be freely overwritten by any procedure you call — if you need a $t value to survive a call, <em>you</em> (the caller) must save it yourself before the call. <strong>$s</strong> registers are the opposite: if a procedure wants to <em>use</em> an $s register, it must save the caller's old value first and restore it before returning. Mixing these up is one of the most-tested ideas in this whole chapter — expect a question that asks "which registers does this procedure need to save, and why?"</p>
+  </div>
+
+  <h3 class="subhead">Call and Return Instructions</h3>
+  <pre class="code">jal ProcedureLabel   <span class="cm"># $ra = address of next instruction; jump to ProcedureLabel</span>
+jr  $ra              <span class="cm"># PC = $ra  (return)</span></pre>
+  <p><code>jal</code> ("jump and link") is how a call happens — it's a single instruction that does two things atomically: stash the return address, then jump. <code>jr $ra</code> ("jump register") is how a procedure returns — and note it's more general than just "return": since it can jump to <em>any</em> address held in a register, it's also used for computed jumps, e.g. implementing a switch/case statement via a jump table.</p>
+
+  <h3 class="subhead">Memory Layout</h3>
+  <div class="stackdiag">
+    <div class="stackrow"><span class="lab">High addresses</span><span>Stack (grows ↓)</span></div>
+    <div class="stackrow"><span class="lab">…</span><span style="color:var(--text-faint);">unused space</span></div>
+    <div class="stackrow"><span class="lab">grows ↑</span><span>Dynamic data (heap)</span></div>
+    <div class="stackrow"><span class="lab"></span><span>Static data</span></div>
+    <div class="stackrow"><span class="lab">Low addresses</span><span>Text (program code)</span></div>
+  </div>
+  <ul>
+    <li><strong>Text</strong> — the program's compiled instructions.</li>
+    <li><strong>Static data</strong> — global variables, e.g. C static variables, constant arrays/strings. <code class="reg">$gp</code> is initialized to point into this segment so it can reach nearby data with small ± offsets.</li>
+    <li><strong>Dynamic data (heap)</strong> — e.g. <code>malloc</code> in C, <code>new</code> in Java. Grows upward as more is allocated.</li>
+    <li><strong>Stack</strong> — automatic (local) storage, grows <strong>downward</strong> from high addresses as procedures are called.</li>
+  </ul>
+
+  <h3 class="subhead">Leaf Procedure Walkthrough</h3>
+  <p>A <strong>leaf procedure</strong> calls no other procedures — the simplest case.</p>
+  <p><strong>C code:</strong></p>
+  <pre class="code">int leaf_example (int g, h, i, j) {
+    int f;
+    f = (g + h) - (i + j);
+    return f;
+}</pre>
+  <p>Arguments g…j arrive in <code class="reg">$a0…$a3</code>; f is placed in <code class="reg">$s0</code> (which means we must save/restore $s0, since it's callee-saved); result returns in <code class="reg">$v0</code>.</p>
+  <table class="corr">
+    <tr><th>C</th><th>MIPS</th><th>Line-by-line explanation</th></tr>
+    <tr><td rowspan="2" style="color:var(--text-faint);">(prologue)</td><td>addi $sp, $sp, -4</td><td class="expl">Grow the stack by 4 bytes (one word) to make room — remember, the stack grows <em>downward</em>, so "growing" means <em>subtracting</em> from $sp.</td></tr>
+    <tr><td>sw $s0, 0($sp)</td><td class="expl">Save the caller's old $s0 value onto the newly-reserved stack slot, since we're about to overwrite $s0 with our own local variable f — this is the callee-saved obligation in action.</td></tr>
+    <tr><td>f = (g+h)-(i+j);</td><td>add $t0, $a0, $a1</td><td class="expl">t0 = g + h. Note we use a $t register here — it's purely a scratch value local to this procedure, nothing to save.</td></tr>
+    <tr><td></td><td>add $t1, $a2, $a3</td><td class="expl">t1 = i + j.</td></tr>
+    <tr><td></td><td>sub $s0, $t0, $t1</td><td class="expl">f = t0 − t1, stored into $s0 (our local variable f).</td></tr>
+    <tr><td>return f;</td><td>add $v0, $s0, $zero</td><td class="expl">Copy f into the return-value register $v0 (recall from §2.3 — adding $zero is exactly how "move between registers" works).</td></tr>
+    <tr><td rowspan="2" style="color:var(--text-faint);">(epilogue)</td><td>lw $s0, 0($sp)</td><td class="expl">Restore the caller's original $s0 value from the stack — fulfilling our callee-saved promise.</td></tr>
+    <tr><td>addi $sp, $sp, 4</td><td class="expl">Shrink the stack back down by 4 bytes, releasing the slot we reserved.</td></tr>
+    <tr><td></td><td>jr $ra</td><td class="expl">Return control to the caller, at the address saved when we were called via <code>jal</code>.</td></tr>
+  </table>
+
+  <h3 class="subhead">Non-Leaf Procedures</h3>
+  <p>A procedure that itself <strong>calls other procedures</strong> is non-leaf. Before making a nested call, the caller must additionally save on the stack:</p>
+  <ul>
+    <li>Its <strong>return address</strong> ($ra) — because the nested call's own <code>jal</code> will overwrite $ra!</li>
+    <li>Any <strong>arguments or temporaries it still needs after the call</strong> — because $t registers and $a registers are not guaranteed to survive a call.</li>
+  </ul>
+  <p>...then restore all of this from the stack after the nested call returns.</p>
+
+  <h3 class="subhead">Non-Leaf Walkthrough: Recursive Factorial</h3>
+  <p><strong>C code:</strong></p>
+  <pre class="code">int fact (int n) {
+    if (n &lt; 1) return f;
+    else return n * fact(n - 1);
+}</pre>
+  <p>Argument n in <code class="reg">$a0</code>; result in <code class="reg">$v0</code>.</p>
+  <table class="corr">
+    <tr><th>MIPS</th><th>Line-by-line explanation</th></tr>
+    <tr><td>fact:</td><td class="expl">Entry label — where <code>jal fact</code> lands.</td></tr>
+    <tr><td>addi $sp, $sp, -8</td><td class="expl">Reserve 2 words (8 bytes) on the stack: one for $ra, one for the argument n — <strong>both</strong> are at risk of being clobbered by the recursive call about to happen.</td></tr>
+    <tr><td>sw $ra, 4($sp)</td><td class="expl">Save the return address — critical, because the recursive <code>jal fact</code> below will overwrite $ra with a <em>new</em> return address.</td></tr>
+    <tr><td>sw $a0, 0($sp)</td><td class="expl">Save the current n — because $a0 will be reused (with a new value) for the recursive call's own argument.</td></tr>
+    <tr><td>slti $t0, $a0, 1</td><td class="expl">t0 = 1 if n &lt; 1, else 0 — testing the base case.</td></tr>
+    <tr><td>beq $t0, $zero, L1</td><td class="expl"><strong>Inverted condition again</strong> (§2.7 pattern): if n is NOT &lt; 1, skip the base-case return and fall through to L1 for the recursive case.</td></tr>
+    <tr><td>addi $v0, $zero, 1</td><td class="expl">Base case: result = 1.</td></tr>
+    <tr><td>addi $sp, $sp, 8</td><td class="expl">Base case: pop our 2 saved words — no recursive call happened, so nothing else to restore.</td></tr>
+    <tr><td>jr $ra</td><td class="expl">Base case: return.</td></tr>
+    <tr><td>L1: addi $a0, $a0, -1</td><td class="expl">Recursive case: compute n−1 as the argument for the recursive call.</td></tr>
+    <tr><td>jal fact</td><td class="expl">Recursive case: call fact(n−1) — this <strong>overwrites</strong> $ra and $a0, which is exactly why we saved copies above.</td></tr>
+    <tr><td>lw $a0, 0($sp)</td><td class="expl">Restore <em>our own</em> original n (needed for the multiply below) — the recursive call's $a0 usage is now done.</td></tr>
+    <tr><td>lw $ra, 4($sp)</td><td class="expl">Restore <em>our own</em> return address — we're about to return ourselves, and need the caller's address back, not the recursive call's leftover value.</td></tr>
+    <tr><td>addi $sp, $sp, 8</td><td class="expl">Pop our 2 saved words.</td></tr>
+    <tr><td>mul $v0, $a0, $v0</td><td class="expl">result = n × fact(n−1) — $v0 already holds the recursive call's returned result at this point.</td></tr>
+    <tr><td>jr $ra</td><td class="expl">Return to whoever called us (either the original caller, or — one level up — our own recursive parent call).</td></tr>
+  </table>
+
+  <div class="callout good">
+    <div class="callout-title">📈 Visualizing fact(3)</div>
+    <p style="margin:0;">fact(3) calls fact(2), which calls fact(1), which calls fact(0) — the base case. Each call pushes its own 2-word stack frame (saved $ra, saved n) <em>before</em> descending further, so at the deepest point there are 4 stack frames stacked up. Unwinding happens in reverse: fact(0) returns 1 → fact(1) computes 1×1=1 → fact(2) computes 2×1=2 → fact(3) computes 3×2=6. Each frame's saved $ra is what lets that specific call resume exactly where it left off, multiplying by its own n.</p>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Forgetting to save $ra before a nested call is <strong>the</strong> classic non-leaf-procedure bug — without it, the moment the inner call returns, your outer <code>jr $ra</code> jumps to the wrong place (or infinite-loops back into the callee), because $ra now holds the inner call's return address instead of yours.</p>
+  </div>
+
+  <h4 class="minihead">Local Data & Activation Records</h4>
+  <p>Local (automatic) data that a callee allocates for itself — C automatic variables, for instance — together with saved registers, forms that call's <strong>procedure frame</strong> (a.k.a. <strong>activation record</strong>). Some compilers use $fp to give this frame a stable reference point even while $sp moves around within the procedure body.</p>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why does <code>fact</code> need to save $a0 on the stack, but the earlier <code>leaf_example</code> did not need to save any $a registers?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a"><code>leaf_example</code> never calls another procedure, so nothing can overwrite its $a0–$a3 mid-execution — it's safe to read them any time before returning. <code>fact</code>, being non-leaf, issues its own <code>jal fact</code>, and that recursive call will reuse $a0 for its <em>own</em> argument (n−1). Since the outer call still needs its original n after the recursive call returns (to compute <code>n * fact(n-1)</code>), it must stash that value somewhere the recursive call can't touch — the stack.</div>
+  </div>
+
+  <div id="pagenav7"></div>
+</div>
+<div class="page" id="p8">
+  <div class="eyebrow">§2.9 Communicating with People</div>
+  <h2>Character Data</h2>
+  <p class="dek">Text is just bytes with an agreed-upon meaning — and it's also the perfect place to see signed-vs-unsigned and stack conventions fuse into one realistic example: a hand-rolled <code>strcpy</code>.</p>
+
+  <h3 class="subhead">Character Encodings</h3>
+  <table class="regtab">
+    <tr><th>Encoding</th><th>Size</th><th>Coverage</th></tr>
+    <tr><td>ASCII</td><td>Byte-encoded, 128 characters</td><td>95 graphic + 33 control characters</td></tr>
+    <tr><td>Latin-1</td><td>Byte-encoded, 256 characters</td><td>ASCII + 96 more graphic characters</td></tr>
+    <tr><td>Unicode</td><td>32-bit character set</td><td>Most of the world's alphabets, plus symbols; used in Java, C++ wide chars</td></tr>
+    <tr><td>UTF-8 / UTF-16</td><td>Variable-length</td><td>Space-efficient encodings <em>of</em> Unicode</td></tr>
+  </table>
+
+  <h3 class="subhead">Byte / Halfword Load-Store</h3>
+  <p>You <em>could</em> do character manipulation with pure bitwise operations on word-aligned data, but string processing is common enough that MIPS gives it dedicated instructions:</p>
+  <pre class="code">lb  rt, offset(rs)   <span class="cm"># load byte, sign-extend to 32 bits</span>
+lh  rt, offset(rs)   <span class="cm"># load halfword, sign-extend to 32 bits</span>
+lbu rt, offset(rs)   <span class="cm"># load byte, zero-extend to 32 bits</span>
+lhu rt, offset(rs)   <span class="cm"># load halfword, zero-extend to 32 bits</span>
+sb  rt, offset(rs)   <span class="cm"># store just the rightmost byte of rt</span>
+sh  rt, offset(rs)   <span class="cm"># store just the rightmost halfword of rt</span></pre>
+  <p style="color:var(--text-faint);font-size:13px;">This is a direct callback to §2.4's sign-extension rules — now you see exactly where <code>lbu</code>'s zero-extension matters in practice.</p>
+
+  <h3 class="subhead">Walkthrough: <code>strcpy</code></h3>
+  <p><strong>C code (naïve, null-terminated string copy):</strong></p>
+  <pre class="code">void strcpy (char x[], char y[]) {
+    int i;
+    i = 0;
+    while ((x[i]=y[i]) != '\0')
+        i += 1;
+}</pre>
+  <p>Addresses of x, y arrive in <code class="reg">$a0, $a1</code>; i lives in <code class="reg">$s0</code>.</p>
+  <table class="corr">
+    <tr><th>C</th><th>MIPS</th><th>Line-by-line explanation</th></tr>
+    <tr><td rowspan="2" style="color:var(--text-faint);">(prologue)</td><td>addi $sp, $sp, -4</td><td class="expl">Reserve 1 word on the stack.</td></tr>
+    <tr><td>sw $s0, 0($sp)</td><td class="expl">Save the caller's $s0 — callee-saved obligation, exactly as in §2.8.</td></tr>
+    <tr><td>i = 0;</td><td>add $s0, $zero, $zero</td><td class="expl">i = 0 (adding $zero + $zero is a clean way to zero a register — same "add with $zero" trick from §2.3, applied twice).</td></tr>
+    <tr><td rowspan="7" style="color:var(--text-faint);">while loop body</td><td>L1: add $t1, $s0, $a1</td><td class="expl">t1 = address of y[i]. <strong>No ×4 scaling here</strong> — unlike the earlier int-array examples, chars are exactly 1 byte, so the byte offset <em>equals</em> the index directly.</td></tr>
+    <tr><td>lbu $t2, 0($t1)</td><td class="expl">t2 = y[i], loaded as an <strong>unsigned</strong> byte and zero-extended — we want the raw character value, not a sign-extended (potentially negative) one.</td></tr>
+    <tr><td>add $t3, $s0, $a0</td><td class="expl">t3 = address of x[i] (again, no scaling — 1 byte per char).</td></tr>
+    <tr><td>sb $t2, 0($t3)</td><td class="expl">x[i] = y[i] — store just the low byte of t2 into x[i]. This is literally the C statement <code>x[i]=y[i]</code>.</td></tr>
+    <tr><td>beq $t2, $zero, L2</td><td class="expl">If the character we just copied was the null terminator ('\0' = 0), exit the loop — this <em>is</em> the C while-condition test, done inline right after the assignment, matching how C's <code>(x[i]=y[i]) != '\0'</code> evaluates the assignment's value.</td></tr>
+    <tr><td>addi $s0, $s0, 1</td><td class="expl">i += 1 — only reached if we didn't just copy the terminator.</td></tr>
+    <tr><td>j L1</td><td class="expl">Loop back to copy the next character.</td></tr>
+    <tr><td rowspan="3" style="color:var(--text-faint);">(epilogue)</td><td>L2: lw $s0, 0($sp)</td><td class="expl">Restore the caller's $s0.</td></tr>
+    <tr><td>addi $sp, $sp, 4</td><td class="expl">Pop the stack slot.</td></tr>
+    <tr><td>jr $ra</td><td class="expl">Return (strcpy is a leaf procedure — it calls nothing else, so no $ra save was needed).</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Compare this to the earlier <code>save[i]</code> / <code>A[8]</code> examples: there, addresses required <code>sll $t1,$s3,2</code> (×4) because the arrays held 4-byte words. Here, with <code>char</code> arrays, there is <strong>no scaling at all</strong> — the byte offset equals the index. On an exam, always check the element size of the array in the problem before deciding whether (and by how much) to scale the index.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why does <code>strcpy</code> use <code>lbu</code> rather than <code>lb</code> to load each character?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">Character bytes with the high bit set (e.g. extended ASCII/Latin-1 values 128–255) would be <strong>sign-extended into a negative 32-bit number</strong> by <code>lb</code> — which is meaningless for character data and would also break the <code>beq $t2,$zero,L2</code> null-check logic if a comparison against a signed interpretation were ever needed elsewhere. <code>lbu</code> zero-extends, preserving the character's raw unsigned byte value in the low 8 bits with the upper 24 bits cleanly zeroed.</div>
+  </div>
+
+  <div id="pagenav8"></div>
+</div>
+<div class="page" id="p9">
+  <div class="eyebrow">§2.10 MIPS Addressing for 32-Bit Immediates and Addresses</div>
+  <h2>32-bit Addressing</h2>
+  <p class="dek">The 16-bit immediate field is a tight squeeze — this section covers the three ways MIPS stretches past it: for constants, for branches, and for jumps.</p>
+
+  <h3 class="subhead">32-bit Constants</h3>
+  <p>Most constants fit comfortably in the 16-bit immediate field. For the rare 32-bit constant, MIPS builds it in two steps:</p>
+  <pre class="code">lui rt, constant   <span class="cm"># copies the 16-bit constant into the LEFT (upper) 16 bits of rt, clears the right 16 bits to 0</span></pre>
+  <p><strong>Worked example:</strong></p>
+  <pre class="code">lhi $s0, 61          <span class="cm"># $s0 = 0000 0000 0111 1101 0000 0000 0000 0000</span>
+ori $s0, $s0, 2304   <span class="cm"># $s0 = 0000 0000 0111 1101 0000 1001 0000 0000</span></pre>
+  <p>Step 1 places the upper bits; step 2 <strong>bitwise-ORs</strong> in the lower bits — since the lower 16 bits were just cleared to 0 by step 1, ORing in the new value cleanly merges them without disturbing the upper half.</p>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap — why <code>ori</code>, not <code>addi</code>?</div>
+    <p style="margin:0;">If the lower 16-bit value's most-significant bit happens to be 1, <code>addi</code> would <strong>sign-extend</strong> it before adding — potentially corrupting (subtracting from) the upper bits you just carefully placed with <code>lui</code>. <code>ori</code> performs a pure bitwise OR with no sign-extension surprises, so it's always the safe choice for merging in the lower half of a 32-bit constant.</p>
+  </div>
+
+  <h3 class="subhead">Branch Addressing</h3>
+  <div class="bitfield">
+    <div class="bf-seg" style="flex:6"><span class="bf-name">op</span><span class="bf-bits">6 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rs</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:5"><span class="bf-name">rt</span><span class="bf-bits">5 bits</span></div>
+    <div class="bf-seg" style="flex:16"><span class="bf-name">constant or address</span><span class="bf-bits">16 bits</span></div>
+  </div>
+  <p>Branch instructions encode an opcode, two registers, and a 16-bit target field. Since most branch targets are <strong>near</strong> the branch itself (forward or backward), MIPS uses <strong>PC-relative addressing</strong>:</p>
+  <pre class="code">target address = PC + offset × 4</pre>
+  <div class="callout aside">
+    <div class="callout-title">🔍 Subtle but frequently tested</div>
+    <p style="margin:0;">The <strong>×4</strong> is there because the 16-bit field stores a <em>word</em> offset, not a byte offset — since instructions are always word-aligned, this effectively quadruples the reachable range for the same 16 bits. Also: the <strong>PC has already been incremented by 4</strong> (to point at the <em>next sequential</em> instruction) by the time this offset is added — so the offset is relative to the instruction <em>after</em> the branch, not the branch itself. This detail matters again later in the course when you study the pipelined datapath.</p>
+  </div>
+
+  <h3 class="subhead">Jump Addressing</h3>
+  <div class="bitfield">
+    <div class="bf-seg" style="flex:6"><span class="bf-name">op</span><span class="bf-bits">6 bits</span></div>
+    <div class="bf-seg" style="flex:26"><span class="bf-name">address</span><span class="bf-bits">26 bits</span></div>
+  </div>
+  <p><code>j</code> and <code>jal</code> targets could be anywhere in the text segment, so their address is encoded directly (no offset math relative to the current instruction):</p>
+  <pre class="code">target address = PC[31...28] : (address × 4)</pre>
+  <p>This is called <strong>(pseudo)direct</strong> addressing — "pseudo" because the top 4 bits aren't actually stored in the instruction at all; they're <em>borrowed</em> from the current PC's upper bits at jump time.</p>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Because it reuses the current PC's top 4 bits rather than storing a truly absolute address, a jump <strong>cannot reach an arbitrary 32-bit address</strong> if that address falls outside the current 256 MB-aligned region (defined by those same top 4 bits). This is exactly why it's called <em>pseudo</em>direct rather than direct addressing — a great "why pseudo" short-answer question.</p>
+  </div>
+
+  <h4 class="minihead">Worked Target-Addressing Example</h4>
+  <p>Reusing the loop code from §2.7, assume <code>Loop:</code> sits at memory location 80000:</p>
+  <table class="corr">
+    <tr><th>Address</th><th>Instruction</th><th>Encoded (op, fields…)</th></tr>
+    <tr><td>80000</td><td>Loop: sll $t1, $s3, 2</td><td>0, 0, 19, 9, 4, 0</td></tr>
+    <tr><td>80004</td><td>add $t1, $t1, $s6</td><td>0, 9, 22, 9, 0, 32</td></tr>
+    <tr><td>80008</td><td>lw $t0, 0($t1)</td><td>35, 9, 8, 0</td></tr>
+    <tr><td>80012</td><td>bne $t0, $s5, Exit</td><td>5, 8, 21, 2</td></tr>
+    <tr><td>80016</td><td>addi $s3, $s3, 1</td><td>8, 19, 19, 1</td></tr>
+    <tr><td>80020</td><td>j Loop</td><td>2, 20000</td></tr>
+    <tr><td>80024</td><td>Exit: …</td><td></td></tr>
+  </table>
+  <p>The <code>j Loop</code> instruction at address 80020 needs to encode target 80000. The jump field stores the target <strong>divided by 4</strong>: 80000 ÷ 4 = <strong>20000</strong> — which is exactly the encoded value shown above.</p>
+
+  <h3 class="subhead">Branching Far Away</h3>
+  <p>If a branch target is too far away to fit in the signed 16-bit offset (×4), the <strong>assembler</strong> automatically rewrites the code using an inverted branch plus an unconditional jump:</p>
+  <pre class="code">beq $s0, $s1, L1
+      ↓  (assembler rewrite)
+bne $s0, $s1, L2
+j   L1
+L2: …</pre>
+  <p>This is the assembler synthesizing an "escape hatch" for the rare far-branch case, while keeping the common near-branch case fast and compact — Design Principle #4 (good compromises) showing up yet again.</p>
+
+  <h3 class="subhead">Addressing Mode Summary</h3>
+  <div class="grid2">
+    <div class="card"><strong style="color:var(--accent);">Register addressing</strong><p style="margin:6px 0 0;font-size:13.5px;">Operand is a register itself. Used by nearly every R-format instruction.</p></div>
+    <div class="card"><strong style="color:var(--accent);">Base/displacement addressing</strong><p style="margin:6px 0 0;font-size:13.5px;">Operand is at Memory[reg + offset]. Used by <code>lw</code>/<code>sw</code>.</p></div>
+    <div class="card"><strong style="color:var(--accent);">Immediate addressing</strong><p style="margin:6px 0 0;font-size:13.5px;">Operand is a constant embedded in the instruction. Used by <code>addi</code>.</p></div>
+    <div class="card"><strong style="color:var(--accent);">PC-relative addressing</strong><p style="margin:6px 0 0;font-size:13.5px;">Target = PC + offset×4. Used by branches (<code>beq</code>/<code>bne</code>).</p></div>
+    <div class="card"><strong style="color:var(--accent);">Pseudodirect addressing</strong><p style="margin:6px 0 0;font-size:13.5px;">Target = upper 4 bits of PC + address×4. Used by <code>j</code>/<code>jal</code>.</p></div>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>A <code>j</code> instruction sits at address 4096 and must jump to address 4864. What value is encoded in its 26-bit address field?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">4864 ÷ 4 = <strong>1216</strong>. Note the current instruction's own address (4096) is irrelevant to this calculation — unlike branch addressing, jump addressing never uses PC-relative arithmetic; it only divides the absolute target by 4.</div>
+  </div>
+
+  <div id="pagenav9"></div>
+</div>
+<div class="page" id="p10">
+  <div class="eyebrow">§2.11 Parallelism and Instructions: Synchronization</div>
+  <h2>Synchronization</h2>
+  <p class="dek">The moment two processors share memory, correctness depends on more than just correct arithmetic — it depends on the <em>order</em> of accesses being controlled.</p>
+
+  <h3 class="subhead">Why We Need It</h3>
+  <p>Suppose two processors share an area of memory: P1 writes, then P2 reads. If P1 and P2 don't synchronize, you get a <strong>data race</strong> — the result depends on the order accesses happen to interleave, which is exactly the kind of nondeterministic bug that's brutal to debug.</p>
+  <p>The fix requires hardware support for an <strong>atomic</strong> read/write memory operation: no other access to that location is allowed to sneak in between the read and the write. This can be either:</p>
+  <ul>
+    <li>A <strong>single</strong> atomic instruction (e.g., an atomic swap of register ↔ memory), or</li>
+    <li>An atomic <strong>pair</strong> of instructions.</li>
+  </ul>
+  <p>MIPS takes the second approach.</p>
+
+  <h3 class="subhead">Synchronization in MIPS: ll / sc</h3>
+  <pre class="code">ll rt, offset(rs)   <span class="cm"># load linked</span>
+sc rt, offset(rs)   <span class="cm"># store conditional</span></pre>
+  <ul>
+    <li><code>sc</code> <strong>succeeds</strong> (writes memory, returns 1 in rt) only if the memory location has <strong>not changed</strong> since the matching <code>ll</code>.</li>
+    <li><code>sc</code> <strong>fails</strong> (memory left untouched, returns 0 in rt) if the location <em>was</em> changed by something else in between.</li>
+  </ul>
+
+  <h4 class="minihead">Worked Example: Atomic Swap (Lock Acquisition)</h4>
+  <pre class="code">try: add $t0, $zero, $s4    <span class="cm"># copy exchange value</span>
+     ll  $t1, 0($s1)        <span class="cm"># load linked</span>
+     sc  $t0, 0($s1)        <span class="cm"># store conditional</span>
+     beq $t0, $zero, try    <span class="cm"># branch back if store failed</span>
+     add $s4, $zero, $t1    <span class="cm"># put loaded value in $s4</span></pre>
+  <table class="corr">
+    <tr><th>MIPS line</th><th>What's happening</th></tr>
+    <tr><td>add $t0, $zero, $s4</td><td class="expl">Copy the value we want to write into the lock location — $t0 now holds our "new" value.</td></tr>
+    <tr><td>ll $t1, 0($s1)</td><td class="expl">Atomically begin the read: load the current lock value into $t1, and mark this address as being "watched" by the hardware.</td></tr>
+    <tr><td>sc $t0, 0($s1)</td><td class="expl">Attempt to write $t0 back to the lock location — but <em>only</em> if nothing else touched it since the ll. On success, $t0 is overwritten with 1; on failure, $t0 becomes 0.</td></tr>
+    <tr><td>beq $t0, $zero, try</td><td class="expl">If the store failed (t0 == 0, meaning someone else raced us), jump back to <code>try</code> and redo the whole sequence from scratch.</td></tr>
+    <tr><td>add $s4, $zero, $t1</td><td class="expl">Success! Place the <em>old</em> lock value (captured by ll, into $t1) into $s4 for the caller to inspect.</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;"><code>sc</code> failing is <strong>not an error or exception</strong> — it's an expected, designed-for outcome under contention. Code using ll/sc <strong>must always</strong> wrap the pair in a retry loop (as shown above). Forgetting the retry loop is a classic "why doesn't my lock work" bug that shows up constantly once students move from this chapter into systems/OS coursework.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>Why does MIPS use a <em>pair</em> of instructions (ll/sc) instead of one atomic swap instruction?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">The slides present this as a genuine design choice with two valid options — MIPS opted for the ll/sc pair, which is more flexible: the same primitive can be used to build not just atomic swap, but also compare-and-swap, atomic increment, and other read-modify-write patterns, all without needing a dedicated hardware instruction for each one. The cost is that software must handle the retry loop itself.</div>
+  </div>
+
+  <div id="pagenav10"></div>
+</div>
+<div class="page" id="p11">
+  <div class="eyebrow">§2.12 Translating and Starting a Program</div>
+  <h2>Translation, Linking & Loading</h2>
+  <p class="dek">How does a .c file on disk turn into a running process? This section is the "software supply chain" of the whole course — a picture worth memorizing cold.</p>
+
+  <div class="card">
+    <strong style="color:var(--accent);">C source</strong> → <em>Compiler</em> → <strong style="color:var(--accent);">Assembly</strong> → <em>Assembler</em> → <strong style="color:var(--accent);">Object module(s)</strong> → <em>Linker</em> → <strong style="color:var(--accent);">Executable</strong> → <em>Loader</em> → <strong style="color:var(--accent);">Running program</strong>
+    <p style="margin:10px 0 0;font-size:12.5px;color:var(--text-faint);">Many compilers today produce object modules directly (skipping a separate textual assembly step), but conceptually all four stages — compile, assemble, link, load — still occur.</p>
+  </div>
+
+  <h3 class="subhead">Assembler Pseudoinstructions</h3>
+  <p>Most assembly instructions map one-to-one onto real machine instructions. <strong>Pseudoinstructions</strong> are the exception — "figments of the assembler's imagination" that get expanded into one or more real instructions.</p>
+  <pre class="code">move $t0, $t1     →   add $t0, $zero, $t1
+
+blt $t0, $t1, L   →   slt $at, $t0, $t1
+                       bne $at, $zero, L</pre>
+  <p><code class="reg">$at</code> (register 1, "assembler temporary") exists specifically to give the assembler scratch space for these multi-instruction expansions — space guaranteed not to collide with any register the programmer is actively using.</p>
+
+  <div class="callout aside">
+    <div class="callout-title">🤔 Why do we even need $at?</div>
+    <p style="margin:0;">The <code>blt</code> expansion needs to compute a comparison result before it can branch — and that intermediate result has to live <em>somewhere</em>. If the assembler grabbed, say, $t0 for this, it could silently clobber a value the programmer was actively relying on. Reserving $at exclusively for the assembler's own use avoids that entire class of bug.</p>
+  </div>
+
+  <h3 class="subhead">Producing an Object Module</h3>
+  <p>The assembler (or compiler) translates a program into machine instructions, plus everything needed to later assemble a complete program from multiple pieces:</p>
+  <div class="grid2">
+    <div class="card"><strong>Header</strong><p style="margin:6px 0 0;font-size:13px;">Describes the contents of the object module.</p></div>
+    <div class="card"><strong>Text segment</strong><p style="margin:6px 0 0;font-size:13px;">The translated instructions.</p></div>
+    <div class="card"><strong>Static data segment</strong><p style="margin:6px 0 0;font-size:13px;">Data allocated for the program's whole lifetime.</p></div>
+    <div class="card"><strong>Relocation info</strong><p style="margin:6px 0 0;font-size:13px;">Flags content that depends on the absolute location of the loaded program.</p></div>
+    <div class="card"><strong>Symbol table</strong><p style="margin:6px 0 0;font-size:13px;">Global definitions and external references.</p></div>
+    <div class="card"><strong>Debug info</strong><p style="margin:6px 0 0;font-size:13px;">Associates machine code back with source code.</p></div>
+  </div>
+
+  <h3 class="subhead">Linking Object Modules</h3>
+  <p>The linker produces an executable image in three steps:</p>
+  <ol>
+    <li><strong>Merge</strong> segments from all the object modules being combined.</li>
+    <li><strong>Resolve labels</strong> — determine the final address of every symbol.</li>
+    <li><strong>Patch</strong> location-dependent and external references now that real addresses are known.</li>
+  </ol>
+  <p>Historically this could leave some location-dependencies for a <em>relocating loader</em> to fix up at load time — but with virtual memory, that's usually unnecessary: every program can simply be loaded starting at the same absolute location <em>within its own virtual address space</em>.</p>
+
+  <h3 class="subhead">Loading a Program</h3>
+  <ol>
+    <li>Read the header to determine segment sizes.</li>
+    <li>Create a virtual address space.</li>
+    <li>Copy text and initialized data into memory (or set up page table entries so they fault in lazily instead).</li>
+    <li>Set up arguments on the stack.</li>
+    <li>Initialize registers — including <code class="reg">$sp</code>, <code class="reg">$fp</code>, <code class="reg">$gp</code>.</li>
+    <li>Jump to a startup routine that copies arguments into $a0, … and calls <code>main</code>. When main returns, the runtime performs an <strong>exit</strong> syscall.</li>
+  </ol>
+
+  <h3 class="subhead">Dynamic Linking</h3>
+  <p>Instead of linking every library at build time, <strong>dynamic linking</strong> defers linking/loading a library procedure until it is actually <strong>called</strong> at runtime. This requires the procedure code to be relocatable. Benefits:</p>
+  <ul>
+    <li>Avoids <strong>image bloat</strong> from statically linking every (transitively) referenced library into every single executable.</li>
+    <li><strong>Automatically picks up new library versions</strong> — no recompilation needed when a shared library is updated.</li>
+  </ul>
+
+  <h4 class="minihead">Lazy Linkage</h4>
+  <p>The mechanism: an <strong>indirection table</strong> holds a small <strong>stub</strong> for each not-yet-resolved routine. On the <strong>first</strong> call, the stub loads a routine ID and jumps into linker/loader code, which resolves the real address and patches the indirection table. On <strong>every subsequent</strong> call, the (now-patched) table jumps straight to the resolved, dynamically-mapped code — paying the resolution cost exactly once.</p>
+  <p style="color:var(--text-faint);font-size:13px;">This "resolve once, then jump directly forever after" pattern is precisely the mechanism behind the PLT/GOT (Procedure Linkage Table / Global Offset Table) in real ELF binaries on Linux, if you want the modern-day name for it.</p>
+
+  <div class="callout aside">
+    <div class="callout-title">☕ Aside: Starting Java Applications</div>
+    <p style="margin:0;">The JVM defines a simple, portable instruction set (bytecode). By default the JVM <strong>interprets</strong> bytecode directly — but a <strong>JIT (just-in-time) compiler</strong> monitors execution and compiles "hot" (frequently executed) methods down into native machine code specific to the host machine, for a big speed boost on the code that matters most. This is a nice real-world callback to the "ISA vs. implementation" theme from §2.1 — bytecode is itself a kind of ISA, just one implemented in software (interpretation) as often as hardware.</p>
+  </div>
+
+  <div class="test-box">
+    <p class="test-q"><span class="tag">Self-Test</span>What two concrete problems does dynamic linking solve compared to static linking?</p>
+    <button class="reveal-btn" onclick="toggleAns(this)">Reveal answer</button>
+    <div class="test-a">(1) It avoids <strong>image bloat</strong> — with static linking, every executable that uses a library carries a full copy of it; with dynamic linking, one shared copy serves every process. (2) It <strong>automatically picks up new library versions</strong> — since linking happens at call-time rather than build-time, an updated shared library benefits every program that uses it without anyone needing to recompile.</div>
+  </div>
+
+  <div id="pagenav11"></div>
+</div>
+<div class="page" id="p12">
+  <div class="eyebrow">§2.19 – 2.20 Fallacies, Pitfalls & Concluding Remarks</div>
+  <h2>Fallacies, Pitfalls & Wrap-up</h2>
+  <p class="dek">The textbook closes every chapter this way on purpose — these are the misconceptions and bugs that experienced engineers still fall for, distilled into an exam-ready list.</p>
+
+  <h3 class="subhead">Fallacy: "A more powerful instruction means higher performance"</h3>
+  <p>The intuition is that fewer, more powerful instructions should mean less total work. But:</p>
+  <ul>
+    <li>Complex instructions are <strong>hard to implement</strong> efficiently in hardware.</li>
+    <li>Supporting them can <strong>slow down the clock for every instruction</strong>, including simple ones that didn't need the extra complexity — because the whole chip shares one clock speed.</li>
+    <li>Modern compilers are excellent at generating fast code from simple instructions — hand-written assembly for "performance" rarely beats a good compiler's output today, and more lines of code (including hand-tuned asm) means more bugs and less productivity.</li>
+  </ul>
+
+  <h3 class="subhead">Fallacy: "Backward compatibility means the instruction set never changes"</h3>
+  <p>In reality, ISAs almost always only ever <strong>add</strong> instructions over time (removing one would break old binaries) — this is called <strong>instruction set accretion</strong>. It's exactly why the x86 instruction set has ballooned over 40+ years: MMX, SSE, AVX, and more, all layered on top of the original design, never removed.</p>
+
+  <h3 class="subhead">Pitfall: Sequential words are not at sequential addresses</h3>
+  <p>The textbook explicitly calls this out as an official "pitfall" — a direct callback to the byte-addressing trap from §2.3. <strong>Increment word pointers by 4, not 1!</strong></p>
+
+  <h3 class="subhead">Pitfall: Keeping a pointer to an automatic variable after the procedure returns</h3>
+  <p>E.g., passing the address of a local (stack) variable back to the caller via an out-parameter. The moment the procedure returns and its stack frame is popped, that pointer becomes <strong>invalid</strong> — the memory it points to can be silently overwritten by the very next function call. This is the root cause behind classic C compiler warnings like "returning address of local variable."</p>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Exam Trap</div>
+    <p style="margin:0;">Both pitfalls above are extremely popular as short "spot the bug" exam questions — you'll often be shown a snippet of C or MIPS and asked to identify which of these two classic mistakes it contains.</p>
+  </div>
+
+  <h3 class="subhead">Concluding Remarks: The Four Design Principles</h3>
+  <p>Every "why does MIPS do it this way" question in this chapter ultimately traces back to one of these four:</p>
+  <div class="grid2">
+    <div class="card"><strong style="color:var(--accent);">1. Simplicity favors regularity</strong><p style="margin:6px 0 0;font-size:13px;">The fixed 3-operand shape, uniform instruction formats.</p></div>
+    <div class="card"><strong style="color:var(--accent);">2. Smaller is faster</strong><p style="margin:6px 0 0;font-size:13px;">32 registers, not millions — small structures are fast structures.</p></div>
+    <div class="card"><strong style="color:var(--accent);">3. Make the common case fast</strong><p style="margin:6px 0 0;font-size:13px;">Immediate operands avoid a load for common small constants.</p></div>
+    <div class="card"><strong style="color:var(--accent);">4. Good design demands good compromises</strong><p style="margin:6px 0 0;font-size:13px;">Multiple instruction formats, beq/bne-only branches, ll/sc pairs.</p></div>
+  </div>
+
+  <h4 class="minihead">Layers of Software / Hardware</h4>
+  <p>Compiler → Assembler → Hardware — each layer builds an abstraction the layer above can rely on, exactly mirroring the translation pipeline from §2.12.</p>
+
+  <h4 class="minihead">MIPS in Context</h4>
+  <p>MIPS is <strong>typical of RISC ISAs</strong> generally (Reduced Instruction Set Computer) — simple, regular, fixed-length instructions, load/store-only memory access. This stands in contrast to <strong>x86</strong>, a CISC (Complex Instruction Set Computer) design with variable-length instructions and memory-operand arithmetic — the polar opposite of nearly every regularity choice we've studied this chapter.</p>
+
+  <div class="callout good">
+    <div class="callout-title">✅ Chapter 2 — Full Recap Checklist</div>
+    <p style="margin:0;">If you can confidently do all of the following, you're exam-ready: (1) translate any C expression/if/loop into MIPS by hand, (2) hand-encode and hand-decode R-format and I-format instructions, (3) explain signed vs. unsigned representation and correctly apply slt vs. sltu, (4) write a leaf <em>and</em> non-leaf procedure with correct stack discipline and register saving, (5) explain why each of the four Design Principles justifies a specific MIPS design choice, and (6) trace the full compile → assemble → link → load pipeline.</p>
+  </div>
+
+  <div id="pagenav12"></div>
+</div>
+</main>
+<script>
+const pages = [
+  {id:'p0', num:'2.1', title:'Introduction to ISAs'},
+  {id:'p1', num:'2.2', title:'Arithmetic Operations'},
+  {id:'p2', num:'2.3', title:'Operands: Reg & Memory'},
+  {id:'p3', num:'2.4', title:'Signed & Unsigned Numbers'},
+  {id:'p4', num:'2.5', title:'Representing Instructions'},
+  {id:'p5', num:'2.6', title:'Logical Operations'},
+  {id:'p6', num:'2.7', title:'Making Decisions'},
+  {id:'p7', num:'2.8', title:'Procedures & the Stack'},
+  {id:'p8', num:'2.9', title:'Communicating: Characters'},
+  {id:'p9', num:'2.10', title:'32-bit Addressing'},
+  {id:'p10', num:'2.11', title:'Synchronization'},
+  {id:'p11', num:'2.12', title:'Translation & Linking'},
+  {id:'p12', num:'2.19', title:'Fallacies & Wrap-up'}
+];
+let current = 0;
+
+function toggleAns(btn){
+  const ans = btn.nextElementSibling;
+  ans.classList.toggle('shown');
+  btn.textContent = ans.classList.contains('shown') ? 'Hide answer' : 'Reveal answer';
+}
+
+function buildPageNav(){
+  pages.forEach((p, i) => {
+    const slot = document.getElementById('pagenav' + i);
+    if(!slot) return;
+    let html = '<div id="pagenav">';
+    if(i > 0){
+      html += '<button class="pnav-btn prev" onclick="goTo(' + (i-1) + ')"><div class="pn-lab">&larr; Previous</div><div class="pn-title">' + pages[i-1].num + ' ' + pages[i-1].title + '</div></button>';
+    } else {
+      html += '<div></div>';
+    }
+    if(i < pages.length - 1){
+      html += '<button class="pnav-btn next" onclick="goTo(' + (i+1) + ')"><div class="pn-lab">Next &rarr;</div><div class="pn-title">' + pages[i+1].num + ' ' + pages[i+1].title + '</div></button>';
+    }
+    html += '</div>';
+    slot.innerHTML = html;
+  });
+}
+
+function goTo(index){
+  current = index;
+  pages.forEach((p, i) => {
+    document.getElementById(p.id).classList.toggle('active', i === index);
+  });
+  const navBtns = document.querySelectorAll('.nav-btn');
+  navBtns.forEach((btn, i) => btn.classList.toggle('active', i === index));
+  document.getElementById('progress-text').textContent = (index+1) + ' / ' + pages.length;
+  document.getElementById('progress-fill').style.width = (((index+1)/pages.length)*100) + '%';
+  document.getElementById('main').scrollTo({top:0, behavior:'instant'});
+}
+
+document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+  btn.addEventListener('click', () => goTo(i));
+});
+
+buildPageNav();
+goTo(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSE 219 · Lecture 06 — Properties of Fourier Series</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= DESIGN TOKENS ============================= */
+:root{
+  --chassis:#1a1c20;
+  --chassis-2:#232630;
+  --chassis-2b:#20222a;
+  --chassis-3:#2c303a;
+  --rivet:#3c414c;
+  --paper:#ece4d3;
+  --paper-2:#e3d9c3;
+  --paper-3:#d9cdb1;
+  --paper-line:#c9bb99;
+  --ink:#282315;
+  --ink-soft:#5a5340;
+  --ink-faint:#8a8168;
+  --brass:#a97a35;
+  --brass-bright:#c99a4c;
+  --brass-deep:#7d5a26;
+  --teal:#3c6a60;
+  --teal-bright:#4f8c7d;
+  --rust:#9c4632;
+  --rust-bright:#c15c40;
+  --steel-text:#d3d5d2;
+  --steel-text-dim:#8f949a;
+  --white:#faf6ea;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --font-display:'Oswald', 'Arial Narrow', sans-serif;
+  --font-body:'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --font-mono:'IBM Plex Mono', 'Consolas', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--chassis);
+  font-family:var(--font-body);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+
+::selection{ background:var(--brass); color:var(--white); }
+
+/* scrollbar - industrial look */
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:var(--chassis-2); }
+::-webkit-scrollbar-thumb{ background:var(--rivet); border-radius:0; border:2px solid var(--chassis-2); }
+::-webkit-scrollbar-thumb:hover{ background:var(--brass-deep); }
+
+/* ============================= APP SHELL ============================= */
+.app{
+  display:flex;
+  min-height:100vh;
+  width:100%;
+}
+
+/* ----------------------------- SIDEBAR ----------------------------- */
+.sidebar{
+  width:288px;
+  flex:0 0 288px;
+  background:
+    linear-gradient(180deg, var(--chassis-2) 0%, var(--chassis) 100%);
+  border-right:1px solid #000;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.03);
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  z-index:40;
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar-head{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--rivet);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 8px);
+  position:relative;
+}
+.sidebar-head::before{
+  content:"";
+  position:absolute; top:10px; left:10px; width:6px; height:6px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #6b7078, #24262b);
+}
+.plate-tag{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.16em;
+  color:var(--brass-bright);
+  text-transform:uppercase;
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:8px;
+}
+.plate-tag .dot{ width:6px;height:6px;border-radius:50%;background:var(--brass-bright); box-shadow:0 0 6px var(--brass-bright); }
+.sidebar-head h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:20px;
+  letter-spacing:.02em;
+  color:var(--white);
+  margin:0 0 4px;
+  line-height:1.15;
+  text-transform:uppercase;
+}
+.sidebar-head p{
+  font-size:11.5px;
+  color:var(--steel-text-dim);
+  margin:0;
+  font-family:var(--font-mono);
+  letter-spacing:.02em;
+}
+.sidebar-head .instructor{
+  margin-top:10px;
+  font-size:11px;
+  color:var(--steel-text-dim);
+  border-top:1px dashed var(--rivet);
+  padding-top:8px;
+}
+.sidebar-head .instructor b{ color:var(--steel-text); font-weight:500; }
+
+.nav-list{
+  list-style:none;
+  margin:0; padding:10px 10px 20px;
+  flex:1;
+}
+.nav-group-label{
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--steel-text-dim);
+  padding:14px 10px 6px;
+}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  text-align:left;
+  padding:10px 12px;
+  margin-bottom:3px;
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--steel-text);
+  font-family:var(--font-body);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  border-radius:2px;
+  position:relative;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.nav-item .idx{
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  color:var(--steel-text-dim);
+  width:20px;
+  flex:0 0 20px;
+  text-align:right;
+}
+.nav-item .led{
+  width:6px; height:6px; border-radius:50%;
+  background:var(--rivet);
+  flex:0 0 6px;
+  transition: background .2s ease, box-shadow .2s ease;
+}
+.nav-item .label{ flex:1; line-height:1.25; }
+.nav-item:hover{
+  background:rgba(255,255,255,0.035);
+  color:var(--white);
+}
+.nav-item.active{
+  background: linear-gradient(90deg, rgba(169,122,53,0.18), rgba(169,122,53,0.03));
+  border-color: rgba(169,122,53,0.35);
+  color:var(--white);
+}
+.nav-item.active .idx{ color:var(--brass-bright); }
+.nav-item.active .led{ background:var(--brass-bright); box-shadow:0 0 8px var(--brass-bright); }
+.nav-item.active::before{
+  content:"";
+  position:absolute; left:-10px; top:8px; bottom:8px; width:3px;
+  background:var(--brass-bright);
+}
+
+.sidebar-foot{
+  padding:14px 20px 18px;
+  border-top:1px solid var(--rivet);
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--steel-text-dim);
+  letter-spacing:.03em;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.sidebar-foot .prog-track{
+  flex:1; height:4px; background:var(--rivet); margin:0 10px; position:relative; overflow:hidden;
+}
+.sidebar-foot .prog-fill{
+  position:absolute; left:0; top:0; bottom:0; width:0%;
+  background:linear-gradient(90deg, var(--brass-deep), var(--brass-bright));
+  transition:width .3s ease;
+}
+
+/* mobile sidebar toggle */
+.sidebar-toggle{
+  display:none;
+  position:fixed;
+  top:14px; left:14px; z-index:60;
+  background:var(--chassis-2);
+  border:1px solid var(--rivet);
+  color:var(--white);
+  width:38px;height:38px;
+  align-items:center; justify-content:center;
+  cursor:pointer;
+  font-size:16px;
+}
+
+/* ----------------------------- MAIN CONTENT ----------------------------- */
+.content{
+  flex:1;
+  min-width:0;
+  background: var(--paper);
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+  background-position: -1px -1px;
+  position:relative;
+}
+.content::before{
+  content:"";
+  position:fixed; inset:0 0 0 288px;
+  pointer-events:none;
+  background: radial-gradient(ellipse at top left, rgba(255,255,255,0.35), transparent 55%);
+  z-index:0;
+}
+
+.titleblock{
+  display:flex;
+  align-items:stretch;
+  justify-content:space-between;
+  background:var(--white);
+  border-bottom:3px double var(--ink-faint);
+  padding:16px 40px;
+  flex-wrap:wrap;
+  gap:10px 30px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  box-shadow:0 2px 10px rgba(40,35,21,0.06);
+}
+.titleblock .field{ font-family:var(--font-mono); font-size:10px; color:var(--ink-faint); letter-spacing:.08em; text-transform:uppercase; }
+.titleblock .field b{ display:block; font-family:var(--font-body); font-size:13px; color:var(--ink); letter-spacing:0; text-transform:none; font-weight:600; margin-top:2px; }
+
+.panel{ display:none; padding:44px 48px 90px; max-width:980px; margin:0 auto; position:relative; z-index:1; animation:fadein .35s ease; }
+.panel.active{ display:block; }
+@keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.panel-eyebrow{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--brass-deep);
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:10px;
+}
+.panel-eyebrow::after{ content:""; flex:1; height:1px; background:var(--paper-line); }
+.panel h2{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:36px;
+  letter-spacing:.01em;
+  color:var(--ink);
+  margin:0 0 8px;
+  text-transform:uppercase;
+}
+.panel .subhead{
+  font-size:16px;
+  color:var(--ink-soft);
+  margin:0 0 32px;
+  max-width:700px;
+  font-style:italic;
+}
+
+.panel h3{
+  font-family:var(--font-display);
+  font-weight:500;
+  font-size:20px;
+  color:var(--ink);
+  text-transform:uppercase;
+  letter-spacing:.01em;
+  margin:38px 0 14px;
+  display:flex; align-items:center; gap:10px;
+}
+.panel h3 .num{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--white);
+  background:var(--brass-deep);
+  padding:3px 7px;
+}
+.panel p{ line-height:1.7; font-size:15px; color:var(--ink); margin:0 0 16px; }
+.panel ul, .panel ol{ line-height:1.7; font-size:15px; color:var(--ink); padding-left:22px; }
+.panel li{ margin-bottom:6px; }
+.panel strong{ color:var(--brass-deep); font-weight:600; }
+
+/* corner-bracket frame card, the recurring signature */
+.plate{
+  position:relative;
+  background:var(--white);
+  border:1px solid var(--paper-line);
+  padding:26px 28px;
+  margin:22px 0;
+}
+.plate::before, .plate::after,
+.plate .bl, .plate .br{
+  content:""; position:absolute; width:14px; height:14px;
+  border-color:var(--brass); border-style:solid; border-width:0;
+}
+.plate::before{ top:-1px; left:-1px; border-top-width:2px; border-left-width:2px; }
+.plate::after{ top:-1px; right:-1px; border-top-width:2px; border-right-width:2px; }
+.plate .bl{ bottom:-1px; left:-1px; border-bottom-width:2px; border-left-width:2px; }
+.plate .br{ bottom:-1px; right:-1px; border-bottom-width:2px; border-right-width:2px; }
+.plate-label{
+  position:absolute; top:-11px; left:20px; background:var(--white);
+  padding:0 10px; font-family:var(--font-mono); font-size:10.5px;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--brass-deep); font-weight:600;
+}
+
+.eq{ text-align:center; margin:18px 0; overflow-x:auto; }
+.eq-row{ display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap; margin:16px 0;}
+
+/* callouts */
+.callout{
+  display:flex; gap:14px; padding:16px 18px; margin:20px 0; border:1px solid; background:var(--white);
+}
+.callout .ic{ font-family:var(--font-mono); font-weight:700; font-size:13px; flex:0 0 auto; padding-top:2px;}
+.callout .cbody b{ display:block; font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:.05em; margin-bottom:4px; }
+.callout .cbody p, .callout .cbody div{ margin:0; font-size:14px; line-height:1.6; }
+.callout.tip{ border-color:var(--teal); }
+.callout.tip .ic{ color:var(--teal); }
+.callout.tip .cbody b{ color:var(--teal); }
+.callout.warn{ border-color:var(--rust); }
+.callout.warn .ic{ color:var(--rust); }
+.callout.warn .cbody b{ color:var(--rust-bright); }
+.callout.link{ border-color:var(--brass); }
+.callout.link .ic{ color:var(--brass-deep); }
+.callout.link .cbody b{ color:var(--brass-deep); }
+
+/* worked example */
+.worked{
+  background:var(--chassis-2b);
+  color:var(--steel-text);
+  padding:22px 26px;
+  margin:22px 0;
+  position:relative;
+  border-left:4px solid var(--brass-bright);
+}
+.worked .wtitle{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass-bright);
+  margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;
+}
+.worked p{ color:var(--steel-text); }
+.worked .katex{ color:var(--white) !important; }
+.step{
+  border-top:1px dashed var(--rivet);
+  padding-top:12px; margin-top:12px;
+}
+.step:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
+.step .stag{ font-family:var(--font-mono); font-size:10.5px; color:var(--teal-bright); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+
+.reveal-btn{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--brass-deep); color:var(--white); border:none; padding:9px 16px; cursor:pointer;
+  margin-top:6px;
+}
+.reveal-btn:hover{ background:var(--brass); }
+.reveal-block{ display:none; margin-top:14px; }
+.reveal-block.show{ display:block; }
+
+/* quiz */
+.quiz-q{ background:var(--white); border:1px solid var(--paper-line); padding:20px 22px; margin:18px 0; }
+.quiz-q .qtag{ font-family:var(--font-mono); font-size:10.5px; color:var(--brass-deep); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; }
+.quiz-q .qtext{ font-size:15px; margin-bottom:14px; font-weight:500; }
+.quiz-opts{ display:flex; flex-direction:column; gap:8px; }
+.quiz-opt{
+  text-align:left; padding:11px 14px; border:1px solid var(--paper-line); background:var(--paper);
+  cursor:pointer; font-family:var(--font-body); font-size:14px; color:var(--ink); position:relative;
+  transition:border-color .15s;
+}
+.quiz-opt:hover{ border-color:var(--brass); }
+.quiz-opt.correct{ border-color:var(--teal); background:#e4efe9; color:var(--teal); font-weight:600; }
+.quiz-opt.wrong{ border-color:var(--rust); background:#f3e2dc; color:var(--rust); font-weight:600; }
+.quiz-opt[disabled]{ cursor:default; }
+.quiz-explain{ display:none; margin-top:12px; font-size:13.5px; color:var(--ink-soft); border-top:1px dashed var(--paper-line); padding-top:10px;}
+.quiz-explain.show{ display:block; }
+
+/* nav footer prev/next */
+.panel-nav{ display:flex; justify-content:space-between; margin-top:52px; padding-top:22px; border-top:2px solid var(--ink); gap:16px; }
+.pn-btn{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
+  background:var(--ink); color:var(--white); border:none; padding:12px 18px; cursor:pointer;
+  display:flex; flex-direction:column; gap:3px; max-width:46%;
+}
+.pn-btn span.small{ font-size:9.5px; color:var(--brass-bright); letter-spacing:.12em; }
+.pn-btn:hover{ background:var(--brass-deep); }
+.pn-btn.right{ text-align:right; align-items:flex-end; }
+
+/* generic svg widget frame */
+.widget{
+  background:var(--white);
+  border:1px solid var(--paper-line);
+  padding:18px;
+  margin:20px 0;
+}
+.widget-controls{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px dashed var(--paper-line); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); }
+.widget-controls label{ display:flex; align-items:center; gap:8px; }
+.widget-controls input[type=range]{ width:150px; accent-color:var(--brass); }
+.widget-controls .val{ color:var(--brass-deep); font-weight:600; min-width:34px; display:inline-block; }
+.btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip-btn{
+  font-family:var(--font-mono); font-size:11px; padding:6px 12px; background:var(--paper-2); border:1px solid var(--paper-line);
+  cursor:pointer; color:var(--ink);
+}
+.chip-btn.active{ background:var(--brass); color:var(--white); border-color:var(--brass-deep); }
+
+/* summary table */
+.spec-table{ width:100%; border-collapse:collapse; margin:20px 0; background:var(--white); }
+.spec-table th{
+  font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+  background:var(--ink); color:var(--white); text-align:left; padding:10px 14px;
+}
+.spec-table td{ padding:12px 14px; border-bottom:1px solid var(--paper-line); font-size:14px; vertical-align:top; }
+.spec-table tr:hover td{ background:var(--paper-2); }
+.spec-table .pname{ font-family:var(--font-display); text-transform:uppercase; font-weight:500; color:var(--brass-deep); white-space:nowrap; }
+.spec-table .pnote{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+
+@media (max-width: 880px){
+  .sidebar{ position:fixed; left:-300px; transition:left .25s ease; box-shadow:var(--shadow); }
+  .sidebar.open{ left:0; }
+  .sidebar-toggle{ display:flex; }
+  .content{ width:100%; }
+  .panel{ padding:80px 20px 70px; }
+  .titleblock{ padding:14px 18px 14px 60px; }
+}
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">☰</button>
+
+<div class="app">
+  <!-- ============================= SIDEBAR ============================= -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="plate-tag"><span class="dot"></span>CSE 219 · SIGNALS &amp; LINEAR SYSTEMS</div>
+      <h1>Lecture 06</h1>
+      <p>Properties of Fourier Series</p>
+      <div class="instructor">Instructor: <b>Anik Saha</b> · Adjunct Lecturer, Dept. of CSE, BUET</div>
+    </div>
+
+    <ul class="nav-list" id="navList">
+      <div class="nav-group-label">Start Here</div>
+      <li><button class="nav-item" data-target="sec-overview"><span class="idx">00</span><span class="led"></span><span class="label">Why Properties Matter</span></button></li>
+
+      <div class="nav-group-label">The Six Core Properties</div>
+      <li><button class="nav-item" data-target="sec-linearity"><span class="idx">01</span><span class="led"></span><span class="label">Linearity</span></button></li>
+      <li><button class="nav-item" data-target="sec-timeshift"><span class="idx">02</span><span class="led"></span><span class="label">Time Shifting</span></button></li>
+      <li><button class="nav-item" data-target="sec-reversal"><span class="idx">03</span><span class="led"></span><span class="label">Time Reversal</span></button></li>
+      <li><button class="nav-item" data-target="sec-scaling"><span class="idx">04</span><span class="led"></span><span class="label">Time Scaling</span></button></li>
+      <li><button class="nav-item" data-target="sec-diff"><span class="idx">05</span><span class="led"></span><span class="label">Differentiation</span></button></li>
+      <li><button class="nav-item" data-target="sec-sifting"><span class="idx">05b</span><span class="led"></span><span class="label">Detour: Sifting &amp; Impulse Trains</span></button></li>
+      <li><button class="nav-item" data-target="sec-integration"><span class="idx">06</span><span class="led"></span><span class="label">Integration</span></button></li>
+      <li><button class="nav-item" data-target="sec-multiplication"><span class="idx">07</span><span class="led"></span><span class="label">Multiplication</span></button></li>
+
+      <div class="nav-group-label">Exam Prep</div>
+      <li><button class="nav-item" data-target="sec-summary"><span class="idx">08</span><span class="led"></span><span class="label">Master Property Sheet</span></button></li>
+      <li><button class="nav-item" data-target="sec-quiz"><span class="idx">09</span><span class="led"></span><span class="label">Self-Check Lab</span></button></li>
+    </ul>
+
+    <div class="sidebar-foot">
+      <span id="progLabel">0/10</span>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <span>READ</span>
+    </div>
+  </nav>
+
+  <!-- ============================= MAIN ============================= -->
+  <main class="content">
+    <div class="titleblock">
+      <div class="field">Course<b>CSE 219</b></div>
+      <div class="field">Lecture<b id="tbLecture">06 — Overview</b></div>
+      <div class="field">Topic<b>Properties of Fourier Series</b></div>
+      <div class="field">Rev.<b>Study Edition</b></div>
+    </div>
+
+    <!-- ============================= 00 OVERVIEW ============================= -->
+    <section class="panel" id="sec-overview">
+      <div class="panel-eyebrow">Section 00 · Orientation</div>
+      <h2>Why Properties Matter</h2>
+      <p class="subhead">Before we touch a single new formula — a change of mindset. This lecture is not about learning new signals. It's about learning a toolbox that lets you reuse work you've already done.</p>
+
+      <p>Back in Lecture 5, you learned the hard way to find Fourier coefficients: set up <span class="katex-inline">$a_k = \frac{1}{T}\int_T x(t)e^{-jk\omega_0 t}\,dt$</span> and grind through an integral. That works, but it's slow, and exam time is not the time to be slow.</p>
+
+      <p>The trick the professor is teaching in this lecture: <strong>most signals you'll ever meet are just old, familiar signals wearing a disguise</strong> — shifted, flipped, stretched, differentiated, added together, or multiplied. If you already know the Fourier series of the signal underneath the disguise, you don't need to integrate again. You just need to know the rule for the disguise.</p>
+
+      <div class="plate">
+        <span class="plate-label">Core Idea</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ \text{known: } x(t)\longleftrightarrow a_k \qquad\Longrightarrow\qquad \text{operation on } x(t) \;\Longrightarrow\; \text{simple operation on } a_k $$</div>
+        <p style="margin-bottom:0; text-align:center; color:var(--ink-soft); font-size:13.5px;">Shift it, scale it, add it, differentiate it — and simply transfer the coefficients, without starting from scratch.</p>
+      </div>
+
+      <h3><span class="num">§</span>Every Signal Is a Stack of Simple Rotating Waves</h3>
+      <p>Here's the picture to keep in your head for the entire lecture. The synthesis equation</p>
+      <div class="eq">$$ x(t) = \sum_{k=-\infty}^{\infty} a_k\, e^{jk\omega_0 t} $$</div>
+      <p>says <em>x(t)</em> is really a sum of little rotating phasors — one per harmonic <em>k</em> — each spinning at its own speed <em>k</em>&omega;<sub>0</sub>, with its own size and starting angle given by <em>a<sub>k</sub></em>. When you shift, reverse, scale, or differentiate <em>x(t)</em>, you are secretly doing the exact same thing to <strong>every one of those little wheels at once</strong>. Properties are just the "what happens to one wheel" rule, applied uniformly.</p>
+
+      <p>Watch it happen below — this is the classic square-wave construction from Lecture 5, rebuilt out of spinning phasors chained tip-to-tail. Toggle how many harmonics are switched on and watch the machine trace the waveform live on the right.</p>
+
+      <div class="widget" id="heroWidget">
+        <canvas id="heroCanvas" width="640" height="260" style="width:100%; height:auto; display:block; background:var(--chassis); "></canvas>
+        <div class="widget-controls">
+          <span style="font-family:var(--font-mono); color:var(--ink); font-weight:600;">HARMONICS ON:</span>
+          <div class="btn-row" id="heroHarmChips">
+            <button class="chip-btn" data-n="1">1</button>
+            <button class="chip-btn" data-n="3">1–3</button>
+            <button class="chip-btn active" data-n="5">1–5</button>
+            <button class="chip-btn" data-n="9">1–9</button>
+            <button class="chip-btn" data-n="21">1–21</button>
+          </div>
+          <button class="chip-btn" id="heroPlayBtn" style="margin-left:auto;">⏸ Pause</button>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="ic">↺</div>
+        <div class="cbody"><b>Notice</b><p>Add more odd harmonics and the corners sharpen but a stubborn little overshoot refuses to shrink near every jump — that's <strong>Gibbs phenomenon</strong>, straight from Lecture 5, staring back at you from a totally different lecture. Same math, different day. That's the whole spirit of this course.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>The Toolbox You're About to Build</h3>
+      <p>Eight tools, one lecture. Click any card to jump straight there.</p>
+      <div class="eq-row" style="justify-content:flex-start; gap:12px;">
+        <div class="btn-row" style="width:100%; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <button class="chip-btn nav-jump" data-target="sec-linearity" style="text-align:left; padding:12px 14px;">01 · Linearity — mixing signals mixes coefficients</button>
+          <button class="chip-btn nav-jump" data-target="sec-timeshift" style="text-align:left; padding:12px 14px;">02 · Time Shift — delay becomes phase</button>
+          <button class="chip-btn nav-jump" data-target="sec-reversal" style="text-align:left; padding:12px 14px;">03 · Time Reversal — flips the index</button>
+          <button class="chip-btn nav-jump" data-target="sec-scaling" style="text-align:left; padding:12px 14px;">04 · Time Scaling — stretches the frequency ruler</button>
+          <button class="chip-btn nav-jump" data-target="sec-diff" style="text-align:left; padding:12px 14px;">05 · Differentiation — multiplies by jk&omega;<sub>0</sub></button>
+          <button class="chip-btn nav-jump" data-target="sec-sifting" style="text-align:left; padding:12px 14px;">05b · Sifting — the impulse as a value-picker</button>
+          <button class="chip-btn nav-jump" data-target="sec-integration" style="text-align:left; padding:12px 14px;">06 · Integration — divides by jk&omega;<sub>0</sub>, loses a<sub>0</sub></button>
+          <button class="chip-btn nav-jump" data-target="sec-multiplication" style="text-align:left; padding:12px 14px;">07 · Multiplication — convolution returns!</button>
+        </div>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>Exam framing</b><p>Almost every exam question in this chapter has the same skeleton: "Given <em>x(t)</em> &harr; <em>a<sub>k</sub></em>, find the coefficients of [some mangled version of x(t)]." Your entire job is to decompose the mangling into the eight operations above, apply them <strong>in the correct order</strong>, and chain the results. Order-of-operations mistakes are the #1 way students lose marks here — Sections 03 and 04 show you exactly how to avoid them.</p></div>
+      </div>
+
+      <div class="panel-nav">
+        <div></div>
+        <button class="pn-btn right" data-go="sec-linearity"><span class="small">NEXT →</span>01 · Linearity</button>
+      </div>
+    </section>
+
+    <!-- ============================= 01 LINEARITY ============================= -->
+    <section class="panel" id="sec-linearity">
+      <div class="panel-eyebrow">Section 01 · Property One of Eight</div>
+      <h2>Linearity</h2>
+      <p class="subhead">The gentlest property, and the one every other property secretly leans on.</p>
+
+      <p>Suppose you know two signals sharing the <strong>same fundamental period T</strong> (so the same &omega;<sub>0</sub>):</p>
+      <div class="eq">$$ x(t) \longleftrightarrow a_k, \qquad y(t) \longleftrightarrow b_k $$</div>
+      <p>Because their Fourier axes line up exactly — same k, same &omega;<sub>0</sub> — adding the signals just means adding the ingredients sitting at each frequency slot:</p>
+
+      <div class="plate">
+        <span class="plate-label">Linearity Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ \alpha\,x(t) + \beta\,y(t) \;\longleftrightarrow\; \alpha a_k + \beta b_k $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">Mix in time &nbsp;&hArr;&nbsp; mix the Fourier coefficients, harmonic by harmonic.</p>
+      </div>
+
+      <p>Play with the mixing knobs below. Two toy spectra, <em>a<sub>k</sub></em> and <em>b<sub>k</sub></em>, sit side by side. Slide &alpha; and &beta; and watch the combined spectrum <em>&alpha;a<sub>k</sub>+&beta;b<sub>k</sub></em> update live, bar by bar.</p>
+
+      <div class="widget">
+        <svg id="linSvg" viewBox="0 0 640 210" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>&alpha; = <input type="range" id="linAlpha" min="-2" max="2" step="0.1" value="1"><span class="val" id="linAlphaVal">1.0</span></label>
+          <label>&beta; = <input type="range" id="linBeta" min="-2" max="2" step="0.1" value="1"><span class="val" id="linBetaVal">1.0</span></label>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>Edge case examiners love</b><p>Linearity as stated <strong>requires the same period</strong>. If x(t) has period T<sub>1</sub> and y(t) has period T<sub>2</sub>, their sum is periodic only if T<sub>1</sub>/T<sub>2</sub> is rational — and the correct fundamental period to use is the <strong>LCM of T<sub>1</sub> and T<sub>2</sub></strong> (exactly the LCM trick you already used for discrete-time periodicity back in Lecture 2). You then need to re-express both a<sub>k</sub> and b<sub>k</sub> against that shared, finer harmonic grid before adding.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example</h3>
+      <div class="worked">
+        <div class="wtitle">Practice</div>
+        <p>Let <span class="katex-inline">$x(t)\leftrightarrow a_k$</span> with $a_1=a_{-1}=\tfrac12$, all other $a_k=0$ (i.e. $x(t)=\cos\omega_0 t$), and let $y(t)\leftrightarrow b_k$ with $b_0=1$, all other $b_k=0$ (i.e. $y(t)=1$). Find the coefficients of $p(t) = 3x(t) - 2y(t)$.</p>
+        <button class="reveal-btn" data-reveal="rev-lin1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-lin1">
+          <div class="step"><div class="stag">Apply linearity directly</div><p>$p(t) = 3x(t) + (-2)y(t) \leftrightarrow 3a_k + (-2)b_k = 3a_k - 2b_k$</p></div>
+          <div class="step"><div class="stag">Evaluate per harmonic</div><p>$c_0 = 3(0) - 2(1) = -2$. &nbsp; $c_{\pm1} = 3(\tfrac12) - 2(0) = \tfrac32$. &nbsp; all other $c_k = 0$.</p></div>
+          <div class="step"><div class="stag">Sanity check</div><p>$p(t) = 3\cos\omega_0 t - 2$, and indeed a signal of that form has exactly a DC term of $-2$ and a $\pm1$ pair of $\tfrac32$ each. Matches.</p></div>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Quick Check</h3>
+      <div class="quiz-q">
+        <div class="qtag">Self-Check</div>
+        <div class="qtext">If $x(t)$ has fundamental period 4s and $y(t)$ has fundamental period 6s, what fundamental period should you use to write the Fourier series of $x(t)+y(t)$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">2 s (the GCD)</button>
+          <button class="quiz-opt" data-correct="1">12 s (the LCM)</button>
+          <button class="quiz-opt" data-correct="0">5 s (the average)</button>
+          <button class="quiz-opt" data-correct="0">It cannot be periodic</button>
+        </div>
+        <div class="quiz-explain">Correct: <strong>12 s</strong>. The combined signal repeats only once both component signals complete a whole number of cycles simultaneously — that first common point is the LCM(4,6) = 12, exactly the same reasoning you used for periodicity of sums of discrete-time exponentials in Lecture 2.</div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-overview"><span class="small">← BACK</span>00 · Overview</button>
+        <button class="pn-btn right" data-go="sec-timeshift"><span class="small">NEXT →</span>02 · Time Shifting</button>
+      </div>
+    </section>
+
+    <!-- ============================= 02 TIME SHIFTING ============================= -->
+    <section class="panel" id="sec-timeshift">
+      <div class="panel-eyebrow">Section 02 · Property Two of Eight</div>
+      <h2>Time Shifting</h2>
+      <p class="subhead">Delay the signal in time. Does the frequency content change? Think before you scroll.</p>
+
+      <p>No — of course not. Delaying a recording doesn't change which notes are being played, only <em>when</em> they start relative to your clock. Every rotating phasor underneath just needs to be re-synced to a new zero. Starting from $x(t) = \sum_k a_k e^{jk\omega_0 t}$:</p>
+      <div class="eq">$$ x(t-t_0) = \sum_{k=-\infty}^{\infty} a_k\, e^{jk\omega_0(t-t_0)} = \sum_{k=-\infty}^{\infty} \underbrace{\left(a_k e^{-jk\omega_0 t_0}\right)}_{\text{new coefficient}} e^{jk\omega_0 t} $$</div>
+
+      <div class="plate">
+        <span class="plate-label">Time-Shifting Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ x(t-t_0) \;\longleftrightarrow\; a_k\, e^{-jk\omega_0 t_0} $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">A delay in time becomes a phase shift in frequency. Nothing about the size changes.</p>
+      </div>
+
+      <h3><span class="num">§</span>Why Only the Phase Moves</h3>
+      <p>Multiplying any complex number by $e^{j\phi}$ is a pure rotation: it keeps the radius exactly the same and adds $\phi$ to the angle. Since $\left|e^{-jk\omega_0 t_0}\right| = 1$ always, the coefficient's <strong>magnitude is completely unchanged</strong> — only its <strong>phase</strong> rotates, by $\angle = -k\omega_0 t_0$. And because that rotation is proportional to $k$, higher-frequency harmonics swing through a larger angle for the very same delay $t_0$.</p>
+
+      <div class="widget">
+        <svg id="shiftSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>Harmonic k = <input type="range" id="shiftK" min="-5" max="5" step="1" value="1"><span class="val" id="shiftKVal">1</span></label>
+          <label>Delay t<sub>0</sub>/T = <input type="range" id="shiftT0" min="0" max="1" step="0.01" value="0.15"><span class="val" id="shiftT0Val">0.15</span></label>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="ic">✓</div>
+        <div class="cbody"><b>Exam tip</b><p>If a question asks for $|a_k|$ or the power spectrum $|a_k|^2$ of a time-shifted signal, the answer is <strong>identical to the original</strong> — you don't even need $t_0$. Time shift only ever shows up in questions that ask about phase, or that ask you to reconstruct the coefficients themselves (as complex numbers).</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice — Shift by 3</div>
+        <p>Suppose $x(t)\leftrightarrow a_k$. Find the coefficients of $y(t) = x(t-3)$ in terms of $a_k$.</p>
+        <button class="reveal-btn" data-reveal="rev-shift1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-shift1">
+          <div class="step"><div class="stag">Identify t₀</div><p>Here $t_0 = 3$.</p></div>
+          <div class="step"><div class="stag">Apply the property directly</div><p>$y(t) = x(t-3) \leftrightarrow a_k e^{-j3k\omega_0}$</p></div>
+          <div class="step"><div class="stag">Interpret</div><p>The magnitudes $|a_k|$ stay exactly the same; only the phases rotate, and by an amount that grows with $k$.</p></div>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Quick Check</h3>
+      <div class="quiz-q">
+        <div class="qtag">Self-Check</div>
+        <div class="qtext">A signal $x(t)$ is delayed to give $y(t)=x(t-t_0)$. Which statement is true?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">All harmonics rotate by the same angle.</button>
+          <button class="quiz-opt" data-correct="1">Higher-order harmonics rotate through a larger phase angle than lower-order ones.</button>
+          <button class="quiz-opt" data-correct="0">The magnitude spectrum changes but the phase doesn't.</button>
+          <button class="quiz-opt" data-correct="0">Time shifting has no effect on the Fourier series.</button>
+        </div>
+        <div class="quiz-explain">Correct: the phase change is $-k\omega_0t_0$, which is <strong>proportional to k</strong>. The $k$-th harmonic rotates $k$ times faster than the fundamental for the same delay — magnitude never changes.</div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-linearity"><span class="small">← BACK</span>01 · Linearity</button>
+        <button class="pn-btn right" data-go="sec-reversal"><span class="small">NEXT →</span>03 · Time Reversal</button>
+      </div>
+    </section>
+
+    <!-- ============================= 03 TIME REVERSAL ============================= -->
+    <section class="panel" id="sec-reversal">
+      <div class="panel-eyebrow">Section 03 · Property Three of Eight</div>
+      <h2>Time Reversal</h2>
+      <p class="subhead">Play the signal backward. Every hidden rotating wave flips direction.</p>
+
+      <div class="eq">$$ x(-t) = \sum_{k=-\infty}^{\infty} a_k\, e^{jk\omega_0(-t)} = \sum_{k=-\infty}^{\infty} a_k\, e^{j(-k)\omega_0 t} $$</div>
+      <p>The term that used to live at harmonic $+k$ now lives at harmonic $-k$. Relabelling the dummy index gives:</p>
+
+      <div class="plate">
+        <span class="plate-label">Time-Reversal Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ x(-t) \;\longleftrightarrow\; a_{-k} $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">Reversal in time &nbsp;&hArr;&nbsp; index reversal in frequency. Not conjugation — just a relabel of which slot each old coefficient sits in.</p>
+      </div>
+
+      <p>Visually: imagine playing a video of a rotating phasor backward. A wheel spinning counter-clockwise at $k\omega_0$ appears, on the reversed tape, to spin <strong>clockwise</strong> — i.e. at $-k\omega_0$. That's the whole property, animated below.</p>
+
+      <div class="widget">
+        <svg id="revSvg" viewBox="0 0 640 220" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <button class="chip-btn active" id="revPlayBtn">⏸ Pause</button>
+          <label>Harmonic k = <input type="range" id="revK" min="1" max="5" step="1" value="2"><span class="val" id="revKVal">2</span></label>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>Don't confuse with conjugation</b><p>Time reversal gives $a_{-k}$. It does <strong>not</strong> conjugate the coefficient. If you separately know $x(t)$ is real, then $a_{-k}=a_k^{*}$ happens to also hold (from Lecture 5's symmetry properties) — but that's a coincidence of realness, not something time reversal itself does. Don't merge the two facts by accident on an exam.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example — Combining Shift and Reversal</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice</div>
+        <p>Suppose $x(t)\leftrightarrow a_k$ and $y(t)\leftrightarrow b_k$. Find the coefficients of $x(4-t) + y(t-3)$ in terms of $a_k$ and $b_k$.</p>
+        <button class="reveal-btn" data-reveal="rev-rev1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-rev1">
+          <div class="step"><div class="stag">Handle x(4−t): shift first, then reverse</div><p>Write $x(4-t)$ as $x(-(t-4))$. First shift: $x(t+4)\leftrightarrow a_k e^{j4k\omega_0}$ (a shift by $t_0=-4$). Now reverse on $t$: replace $t\to -t$ everywhere, which sends $k\to -k$ in the coefficient: $$x(-t+4) \leftrightarrow a_{-k}\,e^{j4(-k)\omega_0} = a_{-k}\,e^{-j4k\omega_0}$$</p></div>
+          <div class="step"><div class="stag">Handle y(t−3): plain shift, t₀ = 3</div><p>$y(t-3) \leftrightarrow b_k\,e^{-j3k\omega_0}$</p></div>
+          <div class="step"><div class="stag">Add by linearity</div><p>$$x(4-t) + y(t-3) \;\longleftrightarrow\; a_{-k}\,e^{-j4k\omega_0} + b_k\,e^{-j3k\omega_0}$$</p></div>
+        </div>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>The safe recipe for x(A − Bt)-style arguments</b><p>Whenever the time argument is a combination like $4-t$, don't try to apply "reversal" and "shift" to the messy expression at once. Instead: <strong>(1)</strong> temporarily replace $t\to -t$ conceptually only after first shifting so that the argument becomes a pure reversal of a pure shift, i.e. rewrite $x(4-t)$ as first shifting $x(t)$ to $x(t+4)$, <em>then</em> reversing the result. Always shift, then reverse — reversing first and shifting second gives the wrong sign on the shift. Section 04 extends this same recipe to include scaling as a third, final step.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Quick Check</h3>
+      <div class="quiz-q">
+        <div class="qtag">Self-Check</div>
+        <div class="qtext">If $x(t)$ is an <strong>even</strong> signal ($x(t)=x(-t)$), what must be true of its Fourier coefficients?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">$a_k = -a_k$ for all $k$</button>
+          <button class="quiz-opt" data-correct="1">$a_k = a_{-k}$ for all $k$</button>
+          <button class="quiz-opt" data-correct="0">$a_k$ must be purely imaginary</button>
+          <button class="quiz-opt" data-correct="0">$a_0 = 0$</button>
+        </div>
+        <div class="quiz-explain">Correct: since $x(t)=x(-t)$, their coefficients must match too: $a_k = a_{-k}$. This is exactly the even-signal symmetry property from Lecture 5 — now you can see <em>why</em> it's true, straight from the time-reversal property.</div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-timeshift"><span class="small">← BACK</span>02 · Time Shifting</button>
+        <button class="pn-btn right" data-go="sec-scaling"><span class="small">NEXT →</span>04 · Time Scaling</button>
+      </div>
+    </section>
+
+    <!-- ============================= 04 TIME SCALING ============================= -->
+    <section class="panel" id="sec-scaling">
+      <div class="panel-eyebrow">Section 04 · Property Four of Eight</div>
+      <h2>Time Scaling</h2>
+      <p class="subhead">The odd one out: this is the only property that touches &omega;<sub>0</sub> itself, not just the coefficients.</p>
+
+      <div class="eq">$$ x(\alpha t) = \sum_{k=-\infty}^{\infty} a_k\, e^{jk\omega_0(\alpha t)} = \sum_{k=-\infty}^{\infty} a_k\, e^{jk(\alpha\omega_0)t} $$</div>
+      <p>Compare this sum to the standard synthesis form $\sum_k c_k e^{jk\omega_0' t}$. The coefficients multiplying each exponential are still exactly $a_k$ — but the thing playing the role of the fundamental frequency is no longer $\omega_0$, it's $\alpha\omega_0$.</p>
+
+      <div class="plate">
+        <span class="plate-label">Time-Scaling Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ x(\alpha t) \;\longleftrightarrow\; a_k \quad\text{with new fundamental frequency}\quad \omega_0' = \alpha\omega_0 $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">The coefficient sequence never changes. The frequency ruler underneath it does.</p>
+      </div>
+
+      <p>This is genuinely two different pictures of the same fact, and exams love to test whether you can tell them apart:</p>
+      <ul>
+        <li><strong>Against index k</strong> — the value attached to the $k$-th harmonic slot is unchanged: $b_k = a_k$.</li>
+        <li><strong>Against actual frequency &omega;</strong> — the spectral line that used to sit at $k\omega_0$ physically moves to $k\alpha\omega_0$. For $\alpha>1$ (time compression) the lines spread <em>farther apart</em>; for $0<\alpha<1$ (time stretching) they crowd <em>closer together</em>.</li>
+      </ul>
+
+      <div class="widget">
+        <svg id="scaleSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>&alpha; = <input type="range" id="scaleAlpha" min="0.3" max="3" step="0.05" value="1"><span class="val" id="scaleAlphaVal">1.00</span></label>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>Edge case: negative &alpha;</b><p>What if $\alpha<0$? Then $x(\alpha t) = x(-|\alpha|t)$ is a <strong>scale by $|\alpha|$ combined with a time reversal</strong>. You'd chain both properties: coefficients become $a_{-k}$ (from the sign flip), fundamental frequency becomes $|\alpha|\omega_0$. Slides that write $p(t)=x(4-3t)$ are secretly hiding exactly this case, since the effective scale factor on $t$ is $-3$.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example — Shift, Reverse, Scale in One Signal</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice</div>
+        <p>Let $x(t)\leftrightarrow a_k$ with fundamental frequency $\omega_0$. Find the Fourier series coefficients of $p(t) = x(4-3t)$ in terms of $a_k$.</p>
+        <p style="color:var(--brass-bright); font-family:var(--font-mono); font-size:12.5px;">Strategy: think in stages — $x(t) \to x(t+4) \to x(4-t) \to x(4-3t)$.</p>
+        <button class="reveal-btn" data-reveal="rev-scale1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-scale1">
+          <div class="step"><div class="stag">Stage 1 — shift left by 4</div><p>$x(t+4) \leftrightarrow a_k\, e^{j4k\omega_0}$</p></div>
+          <div class="step"><div class="stag">Stage 2 — reverse</div><p>$x(4-t) \leftrightarrow a_{-k}\, e^{-j4k\omega_0}$ &nbsp;<span style="color:var(--steel-text-dim);">(replace $k\to -k$ in the previous result)</span></p></div>
+          <div class="step"><div class="stag">Stage 3 — scale time by 3</div><p>Scaling never touches the coefficient values themselves — only $\omega_0$. So the coefficient expression is unchanged: $$x(4-3t) \leftrightarrow a_{-k}\, e^{-j4k\omega_0}, \qquad \omega_0' = 3\omega_0$$</p></div>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Quick Check</h3>
+      <div class="quiz-q">
+        <div class="qtag">Self-Check</div>
+        <div class="qtext">$x(t)$ has period $T=2$s. What is the period of $y(t) = x(4t)$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">8 s</button>
+          <button class="quiz-opt" data-correct="1">0.5 s</button>
+          <button class="quiz-opt" data-correct="0">2 s (unchanged)</button>
+          <button class="quiz-opt" data-correct="0">Cannot be determined</button>
+        </div>
+        <div class="quiz-explain">Correct: <strong>0.5 s</strong>. Time compression by a factor of 4 squeezes one full cycle into a quarter of the original duration: $T' = T/\alpha = 2/4 = 0.5$s, consistent with $\omega_0' = \alpha\omega_0 = 4\omega_0$.</div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-reversal"><span class="small">← BACK</span>03 · Time Reversal</button>
+        <button class="pn-btn right" data-go="sec-diff"><span class="small">NEXT →</span>05 · Differentiation</button>
+      </div>
+    </section>
+
+    <!-- ============================= 05 DIFFERENTIATION ============================= -->
+    <section class="panel" id="sec-diff">
+      <div class="panel-eyebrow">Section 05 · Property Five of Eight</div>
+      <h2>Differentiation</h2>
+      <p class="subhead">Differentiate the signal — differentiate every little wheel underneath it.</p>
+
+      <div class="eq">$$ \frac{d}{dt}x(t) = \sum_{k=-\infty}^{\infty} a_k\,\frac{d}{dt}e^{jk\omega_0 t} = \sum_{k=-\infty}^{\infty} (jk\omega_0)\,a_k\; e^{jk\omega_0 t} $$</div>
+      <p>using $\frac{d}{dt}e^{jk\omega_0 t} = jk\omega_0\, e^{jk\omega_0 t}$.</p>
+
+      <div class="plate">
+        <span class="plate-label">Differentiation Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ \frac{d}{dt}x(t) \;\longleftrightarrow\; (jk\omega_0)\,a_k $$</div>
+      </div>
+
+      <h3><span class="num">§</span>Where Does the jk&omega;<sub>0</sub> Actually Come From?</h3>
+      <p>Think of the $k$-th phasor as a bead moving on a circle of radius $|a_k|$, going around at angular speed $k\omega_0$ — this is <strong>circular motion</strong>, straight out of first-year mechanics. Differentiating position gives velocity, and for circular motion, speed is $\omega r$: here $\omega = k\omega_0$ and $r=|a_k|$, so the derivative's magnitude is $|k\omega_0|\,|a_k|$ — that explains the $k\omega_0$ magnitude.</p>
+      <p>But where's the extra <strong>j</strong> from? Velocity in circular motion is always <em>tangent</em> to the position vector, i.e. rotated $90°$ ahead of it — and multiplying a complex number by $j$ is exactly a $90°$ rotation. So $j$ isn't decoration; it's the statement "velocity points sideways to position."</p>
+
+      <div class="widget">
+        <svg id="diffSvg" viewBox="0 0 640 260" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>Harmonic k = <input type="range" id="diffK" min="1" max="4" step="1" value="1"><span class="val" id="diffKVal">1</span></label>
+          <button class="chip-btn active" id="diffPlayBtn">⏸ Pause</button>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example — Chaining Onto Section 04's Result</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice</div>
+        <p>Reusing the Section 04 result $x(4-3t)\leftrightarrow a_{-k}e^{-j4k\omega_0}$ with $\omega_0'=3\omega_0$, find the coefficients of $p(t)=\frac{d}{dt}x(4-3t)$.</p>
+        <button class="reveal-btn" data-reveal="rev-diff1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-diff1">
+          <div class="step"><div class="stag">Differentiate using the CURRENT &omega;₀′, not the original</div><p>The signal $x(4-3t)$ now has fundamental frequency $\omega_0'=3\omega_0$ — that's the value that belongs in the differentiation formula, since it's the frequency the harmonics of <em>this specific signal</em> actually spin at.</p></div>
+          <div class="step"><div class="stag">Apply differentiation</div><p>$$p(t) \leftrightarrow (jk\omega_0')\left(a_{-k}e^{-j4k\omega_0}\right) = j3k\omega_0\, a_{-k}\, e^{-j4k\omega_0}$$</p></div>
+        </div>
+      </div>
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>The single most common slip on this topic</b><p>When you differentiate a signal that has already been time-scaled, always plug in the <strong>new</strong> fundamental frequency $\omega_0'=\alpha\omega_0$ — never the original $\omega_0$. This is the mistake that quietly costs marks on combined-property problems.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Jump Discontinuities Create Impulses</h3>
+      <p>For smooth stretches, the derivative is just the slope. But at a <strong>jump</strong> of height $A$ at $t=t_0$, the derivative isn't defined in the ordinary sense — it contains an impulse: $A\,\delta(t-t_0)$. So in general:</p>
+      <div class="eq">$$ \frac{d}{dt}x(t) = \big(\text{ordinary slope between jumps}\big) + \big(\text{impulses at each jump, weighted by jump height}\big) $$</div>
+
+      <div class="widget">
+        <svg viewBox="0 0 640 200" style="width:100%; height:auto; display:block;">
+          <!-- x(t): piecewise signal like slide 43 -->
+          <text x="10" y="18" font-family="IBM Plex Mono" font-size="11" fill="#5a5340">x(t) — try sketching dx/dt before revealing</text>
+          <line x1="30" y1="150" x2="610" y2="150" stroke="#c9bb99" stroke-width="1"/>
+          <polyline points="30,110 130,110 130,190 230,110 330,110 330,190 430,190 430,110 530,110 530,190 610,190" fill="none" stroke="#282315" stroke-width="2.5"/>
+          <text x="640" y="118" font-family="IBM Plex Mono" font-size="10" fill="#5a5340" text-anchor="end"></text>
+        </svg>
+        <button class="reveal-btn" data-reveal="rev-jump1" data-hide="Hide Answer" style="margin-top:10px;">Reveal dx/dt Sketch</button>
+        <div class="reveal-block" id="rev-jump1">
+          <svg viewBox="0 0 640 200" style="width:100%; height:auto; display:block; margin-top:10px;">
+            <line x1="30" y1="100" x2="610" y2="100" stroke="#c9bb99" stroke-width="1"/>
+            <line x1="30" y1="60" x2="130" y2="60" stroke="#3c6a60" stroke-width="2.5"/>
+            <line x1="130" y1="15" x2="130" y2="185" stroke="#9c4632" stroke-width="2.5"/>
+            <line x1="130" y1="140" x2="230" y2="140" stroke="#3c6a60" stroke-width="2.5"/>
+            <line x1="230" y1="15" x2="230" y2="185" stroke="#9c4632" stroke-width="2.5"/>
+            <line x1="230" y1="60" x2="330" y2="60" stroke="#3c6a60" stroke-width="2.5"/>
+            <line x1="330" y1="185" x2="330" y2="15" stroke="#9c4632" stroke-width="2.5"/>
+            <line x1="330" y1="140" x2="430" y2="140" stroke="#3c6a60" stroke-width="2.5"/>
+            <line x1="430" y1="15" x2="430" y2="185" stroke="#9c4632" stroke-width="2.5"/>
+            <line x1="430" y1="60" x2="530" y2="60" stroke="#3c6a60" stroke-width="2.5"/>
+            <line x1="530" y1="185" x2="530" y2="15" stroke="#9c4632" stroke-width="2.5"/>
+            <line x1="530" y1="140" x2="610" y2="140" stroke="#3c6a60" stroke-width="2.5"/>
+            <text x="640" y="63" font-family="IBM Plex Mono" font-size="10" fill="#3c6a60" text-anchor="end"></text>
+          </svg>
+          <p style="font-size:13px; margin-top:8px;"><span style="color:var(--teal); font-weight:600;">Teal segments</span> = ordinary slope between jumps. <span style="color:var(--rust-bright); font-weight:600;">Rust arrows</span> = impulses, one per jump, with area (weight) equal to the jump's height. An upward jump gives a positive impulse; a downward jump gives a negative one.</p>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-scaling"><span class="small">← BACK</span>04 · Time Scaling</button>
+        <button class="pn-btn right" data-go="sec-sifting"><span class="small">NEXT →</span>05b · Sifting Detour</button>
+      </div>
+    </section>
+
+    <!-- ============================= 05b SIFTING DETOUR ============================= -->
+    <section class="panel" id="sec-sifting">
+      <div class="panel-eyebrow">Section 05b · A Necessary Detour</div>
+      <h2>The Sifting Property &amp; Impulse Trains</h2>
+      <p class="subhead">Before Integration, we need one tool from the impulse function's toolbox — because impulses from Section 05 need to be integrated against things.</p>
+
+      <p>Start discrete, where it's obvious. Sum an arbitrary signal $x[n]$ against a shifted unit impulse:</p>
+      <div class="eq">$$ \sum_{n=-\infty}^{\infty} x[n]\,\delta[n-a] = x[a] $$</div>
+      <p>Why? $\delta[n-a]$ is zero everywhere except at $n=a$, so every term in the sum vanishes except the one where $n=a$ — only that single term survives. The continuous-time version does exactly the same job, with an integral standing in for the sum:</p>
+      <div class="eq">$$ \int_{-\infty}^{\infty} x(t)\,\delta(t-a)\,dt = x(a) $$</div>
+
+      <div class="widget" style="text-align:center;">
+        <svg viewBox="0 0 640 170" style="width:100%; max-width:520px; height:auto; display:block; margin:0 auto;">
+          <!-- simple giraffe reaching to touch a curve at point a -->
+          <line x1="30" y1="140" x2="610" y2="140" stroke="#c9bb99" stroke-width="1"/>
+          <path d="M40,120 C160,20 280,150 400,60 C470,10 540,80 600,40" fill="none" stroke="#3c6a60" stroke-width="2.5"/>
+          <!-- giraffe -->
+          <g transform="translate(230,0)">
+            <rect x="0" y="95" width="46" height="34" rx="3" fill="#a97a35"/>
+            <circle cx="10" cy="112" r="3" fill="#5a3f1a"/><circle cx="24" cy="105" r="3" fill="#5a3f1a"/><circle cx="36" cy="118" r="3" fill="#5a3f1a"/>
+            <rect x="4" y="129" width="6" height="26" fill="#a97a35"/>
+            <rect x="36" y="129" width="6" height="26" fill="#a97a35"/>
+            <path d="M14,97 C14,55 60,68 66,40" stroke="#a97a35" stroke-width="12" fill="none" stroke-linecap="round"/>
+            <circle cx="68" cy="34" r="10" fill="#a97a35"/>
+            <circle cx="72" cy="31" r="1.6" fill="#3a2a10"/>
+            <line x1="63" y1="26" x2="60" y2="18" stroke="#a97a35" stroke-width="3" stroke-linecap="round"/>
+            <line x1="70" y1="25" x2="70" y2="16" stroke="#a97a35" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <circle cx="298" cy="59" r="4" fill="#9c4632"/>
+          <line x1="298" y1="59" x2="298" y2="140" stroke="#9c4632" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <text x="298" y="155" font-family="IBM Plex Mono" font-size="11" fill="#9c4632" text-anchor="middle">t = a</text>
+        </svg>
+        <p style="font-size:13.5px; color:var(--ink-soft); font-style:italic; margin-top:6px;">"A giraffe only feels the height of the grass at the exact point where it's standing." — the impulse is a pure value-picker: it doesn't care about the shape of x(t) anywhere except at one instant.</p>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>One condition you must always check</b><p>The impulse only extracts a value if the integration window actually contains it:
+        $$ \int_L^R x(t)\,\delta(t-a)\,dt = \begin{cases} x(a), & L< a< R \\ 0, & a\notin[L,R] \end{cases} $$
+        A boundary case ($a=L$ or $a=R$ exactly) is typically treated as ambiguous/undefined and rarely tested cleanly — but "outside the window" is a favorite trap.</p></div>
+      </div>
+
+      <p>Drag the slider to move the impulse location $a$ against a fixed window $[L,R]=[0,5]$ and watch when it "counts."</p>
+      <div class="widget">
+        <svg id="siftSvg" viewBox="0 0 640 130" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>a = <input type="range" id="siftA" min="-2" max="7" step="0.1" value="2.5"><span class="val" id="siftAVal">2.5</span></label>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice — Sifting in Action</div>
+        <p>Let $x(t)=e^t$. Find <strong>(a)</strong> $\int_{-\infty}^{\infty}x(t)\delta(t)\,dt$, <strong>(b)</strong> $\int_{1}^{\infty}x(t)\delta(t)\,dt$, <strong>(c)</strong> $\int_{-5}^{5}x(t)[\delta(t+1)+2\delta(t-2)]\,dt$.</p>
+        <button class="reveal-btn" data-reveal="rev-sift1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-sift1">
+          <div class="step"><div class="stag">(a)</div><p>Impulse at $t=0$ is inside $(-\infty,\infty)$: value is $e^0=1$.</p></div>
+          <div class="step"><div class="stag">(b)</div><p>Impulse at $t=0$ lies <strong>outside</strong> the window $[1,\infty)$: result is $0$.</p></div>
+          <div class="step"><div class="stag">(c)</div><p>Both impulses ($t=-1$ and $t=2$) sit inside $[-5,5]$: $e^{-1} + 2e^{2}$.</p></div>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>The Payoff — Fourier Series of an Impulse Train</h3>
+      <p>Now use sifting for something genuinely useful: the Fourier series of a perfectly periodic train of impulses, spaced $T$ apart —</p>
+      <div class="eq">$$ x(t) = \sum_{m=-\infty}^{\infty} \delta(t-mT) $$</div>
+      <p>Choose the period window $-T/2 < t < T/2$, which contains exactly one impulse (at $t=0$):</p>
+      <div class="eq">$$ a_k = \frac{1}{T}\int_{-T/2}^{T/2} \delta(t)\,e^{-jk\omega_0 t}\,dt \;\overset{\text{sifting}}{=}\; \frac{1}{T}\,e^{-jk\omega_0\cdot 0} = \frac{1}{T} $$</div>
+
+      <div class="plate">
+        <span class="plate-label">Impulse Train Spectrum</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ \sum_{m=-\infty}^{\infty}\delta(t-mT) \;\longleftrightarrow\; a_k = \frac{1}{T}, \quad k=0,\pm1,\pm2,\dots $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">Every single harmonic carries exactly the same weight — a perfectly flat spectrum.</p>
+      </div>
+
+      <div class="widget">
+        <svg id="impTrainSvg" viewBox="0 0 640 180" style="width:100%; height:auto; display:block;"></svg>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>Connecting back to Lecture 5's time–bandwidth tradeoff</b><p>This is the extreme case of the time–bandwidth tradeoff you already met: a signal maximally <strong>concentrated</strong> in time (an infinitely narrow spike) is maximally <strong>spread out</strong> in frequency (every harmonic, equally). Squeeze a signal in one domain and it necessarily spreads in the other — the impulse train sits at the very edge of that tradeoff.</p></div>
+      </div>
+
+      <p>This single result — differentiating a jump-containing periodic signal produces a periodic train of impulses, and a periodic train of impulses has this beautifully flat spectrum — is exactly the toolkit the differentiation property needs to shine. Let's use both together on a full example.</p>
+
+      <h3><span class="num">§</span>Capstone Example — Differentiating a Periodic Pulse</h3>
+      <div class="worked">
+        <div class="wtitle">Full Verification Problem</div>
+        <p>Let $x(t)$ be a periodic rectangular pulse: $x(t)=1$ for $|t|<T_1$, $x(t)=0$ for $T_1<|t|<T/2$, repeating with period $T$. From Lecture 5's known result:</p>
+        <p>$$ a_0 = \frac{2T_1}{T}, \qquad a_k = \frac{\sin(k\omega_0 T_1)}{k\pi}\;\;(k\neq0), \qquad \omega_0=\frac{2\pi}{T} $$</p>
+        <p>Differentiate $x(t)$ directly, find $\frac{d}{dt}x(t)$'s Fourier coefficients using sifting, and check the answer against the differentiation property from Section 05.</p>
+        <button class="reveal-btn" data-reveal="rev-capstone1" data-hide="Hide Full Solution">Show Full Solution</button>
+        <div class="reveal-block" id="rev-capstone1">
+          <div class="step"><div class="stag">Step 1 — Sketch the derivative</div><p>Rising edge at $t=-T_1$ gives $+\delta(t+T_1)$; falling edge at $t=T_1$ gives $-\delta(t-T_1)$. Repeating every $T$:
+          $$\frac{d}{dt}x(t) = \sum_{m=-\infty}^{\infty}\Big[\delta(t+T_1-mT) - \delta(t-T_1-mT)\Big]$$</p></div>
+          <div class="step"><div class="stag">Step 2 — Find its coefficients directly, via sifting</div><p>Over one period, using $b_k$ for these new coefficients:
+          $$ b_k = \frac{1}{T}\int_{-T/2}^{T/2}\big[\delta(t+T_1)-\delta(t-T_1)\big]e^{-jk\omega_0t}\,dt = \frac{1}{T}\left[e^{jk\omega_0T_1} - e^{-jk\omega_0T_1}\right] = \frac{2j}{T}\sin(k\omega_0T_1) $$</p></div>
+          <div class="step"><div class="stag">Step 3 — Predict the same thing using the differentiation property</div><p>The property says $\frac{d}{dt}x(t)\leftrightarrow jk\omega_0 a_k$. For $k\neq0$:
+          $$ jk\omega_0 a_k = jk\omega_0\cdot\frac{\sin(k\omega_0T_1)}{k\pi} = j\frac{\omega_0}{\pi}\sin(k\omega_0T_1) = \frac{2j}{T}\sin(k\omega_0T_1) $$
+          using $\omega_0=2\pi/T$.</p></div>
+          <div class="step"><div class="stag">Step 4 — Perfect match</div><p>Both routes agree exactly: $b_k = (jk\omega_0)\,a_k$. This also automatically gives $b_0=0$ — differentiating a periodic signal always removes its DC component, which is a preview of exactly the warning coming up in Integration.</p></div>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-diff"><span class="small">← BACK</span>05 · Differentiation</button>
+        <button class="pn-btn right" data-go="sec-integration"><span class="small">NEXT →</span>06 · Integration</button>
+      </div>
+    </section>
+
+    <!-- ============================= 06 INTEGRATION ============================= -->
+    <section class="panel" id="sec-integration">
+      <div class="panel-eyebrow">Section 06 · Property Six of Eight</div>
+      <h2>Integration</h2>
+      <p class="subhead">The mirror image of differentiation — and the one property with an asterisk attached.</p>
+
+      <p>Differentiation multiplies by $jk\omega_0$. Integration should undo that, so it must divide by the same factor:</p>
+      <div class="plate">
+        <span class="plate-label">Integration Property</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ \int x(t)\,dt \;\longleftrightarrow\; \frac{a_k}{jk\omega_0}, \qquad k\neq 0 $$</div>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">⚠</div>
+        <div class="cbody"><b>The constant of integration strikes back</b><p>Integration <strong>cannot</strong> recover $a_0$, ever. Why? Because $\frac{d}{dt}\big(x(t)+C\big) = \frac{d}{dt}x(t)$ for <em>any</em> constant $C$ — differentiation is completely blind to a DC offset, so there's no way to reverse-engineer it back out. Whenever you use "integrate the derivative to get back $x(t)$," you must find $a_0$ by a <strong>separate route</strong> — usually the direct average-value integral $a_0 = \frac{1}{T}\int_T x(t)\,dt$.</p></div>
+      </div>
+
+      <div class="widget">
+        <svg id="intSvg" viewBox="0 0 640 190" style="width:100%; height:auto; display:block;"></svg>
+        <p style="font-size:12.5px; color:var(--ink-soft); text-align:center; margin:8px 0 0;">Every curve above has exactly the same derivative (same slope everywhere) — integration alone can never tell you which one is "the real" x(t) without an extra piece of information about the DC level.</p>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>Connecting back to Lecture 5</b><p>Recall $a_0$ is exactly the <strong>average value / DC component</strong> of $x(t)$ over one period — the very same $a_0$ you computed directly via integration in Lecture 5. That's precisely the "separate route" this warning is asking you to fall back on.</p></div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example — Sawtooth via Differentiate-then-Integrate-Back</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice</div>
+        <p>Let $x(t)=t$ for $0\le t<1$, periodic with $x(t+1)=x(t)$ (a sawtooth). Find its Fourier coefficients by first finding the series for $y(t)=\frac{d}{dt}x(t)$, then integrating back.</p>
+        <button class="reveal-btn" data-reveal="rev-int1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-int1">
+          <div class="step"><div class="stag">Step 1 — Differentiate the sawtooth</div><p>Between jumps the slope is $1$. At each integer the signal drops by $1$ (a downward jump), contributing $-\delta(t-m)$:
+          $$ y(t) = \frac{d}{dt}x(t) = 1 - \sum_{m=-\infty}^{\infty}\delta(t-m) $$</p></div>
+          <div class="step"><div class="stag">Step 2 — Coefficients of y(t)</div><p>The constant "1" contributes only to $k=0$: coefficient $1$. The unit-spaced impulse train ($T=1$) contributes $\frac{1}{T}=1$ to <em>every</em> $k$ (from the impulse-train result above). Subtracting:
+          $$ b_k = \begin{cases} 1-1=0, & k=0 \\ 0-1=-1, & k\neq0 \end{cases} $$</p></div>
+          <div class="step"><div class="stag">Step 3 — Integrate back for k ≠ 0</div><p>Since $y(t)=\frac{d}{dt}x(t)$, we have $b_k = jk\omega_0 a_k$, so $a_k = b_k/(jk\omega_0)$. Here $\omega_0=2\pi$ (since $T=1$) and $b_k=-1$:
+          $$ a_k = \frac{-1}{j2\pi k} = \frac{j}{2\pi k}, \qquad k\neq0 $$</p></div>
+          <div class="step"><div class="stag">Step 4 — a₀ must be found separately</div><p>Integration gave nothing for $k=0$ — go straight to the average-value definition:
+          $$ a_0 = \int_0^1 t\,dt = \frac{1}{2} $$
+          Final answer: $a_0=\frac12$, $\;a_k = \dfrac{j}{2\pi k}$ for $k\neq0$.</p></div>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Quick Check</h3>
+      <div class="quiz-q">
+        <div class="qtag">Self-Check</div>
+        <div class="qtext">You differentiate $x(t)$, find the Fourier coefficients of the result, then integrate back to recover $a_k$ for $x(t)$. Which coefficient(s) can never be trusted from this procedure alone?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">All even-indexed $a_k$</button>
+          <button class="quiz-opt" data-correct="0">All odd-indexed $a_k$</button>
+          <button class="quiz-opt" data-correct="1">$a_0$ only</button>
+          <button class="quiz-opt" data-correct="0">None — the procedure recovers everything</button>
+        </div>
+        <div class="quiz-explain">Correct: only <strong>$a_0$</strong> is lost, because differentiation kills any constant (DC) offset. Every $k\neq0$ coefficient survives the round trip perfectly.</div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-sifting"><span class="small">← BACK</span>05b · Sifting Detour</button>
+        <button class="pn-btn right" data-go="sec-multiplication"><span class="small">NEXT →</span>07 · Multiplication</button>
+      </div>
+    </section>
+
+    <!-- ============================= 07 MULTIPLICATION ============================= -->
+    <section class="panel" id="sec-multiplication">
+      <div class="panel-eyebrow">Section 07 · Property Seven of Eight</div>
+      <h2>Multiplication</h2>
+      <p class="subhead">Linearity told us what addition does. Now: what does multiplying two signals do to their coefficients?</p>
+
+      <p>Write both signals as sums of phasors, using separate dummy indices $p$ and $q$ so the two sums don't collide:</p>
+      <div class="eq">$$ x(t)=\sum_{p=-\infty}^{\infty}a_p e^{jp\omega_0t}, \qquad y(t)=\sum_{q=-\infty}^{\infty}b_q e^{jq\omega_0t} $$</div>
+      <p>Substitute $z=e^{j\omega_0t}$, so $e^{jp\omega_0t}=z^p$. Suddenly $x(t)=\sum_p a_p z^p$ and $y(t)=\sum_q b_q z^q$ look exactly like <strong>polynomials</strong> in $z$ — and multiplying two power series is something you already know how to do.</p>
+      <p>One term from each: $a_p e^{jp\omega_0t}\cdot b_q e^{jq\omega_0t} = a_pb_q\,e^{j(p+q)\omega_0t}$. This lands on harmonic $k$ exactly when $p+q=k$, i.e. $q=k-p$. Summing over every way to make $k$:</p>
+
+      <div class="plate">
+        <span class="plate-label">Multiplication Property — Convolution Returns!</span><span class="bl"></span><span class="br"></span>
+        <div class="eq">$$ x(t)y(t) \;\longleftrightarrow\; c_k = \sum_{p=-\infty}^{\infty} a_p\, b_{k-p} = (a*b)_k $$</div>
+        <p style="text-align:center; margin-bottom:0; color:var(--ink-soft); font-size:13.5px;">Multiplication in time &nbsp;&hArr;&nbsp; convolution in frequency.</p>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>Yes — that convolution, back from Lecture 3</b><p>This is the identical <strong>reflect–slide–multiply–add</strong> recipe you learned for LTI system responses, just relocated: instead of convolving two functions of time, you're now convolving two <em>sequences of coefficients</em> indexed by $k$. Same algorithm, brand-new arena.</p></div>
+      </div>
+
+      <p>Try it yourself: pick two short coefficient sequences below and step through the discrete convolution that builds $c_k$.</p>
+      <div class="widget">
+        <svg id="convSvg" viewBox="0 0 640 230" style="width:100%; height:auto; display:block;"></svg>
+        <div class="widget-controls">
+          <label>Output index k = <input type="range" id="convK" min="-4" max="4" step="1" value="0"><span class="val" id="convKVal">0</span></label>
+          <button class="chip-btn active" id="convPlayBtn">▶ Animate p</button>
+        </div>
+      </div>
+
+      <h3><span class="num">§</span>Worked Example — Squaring a Simple Signal</h3>
+      <div class="worked">
+        <div class="wtitle">Slide Practice</div>
+        <p>Let $x(t) = 1+\cos(\omega_0t)$, so its only nonzero coefficients are $a_{-1}=\tfrac12$, $a_0=1$, $a_1=\tfrac12$. Find the Fourier coefficients of $p(t)=x^2(t)$.</p>
+        <button class="reveal-btn" data-reveal="rev-mul1" data-hide="Hide Solution">Show Solution</button>
+        <div class="reveal-block" id="rev-mul1">
+          <div class="step"><div class="stag">Route 1 — Convolve the coefficient sequence with itself</div><p>$p(t)=x(t)x(t)$, so $c_k=(a*a)_k=\sum_p a_pa_{k-p}$. Only $p\in\{-1,0,1\}$ contribute anything nonzero, giving:
+          $$ c_{-2}=\tfrac14,\;\; c_{-1}=1,\;\; c_0=\tfrac32,\;\; c_1=1,\;\; c_2=\tfrac14 $$</p></div>
+          <div class="step"><div class="stag">Route 2 — Cross-check with ordinary trigonometry</div><p>$$ x^2(t) = (1+\cos\omega_0t)^2 = 1+2\cos\omega_0t+\cos^2\omega_0t = \tfrac32 + 2\cos\omega_0t + \tfrac12\cos2\omega_0t $$
+          Reading off coefficients: $c_0=\tfrac32$, $c_{\pm1}=1$, $c_{\pm2}=\tfrac14$ — <strong>a perfect match</strong> with Route 1.</p></div>
+          <div class="step"><div class="stag">Exam habit worth building</div><p>Whenever the signal is a short trig expression, this trig-identity cross-check is a fast way to <em>verify</em> a convolution answer in under a minute — use it to catch arithmetic slips before submitting.</p></div>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-integration"><span class="small">← BACK</span>06 · Integration</button>
+        <button class="pn-btn right" data-go="sec-summary"><span class="small">NEXT →</span>08 · Master Property Sheet</button>
+      </div>
+    </section>
+
+    <!-- ============================= 08 SUMMARY ============================= -->
+    <section class="panel" id="sec-summary">
+      <div class="panel-eyebrow">Section 08 · Exam Prep</div>
+      <h2>Master Property Sheet</h2>
+      <p class="subhead">Every result from this lecture, on one plate. This is what you should be able to reproduce from memory before the exam.</p>
+
+      <table class="spec-table">
+        <thead><tr><th>Property</th><th>Time Domain</th><th>Frequency Domain</th><th>One-Line Insight</th></tr></thead>
+        <tbody>
+          <tr><td class="pname">Linearity</td><td>$\alpha x(t)+\beta y(t)$</td><td>$\alpha a_k+\beta b_k$</td><td class="pnote">Needs matching period T</td></tr>
+          <tr><td class="pname">Time Shift</td><td>$x(t-t_0)$</td><td>$a_k\,e^{-jk\omega_0t_0}$</td><td class="pnote">Magnitude fixed, phase rotates</td></tr>
+          <tr><td class="pname">Time Reversal</td><td>$x(-t)$</td><td>$a_{-k}$</td><td class="pnote">Index flip, not conjugation</td></tr>
+          <tr><td class="pname">Time Scaling</td><td>$x(\alpha t)$</td><td>$a_k$, &nbsp;$\omega_0'=\alpha\omega_0$</td><td class="pnote">Only property touching &omega;₀</td></tr>
+          <tr><td class="pname">Differentiation</td><td>$\frac{d}{dt}x(t)$</td><td>$(jk\omega_0)\,a_k$</td><td class="pnote">Jumps &rarr; impulses; use current &omega;₀</td></tr>
+          <tr><td class="pname">Integration</td><td>$\int x(t)\,dt$</td><td>$\dfrac{a_k}{jk\omega_0}$, $k\neq0$</td><td class="pnote">Never recovers $a_0$</td></tr>
+          <tr><td class="pname">Multiplication</td><td>$x(t)y(t)$</td><td>$(a*b)_k=\sum_p a_pb_{k-p}$</td><td class="pnote">Convolution, relocated to k-domain</td></tr>
+          <tr><td class="pname">Sifting</td><td>$\int x(t)\delta(t-a)\,dt$</td><td>$x(a)$ if $a$ inside the window</td><td class="pnote">Used to derive impulse-train series</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <div class="ic">✓</div>
+        <div class="cbody"><b>The order-of-operations recipe, one more time</b><p>For an argument like $x(A - Bt)$: <strong>(1)</strong> shift, <strong>(2)</strong> reverse, <strong>(3)</strong> scale — always in that order — then apply differentiation/integration last if needed, always using the <em>updated</em> $\omega_0'$ once scaling has happened.</p></div>
+      </div>
+
+      <div class="callout link">
+        <div class="ic">↔</div>
+        <div class="cbody"><b>How this chapter talks to the rest of the course</b><p>Lecture 2's LCM-for-periodicity resurfaces in Linearity. Lecture 3's reflect-slide-multiply-add convolution resurfaces in Multiplication. Lecture 5's symmetry properties, DC component, and time–bandwidth tradeoff all resurface across Reversal, Integration, and the impulse-train detour. Properties aren't a new chapter so much as a new lens on everything you already know.</p></div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-multiplication"><span class="small">← BACK</span>07 · Multiplication</button>
+        <button class="pn-btn right" data-go="sec-quiz"><span class="small">NEXT →</span>09 · Self-Check Lab</button>
+      </div>
+    </section>
+
+    <!-- ============================= 09 QUIZ ============================= -->
+    <section class="panel" id="sec-quiz">
+      <div class="panel-eyebrow">Section 09 · Exam Prep</div>
+      <h2>Self-Check Lab</h2>
+      <p class="subhead">Ten mixed questions, spanning everything in this lecture. No pressure — this is a practice mat, not a graded quiz.</p>
+
+      <div class="quiz-q">
+        <div class="qtag">Q1 · Linearity</div>
+        <div class="qtext">$x(t)\leftrightarrow a_k$ and $y(t)\leftrightarrow b_k$ share the same period. What are the coefficients of $2x(t)-y(t)$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="1">$2a_k - b_k$</button>
+          <button class="quiz-opt" data-correct="0">$2a_k \cdot b_k$</button>
+          <button class="quiz-opt" data-correct="0">$a_k - 2b_k$</button>
+          <button class="quiz-opt" data-correct="0">$(2a-b)_k$ via convolution</button>
+        </div>
+        <div class="quiz-explain">Linearity distributes directly onto the coefficients: $2a_k - b_k$.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q2 · Time Shift</div>
+        <div class="qtext">If $x(t)\leftrightarrow a_k$, what are the coefficients of $x(t+2)$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">$a_k e^{-j2k\omega_0}$</button>
+          <button class="quiz-opt" data-correct="1">$a_k e^{j2k\omega_0}$</button>
+          <button class="quiz-opt" data-correct="0">$a_{k}$ unchanged</button>
+          <button class="quiz-opt" data-correct="0">$a_{-k} e^{j2k\omega_0}$</button>
+        </div>
+        <div class="quiz-explain">$x(t+2) = x(t-(-2))$, so $t_0=-2$: coefficients become $a_k e^{-jk\omega_0(-2)} = a_k e^{j2k\omega_0}$.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q3 · Time Reversal</div>
+        <div class="qtext">Which best describes what $x(-t)\leftrightarrow a_{-k}$ means physically?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">Each coefficient's magnitude doubles</button>
+          <button class="quiz-opt" data-correct="1">The harmonic that used to sit at $+k$ now sits at $-k$</button>
+          <button class="quiz-opt" data-correct="0">All phases become zero</button>
+          <button class="quiz-opt" data-correct="0">The signal becomes aperiodic</button>
+        </div>
+        <div class="quiz-explain">Reversal relabels which index each coefficient value belongs to — it's an index swap, not a change in the values themselves.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q4 · Time Scaling</div>
+        <div class="qtext">$x(t)$ has $\omega_0=\pi$. What is the fundamental frequency of $y(t)=x(t/2)$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">$2\pi$</button>
+          <button class="quiz-opt" data-correct="1">$\pi/2$</button>
+          <button class="quiz-opt" data-correct="0">$\pi$ (unchanged)</button>
+          <button class="quiz-opt" data-correct="0">$\pi^2$</button>
+        </div>
+        <div class="quiz-explain">Here $\alpha=1/2$ (time-stretch), so $\omega_0' = \alpha\omega_0 = \pi/2$.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q5 · Differentiation</div>
+        <div class="qtext">A periodic signal with no jump discontinuities is differentiated. What happens to its Fourier coefficients?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="1">Each is multiplied by $jk\omega_0$ — no impulses appear</button>
+          <button class="quiz-opt" data-correct="0">They convolve with themselves</button>
+          <button class="quiz-opt" data-correct="0">Only $a_0$ changes</button>
+          <button class="quiz-opt" data-correct="0">They are unaffected</button>
+        </div>
+        <div class="quiz-explain">Differentiation always multiplies by $jk\omega_0$ regardless of smoothness — impulses only appear in the <em>signal itself</em> when there are jumps, they don't change the property's formula.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q6 · Sifting</div>
+        <div class="qtext">$\displaystyle\int_{2}^{10} \sin(t)\,\delta(t-1)\,dt$ equals:</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">$\sin(1)$</button>
+          <button class="quiz-opt" data-correct="1">$0$</button>
+          <button class="quiz-opt" data-correct="0">$\sin(2)$</button>
+          <button class="quiz-opt" data-correct="0">Undefined</button>
+        </div>
+        <div class="quiz-explain">The impulse sits at $t=1$, which is <strong>outside</strong> the window $[2,10]$ — the integral is $0$.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q7 · Integration</div>
+        <div class="qtext">Why can't the integration property alone ever tell you $a_0$?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">Because $a_0$ is always zero</button>
+          <button class="quiz-opt" data-correct="0">Because $k=0$ makes $jk\omega_0$ undefined only for odd signals</button>
+          <button class="quiz-opt" data-correct="1">Because differentiation erases any constant offset, so integrating back can't distinguish between different DC levels</button>
+          <button class="quiz-opt" data-correct="0">It actually can, with no extra work</button>
+        </div>
+        <div class="quiz-explain">Any constant added to $x(t)$ vanishes under differentiation, so there's no trace of it left to integrate back from — $a_0$ must come from the direct average-value formula instead.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q8 · Multiplication</div>
+        <div class="qtext">Multiplying two periodic signals in time corresponds to what operation on their Fourier coefficients?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">Multiplying the coefficient sequences pointwise</button>
+          <button class="quiz-opt" data-correct="1">Convolving the coefficient sequences</button>
+          <button class="quiz-opt" data-correct="0">Adding the coefficient sequences</button>
+          <button class="quiz-opt" data-correct="0">Reversing the coefficient sequences</button>
+        </div>
+        <div class="quiz-explain">Multiplication in time becomes <strong>convolution</strong> in the frequency/coefficient domain — the mirror image of how convolution in time became multiplication of transforms in other parts of the course.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q9 · Combining Properties</div>
+        <div class="qtext">To find the coefficients of $p(t) = \frac{d}{dt}\,x(5-2t)$, in what order should you apply the properties?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">Differentiate, then shift, then reverse, then scale</button>
+          <button class="quiz-opt" data-correct="1">Shift, then reverse, then scale, then differentiate (using the new &omega;₀′)</button>
+          <button class="quiz-opt" data-correct="0">Scale, then shift, then reverse, then differentiate</button>
+          <button class="quiz-opt" data-correct="0">Order never matters for these properties</button>
+        </div>
+        <div class="quiz-explain">Build up the argument transformation first (shift &rarr; reverse &rarr; scale) to get the coefficient expression and the updated fundamental frequency, <em>then</em> differentiate last using that updated $\omega_0'$.</div>
+      </div>
+
+      <div class="quiz-q">
+        <div class="qtag">Q10 · Impulse Trains</div>
+        <div class="qtext">Why does a periodic impulse train have a perfectly flat Fourier spectrum ($a_k$ the same for every $k$)?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" data-correct="0">Because impulses have zero energy</button>
+          <button class="quiz-opt" data-correct="1">Because it's maximally concentrated in time, so by the time–bandwidth tradeoff it must be maximally spread across frequency</button>
+          <button class="quiz-opt" data-correct="0">It's a coincidence specific to this one signal</button>
+          <button class="quiz-opt" data-correct="0">Because $T\to\infty$ for impulse trains</button>
+        </div>
+        <div class="quiz-explain">This is the extreme end of the time–bandwidth tradeoff from Lecture 5: total concentration in time forces total (equal) spread across every frequency.</div>
+      </div>
+
+      <div class="callout tip" style="margin-top:32px;">
+        <div class="ic">🎓</div>
+        <div class="cbody"><b>That's the whole lecture</b><p>Eight properties, one detour, zero new integrals memorized by brute force. Go back through any section using the sidebar whenever a specific rule needs a refresh — the progress bar at the bottom of the sidebar is tracking which sections you've opened.</p></div>
+      </div>
+
+      <div class="panel-nav">
+        <button class="pn-btn" data-go="sec-summary"><span class="small">← BACK</span>08 · Master Property Sheet</button>
+        <button class="pn-btn right" data-go="sec-overview"><span class="small">RESTART →</span>00 · Overview</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* ============================= NAV ROUTING ============================= */
+const sectionOrder = ["sec-overview","sec-linearity","sec-timeshift","sec-reversal","sec-scaling","sec-diff","sec-sifting","sec-integration","sec-multiplication","sec-summary","sec-quiz"];
+const sectionTitles = {
+  "sec-overview":"00 — Why Properties Matter",
+  "sec-linearity":"01 — Linearity",
+  "sec-timeshift":"02 — Time Shifting",
+  "sec-reversal":"03 — Time Reversal",
+  "sec-scaling":"04 — Time Scaling",
+  "sec-diff":"05 — Differentiation",
+  "sec-sifting":"05b — Sifting & Impulse Trains",
+  "sec-integration":"06 — Integration",
+  "sec-multiplication":"07 — Multiplication",
+  "sec-summary":"08 — Master Property Sheet",
+  "sec-quiz":"09 — Self-Check Lab"
+};
+const visited = new Set();
+
+function goTo(id){
+  if(!sectionOrder.includes(id)) return;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const target = document.getElementById(id);
+  if(target){ target.classList.add('active'); }
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.target===id));
+  document.getElementById('tbLecture').textContent = sectionTitles[id] || id;
+  document.querySelector('.content').scrollTo({top:0, behavior:'instant' in document.documentElement.style ? 'instant':'auto'});
+  window.scrollTo(0,0);
+  visited.add(id);
+  updateProgress();
+  renderMathIn(target);
+  document.getElementById('sidebar').classList.remove('open');
+  history.replaceState(null,'','#'+id);
+}
+
+function updateProgress(){
+  document.getElementById('progLabel').textContent = visited.size+"/"+sectionOrder.length;
+  document.getElementById('progFill').style.width = (visited.size/sectionOrder.length*100)+"%";
+}
+
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=>goTo(btn.dataset.target));
+});
+
+document.getElementById('sidebarToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+function wireNextPrev(){
+  document.querySelectorAll('.pn-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>goTo(btn.dataset.go));
+  });
+}
+
+/* ============================= MATH RENDER ============================= */
+function renderMathIn(el){
+  if(window.renderMathInElement && el){
+    renderMathInElement(el, {
+      delimiters:[
+        {left:"$$", right:"$$", display:true},
+        {left:"$", right:"$", display:false}
+      ],
+      throwOnError:false
+    });
+  }
+}
+
+window.addEventListener('load', ()=>{
+  renderMathIn(document.body);
+  wireNextPrev();
+  initQuiz(document.body);
+  initReveals(document.body);
+  document.querySelectorAll('.nav-jump').forEach(btn=>{
+    btn.addEventListener('click', ()=>goTo(btn.dataset.target));
+  });
+  const startId = location.hash ? location.hash.substring(1) : "sec-overview";
+  goTo(sectionOrder.includes(startId) ? startId : "sec-overview");
+  initAllWidgets();
+});
+
+/* ============================= QUIZ ENGINE ============================= */
+function initQuiz(root){
+  root.querySelectorAll('.quiz-q').forEach(q=>{
+    const opts = q.querySelectorAll('.quiz-opt');
+    const explain = q.querySelector('.quiz-explain');
+    opts.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(opt.closest('.quiz-q').dataset.answered==="1") return;
+        q.dataset.answered = "1";
+        opts.forEach(o=>{
+          o.disabled = true;
+          if(o.dataset.correct==="1") o.classList.add('correct');
+        });
+        if(opt.dataset.correct!=="1") opt.classList.add('wrong');
+        if(explain) explain.classList.add('show');
+      });
+    });
+  });
+}
+
+function initReveals(root){
+  root.querySelectorAll('.reveal-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const block = document.getElementById(btn.dataset.reveal);
+      if(block){
+        block.classList.toggle('show');
+        btn.textContent = block.classList.contains('show') ? (btn.dataset.hide||'Hide Solution') : (btn.dataset.show||btn.textContent);
+        if(block.classList.contains('show')) renderMathIn(block);
+      }
+    });
+  });
+}
+
+function initAllWidgets(){
+  initHero();
+  initLinearity();
+  initShift();
+  initReversal();
+  initScaling();
+  initDiff();
+  initSifting();
+  initImpulseTrain();
+  initIntegration();
+  initConvolution();
+}
+</script>
+<script>
+/* ======================================================================
+   WIDGET 0 — HERO EPICYCLE MACHINE (canvas)
+   ====================================================================== */
+function initHero(){
+  const canvas = document.getElementById('heroCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 640, H = 260;
+  const cx = 140, cy = 130;
+  const traceStartX = 300, traceEndX = 620;
+  const ampUnit = 58;
+  let maxN = 5;
+  let t = 0;
+  let playing = true;
+  const traceLen = traceEndX - traceStartX;
+  let trace = new Array(traceLen).fill(cy);
+
+  function harmonics(){
+    const arr = [];
+    for(let n=1; n<=maxN; n+=2) arr.push(n);
+    return arr;
+  }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    // background grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for(let gx=0; gx<=W; gx+=20){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+    for(let gy=0; gy<=H; gy+=20){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+    // divider
+    ctx.strokeStyle = 'rgba(201,154,76,0.35)';
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(270,10); ctx.lineTo(270,H-10); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // epicycle chain
+    let x = cx, y = cy;
+    const hs = harmonics();
+    hs.forEach(n=>{
+      const amp = ampUnit * 4/(Math.PI*n);
+      const angle = n*t;
+      const nx = x + amp*Math.cos(angle);
+      const ny = y + amp*Math.sin(angle);
+      ctx.strokeStyle = 'rgba(79,140,125,0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x,y,amp,0,2*Math.PI); ctx.stroke();
+      ctx.strokeStyle = '#c99a4c';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(nx,ny); ctx.stroke();
+      x = nx; y = ny;
+    });
+    // tip marker
+    ctx.fillStyle = '#faf6ea';
+    ctx.beginPath(); ctx.arc(x,y,3.5,0,2*Math.PI); ctx.fill();
+
+    // connector to trace
+    ctx.strokeStyle = 'rgba(250,246,234,0.35)';
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(traceStartX,y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    if(playing){
+      trace.unshift(y);
+      trace.pop();
+      t += 0.025;
+    }
+
+    // draw trace
+    ctx.strokeStyle = '#4f8c7d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for(let i=0;i<trace.length;i++){
+      const px = traceStartX+i, py = trace[i];
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // axis label
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px IBM Plex Mono';
+    ctx.fillText('phasor chain', 10, 14);
+    ctx.fillText('x(t) trace →', 500, 14);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  document.querySelectorAll('#heroHarmChips .chip-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#heroHarmChips .chip-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      maxN = parseInt(btn.dataset.n,10);
+    });
+  });
+  const playBtn = document.getElementById('heroPlayBtn');
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+}
+
+/* ======================================================================
+   WIDGET 1 — LINEARITY BAR MIXER
+   ====================================================================== */
+function initLinearity(){
+  const svg = document.getElementById('linSvg');
+  if(!svg) return;
+  const ks = [-2,-1,0,1,2];
+  const ak = [0.15,0.45,0.9,0.45,0.15];
+  const bk = [0.30,-0.20,0.60,-0.20,0.30];
+
+  function panel(offsetX, title, values, color){
+    const baseY = 150, scale = 90, barW = 22;
+    let s = `<text x="${offsetX+90}" y="20" text-anchor="middle" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">${title}</text>`;
+    s += `<line x1="${offsetX}" y1="${baseY}" x2="${offsetX+180}" y2="${baseY}" stroke="#c9bb99" stroke-width="1"/>`;
+    ks.forEach((k,i)=>{
+      const v = values[i];
+      const bx = offsetX + i*36 + 10;
+      const bh = Math.abs(v)*scale;
+      const by = v>=0 ? baseY-bh : baseY;
+      s += `<rect x="${bx}" y="${by}" width="${barW}" height="${Math.max(bh,1)}" fill="${color}" opacity="0.88"/>`;
+      s += `<text x="${bx+barW/2}" y="${baseY+16}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5a5340">${k}</text>`;
+      s += `<text x="${bx+barW/2}" y="${v>=0?by-4:by+bh+12}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#282315">${v.toFixed(2)}</text>`;
+    });
+    return s;
+  }
+
+  function render(){
+    const alpha = parseFloat(document.getElementById('linAlpha').value);
+    const beta = parseFloat(document.getElementById('linBeta').value);
+    document.getElementById('linAlphaVal').textContent = alpha.toFixed(1);
+    document.getElementById('linBetaVal').textContent = beta.toFixed(1);
+    const combined = ak.map((v,i)=> alpha*v + beta*bk[i]);
+    let s = '';
+    s += panel(0, 'aₖ  (x(t))', ak, '#3c6a60');
+    s += panel(220, 'bₖ  (y(t))', bk, '#9c4632');
+    s += panel(440, 'αaₖ + βbₖ', combined, '#a97a35');
+    s += `<text x="90" y="205" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a8168">known</text>`;
+    s += `<text x="310" y="205" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a8168">known</text>`;
+    s += `<text x="530" y="205" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a8168">= result</text>`;
+    svg.innerHTML = s;
+  }
+  document.getElementById('linAlpha').addEventListener('input', render);
+  document.getElementById('linBeta').addEventListener('input', render);
+  render();
+}
+
+/* ======================================================================
+   WIDGET 2 — TIME SHIFT PHASE DIALS
+   ====================================================================== */
+function initShift(){
+  const svg = document.getElementById('shiftSvg');
+  if(!svg) return;
+
+  function dial(cx,cy,R,angleRad,label,sub,color){
+    const nx = cx + R*Math.cos(angleRad);
+    const ny = cy + R*Math.sin(angleRad);
+    let s = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#c9bb99" stroke-width="1"/>`;
+    for(let d=0; d<360; d+=30){
+      const a = d*Math.PI/180;
+      const x1 = cx+(R-6)*Math.cos(a), y1=cy+(R-6)*Math.sin(a);
+      const x2 = cx+R*Math.cos(a), y2=cy+R*Math.sin(a);
+      s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c9bb99" stroke-width="1"/>`;
+    }
+    s += `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="4" fill="#282315"/>`;
+    s += `<circle cx="${nx}" cy="${ny}" r="5" fill="${color}"/>`;
+    s += `<text x="${cx}" y="${cy+R+26}" text-anchor="middle" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">${label}</text>`;
+    s += `<text x="${cx}" y="${cy+R+42}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5a5340">${sub}</text>`;
+    return s;
+  }
+
+  function render(){
+    const k = parseInt(document.getElementById('shiftK').value,10);
+    const t0 = parseFloat(document.getElementById('shiftT0').value);
+    document.getElementById('shiftKVal').textContent = k;
+    document.getElementById('shiftT0Val').textContent = t0.toFixed(2);
+    const phaseK = -k*2*Math.PI*t0;
+    const phaseRef = -1*2*Math.PI*t0;
+    let s = '';
+    s += dial(170,110,72, phaseRef, 'Reference: k = 1', '∠ = '+(phaseRef*180/Math.PI).toFixed(0)+'°', '#3c6a60');
+    s += dial(470,110,72, phaseK, `Selected: k = ${k}`, '∠ = '+(phaseK*180/Math.PI).toFixed(0)+'°  (kω₀t₀)', '#a97a35');
+    s += `<text x="320" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="20" fill="#c9bb99">→</text>`;
+    svg.innerHTML = s;
+  }
+  document.getElementById('shiftK').addEventListener('input', render);
+  document.getElementById('shiftT0').addEventListener('input', render);
+  render();
+}
+
+/* ======================================================================
+   WIDGET 3 — TIME REVERSAL ROTATION DIRECTION
+   ====================================================================== */
+function initReversal(){
+  const svg = document.getElementById('revSvg');
+  if(!svg) return;
+  const R = 70;
+  const centers = [[170,110],[470,110]];
+
+  function staticDial(cx,cy,label){
+    let s = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#c9bb99" stroke-width="1"/>`;
+    for(let d=0; d<360; d+=30){
+      const a = d*Math.PI/180;
+      const x1 = cx+(R-6)*Math.cos(a), y1=cy+(R-6)*Math.sin(a);
+      const x2 = cx+R*Math.cos(a), y2=cy+R*Math.sin(a);
+      s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c9bb99" stroke-width="1"/>`;
+    }
+    s += `<circle cx="${cx}" cy="${cy}" r="4" fill="#282315"/>`;
+    s += `<text x="${cx}" y="${cy+R+26}" text-anchor="middle" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">${label}</text>`;
+    return s;
+  }
+
+  let s = '';
+  s += staticDial(centers[0][0],centers[0][1], 'Original: e^{jkω₀t}  (CCW)');
+  s += staticDial(centers[1][0],centers[1][1], 'Reversed: e^{-jkω₀t}  (CW)');
+  s += `<line id="revNeedle0" x1="${centers[0][0]}" y1="${centers[0][1]}" x2="${centers[0][0]+R}" y2="${centers[0][1]}" stroke="#3c6a60" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<circle id="revTip0" cx="${centers[0][0]+R}" cy="${centers[0][1]}" r="5" fill="#3c6a60"/>`;
+  s += `<line id="revNeedle1" x1="${centers[1][0]}" y1="${centers[1][1]}" x2="${centers[1][0]+R}" y2="${centers[1][1]}" stroke="#9c4632" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<circle id="revTip1" cx="${centers[1][0]+R}" cy="${centers[1][1]}" r="5" fill="#9c4632"/>`;
+  s += `<text x="320" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="20" fill="#c9bb99">⇄</text>`;
+  svg.innerHTML = s;
+
+  const needle0 = document.getElementById('revNeedle0');
+  const tip0 = document.getElementById('revTip0');
+  const needle1 = document.getElementById('revNeedle1');
+  const tip1 = document.getElementById('revTip1');
+  let angle = 0;
+  let playing = true;
+
+  function step(){
+    const k = parseInt(document.getElementById('revK').value,10);
+    document.getElementById('revKVal').textContent = k;
+    if(playing) angle += 0.015*k;
+    const a0 = angle;
+    const a1 = -angle;
+    const [cx0,cy0] = centers[0];
+    const [cx1,cy1] = centers[1];
+    const nx0 = cx0+R*Math.cos(a0), ny0 = cy0+R*Math.sin(a0);
+    const nx1 = cx1+R*Math.cos(a1), ny1 = cy1+R*Math.sin(a1);
+    needle0.setAttribute('x2',nx0); needle0.setAttribute('y2',ny0);
+    tip0.setAttribute('cx',nx0); tip0.setAttribute('cy',ny0);
+    needle1.setAttribute('x2',nx1); needle1.setAttribute('y2',ny1);
+    tip1.setAttribute('cx',nx1); tip1.setAttribute('cy',ny1);
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  const playBtn = document.getElementById('revPlayBtn');
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+}
+
+/* ======================================================================
+   WIDGET 4 — TIME SCALING DUAL VIEW
+   ====================================================================== */
+function initScaling(){
+  const svg = document.getElementById('scaleSvg');
+  if(!svg) return;
+  const ks = [-4,-3,-2,-1,0,1,2,3,4];
+  const amps = [0.05,0.1,0.2,0.5,1,0.5,0.2,0.1,0.05];
+
+  function render(){
+    const alpha = parseFloat(document.getElementById('scaleAlpha').value);
+    document.getElementById('scaleAlphaVal').textContent = alpha.toFixed(2);
+    let s = '';
+    // top: index view (fixed spacing, unchanged)
+    s += `<text x="20" y="18" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">INDEX VIEW — bₖ = aₖ  (never moves)</text>`;
+    const baseY1 = 70, spacing = 62, cx = 320, scale=55;
+    s += `<line x1="20" y1="${baseY1}" x2="620" y2="${baseY1}" stroke="#c9bb99" stroke-width="1"/>`;
+    ks.forEach((k,i)=>{
+      const x = cx + k*spacing/2;
+      const h = amps[i]*scale;
+      s += `<line x1="${x}" y1="${baseY1}" x2="${x}" y2="${baseY1-h}" stroke="#3c6a60" stroke-width="3"/>`;
+      s += `<circle cx="${x}" cy="${baseY1-h}" r="3" fill="#3c6a60"/>`;
+      s += `<text x="${x}" y="${baseY1+14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5a5340">${k}</text>`;
+    });
+
+    // bottom: frequency view (positions spread by alpha)
+    s += `<text x="20" y="150" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">FREQUENCY VIEW — lines sit at kαω₀</text>`;
+    const baseY2 = 220;
+    s += `<line x1="20" y1="${baseY2}" x2="620" y2="${baseY2}" stroke="#c9bb99" stroke-width="1"/>`;
+    ks.forEach((k,i)=>{
+      const x = cx + k*(spacing/2)*alpha;
+      if(x<20 || x>620) return;
+      const h = amps[i]*scale;
+      s += `<line x1="${x}" y1="${baseY2}" x2="${x}" y2="${baseY2-h}" stroke="#a97a35" stroke-width="3"/>`;
+      s += `<circle cx="${x}" cy="${baseY2-h}" r="3" fill="#a97a35"/>`;
+    });
+    s += `<text x="600" y="${baseY2+16}" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#282315">ω₀′ = α·ω₀  (α = ${alpha.toFixed(2)})</text>`;
+    svg.innerHTML = s;
+  }
+  document.getElementById('scaleAlpha').addEventListener('input', render);
+  render();
+}
+
+/* ======================================================================
+   WIDGET 5 — DIFFERENTIATION: POSITION vs VELOCITY
+   ====================================================================== */
+function initDiff(){
+  const svg = document.getElementById('diffSvg');
+  if(!svg) return;
+  const cx = 320, cy = 130, R = 85;
+  let s = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#c9bb99" stroke-width="1" stroke-dasharray="3,3"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="3" fill="#282315"/>`;
+  s += `<line id="diffPos" x1="${cx}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="#3c6a60" stroke-width="2.5"/>`;
+  s += `<circle id="diffBead" cx="${cx+R}" cy="${cy}" r="6" fill="#3c6a60"/>`;
+  s += `<line id="diffVel" x1="${cx+R}" y1="${cy}" x2="${cx+R}" y2="${cy-40}" stroke="#9c4632" stroke-width="2.5" marker-end="url(#diffArrow)"/>`;
+  s += `<defs><marker id="diffArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9c4632"/></marker></defs>`;
+  s += `<text x="${cx}" y="${cy+R+30}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#5a5340"><tspan fill="#3c6a60">■</tspan> position = aₖe^(jkω₀t)  &nbsp;&nbsp; <tspan fill="#9c4632">■</tspan> velocity = (jkω₀)aₖe^(jkω₀t)</text>`;
+  s += `<text x="${cx}" y="${cy+R+50}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#282315" id="diffReadout">speed = |k|ω₀|aₖ|</text>`;
+  svg.innerHTML = s;
+
+  const pos = document.getElementById('diffPos');
+  const bead = document.getElementById('diffBead');
+  const vel = document.getElementById('diffVel');
+  const readout = document.getElementById('diffReadout');
+  let angle = 0;
+  let playing = true;
+
+  function step(){
+    const k = parseInt(document.getElementById('diffK').value,10);
+    document.getElementById('diffKVal').textContent = k;
+    if(playing) angle += 0.02*k;
+    const bx = cx+R*Math.cos(angle), by = cy+R*Math.sin(angle);
+    // velocity tangent = rotate position vector by +90deg (multiply by j), scaled by k (speed magnitude)
+    const velLen = 32 + Math.min(Math.abs(k),4)*6;
+    const tangentAngle = angle + Math.PI/2 * Math.sign(k||1);
+    const vx = bx + velLen*Math.cos(tangentAngle);
+    const vy = by + velLen*Math.sin(tangentAngle);
+    pos.setAttribute('x2',bx); pos.setAttribute('y2',by);
+    bead.setAttribute('cx',bx); bead.setAttribute('cy',by);
+    vel.setAttribute('x1',bx); vel.setAttribute('y1',by);
+    vel.setAttribute('x2',vx); vel.setAttribute('y2',vy);
+    readout.textContent = `speed = |k·ω₀|·|aₖ|  →  k = ${k}: velocity vector is ${k>=0?'90° ahead of':'90° behind'} position`;
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  const playBtn = document.getElementById('diffPlayBtn');
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+}
+
+/* ======================================================================
+   WIDGET 6 — SIFTING WINDOW
+   ====================================================================== */
+function initSifting(){
+  const svg = document.getElementById('siftSvg');
+  if(!svg) return;
+  const L=0, R=5;
+  const xMin=-2, xMax=7;
+  const px0=30, px1=610;
+  function xToPx(v){ return px0 + (v-xMin)/(xMax-xMin)*(px1-px0); }
+
+  function render(){
+    const a = parseFloat(document.getElementById('siftA').value);
+    document.getElementById('siftAVal').textContent = a.toFixed(1);
+    const inside = a>L && a<R;
+    let s = '';
+    s += `<rect x="${xToPx(L)}" y="30" width="${xToPx(R)-xToPx(L)}" height="60" fill="${inside?'rgba(60,106,96,0.15)':'rgba(60,106,96,0.08)'}" stroke="#3c6a60" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    s += `<text x="${(xToPx(L)+xToPx(R))/2}" y="24" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#3c6a60">window [L,R] = [${L},${R}]</text>`;
+    s += `<line x1="${px0}" y1="95" x2="${px1}" y2="95" stroke="#c9bb99" stroke-width="1"/>`;
+    for(let v=xMin; v<=xMax; v++){
+      const x = xToPx(v);
+      s += `<line x1="${x}" y1="92" x2="${x}" y2="98" stroke="#c9bb99" stroke-width="1"/>`;
+      s += `<text x="${x}" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8a8168">${v}</text>`;
+    }
+    const ax = xToPx(a);
+    const color = inside ? '#a97a35' : '#9c4632';
+    s += `<line x1="${ax}" y1="95" x2="${ax}" y2="25" stroke="${color}" stroke-width="3" marker-end="url(#siftArrow)"/>`;
+    s += `<defs><marker id="siftArrow" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto"><path d="M0,8 L4,0 L8,8 z" fill="${color}"/></marker></defs>`;
+    s += `<text x="${ax}" y="128" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="${color}" font-weight="600">a = ${a.toFixed(1)}</text>`;
+    svg.innerHTML = s;
+
+    const readoutExisting = document.getElementById('siftReadout');
+    // update / create readout text below svg (as sibling), stored in widget-controls area via label replace not needed; use title
+    svg.setAttribute('data-result', inside ? `∫ x(t)δ(t−a)dt = x(${a.toFixed(1)})  — impulse is INSIDE the window` : `∫ x(t)δ(t−a)dt = 0  — impulse is OUTSIDE the window`);
+    let resultText = document.getElementById('siftResultText');
+    if(!resultText){
+      resultText = document.createElement('div');
+      resultText.id = 'siftResultText';
+      resultText.style.cssText = 'font-family:var(--font-mono); font-size:12.5px; margin-top:8px; text-align:center; font-weight:600;';
+      svg.parentNode.insertBefore(resultText, svg.nextSibling);
+    }
+    resultText.textContent = svg.getAttribute('data-result');
+    resultText.style.color = inside ? '#7d5a26' : '#9c4632';
+  }
+  document.getElementById('siftA').addEventListener('input', render);
+  render();
+}
+
+/* ======================================================================
+   WIDGET 7 — IMPULSE TRAIN FLAT SPECTRUM (static)
+   ====================================================================== */
+function initImpulseTrain(){
+  const svg = document.getElementById('impTrainSvg');
+  if(!svg) return;
+  const ks = [-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6];
+  const baseY = 130, spacing = 44, cx = 320, h = 60;
+  let s = `<line x1="20" y1="${baseY}" x2="620" y2="${baseY}" stroke="#c9bb99" stroke-width="1"/>`;
+  s += `<text x="20" y="18" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">aₖ = 1/T for every single k — a flat line spectrum</text>`;
+  ks.forEach(k=>{
+    const x = cx + k*spacing;
+    s += `<line x1="${x}" y1="${baseY}" x2="${x}" y2="${baseY-h}" stroke="#a97a35" stroke-width="3"/>`;
+    s += `<circle cx="${x}" cy="${baseY-h}" r="3.5" fill="#a97a35"/>`;
+    s += `<text x="${x}" y="${baseY+14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5a5340">${k}</text>`;
+  });
+  s += `<text x="30" y="${baseY-h-8}" font-family="IBM Plex Mono" font-size="11" fill="#a97a35">1/T</text>`;
+  s += `<text x="30" y="${baseY+35}" font-family="IBM Plex Mono" font-size="16" fill="#8a8168">⋯</text>`;
+  s += `<text x="610" y="${baseY+35}" text-anchor="end" font-family="IBM Plex Mono" font-size="16" fill="#8a8168">⋯</text>`;
+  svg.innerHTML = s;
+}
+
+/* ======================================================================
+   WIDGET 8 — INTEGRATION "+C" LADDER (static)
+   ====================================================================== */
+function initIntegration(){
+  const svg = document.getElementById('intSvg');
+  if(!svg) return;
+  const Cs = [-40,0,40,80];
+  const colors = ['#9c4632','#3c6a60','#a97a35','#5a5340'];
+  const labels = ['x(t) − 1', 'x(t)', 'x(t) + 1', 'x(t) + 2'];
+  let s = `<text x="20" y="18" font-family="Oswald" font-size="13" fill="#282315" font-weight="600">Same slope everywhere — different C, same derivative</text>`;
+  s += `<line x1="30" y1="170" x2="610" y2="170" stroke="#c9bb99" stroke-width="1"/>`;
+  Cs.forEach((C,i)=>{
+    let pts = [];
+    for(let p=0;p<3;p++){
+      const x0 = 30+p*193, x1 = 30+(p+1)*193 - 4;
+      pts.push(`M${x0},${150-C*0.4} L${x1},${60-C*0.4}`);
+    }
+    s += `<path d="${pts.join(' ')}" fill="none" stroke="${colors[i]}" stroke-width="2.5"/>`;
+    s += `<text x="600" y="${150-C*0.4-6}" text-anchor="end" font-family="IBM Plex Mono" font-size="10.5" fill="${colors[i]}">${labels[i]}</text>`;
+  });
+  svg.innerHTML = s;
+}
+
+/* ======================================================================
+   WIDGET 9 — MULTIPLICATION / CONVOLUTION STEPPER
+   ====================================================================== */
+function initConvolution(){
+  const svg = document.getElementById('convSvg');
+  if(!svg) return;
+  const range = [-2,-1,0,1,2];
+  const ap = {[-2]:0, [-1]:1, [0]:2, [1]:1, [2]:0};
+  const bp = {[-2]:1, [-1]:1, [0]:1, [1]:0, [2]:0};
+  function bAt(idx){ return bp.hasOwnProperty(idx) ? bp[idx] : 0; }
+
+  function render(){
+    const k = parseInt(document.getElementById('convK').value,10);
+    document.getElementById('convKVal').textContent = k;
+    const pRange = [-4,-3,-2,-1,0,1,2,3,4];
+    const spacing = 56, cx = 320;
+    let s = '';
+    let sum = 0;
+    let terms = [];
+
+    function stemRow(y0, getVal, color, label){
+      let ss = `<text x="20" y="${y0-40}" font-family="IBM Plex Mono" font-size="11" fill="${color}" font-weight="600">${label}</text>`;
+      ss += `<line x1="20" y1="${y0}" x2="620" y2="${y0}" stroke="#c9bb99" stroke-width="1"/>`;
+      pRange.forEach(p=>{
+        const v = getVal(p);
+        const x = cx + p*spacing;
+        const h = v*22;
+        if(v!==0){
+          ss += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0-h}" stroke="${color}" stroke-width="4"/>`;
+          ss += `<circle cx="${x}" cy="${y0-h}" r="3.5" fill="${color}"/>`;
+          ss += `<text x="${x}" y="${y0-h-8}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="${color}">${v}</text>`;
+        }
+        ss += `<text x="${x}" y="${y0+14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8a8168">${p}</text>`;
+      });
+      return ss;
+    }
+
+    s += stemRow(55, p=> (p>=-2&&p<=2)?ap[p]:0, '#3c6a60', 'aₚ');
+    s += stemRow(130, p=> bAt(k-p), '#9c4632', `b₍${k}₋ₚ₎  (flipped & shifted by k=${k})`);
+
+    range.forEach(p=>{
+      const av = ap[p], bv = bAt(k-p);
+      const prod = av*bv;
+      if(prod!==0){ sum += prod; terms.push(`a(${p})·b(${k-p})=${av}·${bv}=${prod}`); }
+    });
+
+    s += `<text x="20" y="185" font-family="IBM Plex Mono" font-size="11.5" fill="#282315" font-weight="600">c(${k}) = ${terms.length? terms.join('  +  ') : '0'} </text>`;
+    s += `<text x="20" y="205" font-family="IBM Plex Mono" font-size="13" fill="#a97a35" font-weight="700">c(${k}) = ${sum}</text>`;
+    svg.innerHTML = s;
+  }
+  document.getElementById('convK').addEventListener('input', render);
+  render();
+
+  let playing = false;
+  const playBtn = document.getElementById('convPlayBtn');
+  let timer = null;
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ Stop' : '▶ Animate p';
+    if(playing){
+      const slider = document.getElementById('convK');
+      timer = setInterval(()=>{
+        let k = parseInt(slider.value,10);
+        k = (k>=4) ? -4 : k+1;
+        slider.value = k;
+        render();
+      }, 900);
+    } else {
+      clearInterval(timer);
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undecidability — CSE 211 Study Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f7f1e4;
+  --cream2:#f1e9d8;
+  --paper:#fbf7ee;
+  --ink:#2a241c;
+  --ink-soft:#5b5142;
+  --navy:#1f3350;
+  --navy-soft:#3a4f6e;
+  --oxblood:#7c2a2a;
+  --oxblood-soft:#a2493f;
+  --gold:#b8863b;
+  --line:#ddd0b0;
+  --line-soft:#e9dfc6;
+  --green:#3f6b45;
+  --serif: 'Fraunces', 'Source Serif 4', Georgia, serif;
+  --sans: 'Source Serif 4', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--cream);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16.5px;
+  line-height:1.65;
+  overflow-x:hidden;
+}
+::selection{background:#e8d3a8;}
+
+/* ---------- Layout ---------- */
+.app{display:grid; grid-template-columns:290px 1fr; min-height:100vh;}
+.sidebar{
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  background:var(--navy); color:#eee3c8;
+  padding:26px 18px 40px;
+  border-right:1px solid #14233a;
+}
+.sidebar::-webkit-scrollbar{width:8px;}
+.sidebar::-webkit-scrollbar-thumb{background:#3a4f6e; border-radius:4px;}
+.brand{
+  font-family:var(--serif); font-weight:600; font-size:21px; color:#f7ecc9;
+  letter-spacing:.02em; margin-bottom:2px;
+}
+.brand-sub{font-family:var(--mono); font-size:11px; color:#9fb0c6; margin-bottom:22px; letter-spacing:.03em;}
+.nav-group{margin-bottom:6px;}
+.nav-group-title{
+  font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.09em;
+  color:#8fa3bd; margin:20px 0 8px 10px;
+}
+.nav-btn{
+  display:block; width:100%; text-align:left; background:none; border:none;
+  color:#d8cdb0; font-family:var(--sans); font-size:13.6px; line-height:1.35;
+  padding:6.5px 10px; border-radius:6px; cursor:pointer; margin-bottom:1px;
+  border-left:3px solid transparent;
+}
+.nav-btn:hover{background:#26385530; color:#f7ecc9;}
+.nav-btn.active{background:#2c4162; color:#ffe9b3; border-left:3px solid var(--gold); font-weight:600;}
+.nav-num{font-family:var(--mono); color:#7f93ae; margin-right:6px; font-size:11.5px;}
+.nav-btn.active .nav-num{color:#ffd98a;}
+
+.mobile-toggle{display:none;}
+
+main{padding:0; max-width:100%; min-width:0;}
+.hero{
+  padding:64px 60px 44px; background:
+    radial-gradient(circle at 15% 20%, #fffaf0 0%, transparent 45%),
+    var(--paper);
+  border-bottom:1px solid var(--line);
+}
+.hero-kicker{font-family:var(--mono); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--oxblood); margin-bottom:14px;}
+.hero h1{font-family:var(--serif); font-size:44px; font-weight:600; margin:0 0 14px; color:var(--navy); line-height:1.12;}
+.hero p.lede{font-size:18px; color:var(--ink-soft); max-width:760px; margin:0 0 18px;}
+.hero-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;}
+.badge{font-family:var(--mono); font-size:11.5px; padding:5px 11px; border:1px solid var(--line); border-radius:20px; color:var(--ink-soft); background:#fff; min-width:0; white-space:normal;}
+
+.content{max-width:900px; margin:0 auto; padding:10px 60px 120px;}
+
+section.topic{padding:52px 0 18px; border-bottom:1px solid var(--line-soft); scroll-margin-top:20px;}
+section.topic:last-of-type{border-bottom:none;}
+.eyebrow{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--oxblood-soft); margin-bottom:8px;}
+h2.sectitle{font-family:var(--serif); font-size:29px; font-weight:600; color:var(--navy); margin:0 0 6px;}
+.hnum{font-family:var(--mono); font-size:16px; color:var(--gold); font-weight:600; display:inline-block; margin-right:12px; vertical-align:2px;}
+h3{font-family:var(--serif); font-size:20px; font-weight:600; color:var(--navy); margin:28px 0 10px;}
+h4{font-family:var(--serif); font-size:16.5px; font-weight:600; color:var(--ink); margin:20px 0 8px;}
+p{margin:0 0 14px;}
+strong{color:var(--navy); font-weight:600;}
+em{color:var(--oxblood-soft); font-style:italic;}
+code, .mono{font-family:var(--mono); font-size:.91em; background:#efe4c7; padding:1.5px 5px; border-radius:4px; color:#4a3a1a;}
+a{color:var(--oxblood);}
+ul,ol{padding-left:22px; margin:0 0 14px;}
+li{margin-bottom:6px;}
+
+/* ---------- Boxes ---------- */
+.box{border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:18px 0; background:#fff;}
+.box-label{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:8px; display:block;}
+.box-def{border-left:4px solid var(--navy);}
+.box-def .box-label{color:var(--navy);}
+.box-theorem{border-left:4px solid var(--oxblood); background:#fdf6ee;}
+.box-theorem .box-label{color:var(--oxblood);}
+.box-note{border-left:4px solid var(--gold); background:#fffaf0;}
+.box-note .box-label{color:var(--gold);}
+.box-history{border-left:4px solid var(--navy-soft); background:#f7f9fc;}
+.box-history .box-label{color:var(--navy-soft);}
+.box-warn{border-left:4px solid #b23a3a; background:#fdf1ee;}
+.box-warn .box-label{color:#b23a3a;}
+.box-win{border-left:4px solid var(--green); background:#f2f8f2;}
+.box-win .box-label{color:var(--green);}
+
+/* ---------- Proof card / step-stair ---------- */
+.proofcard{border:1.5px solid var(--oxblood-soft); border-radius:12px; background:#fffdf7; margin:20px 0; overflow:hidden;}
+.proofcard > summary{list-style:none; cursor:pointer; padding:15px 20px; font-family:var(--serif); font-weight:600; font-size:16.5px; color:var(--oxblood); display:flex; align-items:center; gap:10px; background:#fbf0e4;}
+.proofcard > summary::-webkit-details-marker{display:none;}
+.proofcard > summary:before{content:"▸"; transition:transform .15s;}
+.proofcard[open] > summary:before{transform:rotate(90deg);}
+.proofcard-body{padding:6px 22px 20px;}
+.step{display:flex; gap:14px; padding:12px 0; border-left:2px solid var(--line); margin-left:13px; padding-left:22px; position:relative;}
+.step:last-child{border-left:2px solid transparent;}
+.step:before{content:attr(data-n); position:absolute; left:-15px; top:10px; width:28px; height:28px; background:var(--navy); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700;}
+.step-body{padding-top:2px; min-width:0;}
+.step-body p{margin:0 0 6px;}
+
+/* ---------- Collapsible generic ---------- */
+details.card{border:1px solid var(--line); border-radius:10px; margin:14px 0; background:#fff; overflow:hidden;}
+details.card>summary{cursor:pointer; padding:13px 18px; font-weight:600; color:var(--navy); font-family:var(--serif); font-size:15.5px; list-style:none;}
+details.card>summary::-webkit-details-marker{display:none;}
+details.card>summary:before{content:"+ "; color:var(--oxblood); font-family:var(--mono);}
+details.card[open]>summary:before{content:"− ";}
+.card-body{padding:2px 18px 18px; border-top:1px solid var(--line-soft);}
+
+details.trap{border:1px solid #e0b3ab; border-radius:10px; margin:12px 0; background:#fdf3f1;}
+details.trap>summary{cursor:pointer; padding:12px 16px; font-weight:600; color:#a13c3c; list-style:none; font-size:14.8px;}
+details.trap>summary::-webkit-details-marker{display:none;}
+details.trap>summary:before{content:"⚠ ";}
+.trap-body{padding:0 16px 14px; color:#5b3a35;}
+
+/* ---------- Table ---------- */
+.tblwrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:16px 0;}
+.tblwrap table{margin:0;}
+table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px;}
+th,td{border:1px solid var(--line); padding:8px 11px; text-align:left; vertical-align:top; overflow-wrap:anywhere;}
+th{background:var(--navy); color:#fff; font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:600;}
+tr:nth-child(even) td{background:#faf5e8;}
+td code{background:#eee0be;}
+
+/* ---------- Diagram wrap ---------- */
+.diagram-wrap{text-align:center; margin:20px 0;}
+.diagram-cap{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin-top:8px;}
+
+/* ---------- Widget shell ---------- */
+.widget{border:1.5px solid var(--navy); border-radius:12px; background:#fcfaf3; margin:20px 0; overflow:hidden;}
+.widget-head{background:var(--navy); color:#f7ecc9; padding:10px 18px; font-family:var(--mono); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;}
+.widget-body{padding:18px 20px;}
+.btn{font-family:var(--mono); font-size:12.5px; background:var(--navy); color:#fff; border:none; padding:7px 14px; border-radius:6px; cursor:pointer;}
+.btn:hover{background:var(--navy-soft);}
+.btn.alt{background:var(--oxblood);}
+.btn.alt:hover{background:var(--oxblood-soft);}
+.btn.ghost{background:#fff; color:var(--navy); border:1px solid var(--navy);}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+input[type=text], input[type=number]{
+  font-family:var(--mono); font-size:14px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:#fff;
+}
+.pillrow{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+.pill{font-family:var(--mono); font-size:12.5px; padding:5px 11px; border-radius:16px; border:1px solid var(--line); background:#fff; cursor:pointer;}
+.pill.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+/* ---------- Practice / quiz ---------- */
+.qcard{border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:14px 0; background:#fff;}
+.qnum{font-family:var(--mono); color:var(--oxblood); font-weight:700; margin-right:6px;}
+
+/* ---------- Cheat sheet ---------- */
+.cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:760px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:#fff;}
+.cheat-box h4{margin-top:0;}
+
+footer.done{padding:40px 60px 80px; text-align:center; color:var(--ink-soft); font-family:var(--mono); font-size:12.5px;}
+
+@media (max-width:920px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{position:relative; height:auto; display:none;}
+  .sidebar.open{display:block;}
+  .mobile-toggle{display:block; position:sticky; top:0; z-index:20; width:100%; background:var(--navy); color:#f7ecc9; border:none; padding:14px 18px; font-family:var(--mono); text-align:left; cursor:pointer;}
+  .hero{padding:36px 24px 30px;}
+  .hero h1{font-size:30px;}
+  .content{padding:10px 22px 90px;}
+  .step{margin-left:6px; padding-left:16px; gap:8px;}
+  .cheat-grid{gap:12px;}
+}
+</style>
+</head>
+<body>
+<button class="mobile-toggle" id="mobToggle">☰ Contents</button>
+<div class="app">
+<nav class="sidebar" id="sidebar">
+  <div class="brand">Undecidability</div>
+  <div class="brand-sub">CSE 211 · Lecture 7</div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part I · Origins</div>
+    <button class="nav-btn" data-t="s-hilbert"><span class="nav-num">01</span>Hilbert's Program</button>
+    <button class="nav-btn" data-t="s-godel"><span class="nav-num">02</span>Gödel's Incompleteness</button>
+    <button class="nav-btn" data-t="s-churchturing"><span class="nav-num">03</span>Church–Turing Thesis</button>
+    <button class="nav-btn" data-t="s-gallery"><span class="nav-num">04</span>Gallery of Undecidables</button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part II · The Landscape</div>
+    <button class="nav-btn" data-t="s-re"><span class="nav-num">05</span>RE Languages</button>
+    <button class="nav-btn" data-t="s-recursive"><span class="nav-num">06</span>Recursive Languages</button>
+    <button class="nav-btn" data-t="s-threeway"><span class="nav-num">07</span>The Three-Way Split</button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part III · Encoding TMs</div>
+    <button class="nav-btn" data-t="s-goal"><span class="nav-num">08</span>The Big Goal</button>
+    <button class="nav-btn" data-t="s-enum"><span class="nav-num">09</span>Enumerating Strings</button>
+    <button class="nav-btn" data-t="s-coding"><span class="nav-num">10</span>Coding a TM</button>
+    <button class="nav-btn" data-t="s-example"><span class="nav-num">11</span>Worked Example</button>
+    <button class="nav-btn" data-t="s-validity"><span class="nav-num">12</span>Validity &amp; Non-Uniqueness</button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part IV · Diagonalization</div>
+    <button class="nav-btn" data-t="s-ld"><span class="nav-num">13</span>Defining M<sub>i</sub> and L<sub>d</sub></button>
+    <button class="nav-btn" data-t="s-diagtable"><span class="nav-num">14</span>The Diagonal Table</button>
+    <button class="nav-btn" data-t="s-barber"><span class="nav-num">15</span>The Barber of Seville</button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part V · The Proof</div>
+    <button class="nav-btn" data-t="s-proof"><span class="nav-num">16</span>L<sub>d</sub> is not RE</button>
+    <button class="nav-btn" data-t="s-whymatters"><span class="nav-num">17</span>Why This Matters</button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Part VI · Review</div>
+    <button class="nav-btn" data-t="s-traps"><span class="nav-num">18</span>Trap Museum</button>
+    <button class="nav-btn" data-t="s-practice"><span class="nav-num">19</span>Practice Problems</button>
+    <button class="nav-btn" data-t="s-cheat"><span class="nav-num">20</span>Cheat Sheet</button>
+  </div>
+</nav>
+
+<main>
+<div class="hero">
+  <div class="hero-kicker">CSE 211 · Theory of Computation · Lecture 7</div>
+  <h1>Undecidability</h1>
+  <p class="lede">From Hilbert's broken dream to a language no machine can recognize. We'll build the diagonalization
+  argument from the ground up — encode Turing machines as bit strings, enumerate them, and then construct a language
+  that no row of the resulting table can possibly describe.</p>
+  <div class="hero-badges">
+    <span class="badge">Sheikh Azizul Hakim · adapted from Atif Hasan Rahman</span>
+    <span class="badge">Sipser Ch. 4 / Hopcroft–Ullman Ch. 9</span>
+    <span class="badge">Stops at: proof that L<sub>d</sub> is not RE</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ================= PART I ================= -->
+<section class="topic" id="s-hilbert">
+  <div class="eyebrow">Part I · Origins</div>
+  <h2 class="sectitle"><span class="hnum">01</span>Hilbert's Program</h2>
+  <p>Every story about the limits of computation starts with someone believing there were no limits at all.
+  In 1900, the German mathematician <strong>David Hilbert</strong> stood in front of the International Congress
+  of Mathematicians in Paris and asked a question that sounds almost naive today: is there an algorithm that can
+  settle the truth or falsehood of <em>any</em> mathematical proposition?</p>
+
+  <div class="box box-history">
+    <span class="box-label">Historical context</span>
+    <p style="margin:0;">Hilbert identified 23 open problems and posed them as a challenge for the coming century.
+    His broader philosophical stance — sometimes called <strong>Hilbert's program</strong> — was that mathematics
+    should be <em>complete</em> (every true statement provable) and <em>decidable</em> (a mechanical procedure
+    exists to settle any statement). The tenth problem on his list asked for a process to determine whether a
+    multivariate polynomial such as</p>
+    <p style="text-align:center; font-family:var(--mono); font-size:17px; margin:10px 0;">6x³yz² + 3xy² − x³ − 10</p>
+    <p style="margin:0;">has integer roots — a <strong>Diophantine equation</strong>. Hilbert assumed the answer
+    would be "yes, here's the algorithm." It wasn't.</p>
+  </div>
+
+  <p>We now know — via the 1970 work of Yuri Matijasevič, building on Martin Davis, Hilary Putnam, and Julia
+  Robinson — that <strong>no algorithm exists</strong> for this task. It is algorithmically
+  <em>unsolvable</em>. This is the first thread of today's lecture: some questions have no algorithmic answer,
+  not because we haven't found one yet, but because none can exist, and this can be <em>proven</em>.</p>
+
+  <details class="card">
+    <summary>Why should a CS student care about a 1900 math problem?</summary>
+    <div class="card-body">
+      <p>Because the tenth problem's resolution needed a rigorous, formal notion of "algorithm" — and building that
+      notion (independently, three different ways) is exactly what gave us Turing machines, the λ-calculus, and
+      general recursive functions. Hilbert's optimism is the reason the machinery of this entire course exists.
+      Without someone asking "is there always an algorithm?", nobody needed to pin down precisely what an
+      algorithm <em>is</em>.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-godel">
+  <div class="eyebrow">Part I · Origins</div>
+  <h2 class="sectitle"><span class="hnum">02</span>Gödel's Incompleteness Theorem</h2>
+  <p>Hilbert's dream cracked first in 1931, when <strong>Kurt Gödel</strong> published his incompleteness
+  theorem — arguably the single most important negative result in 20th-century mathematics.</p>
+
+  <div class="box box-theorem">
+    <span class="box-label">Gödel's incompleteness theorem (informal)</span>
+    <p style="margin:0;">No consistent system of axioms whose theorems can be listed by an effective procedure
+    (i.e. an algorithm) is capable of proving all truths about the arithmetic of the natural numbers.</p>
+  </div>
+
+  <p>Gödel's method was itself a preview of diagonalization: he constructed a formula in the predicate calculus
+  (logic with quantified variables) applied to integers, which asserted <em>of itself</em> that it could be
+  neither proved nor disproved within the system. If the system could prove it, the system would be
+  inconsistent (proving a false, self-negating statement); if the system is consistent, the statement is
+  true but <em>unprovable</em>. Either way, the dream of a complete, mechanically-checkable mathematics dies.</p>
+
+  <details class="card">
+    <summary>Self-reference is the recurring villain of this whole course</summary>
+    <div class="card-body">
+      <p>Keep this feeling in your pocket. Gödel's "this statement cannot be proved" sentence, the Barber of
+      Seville paradox you'll meet in §15, and the diagonalization language L<sub>d</sub> you'll build in §13
+      are all the <em>same trick</em> wearing different costumes: build an object that talks about itself in a
+      way that makes every possible answer contradictory. This isn't a coincidence — it's the one move that
+      keeps proving limits exist.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-churchturing">
+  <div class="eyebrow">Part I · Origins</div>
+  <h2 class="sectitle"><span class="hnum">03</span>Church, Turing, and the Church–Turing Thesis</h2>
+  <p>Gödel's proof needed a rigorous notion of "effective procedure," and in the mid-1930s, three
+  <em>independent</em> attempts to pin that notion down converged on the same answer.</p>
+
+  <div class="tblwrap"><table>
+    <tr><th>Year</th><th>Who</th><th>Formalism</th></tr>
+    <tr><td>1933</td><td>Gödel &amp; Jacques Herbrand</td><td><strong>General recursive functions</strong> — a class of functions built from primitives and composition/recursion rules</td></tr>
+    <tr><td>1936</td><td>Alonzo Church</td><td>The <strong>λ-calculus</strong> — functions defined purely by abstraction and application</td></tr>
+    <tr><td>1936</td><td>Alan Turing (independently, before learning of Church's work)</td><td>The <strong>Turing machine</strong> — a theoretical model of a machine manipulating symbols on a tape</td></tr>
+  </table></div>
+
+  <p>Church and Turing then proved that these three formally defined classes of computable functions
+  <strong>coincide</strong>: a function is λ-computable if and only if it is Turing-computable if and only if it
+  is general recursive. Three wildly different starting points, one destination.</p>
+
+  <div class="box box-def">
+    <span class="box-label">The Church–Turing thesis</span>
+    <p style="margin:0;">The (unprovable) assumption that any general way to compute will let us compute
+    exactly the general recursive functions — equivalently, exactly what a Turing machine can compute.</p>
+  </div>
+
+  <p>Why "unprovable"? Because <em>"general way to compute"</em> is an informal, intuitive notion — you can't
+  take the formal proof techniques of mathematics and apply them to an informal concept. What convinces us is
+  the sheer weight of independent convergence: every reasonable formalization anyone has proposed since — 
+  register machines, cellular automata, your laptop — has turned out to be exactly as powerful as a Turing
+  machine, never more. (You've already seen a piece of this equivalence: TMs and real computers simulate each
+  other with only polynomial overhead, from the previous lecture.)</p>
+
+  <details class="trap">
+    <summary>Trap: "unprovable" doesn't mean "unfalsifiable" or "untested"</summary>
+    <div class="trap-body">
+      <p>The Church–Turing thesis <em>could</em> in principle be refuted — someone would just need to exhibit a
+      genuinely general computing procedure that provably computes something no TM can. Nobody ever has, across
+      nearly a century and every computing paradigm proposed (including quantum computers, which change
+      <em>efficiency</em> but not the set of computable functions). "Unprovable" here means it can't be proven
+      true the way a theorem is proven — it's a claim about the relationship between an informal, everyday
+      notion and a formal one, and informal notions aren't the kind of thing formal proofs apply to.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-gallery">
+  <div class="eyebrow">Part I · Origins</div>
+  <h2 class="sectitle"><span class="hnum">04</span>A Gallery of Undecidable Problems</h2>
+  <p>Once you accept that "algorithm" means "Turing machine," you can start proving specific problems have
+  <em>no</em> algorithm. Here's a preview gallery — some we'll fully characterize this lecture, others reserved
+  for later in the course. Don't worry about proving any of these yet; just notice how varied the sources of
+  undecidability are.</p>
+
+  <div class="tblwrap"><table>
+    <tr><th>Problem</th><th>What it asks</th></tr>
+    <tr><td><strong>Hilbert's Entscheidungsproblem</strong></td><td>Decide whether a given statement is provable from a set of axioms using the rules of logic</td></tr>
+    <tr><td>Horn-clause satisfiability</td><td>Satisfiability of first-order Horn clauses (note: <em>propositional</em> Horn-SAT is decidable and even polynomial — this is the harder first-order version)</td></tr>
+    <tr><td><strong>The Halting Problem</strong></td><td>Determine whether a given TM halts on a given input</td></tr>
+    <tr><td>CFG ambiguity</td><td>Determine whether a context-free grammar is ambiguous</td></tr>
+    <tr><td>CFG equivalence</td><td>Determine whether two context-free grammars generate the same language</td></tr>
+    <tr><td>The mortal matrix problem</td><td>Given a finite set of n×n integer matrices, can some product of them (with repetition allowed) equal the zero matrix?</td></tr>
+  </table></div>
+
+  <div class="box box-note">
+    <span class="box-label">A fun, sharp edge</span>
+    <p style="margin:0;">The mortal matrix problem is known to be undecidable for a set of six or more 3×3
+    matrices, or just <em>two</em> 15×15 matrices. Undecidability doesn't need an exotic-looking problem — it
+    can hide inside ordinary-looking linear algebra once the dimensions or the count cross a threshold.</p>
+  </div>
+
+  <p>Today's lecture builds the single sharpest tool for proving results like these: we're going to exhibit a
+  language that isn't just <em>undecidable</em> — it's so pathological that <strong>no Turing machine accepts
+  it at all</strong>, not even one that's allowed to loop forever on rejects. That's strictly stronger than
+  undecidability, and it's where we're headed.</p>
+</section>
+
+<!-- ================= PART II ================= -->
+<section class="topic" id="s-re">
+  <div class="eyebrow">Part II · The Landscape</div>
+  <h2 class="sectitle"><span class="hnum">05</span>Recursively Enumerable (RE) Languages</h2>
+
+  <div class="box box-def">
+    <span class="box-label">Definition</span>
+    <p style="margin:0;">A language <span class="mono">L</span> is <strong>recursively enumerable</strong>
+    (abbreviated <strong>RE</strong>) if <span class="mono">L = L(M)</span> for some Turing machine
+    <span class="mono">M</span>.</p>
+  </div>
+
+  <p>This is just "some TM accepts exactly this language" — the broadest, most permissive class we'll talk
+  about. But RE languages split naturally into two very different flavors, based on what the machine does
+  on <em>rejecting</em> input:</p>
+
+  <div class="step" data-n="i">
+    <div class="step-body">
+      <p><strong>Halts on everything.</strong> The TM not only recognizes the language, it also
+      <strong>halts eventually regardless of whether it accepts or rejects</strong>. This is what we
+      intuitively call "an algorithm" — you're always guaranteed an answer in finite time.</p>
+    </div>
+  </div>
+  <div class="step" data-n="ii">
+    <div class="step-body">
+      <p><strong>May loop forever on rejects.</strong> The TM accepts if the input is in the language
+      (and then it halts), but if the input is <em>not</em> in the language, the machine might run forever,
+      never telling you "no." You'll eventually find out "yes" if the answer is yes — but "no" may never
+      arrive.</p>
+    </div>
+  </div>
+
+  <p>This asymmetry — confidently reporting "yes," but only sometimes reporting "no" — is the single most
+  important intuition in this entire lecture. Keep it close; it explains why L<sub>d</sub>, the language
+  we're about to build, breaks even this weaker guarantee entirely.</p>
+</section>
+
+<section class="topic" id="s-recursive">
+  <div class="eyebrow">Part II · The Landscape</div>
+  <h2 class="sectitle"><span class="hnum">06</span>Recursive Languages</h2>
+
+  <div class="box box-def">
+    <span class="box-label">Definition</span>
+    <p style="margin:0;">A language <span class="mono">L</span> is <strong>recursive</strong> if
+    <span class="mono">L = L(M)</span> for some TM <span class="mono">M</span> such that:</p>
+    <div class="step" data-n="i" style="margin-top:10px;">
+      <div class="step-body"><p style="margin:0;">If <span class="mono">w ∈ L</span>, then
+      <span class="mono">M</span> accepts (and therefore halts).</p></div>
+    </div>
+    <div class="step" data-n="ii">
+      <div class="step-body"><p style="margin:0;">If <span class="mono">w ∉ L</span>, then <span class="mono">M</span>
+      eventually halts, although it doesn't enter an accepting state.</p></div>
+    </div>
+  </div>
+
+  <p>In other words: a recursive language is exactly an RE language of the first, stronger flavor above —
+  the machine always halts, in both directions. This is the formal version of "an algorithm exists."</p>
+
+  <div class="box box-note">
+    <span class="box-label">Vocabulary you'll use for the rest of the course</span>
+    <p style="margin:0;">A problem (phrased as a language) is <strong>decidable</strong> if it is a recursive
+    language, and <strong>undecidable</strong> if it is not. From here on, "decidable" and "recursive" are
+    synonyms — same for "undecidable" and "not recursive."</p>
+  </div>
+
+  <details class="trap">
+    <summary>Trap: "undecidable" is not the same as "not RE"</summary>
+    <div class="trap-body">
+      <p>This is the single most common confusion students carry out of this lecture. <strong>Undecidable</strong>
+      means "not recursive" — there's no TM that always halts and correctly accepts/rejects. That still leaves
+      room for a TM that accepts the language but loops forever on some rejects (the Halting Problem is exactly
+      this: undecidable, but RE). <strong>Not RE</strong> is strictly stronger — it means <em>no TM whatsoever</em>
+      accepts the language, not even a badly-behaved one that might loop forever. L<sub>d</sub>, our target today,
+      is not RE — a much harder thing to prove than mere undecidability, and it's why the proof technique
+      (diagonalization) has to be so much more careful than "just" showing no algorithm exists.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-threeway">
+  <div class="eyebrow">Part II · The Landscape</div>
+  <h2 class="sectitle"><span class="hnum">07</span>The Three-Way Split</h2>
+  <p>Putting the last two sections together, every language over a given alphabet falls into exactly one of
+  three bins:</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 560 320" width="100%" style="max-width:520px" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="540" height="300" rx="14" fill="none" stroke="#1f3350" stroke-width="1.6"/>
+      <text x="30" y="34" font-family="JetBrains Mono" font-size="12" fill="#1f3350">all languages</text>
+      <ellipse cx="290" cy="185" rx="235" ry="115" fill="none" stroke="#3a4f6e" stroke-width="1.6"/>
+      <text x="290" y="88" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="13" fill="#3a4f6e">recursively enumerable (RE)</text>
+      <ellipse cx="230" cy="200" rx="130" ry="82" fill="none" stroke="#7c2a2a" stroke-width="1.8"/>
+      <text x="230" y="140" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="13" fill="#7c2a2a">recursive</text>
+      <text x="230" y="210" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#7c2a2a">(decidable)</text>
+      <text x="230" y="228" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" fill="#7c2a2a">A_DFA, A_CFG, E_DFA, EQ_DFA …</text>
+      <text x="400" y="220" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3a4f6e">RE, not recursive</text>
+      <text x="400" y="236" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" fill="#3a4f6e">Halting Problem, EQ_CFG</text>
+      <text x="480" y="290" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1f3350">non-RE</text>
+      <text x="480" y="305" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" fill="#1f3350">L_d lives here</text>
+    </svg>
+    <div class="diagram-cap">The three-way split: recursive ⊊ RE ⊊ all languages. Today's proof places L_d outside even the middle ring.</div>
+  </div>
+
+  <div class="step" data-n="i"><div class="step-body"><p style="margin:0;"><strong>Recursive</strong> — decidable, an algorithm always terminates with an answer.</p></div></div>
+  <div class="step" data-n="ii"><div class="step-body"><p style="margin:0;"><strong>RE but not recursive</strong> — recognizable, but no algorithm that's guaranteed to halt on every input.</p></div></div>
+  <div class="step" data-n="iii"><div class="step-body"><p style="margin:0;"><strong>Non-RE</strong> — not even recognizable; no TM at all, of any kind, accepts the language.</p></div></div>
+
+  <h3>Some decidable languages you already have the tools for</h3>
+  <p>Before we go build a non-RE language, it's worth grounding the "recursive" ring with genuine examples —
+  languages about automata and grammars that are themselves decidable questions.</p>
+
+  <div class="tblwrap"><table>
+    <tr><th>Language</th><th>Meaning</th></tr>
+    <tr><td><span class="mono">A_DFA</span> = {⟨B,w⟩}</td><td>B is a DFA that accepts input string w</td></tr>
+    <tr><td><span class="mono">A_NFA</span> = {⟨B,w⟩}</td><td>B is an NFA that accepts input string w</td></tr>
+    <tr><td><span class="mono">A_REX</span> = {⟨R,w⟩}</td><td>R is a regular expression that generates w</td></tr>
+    <tr><td><span class="mono">E_DFA</span> = {⟨A⟩}</td><td>A is a DFA and L(A) = ∅</td></tr>
+    <tr><td><span class="mono">EQ_DFA</span> = {⟨A,B⟩}</td><td>A, B are DFAs and L(A) = L(B)</td></tr>
+    <tr><td><span class="mono">A_CFG</span> = {⟨G,w⟩}</td><td>G is a CFG that generates w</td></tr>
+    <tr><td><span class="mono">E_CFG</span> = {⟨G⟩}</td><td>G is a CFG and L(G) = ∅</td></tr>
+  </table></div>
+
+  <div class="box box-warn">
+    <span class="box-label">The one that breaks the pattern</span>
+    <p style="margin:0;"><span class="mono">EQ_CFG</span> = {⟨G,H⟩ | G, H are CFGs and L(G) = L(H)} is
+    <strong>undecidable</strong> — even though its DFA cousin <span class="mono">EQ_DFA</span> is perfectly
+    decidable (you built exactly this via the product construction and symmetric difference back in Lecture 5).
+    Regular languages are closed under enough operations to make equivalence checking easy; context-free
+    languages aren't closed under intersection or complement, and that closure gap is precisely where the
+    decidability breaks.</p>
+  </div>
+
+  <details class="card">
+    <summary>Why is A_DFA decidable but we'll soon find TM-acceptance is not?</summary>
+    <div class="card-body">
+      <p>Because a DFA is <em>guaranteed to halt</em> on every input — it consumes the string symbol by symbol
+      and, at the end, is deterministically either in an accepting state or not. There's no possibility of
+      looping forever; simulating a DFA on <span class="mono">w</span> is just <span class="mono">|w|</span>
+      steps of table lookup. The analogous question for Turing machines — "does M accept w?" — has no such
+      guarantee, because <span class="mono">M</span> itself might never halt. That missing halting guarantee is
+      exactly the gap the rest of this lecture (and the next) is built to exploit.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ================= PART III ================= -->
+<section class="topic" id="s-goal">
+  <div class="eyebrow">Part III · Encoding TMs</div>
+  <h2 class="sectitle"><span class="hnum">08</span>The Big Goal</h2>
+  <p>We're aiming at one specific, concrete non-RE language. Let's state exactly what we're trying to break:</p>
+
+  <div class="box box-theorem">
+    <span class="box-label">Target</span>
+    <p style="margin:0;">Consider the set of pairs <span class="mono">(M, w)</span> such that:</p>
+    <div class="step" data-n="1" style="margin-top:8px;"><div class="step-body"><p style="margin:0;"><span class="mono">M</span> is a Turing machine (suitably coded, in binary) with input alphabet {0,1},</p></div></div>
+    <div class="step" data-n="2"><div class="step-body"><p style="margin:0;"><span class="mono">w</span> is a string of 0's and 1's, and</p></div></div>
+    <div class="step" data-n="3"><div class="step-body"><p style="margin:0;"><span class="mono">M</span> accepts <span class="mono">w</span>.</p></div></div>
+  </div>
+
+  <p>If we can show this problem — restricted to the binary alphabet — is <strong>not RE</strong>, then the
+  more general problem (TMs over any alphabet) is automatically not RE too: the binary case is a special case
+  of the general one, so if even the easier restricted version has no algorithm at all, the harder general
+  version certainly doesn't either.</p>
+
+  <div class="box box-note">
+    <span class="box-label">Why binary alphabet specifically?</span>
+    <p style="margin:0;">Restricting to {0,1} isn't a loss of generality — it's a convenience that lets us do
+    something crucial in the next section: treat a Turing machine's own description as <em>just another binary
+    string</em>, on equal footing with the strings it might take as input. That equal footing is what makes
+    diagonalization possible: we're about to feed a machine's own code to itself.</p>
+  </div>
+</section>
+
+<section class="topic" id="s-enum">
+  <div class="eyebrow">Part III · Encoding TMs</div>
+  <h2 class="sectitle"><span class="hnum">09</span>Enumerating the Binary Strings</h2>
+  <p>Before we can talk about "the i-th Turing machine," we need to talk about "the i-th binary string" — a
+  way to line up every string in {0,1}<span class="mono">*</span> against the positive integers, with no
+  repeats and nothing left out.</p>
+
+  <div class="box box-def">
+    <span class="box-label">The 1w trick</span>
+    <p style="margin:0;">If <span class="mono">w</span> is a binary string, treat <span class="mono">1w</span>
+    (prepend a 1) as a binary integer <span class="mono">i</span>. Call <span class="mono">w</span> the
+    <strong>i-th string</strong>, written <span class="mono">w<sub>i</sub></span>.</p>
+  </div>
+
+  <p>Why prepend a 1 instead of just reading <span class="mono">w</span> directly as a binary number? Because
+  leading zeros would collide — the strings <span class="mono">0</span>, <span class="mono">00</span>, and
+  <span class="mono">000</span> would all read as the integer 0. Gluing on a leading 1 first makes every string,
+  including the empty string and strings with leading zeros, map to a distinct positive integer. Equivalently:
+  <strong>strings are ordered by length first, then lexicographically within each length</strong> — exactly
+  how you'd naturally list them out.</p>
+
+  <div class="widget" id="enumWidget">
+    <div class="widget-head"><span>Interactive · index ↔ string</span><span style="font-weight:400;">verified against length-then-lex order</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;">Give an index, get the string — or give a string, get its index. Try
+      <span class="mono">i=1</span> (should be ε) or type <span class="mono">w=101</span>.</p>
+      <div class="pillrow">
+        <label class="mono" style="font-size:12.5px;">i → w<sub>i</sub>:</label>
+        <input type="number" id="enumIndexInput" min="1" value="5" style="width:90px;">
+        <button class="btn" id="enumIndexBtn">Compute w<sub>i</sub></button>
+        <span id="enumIndexResult" class="mono" style="margin-left:6px; color:var(--oxblood); font-weight:700;"></span>
+      </div>
+      <div class="pillrow">
+        <label class="mono" style="font-size:12.5px;">w → index:</label>
+        <input type="text" id="enumStringInput" placeholder="e.g. 101 or (empty for ε)" style="width:170px;">
+        <button class="btn ghost" id="enumStringBtn">Compute index</button>
+        <span id="enumStringResult" class="mono" style="margin-left:6px; color:var(--navy); font-weight:700;"></span>
+      </div>
+      <div id="enumTable" style="margin-top:14px; overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <p>Hereafter, we refer to the i-th string as <span class="mono">w<sub>i</sub></span>: <span class="mono">w₁ = ε</span>,
+  <span class="mono">w₂ = 0</span>, <span class="mono">w₃ = 1</span>, <span class="mono">w₄ = 00</span>, and so on.
+  Hang on to this table — the exact same numbering scheme is about to double as our numbering scheme for
+  Turing machines.</p>
+</section>
+
+<section class="topic" id="s-coding">
+  <div class="eyebrow">Part III · Encoding TMs</div>
+  <h2 class="sectitle"><span class="hnum">10</span>Coding a Turing Machine</h2>
+  <p>We now want a binary code for TMs so that "the i-th TM," written <span class="mono">M<sub>i</sub></span>,
+  makes sense — using the <em>exact same</em> integer-to-string correspondence from §9. To represent
+  <span class="mono">M = (Q, {0,1}, Γ, δ, q₁, B, F)</span> as a binary string, we first fix integer labels for
+  every state, tape symbol, and direction.</p>
+
+  <div class="tblwrap"><table>
+    <tr><th>Object</th><th>Rule</th></tr>
+    <tr><td>States <span class="mono">q₁,…,q<sub>r</sub></span></td><td><span class="mono">q₁</span> is <em>always</em> the start state. <span class="mono">q₂</span> is <em>always</em> the (unique) accepting state — we may assume a TM halts the instant it enters an accepting state, so one accept state is always enough.</td></tr>
+    <tr><td>Tape symbols <span class="mono">X₁,…,X<sub>s</sub></span></td><td><span class="mono">X₁</span> is <em>always</em> the symbol 0, <span class="mono">X₂</span> is <em>always</em> 1, <span class="mono">X₃</span> is <em>always</em> the blank B. Any remaining tape symbols get the rest of the integers, in any order.</td></tr>
+    <tr><td>Directions</td><td><span class="mono">D₁</span> is <em>always</em> L, <span class="mono">D₂</span> is <em>always</em> R.</td></tr>
+  </table></div>
+
+  <div class="box box-note">
+    <span class="box-label">Fixed vs. free assignments</span>
+    <p style="margin:0;"><span class="mono">q₁, q₂, X₁, X₂, X₃, D₁, D₂</span> are pinned down by convention.
+    Everything else (extra states, extra tape symbols) can be numbered in whatever order you like — which is
+    exactly why a single TM will have <em>multiple valid codes</em> (more on this in §12).</p>
+  </div>
+
+  <h3>Encoding one transition</h3>
+  <p>Once every state/symbol/direction has an integer, we can encode <span class="mono">δ</span> itself.
+  Suppose one rule is <span class="mono">δ(q<sub>i</sub>, X<sub>j</sub>) = (q<sub>k</sub>, X<sub>l</sub>, D<sub>m</sub>)</span>
+  for integers <span class="mono">i, j, k, l, m</span>. We code this rule as the string:</p>
+  <p style="text-align:center; font-family:var(--mono); font-size:18px; margin:14px 0;">0<sup>i</sup> 1 0<sup>j</sup> 1 0<sup>k</sup> 1 0<sup>l</sup> 1 0<sup>m</sup></p>
+  <p>Five blocks of 0's — one per component of the rule — separated by single 1's. Since <span class="mono">i,j,k,l,m ≥ 1</span>
+  always (every label starts at 1), <strong>no valid transition code ever contains two consecutive 1's</strong>.
+  That single fact is about to become our tool for parsing codes back apart.</p>
+
+  <h3>Encoding the whole machine</h3>
+  <p>Glue the transition codes together, separated by <em>pairs</em> of 1's — a marker that can never be
+  confused with anything inside a transition, precisely because single transitions never contain "11":</p>
+  <p style="text-align:center; font-family:var(--mono); font-size:18px; margin:14px 0;">c₁ 11 c₂ 11 ⋯ 11 c<sub>n</sub></p>
+  <p>where each <span class="mono">c</span> is the code for one transition of <span class="mono">M</span>, listed
+  in some order.</p>
+</section>
+
+<section class="topic" id="s-example">
+  <div class="eyebrow">Part III · Encoding TMs</div>
+  <h2 class="sectitle"><span class="hnum">11</span>Worked Example</h2>
+  <p>Let's make this concrete with the exact machine from lecture — three states, binary alphabet, four
+  transitions:</p>
+
+  <div class="box box-def">
+    <span class="box-label">The machine M</span>
+    <p style="margin:0; font-family:var(--mono); font-size:14.5px;">M = ({q₁, q₂, q₃}, {0,1}, {0,1,B}, δ, q₁, B, {q₂})</p>
+    <div class="tblwrap"><table style="margin-top:12px;">
+      <tr><th>Rule</th><th>δ</th></tr>
+      <tr><td>1</td><td class="mono">δ(q₁, 1) = (q₃, 0, R)</td></tr>
+      <tr><td>2</td><td class="mono">δ(q₃, 0) = (q₁, 1, R)</td></tr>
+      <tr><td>3</td><td class="mono">δ(q₃, 1) = (q₂, 0, R)</td></tr>
+      <tr><td>4</td><td class="mono">δ(q₃, B) = (q₃, 1, L)</td></tr>
+    </table></div>
+  </div>
+
+  <p>Applying the fixed-assignment rules from §10: states are numbered in subscript order
+  (<span class="mono">q₁=1, q₂=2, q₃=3</span>), and since M's tape alphabet is already exactly
+  {0, 1, B}, the free choice disappears too — <span class="mono">0=X₁, 1=X₂, B=X₃</span>, and
+  <span class="mono">L=D₁, R=D₂</span> as always.</p>
+
+  <div class="widget" id="encodeWidget">
+    <div class="widget-head"><span>Interactive · build the code transition by transition</span><span style="font-weight:400;">verified in Python — matches the slides exactly</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;">Step through the four transitions one at a time and watch the code accumulate.</p>
+      <div class="pillrow">
+        <button class="btn" id="encStepBtn">▸ Encode next transition</button>
+        <button class="btn ghost" id="encResetBtn">↺ Reset</button>
+      </div>
+      <div id="encCurrentRule" class="mono" style="margin:10px 0; font-size:14.5px; min-height:22px;"></div>
+      <div id="encBreakdown" style="margin:8px 0; overflow-x:auto;"></div>
+      <div style="margin-top:14px;">
+        <div class="mono" style="font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;">accumulated code</div>
+        <div id="encAccum" class="mono" style="font-size:15px; word-break:break-all; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-top:6px; min-height:20px;"></div>
+      </div>
+      <div id="encFinalNote" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <p>The final 62-bit string is <span class="mono">M</span>'s code — one specific binary string that, read back
+  through the machinery of §10, reconstructs the entire transition function. Somewhere in the enumeration of
+  <em>all</em> binary strings from §9, this exact 62-bit string sits at some position <span class="mono">i</span> —
+  which means <span class="mono">M = M<sub>i</sub></span> for that particular <span class="mono">i</span>.</p>
+</section>
+
+<section class="topic" id="s-validity">
+  <div class="eyebrow">Part III · Encoding TMs</div>
+  <h2 class="sectitle"><span class="hnum">12</span>Validity &amp; Non-Uniqueness</h2>
+
+  <h3>Not every binary string is a valid code</h3>
+  <p>We now have a way to turn a TM into a string. But we also need the enumeration to go the <em>other</em>
+  direction — every string needs to name a TM, even if it's gibberish, so that "the i-th Turing machine"
+  is defined for every single <span class="mono">i</span> with no gaps.</p>
+
+  <div class="widget" id="validityWidget">
+    <div class="widget-head"><span>Interactive · is this a valid TM code?</span><span style="font-weight:400;">same parser as the encoder above</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;">Type a binary string and check it, or try a preset.</p>
+      <div class="pillrow">
+        <input type="text" id="validInput" placeholder="e.g. 11001" style="width:340px;">
+        <button class="btn" id="validCheckBtn">Check validity</button>
+      </div>
+      <div class="pillrow">
+        <span class="pill" data-preset="11001">11001 (slide example)</span>
+        <span class="pill" data-preset="0010111010010100">0010111010010100 (slide example)</span>
+        <span class="pill" data-preset="01001000101001100010101001001100010010010100110001000100010010">M's code from §11</span>
+        <span class="pill" data-preset="0">just "0"</span>
+      </div>
+      <div id="validResult" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <div class="step" data-n="1"><div class="step-body"><p style="margin:0;"><strong>Must start with 0.</strong>
+  A string like <span class="mono">11001</span> can't be a code — every transition code begins with
+  <span class="mono">0<sup>i</sup></span> for <span class="mono">i ≥ 1</span>.</p></div></div>
+  <div class="step" data-n="2"><div class="step-body"><p style="margin:0;"><strong>No three consecutive 1's.</strong>
+  <span class="mono">0010111010010100</span> is invalid — a run of "111" can never arise, since single 1's
+  separate the five fields within a transition and double 1's separate transitions; three in a row parses as
+  neither.</p></div></div>
+  <div class="step" data-n="3"><div class="step-body"><p style="margin:0;"><strong>Clean block structure.</strong>
+  Splitting on "11" should yield nonempty transition-blocks, each of which splits on single "1" into
+  <em>exactly five</em> nonempty runs of 0's.</p></div></div>
+
+  <div class="box box-def">
+    <span class="box-label">The escape hatch: invalid codes still name a TM</span>
+    <p style="margin:0;">If <span class="mono">w<sub>i</sub></span> is <em>not</em> a valid TM code, we let
+    <span class="mono">M<sub>i</sub></span> be the trivial TM with <strong>one state and no transitions</strong> —
+    a machine that halts immediately on any input, without accepting. So <span class="mono">L(M<sub>i</sub>) = ∅</span>
+    whenever <span class="mono">w<sub>i</sub></span> fails to be a valid code. This is what makes "the i-th
+    Turing machine" a <em>total</em> function of <span class="mono">i</span> — defined for every positive
+    integer, no exceptions.</p>
+  </div>
+
+  <h3>One machine, many codes</h3>
+  <p>Notice §10 pins down <span class="mono">q₁, q₂, X₁, X₂, X₃, D₁, D₂</span> but leaves everything else free —
+  extra states and extra tape symbols can be numbered in any order, and the transitions themselves can be
+  <em>listed</em> in any order within the final concatenation. For our 4-transition example, that's
+  <span class="mono">4! = 24</span> different valid codes for the exact same machine. This multiplicity is
+  harmless for what follows — we'll show <em>no</em> encoding, of any TM, can produce
+  <span class="mono">L<sub>d</sub></span>, so it doesn't matter which of the 24 codes anyone happens to pick.</p>
+</section>
+
+<!-- ================= PART IV ================= -->
+<section class="topic" id="s-ld">
+  <div class="eyebrow">Part IV · Diagonalization</div>
+  <h2 class="sectitle"><span class="hnum">13</span>Defining M<sub>i</sub> and L<sub>d</sub></h2>
+  <p>We now have everything in place. §9 numbers every binary string; §10–§12 turn every binary string into
+  (a code for) a Turing machine, with invalid strings mapping to the empty-language machine. Put them together:</p>
+
+  <div class="box box-def">
+    <span class="box-label">The i-th Turing machine</span>
+    <p style="margin:0;"><span class="mono">M<sub>i</sub></span>, "the i-th Turing machine," is the TM whose
+    code is <span class="mono">w<sub>i</sub></span>, the i-th binary string. If <span class="mono">w<sub>i</sub></span>
+    is not a valid TM code, <span class="mono">M<sub>i</sub></span> is the one-state, no-transition machine, so
+    <span class="mono">L(M<sub>i</sub>) = ∅</span>.</p>
+  </div>
+
+  <p>This single definition is doing something remarkable: it gives us an <strong>enumeration of every Turing
+  machine with input alphabet {0,1}</strong> — <span class="mono">M₁, M₂, M₃, …</span> — that is guaranteed to
+  include <em>every</em> such TM somewhere in the list (possibly more than once, since each machine has up to
+  24 valid codes, but that's fine — we only need "at least once").</p>
+
+  <div class="box box-theorem">
+    <span class="box-label">The diagonalization language</span>
+    <p style="margin:0;"><span class="mono">L<sub>d</sub></span> is the set of strings <span class="mono">w<sub>i</sub></span>
+    such that <span class="mono">w<sub>i</sub> ∉ L(M<sub>i</sub>)</span>. Equivalently: <span class="mono">L<sub>d</sub></span>
+    consists of all strings <span class="mono">w</span> such that the TM <span class="mono">M</span> whose code
+    is <span class="mono">w</span> does <strong>not</strong> accept <span class="mono">w</span> — its own code —
+    when given itself as input.</p>
+  </div>
+
+  <details class="card">
+    <summary>Read that definition three times. Here's the plain-English version.</summary>
+    <div class="card-body">
+      <p>Every binary string <span class="mono">w</span> plays <em>two roles at once</em>: it's a candidate
+      <em>input</em>, and — since we've numbered TMs the same way we numbered strings — it's simultaneously a
+      candidate <em>machine description</em>. L<sub>d</sub> asks a self-referential question of every string:
+      "does the machine you describe reject you, when fed yourself?" If yes, you're in L<sub>d</sub>. This
+      "feed the machine its own description" move is exactly what makes the argument work — and exactly what
+      will make it blow up in the proof of §16.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-diagtable">
+  <div class="eyebrow">Part IV · Diagonalization</div>
+  <h2 class="sectitle"><span class="hnum">14</span>The Diagonal Table</h2>
+  <p>Here's why "diagonalization" is the right name. Imagine an infinite table: row <span class="mono">i</span>
+  is labeled by <span class="mono">M<sub>i</sub></span>, column <span class="mono">j</span> is labeled by
+  <span class="mono">w<sub>j</sub></span>, and cell <span class="mono">(i,j)</span> holds a
+  <span class="mono">1</span> if <span class="mono">M<sub>i</sub></span> accepts <span class="mono">w<sub>j</sub></span>,
+  else <span class="mono">0</span>. Row <span class="mono">i</span> is exactly the <strong>characteristic
+  vector</strong> of the language <span class="mono">L(M<sub>i</sub>)</span> — its 1's mark which strings belong
+  to that language.</p>
+
+  <div class="widget" id="diagWidget">
+    <div class="widget-head"><span>Interactive · an illustrative accept/reject table</span><span style="font-weight:400;">values are hypothetical — real TM behavior is uncomputable to display in general</span></div>
+    <div class="widget-body">
+      <p style="margin-top:0;">Each cell: does M<sub>i</sub> (row) accept w<sub>j</sub> (column)? The diagonal —
+      does M<sub>i</sub> accept w<sub>i</sub>? — is outlined. Click <strong>Build L<sub>d</sub></strong> to
+      complement it.</p>
+      <div id="diagTableHost" style="overflow-x:auto;"></div>
+      <div class="pillrow">
+        <button class="btn alt" id="diagBuildBtn">Build L<sub>d</sub> from the complemented diagonal</button>
+        <button class="btn ghost" id="diagResetBtn">↺ Reset</button>
+      </div>
+      <div id="diagLdRow" style="margin-top:12px;"></div>
+      <div class="pillrow" id="diagRowPicker" style="margin-top:14px;"></div>
+      <div id="diagContradiction" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <p>To build <span class="mono">L<sub>d</sub></span>'s own characteristic vector, we <strong>read off the
+  diagonal</strong> (cell <span class="mono">(i,i)</span>, whether <span class="mono">M<sub>i</sub></span>
+  accepts <span class="mono">w<sub>i</sub></span>) and then <strong>complement every bit</strong>. In the table
+  above, the diagonal begins <span class="mono">0, 1, 1, 1, …</span>, so the complemented diagonal — 
+  <span class="mono">L<sub>d</sub></span>'s row — begins <span class="mono">1, 0, 0, 0, …</span>. That means
+  <span class="mono">L<sub>d</sub></span> contains <span class="mono">w₁ = ε</span>, but not
+  <span class="mono">w₂, w₃, w₄</span> (which are <span class="mono">0, 1, 00</span>), and so on.</p>
+
+  <div class="box box-warn">
+    <span class="box-label">The punchline, before we even formalize it</span>
+    <p style="margin:0;">By construction, <span class="mono">L<sub>d</sub></span>'s row disagrees with
+    <em>every single row</em> of the table at exactly one position: its own diagonal position. Row
+    <span class="mono">i</span> says "M<sub>i</sub> accepts w<sub>i</sub>? — <em>(some bit)</em>." L<sub>d</sub>'s
+    row says the opposite at position <span class="mono">i</span>. So <span class="mono">L<sub>d</sub></span>
+    cannot be row <span class="mono">i</span>, for <em>any</em> <span class="mono">i</span> — it differs from
+    every row somewhere. Since the rows are <em>every</em> language a TM can accept, <span class="mono">L<sub>d</sub></span>
+    is nobody's language. Use the row-picker in the widget above to see this concretely for any row.</p>
+  </div>
+</section>
+
+<section class="topic" id="s-barber">
+  <div class="eyebrow">Part IV · Diagonalization</div>
+  <h2 class="sectitle"><span class="hnum">15</span>The Barber of Seville</h2>
+  <p>Before formalizing the proof, it's worth sitting with the classic paradox that has exactly the same shape.</p>
+
+  <div class="box box-history">
+    <span class="box-label">The paradox</span>
+    <p style="margin:0;">The barber of Seville is that inhabitant of Seville who shaves every man in Seville
+    who does <em>not</em> shave himself. Question: does the barber shave himself?</p>
+  </div>
+
+  <div class="step" data-n="?"><div class="step-body">
+    <p style="margin:0;">If the barber <strong>does not</strong> shave himself, then — by the definition — he
+    must shave himself, since he shaves everyone who doesn't shave themselves.</p>
+  </div></div>
+  <div class="step" data-n="?"><div class="step-body">
+    <p style="margin:0;">If the barber <strong>does</strong> shave himself, then — by the definition — he
+    cannot, since he only shaves those who don't shave themselves.</p>
+  </div></div>
+
+  <p>Both answers are contradictions. The honest resolution is that <strong>no such barber can exist</strong> —
+  the definition describes an impossible object.</p>
+
+  <div class="box box-note">
+    <span class="box-label">The dictionary between the two paradoxes</span>
+    <div class="tblwrap"><table style="margin:8px 0 0;">
+      <tr><th>Barber of Seville</th><th>L<sub>d</sub></th></tr>
+      <tr><td>Men of Seville</td><td>Binary strings <span class="mono">w₁, w₂, w₃, …</span></td></tr>
+      <tr><td>"Shaves himself"</td><td>"<span class="mono">M<sub>i</sub></span> accepts <span class="mono">w<sub>i</sub></span>"</td></tr>
+      <tr><td>The barber (shaves exactly those who don't shave themselves)</td><td><span class="mono">L<sub>d</sub></span> (contains exactly those <span class="mono">w<sub>i</sub></span> that <span class="mono">M<sub>i</sub></span> doesn't accept)</td></tr>
+      <tr><td>"Does the barber shave himself?"</td><td>"Is <span class="mono">w<sub>i</sub></span> — the code of the machine that (hypothetically) accepts exactly L<sub>d</sub> — in L<sub>d</sub>?"</td></tr>
+      <tr><td>Conclusion: no such barber exists</td><td>Conclusion: no such TM exists — L<sub>d</sub> is not RE</td></tr>
+    </table></div>
+  </div>
+
+  <p>The only structural difference: the Barber paradox concludes the barber simply can't exist (it's a
+  statement about a flawed definition of a person). Our version has real mathematical content because
+  <span class="mono">M<sub>i</sub></span>, the enumeration, and "accepts" are all rigorously defined objects —
+  which turns "no such barber" into a genuine, provable theorem about Turing machines.</p>
+</section>
+
+<!-- ================= PART V ================= -->
+<section class="topic" id="s-proof">
+  <div class="eyebrow">Part V · The Proof</div>
+  <h2 class="sectitle"><span class="hnum">16</span>L<sub>d</sub> is not Recursively Enumerable</h2>
+  <p>Everything above was intuition-building. Here is the formal theorem, proved with full rigor — the exact
+  argument the lecture slides give, and where our companion stops.</p>
+
+  <div class="box box-theorem">
+    <span class="box-label">Theorem</span>
+    <p style="margin:0;"><span class="mono">L<sub>d</sub></span> is not a recursively enumerable language.
+    That is, there is <strong>no Turing machine that accepts L<sub>d</sub></strong>.</p>
+  </div>
+
+  <details class="proofcard" open>
+    <summary>Full proof — by contradiction</summary>
+    <div class="proofcard-body">
+      <div class="step" data-n="1">
+        <div class="step-body">
+          <p><strong>Assume for contradiction</strong> that <span class="mono">L<sub>d</sub></span> were
+          <span class="mono">L(M)</span> for some Turing machine <span class="mono">M</span>.</p>
+        </div>
+      </div>
+      <div class="step" data-n="2">
+        <div class="step-body">
+          <p>Since <span class="mono">L<sub>d</sub></span> is a language over the alphabet {0,1},
+          <span class="mono">M</span> is a TM with input alphabet {0,1} — so <span class="mono">M</span> must
+          appear somewhere in the list of TMs we constructed in §13, since that list includes
+          <em>every</em> TM with input alphabet {0,1}.</p>
+        </div>
+      </div>
+      <div class="step" data-n="3">
+        <div class="step-body">
+          <p>So there is at least one code for <span class="mono">M</span> — call its position
+          <span class="mono">i</span>; that is, <span class="mono">M = M<sub>i</sub></span>.</p>
+        </div>
+      </div>
+      <div class="step" data-n="4">
+        <div class="step-body">
+          <p><strong>Now ask the fatal question:</strong> is <span class="mono">w<sub>i</sub></span> in
+          <span class="mono">L<sub>d</sub></span>?</p>
+          <div class="box box-warn" style="margin:10px 0 6px;">
+            <p style="margin:0 0 8px;"><strong>Case A — suppose <span class="mono">w<sub>i</sub> ∈ L<sub>d</sub></span>.</strong>
+            Since <span class="mono">L<sub>d</sub> = L(M) = L(M<sub>i</sub>)</span>, this means
+            <span class="mono">M<sub>i</sub> accepts w<sub>i</sub></span>. But by the very definition of
+            <span class="mono">L<sub>d</sub></span> (§13), <span class="mono">L<sub>d</sub></span> contains only
+            those <span class="mono">w<sub>j</sub></span> such that <span class="mono">M<sub>j</sub></span>
+            does <em>not</em> accept <span class="mono">w<sub>j</sub></span>. So
+            <span class="mono">w<sub>i</sub> ∈ L<sub>d</sub></span> forces <span class="mono">w<sub>i</sub> ∉ L<sub>d</sub></span>.
+            Contradiction.</p>
+            <p style="margin:0;"><strong>Case B — suppose <span class="mono">w<sub>i</sub> ∉ L<sub>d</sub></span>.</strong>
+            Since <span class="mono">L<sub>d</sub> = L(M<sub>i</sub>)</span>, this means
+            <span class="mono">M<sub>i</sub></span> does <em>not</em> accept <span class="mono">w<sub>i</sub></span>.
+            But then, by definition of <span class="mono">L<sub>d</sub></span>, <span class="mono">w<sub>i</sub></span>
+            <em>is</em> exactly the kind of string that belongs to <span class="mono">L<sub>d</sub></span>. So
+            <span class="mono">w<sub>i</sub> ∉ L<sub>d</sub></span> forces <span class="mono">w<sub>i</sub> ∈ L<sub>d</sub></span>.
+            Contradiction.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step" data-n="5">
+        <div class="step-body">
+          <p><strong>Conclude.</strong> Since <span class="mono">w<sub>i</sub></span> can neither be in
+          <span class="mono">L<sub>d</sub></span> nor fail to be in <span class="mono">L<sub>d</sub></span>,
+          our assumption that <span class="mono">M</span> exists is contradicted. That is,
+          <span class="mono">L<sub>d</sub></span> is not a recursively enumerable language. <span class="mono">∎</span></p>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="box box-win">
+    <span class="box-label">What exactly did we just prove?</span>
+    <p style="margin:0;">Not "no algorithm decides L<sub>d</sub>" (that would only be undecidability). We proved
+    something strictly stronger: <strong>no TM accepts L<sub>d</sub> at all</strong> — not even a TM that's
+    allowed to loop forever on rejected strings. L<sub>d</sub> lives entirely outside the RE ring in the §7
+    diagram, in the "non-RE" region alongside the mortal matrix problem and the Entscheidungsproblem.</p>
+  </div>
+
+  <details class="card">
+    <summary>Trace the contradiction back through the diagonal table widget</summary>
+    <div class="card-body">
+      <p>This is exactly the "row picker" experiment from §14, made rigorous. If <span class="mono">M</span>
+      accepted <span class="mono">L<sub>d</sub></span>, then row <span class="mono">i</span> of the table (the
+      characteristic vector of <span class="mono">L(M<sub>i</sub>)</span>) would have to be <em>identical</em>
+      to <span class="mono">L<sub>d</sub></span>'s row — they're the same language, so the same set of strings.
+      But we built <span class="mono">L<sub>d</sub></span>'s row by flipping the diagonal, which guarantees it
+      disagrees with row <span class="mono">i</span> at column <span class="mono">i</span> specifically. Two
+      rows can't be identical <em>and</em> disagree at one position — that's the contradiction, stated as a
+      picture instead of a sentence.</p>
+    </div>
+  </details>
+</section>
+
+<section class="topic" id="s-whymatters">
+  <div class="eyebrow">Part V · The Proof</div>
+  <h2 class="sectitle"><span class="hnum">17</span>Why This Matters</h2>
+  <p>It's easy to read a diagonalization proof and file it away as a cute trick. Here's why it's load-bearing
+  for the rest of the course:</p>
+
+  <div class="step" data-n="a"><div class="step-body"><p style="margin:0;"><strong>It's the strongest kind of
+  impossibility result.</strong> We didn't just fail to find an algorithm — we proved none can exist, of any
+  kind, even a badly-behaved one. Every future undecidability proof (Halting Problem included) will
+  <em>reduce</em> a new problem to something like this, rather than re-deriving diagonalization from scratch.</p></div></div>
+  <div class="step" data-n="b"><div class="step-body"><p style="margin:0;"><strong>Self-reference is now a
+  formal tool, not just a philosophical curiosity.</strong> "Feed a machine its own description" is the move
+  that will resurface constantly — it's the engine behind the Halting Problem's undecidability proof, which
+  is next on the syllabus.</p></div></div>
+  <div class="step" data-n="c"><div class="step-body"><p style="margin:0;"><strong>The RE/recursive split is now
+  concrete, not just definitional.</strong> You've seen a language that's <em>not even RE</em> — a genuine
+  inhabitant of the outermost region of the §7 diagram, not a hypothetical placeholder.</p></div></div>
+
+  <div class="box box-note">
+    <span class="box-label">Coming up next</span>
+    <p style="margin:0;">The lecture continues from here into <strong>closure properties of recursive and RE
+    languages</strong> — e.g. recursive languages are closed under complement, and a language whose complement
+    is also RE turns out to be recursive. That's genuinely useful machinery for the Halting Problem proof to
+    follow, but it's outside the scope of this companion, which stops exactly at the L<sub>d</sub> result above.</p>
+  </div>
+</section>
+
+<!-- ================= PART VI ================= -->
+<section class="topic" id="s-traps">
+  <div class="eyebrow">Part VI · Review</div>
+  <h2 class="sectitle"><span class="hnum">18</span>Trap Museum</h2>
+  <p>Every one of these has shown up in a real exam answer somewhere. Read them once now, then again the night
+  before the exam.</p>
+
+  <details class="trap">
+    <summary>"Undecidable" and "not RE" are not the same thing</summary>
+    <div class="trap-body"><p>Undecidable means <em>not recursive</em>: no TM that always halts correctly on
+    both accepts and rejects. That still allows a TM that accepts correctly but might loop on some rejects
+    (RE-but-not-recursive, like the Halting Problem). <strong>Not RE</strong> is strictly stronger: no TM
+    whatsoever accepts the language, badly-behaved or not. L<sub>d</sub> is not RE — a harder claim than mere
+    undecidability, which is why it needs the sharper diagonalization tool rather than a garden-variety
+    reduction.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>Every string plays two roles at once — don't lose track of which</summary>
+    <div class="trap-body"><p>In <span class="mono">L<sub>d</sub></span>'s definition, <span class="mono">w<sub>i</sub></span>
+    is simultaneously "the input string" and "the code of machine <span class="mono">M<sub>i</sub></span>."
+    Students often silently assume these are two different, unrelated strings — but the entire proof depends on
+    them being the <em>same</em> string, run through two different lenses (once as data, once as a machine
+    description).</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>The proof never needs to compute whether M_i accepts w_i</summary>
+    <div class="trap-body"><p>Deciding "does M<sub>i</sub> accept w<sub>i</sub>?" for an arbitrary i is itself
+    (spoiler for next lecture) undecidable! The diagonalization argument doesn't need to actually compute this —
+    it only reasons <em>logically</em> about the two cases (accepts / doesn't accept) and shows both lead to
+    contradiction, assuming M exists. This is a proof by contradiction about existence, not an algorithm that
+    inspects machines.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>Multiple codes per TM is not a hole in the proof</summary>
+    <div class="trap-body"><p>Students sometimes worry: "but M has 24 different valid codes — which one is
+    M<sub>i</sub>?" The proof only needs <strong>at least one</strong> code position <span class="mono">i</span>
+    with <span class="mono">M = M<sub>i</sub></span> — step 3 of the proof says exactly this ("there is at least
+    one code for M"). It doesn't matter that other codes for the same M sit at other positions in the
+    enumeration; the contradiction fires at whichever <span class="mono">i</span> you pick.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>Fixed assignments (q₁, q₂, X₁, X₂, X₃, D₁, D₂) are not "free choices you happened to make"</summary>
+    <div class="trap-body"><p>It's tempting to think the whole numbering scheme is arbitrary. It isn't: the
+    start state is <em>always</em> integer 1, the unique accept state is <em>always</em> integer 2, 0/1/blank
+    are <em>always</em> 1/2/3, and L/R are <em>always</em> 1/2. Only <em>extra</em> states and <em>extra</em>
+    tape symbols beyond these get a free assignment. Miscounting which parts are fixed is a fast way to build a
+    string that looks plausible but decodes to nonsense.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>L_d is not "the Halting Problem" — it's a different (related) language</summary>
+    <div class="trap-body"><p><span class="mono">L<sub>d</sub></span> = {w<sub>i</sub> | M<sub>i</sub> does not
+    accept w<sub>i</sub>}, where the input is <em>always the machine's own code</em>. The Halting-Problem-style
+    language you'll meet next lecture, sometimes called <span class="mono">A_TM</span>, is {⟨M,w⟩ | M accepts w}
+    for <em>independent</em> M and w — a pair, not a single self-referential string. They're built with the
+    same diagonalization DNA, but they are not the same set, and mixing them up on an exam is an easy way to
+    garble a proof.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>Complementing the diagonal is essential — complementing anything else doesn't work</summary>
+    <div class="trap-body"><p>The whole trick relies on comparing L<sub>d</sub>'s row against row
+    <span class="mono">i</span> specifically <em>at column i</em>. Only the diagonal guarantees that, for
+    every row i, the disagreement lands at a column that row actually controls (column i). Flipping some other
+    fixed column (say, always column 1) would only guarantee disagreement with row 1 — every other row could
+    still coincide with the resulting vector.</p></div>
+  </details>
+
+  <details class="trap">
+    <summary>The "1w as a binary integer" trick isn't just "read w in binary"</summary>
+    <div class="trap-body"><p>If you skip the leading-1 trick and just read <span class="mono">w</span>
+    directly as binary, <span class="mono">0</span>, <span class="mono">00</span>, and <span class="mono">000</span>
+    would all collide at the integer 0 — leading zeros vanish in ordinary binary notation. Prepending a 1 first
+    is exactly what disambiguates strings that differ only in leading zeros, giving every string in
+    {0,1}<span class="mono">*</span> — including ε — a unique positive-integer address.</p></div>
+  </details>
+</section>
+
+<section class="topic" id="s-practice">
+  <div class="eyebrow">Part VI · Review</div>
+  <h2 class="sectitle"><span class="hnum">19</span>Practice Problems</h2>
+
+  <div class="qcard">
+    <p><span class="qnum">Q1.</span> Using the enumeration scheme from §9, what is <span class="mono">w₁₂</span>?
+    Show your working (don't just read it off the widget).</p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p>Write 12 in binary: <span class="mono">12 = 1100₂</span>. Strip the leading 1 (the marker bit):
+      remaining bits are <span class="mono">100</span>. So <span class="mono">w₁₂ = 100</span>. Sanity check via
+      the widget in §9 confirms this.</p>
+    </div></details>
+  </div>
+
+  <div class="qcard">
+    <p><span class="qnum">Q2.</span> A TM has states <span class="mono">q₁, q₂, q₃, q₄</span> and tape
+    alphabet <span class="mono">{0, 1, B, X}</span> (X is an extra symbol). Using the fixed-assignment rules,
+    encode the single transition <span class="mono">δ(q₂, X) = (q₄, 1, L)</span>.</p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p>States: <span class="mono">q₂ → i = 2</span>, <span class="mono">q₄ → k = 4</span>. Symbols:
+      <span class="mono">X</span> is the one "extra" tape symbol beyond 0, 1, B — since only three symbols
+      (0=X₁, 1=X₂, B=X₃) are fixed, X gets the next free integer, <span class="mono">X = X₄ → j = 4</span> (as
+      the scanned symbol); the written symbol is <span class="mono">1 = X₂ → l = 2</span>. Direction:
+      <span class="mono">L = D₁ → m = 1</span>.</p>
+      <p>Code: <span class="mono">0<sup>i</sup>10<sup>j</sup>10<sup>k</sup>10<sup>l</sup>10<sup>m</sup>
+      = 0²1 0⁴1 0⁴1 0²1 0¹ = 00 1 0000 1 0000 1 00 1 0</span>, i.e.
+      <span class="mono">0010000100001001 0</span> → concatenated:
+      <span class="mono">00100001000010010</span>.</p>
+    </div></details>
+  </div>
+
+  <div class="qcard">
+    <p><span class="qnum">Q3.</span> Is <span class="mono">01011</span> a valid TM code? Walk through all three
+    validity checks from §12.</p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p><strong>Starts with 0?</strong> Yes. <strong>No "111" run?</strong> Yes, none present.
+      <strong>Block structure?</strong> Split on "11": we get one piece before any "11" — but look closely,
+      <span class="mono">01011</span> only contains a single "11" right at the end, splitting it into
+      <span class="mono">"010"</span> and <span class="mono">""</span> (empty tail). An empty block after
+      splitting on "11" is invalid (§12, "clean block structure"). Also, even the non-empty piece
+      <span class="mono">"010"</span> splits on single "1" into just 3 groups (<span class="mono">0, 0,</span>
+      and nothing after) — not the required 5. So <strong>01011 is not a valid TM code</strong> — check it
+      against the widget in §12 to confirm.</p>
+    </div></details>
+  </div>
+
+  <div class="qcard">
+    <p><span class="qnum">Q4.</span> <em>True or false, with justification:</em> "Since L<sub>d</sub> is not RE,
+    its complement must be RE." </p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p>Nothing proved in this lecture licenses that conclusion. We showed <span class="mono">L<sub>d</sub></span>
+      has no accepting TM at all — that's a statement about <span class="mono">L<sub>d</sub></span> alone. It
+      says nothing yet about <span class="mono">L<sub>d</sub>'s</span> complement, which needs its own separate
+      argument (this is exactly the "complements of recursive and RE languages" material flagged in §17 as
+      next lecture's territory — don't reach for a theorem before it's been proved).</p>
+    </div></details>
+  </div>
+
+  <div class="qcard">
+    <p><span class="qnum">Q5.</span> Suppose (hypothetically, for a small illustrative table) the diagonal of
+    the accept/reject table were <span class="mono">1, 1, 0, 1, …</span> instead of
+    <span class="mono">0, 1, 1, 1, …</span>. What would the first four bits of L<sub>d</sub>'s characteristic
+    vector be, and which of <span class="mono">w₁…w₄</span> would be members?</p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p>Complement bit-by-bit: <span class="mono">1,1,0,1 → 0,0,1,0</span>. So
+      <span class="mono">L<sub>d</sub></span> would <em>not</em> contain <span class="mono">w₁ = ε</span> or
+      <span class="mono">w₂ = 0</span>, <em>would</em> contain <span class="mono">w₃ = 1</span>, and would not
+      contain <span class="mono">w₄ = 00</span>. (You can reproduce this by hand-editing the illustrative table
+      in §14 — the mechanism is the same regardless of which specific diagonal you start from.)</p>
+    </div></details>
+  </div>
+
+  <div class="qcard">
+    <p><span class="qnum">Q6.</span> Why is it safe to restrict the "does M accept w?" problem to a binary
+    input alphabet, rather than proving non-RE-ness directly for TMs over an arbitrary alphabet?</p>
+    <details class="card"><summary>Solution</summary><div class="card-body">
+      <p>Because the binary-alphabet version is a <em>special case</em> of the general version (§8). If even
+      the restricted, easier-looking special case has no accepting TM, then the fully general version —
+      which has to handle at least as much, including every binary instance — certainly can't have one either.
+      Proving impossibility for a special case is enough to prove impossibility for the general problem; it's
+      proving <em>existence</em> of an algorithm where you'd need the general case to carry the weight.</p>
+    </div></details>
+  </div>
+</section>
+
+<section class="topic" id="s-cheat">
+  <div class="eyebrow">Part VI · Review</div>
+  <h2 class="sectitle"><span class="hnum">20</span>Cheat Sheet</h2>
+  <div class="cheat-grid">
+    <div class="cheat-box">
+      <h4>Core definitions</h4>
+      <p style="margin:0 0 8px;"><strong>RE:</strong> some TM accepts it (may loop on rejects).</p>
+      <p style="margin:0 0 8px;"><strong>Recursive / decidable:</strong> some TM accepts <em>and</em> always
+      halts on rejects too.</p>
+      <p style="margin:0;"><strong>Not RE:</strong> no TM accepts it — stronger than undecidable.</p>
+    </div>
+    <div class="cheat-box">
+      <h4>Enumerating strings</h4>
+      <p style="margin:0 0 8px;">Treat <span class="mono">1w</span> as a binary integer <span class="mono">i</span> → w is
+      <span class="mono">w<sub>i</sub></span>. Order: ε, 0, 1, 00, 01, 10, 11, 000, …</p>
+      <p style="margin:0;">Equivalently: length first, then lexicographic.</p>
+    </div>
+    <div class="cheat-box">
+      <h4>Fixed encoding assignments</h4>
+      <p style="margin:0 0 4px;"><span class="mono">q₁</span>=start, <span class="mono">q₂</span>=accept (always)</p>
+      <p style="margin:0 0 4px;"><span class="mono">X₁</span>=0, <span class="mono">X₂</span>=1, <span class="mono">X₃</span>=B (always)</p>
+      <p style="margin:0;"><span class="mono">D₁</span>=L, <span class="mono">D₂</span>=R (always)</p>
+    </div>
+    <div class="cheat-box">
+      <h4>Encoding formulas</h4>
+      <p style="margin:0 0 8px;">Transition <span class="mono">δ(q<sub>i</sub>,X<sub>j</sub>)=(q<sub>k</sub>,X<sub>l</sub>,D<sub>m</sub>)</span>:
+      <span class="mono">0ⁱ10ʲ10ᵏ10ˡ10ᵐ</span></p>
+      <p style="margin:0;">Whole machine: transition codes joined by <span class="mono">11</span></p>
+    </div>
+    <div class="cheat-box">
+      <h4>Validity of a code</h4>
+      <p style="margin:0 0 4px;">✓ starts with 0 &nbsp; ✓ no "111" run</p>
+      <p style="margin:0;">✓ splits on "11" into blocks, each splitting on "1" into exactly 5 groups. Invalid → M<sub>i</sub> = empty-language machine.</p>
+    </div>
+    <div class="cheat-box">
+      <h4>L<sub>d</sub> and the proof skeleton</h4>
+      <p style="margin:0 0 6px;"><span class="mono">L<sub>d</sub> = {w<sub>i</sub> | M<sub>i</sub> doesn't accept w<sub>i</sub>}</span></p>
+      <p style="margin:0;">Assume M=M<sub>i</sub> accepts L<sub>d</sub> → ask "is w<sub>i</sub>∈L<sub>d</sub>?" → both
+      answers self-contradict → no such M → L<sub>d</sub> not RE. ∎</p>
+    </div>
+  </div>
+</section>
+
+</div>
+<footer class="done">— end of companion: the diagonalization proof is complete. Complements of recursive/RE languages pick up next lecture. —</footer>
+</main>
+</div>
+
+<script>
+/* ============ SCRIPT_ANCHOR ============ */
+
+/* ---------------------------------------------------------------
+   §9 — Binary string enumeration widget
+   --------------------------------------------------------------- */
+function wi(i){
+  if(i < 1 || !Number.isInteger(i)) return null;
+  const b = i.toString(2);       // e.g. i=5 -> "101"
+  return b.slice(1);             // strip leading marker "1" -> "01"
+}
+function indexOfW(w){
+  if(!/^[01]*$/.test(w)) return null;
+  return parseInt('1'+w, 2);
+}
+function fmtW(w){ return w === '' ? 'ε' : w; }
+
+(function initEnumWidget(){
+  const idxInput = document.getElementById('enumIndexInput');
+  const idxBtn = document.getElementById('enumIndexBtn');
+  const idxResult = document.getElementById('enumIndexResult');
+  const strInput = document.getElementById('enumStringInput');
+  const strBtn = document.getElementById('enumStringBtn');
+  const strResult = document.getElementById('enumStringResult');
+  const tableHost = document.getElementById('enumTable');
+
+  function renderTable(highlightI){
+    let html = '<table style="font-size:13px;"><tr><th>i</th>';
+    for(let i=1;i<=16;i++) html += `<th>${i}</th>`;
+    html += '</tr><tr><td style="font-family:var(--mono);font-weight:700;">w<sub>i</sub></td>';
+    for(let i=1;i<=16;i++){
+      const hl = (i===highlightI) ? ' style="background:#ffe9b3;font-weight:700;"' : '';
+      html += `<td${hl}>${fmtW(wi(i))}</td>`;
+    }
+    html += '</tr></table>';
+    tableHost.innerHTML = html;
+  }
+  renderTable(null);
+
+  idxBtn.addEventListener('click', ()=>{
+    const i = parseInt(idxInput.value, 10);
+    if(!i || i < 1){ idxResult.textContent = '(enter a positive integer)'; return; }
+    const w = wi(i);
+    idxResult.textContent = `w${String(i)} = ${fmtW(w)}`;
+    renderTable(i<=16 ? i : null);
+  });
+  strBtn.addEventListener('click', ()=>{
+    const w = strInput.value.trim();
+    const idx = indexOfW(w);
+    if(idx === null){ strResult.textContent = '(binary strings only — 0/1 characters)'; return; }
+    strResult.textContent = `index = ${idx}`;
+    renderTable(idx<=16 ? idx : null);
+  });
+  idxInput.addEventListener('keydown', e=>{ if(e.key==='Enter') idxBtn.click(); });
+  strInput.addEventListener('keydown', e=>{ if(e.key==='Enter') strBtn.click(); });
+})();
+
+/* ---------------------------------------------------------------
+   §11 — Step-through TM encoder widget (verified against Python)
+   --------------------------------------------------------------- */
+(function initEncodeWidget(){
+  const transitions = [
+    {rule:"δ(q₁, 1) = (q₃, 0, R)", i:1, xj:2, xjLabel:"X₂ = 1", k:3, l:1, lLabel:"X₁ = 0", m:2, mLabel:"D₂ = R", code:"0100100010100"},
+    {rule:"δ(q₃, 0) = (q₁, 1, R)", i:3, xj:1, xjLabel:"X₁ = 0", k:1, l:2, lLabel:"X₂ = 1", m:2, mLabel:"D₂ = R", code:"0001010100100"},
+    {rule:"δ(q₃, 1) = (q₂, 0, R)", i:3, xj:2, xjLabel:"X₂ = 1", k:2, l:1, lLabel:"X₁ = 0", m:2, mLabel:"D₂ = R", code:"00010010010100"},
+    {rule:"δ(q₃, B) = (q₃, 1, L)", i:3, xj:3, xjLabel:"X₃ = B", k:3, l:2, lLabel:"X₂ = 1", m:1, mLabel:"D₁ = L", code:"0001000100010010"},
+  ];
+  let step = 0;
+  let accum = '';
+  const stepBtn = document.getElementById('encStepBtn');
+  const resetBtn = document.getElementById('encResetBtn');
+  const ruleHost = document.getElementById('encCurrentRule');
+  const breakdownHost = document.getElementById('encBreakdown');
+  const accumHost = document.getElementById('encAccum');
+  const finalHost = document.getElementById('encFinalNote');
+
+  function render(){
+    accumHost.textContent = accum || '(nothing yet — click "encode next transition")';
+    stepBtn.disabled = step >= transitions.length;
+    stepBtn.textContent = step >= transitions.length ? '✓ all transitions encoded' : `▸ Encode transition ${step+1} of ${transitions.length}`;
+    if(step === transitions.length){
+      finalHost.innerHTML = `<div class="box box-win" style="margin:0;"><span class="box-label">Done</span>
+        <p style="margin:0;">Final code is <strong>${accum.length} bits</strong> — matches the slide's
+        62-bit code exactly (independently verified in Python before this widget shipped).</p></div>`;
+    } else {
+      finalHost.innerHTML = '';
+    }
+  }
+  function encodeNext(){
+    if(step >= transitions.length) return;
+    const t = transitions[step];
+    ruleHost.innerHTML = `Encoding rule ${step+1}: <strong style="color:var(--oxblood);">${t.rule}</strong>`;
+    breakdownHost.innerHTML = `
+      <table style="font-size:13px;">
+        <tr><th>i (q<sub>i</sub>)</th><th>j (X<sub>j</sub>)</th><th>k (q<sub>k</sub>)</th><th>l (X<sub>l</sub>)</th><th>m (D<sub>m</sub>)</th><th>code piece</th></tr>
+        <tr><td>${t.i}</td><td>${t.xj} <span class="mono" style="color:var(--ink-soft);">(${t.xjLabel})</span></td><td>${t.k}</td><td>${t.l} <span class="mono" style="color:var(--ink-soft);">(${t.lLabel})</span></td><td>${t.m} <span class="mono" style="color:var(--ink-soft);">(${t.mLabel})</span></td><td class="mono">${t.code}</td></tr>
+      </table>`;
+    accum += (accum === '' ? '' : '11') + t.code;
+    step++;
+    render();
+  }
+  stepBtn.addEventListener('click', encodeNext);
+  resetBtn.addEventListener('click', ()=>{
+    step = 0; accum = '';
+    ruleHost.innerHTML = '';
+    breakdownHost.innerHTML = '';
+    render();
+  });
+  render();
+})();
+
+/* ---------------------------------------------------------------
+   §12 — TM code validity checker (same parser verified in Python)
+   --------------------------------------------------------------- */
+function checkTMCodeValidity(s){
+  if(s.length === 0) return {valid:false, reason:'empty string has no transitions'};
+  if(!/^[01]+$/.test(s)) return {valid:false, reason:'contains a character other than 0 or 1'};
+  if(s[0] !== '0') return {valid:false, reason:'does not start with 0 (every transition code starts with 0ⁱ, i ≥ 1)'};
+  if(s.includes('111')) return {valid:false, reason:'contains three or more consecutive 1\'s (impossible: single 1\'s separate fields, double 1\'s separate transitions)'};
+  const parts = s.split('11');
+  if(parts.some(p => p === '')) return {valid:false, reason:'splitting on "11" produced an empty transition block (leading, trailing, or doubled separator)'};
+  for(const p of parts){
+    const groups = p.split('1');
+    if(groups.length !== 5 || groups.some(g => g === '')){
+      return {valid:false, reason:`transition block "${p}" splits into ${groups.length} group(s) on single "1", not the required 5 nonempty groups`};
+    }
+  }
+  return {valid:true, reason:`decodes cleanly into ${parts.length} transition(s)`, parts};
+}
+
+(function initValidityWidget(){
+  const input = document.getElementById('validInput');
+  const btn = document.getElementById('validCheckBtn');
+  const resultHost = document.getElementById('validResult');
+  const pills = document.querySelectorAll('#validityWidget .pill');
+
+  function run(){
+    const s = input.value.trim();
+    if(s === ''){ resultHost.innerHTML = ''; return; }
+    const r = checkTMCodeValidity(s);
+    if(r.valid){
+      resultHost.innerHTML = `<div class="box box-win" style="margin:0;"><span class="box-label">✓ Valid TM code</span>
+        <p style="margin:0;">${r.reason}. This string would be treated as an actual encoded machine, not the
+        empty-language fallback.</p></div>`;
+    } else {
+      resultHost.innerHTML = `<div class="box box-warn" style="margin:0;"><span class="box-label">✗ Invalid TM code</span>
+        <p style="margin:0;">${r.reason}. Per §12's escape hatch, whichever M<sub>i</sub> this string names is the
+        trivial one-state, no-transition machine — L(M<sub>i</sub>) = ∅.</p></div>`;
+    }
+  }
+  btn.addEventListener('click', run);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+  pills.forEach(p=>{
+    p.addEventListener('click', ()=>{
+      input.value = p.getAttribute('data-preset');
+      run();
+    });
+  });
+})();
+
+/* ---------------------------------------------------------------
+   §14 — Diagonal table widget
+   --------------------------------------------------------------- */
+(function initDiagWidget(){
+  const N = 6;
+  // illustrative accept/reject matrix (hypothetical, for teaching the diagonalization picture)
+  const matrix = [
+    [0,1,0,1,0,1],
+    [1,1,0,0,1,0],
+    [0,1,1,1,0,1],
+    [1,0,0,1,1,0],
+    [0,1,1,0,0,1],
+    [1,0,1,1,0,1],
+  ];
+  const diag = matrix.map((row,i)=>row[i]);         // [0,1,1,1,0,1]
+  const ld   = diag.map(b => 1-b);                  // [1,0,0,0,1,0]
+  const colLabels = [];
+  for(let j=1;j<=N;j++) colLabels.push(fmtW(wi(j)));
+
+  const host = document.getElementById('diagTableHost');
+  const buildBtn = document.getElementById('diagBuildBtn');
+  const resetBtn = document.getElementById('diagResetBtn');
+  const ldRowHost = document.getElementById('diagLdRow');
+  const pickerHost = document.getElementById('diagRowPicker');
+  const contraHost = document.getElementById('diagContradiction');
+  let built = false;
+
+  function renderTable(){
+    let html = '<table style="font-size:13.5px;"><tr><th></th>';
+    for(let j=1;j<=N;j++) html += `<th>w<sub>${j}</sub> = ${colLabels[j-1]}</th>`;
+    html += '</tr>';
+    for(let i=0;i<N;i++){
+      html += `<tr><th style="text-align:left;">M<sub>${i+1}</sub></th>`;
+      for(let j=0;j<N;j++){
+        const isDiag = (i===j);
+        const style = isDiag ? 'style="outline:2.5px solid var(--oxblood); outline-offset:-2px; font-weight:700; background:#fdf0e4;"' : '';
+        html += `<td ${style}>${matrix[i][j]}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</table>';
+    host.innerHTML = html;
+  }
+
+  function renderPicker(){
+    let html = '<span class="mono" style="font-size:12.5px;">Pick a row to test against L<sub>d</sub>: </span>';
+    for(let i=1;i<=N;i++){
+      html += `<span class="pill" data-row="${i}">M<sub>${i}</sub></span>`;
+    }
+    pickerHost.innerHTML = html;
+    pickerHost.querySelectorAll('.pill').forEach(p=>{
+      p.addEventListener('click', ()=>{
+        pickerHost.querySelectorAll('.pill').forEach(q=>q.classList.remove('active'));
+        p.classList.add('active');
+        const i = parseInt(p.getAttribute('data-row'),10);
+        showContradiction(i);
+      });
+    });
+  }
+
+  function showContradiction(i){
+    const idx = i-1;
+    const mAcceptsWi = diag[idx];       // does M_i accept w_i?
+    const ldAtI = built ? ld[idx] : null;
+    let msg;
+    if(!built){
+      msg = `Row M<sub>${i}</sub> says: does M<sub>${i}</sub> accept w<sub>${i}</sub>? → <strong>${mAcceptsWi}</strong>.
+             Click "Build L<sub>d</sub>" above to compare against L<sub>d</sub>'s bit at this same position.`;
+    } else {
+      const agrees = mAcceptsWi === ldAtI;
+      msg = `Row M<sub>${i}</sub> says M<sub>${i}</sub> accepts w<sub>${i}</sub>? → <strong>${mAcceptsWi}</strong>.
+             L<sub>d</sub>'s row says w<sub>${i}</sub> ∈ L<sub>d</sub>? → <strong>${ldAtI}</strong>
+             (defined as the <em>opposite</em> of "M<sub>${i}</sub> accepts w<sub>${i}</sub>").
+             Since ${mAcceptsWi} ≠ ${ldAtI}, row M<sub>${i}</sub> and L<sub>d</sub>'s row disagree at column
+             ${i} — so <strong>M<sub>${i}</sub> cannot be the machine that accepts L<sub>d</sub></strong>.
+             This holds for every single row, which is exactly the theorem in §16.`;
+    }
+    contraHost.innerHTML = `<div class="box box-note" style="margin:0;"><span class="box-label">Row ${i} vs. L<sub>d</sub></span><p style="margin:0;">${msg}</p></div>`;
+  }
+
+  buildBtn.addEventListener('click', ()=>{
+    built = true;
+    let html = `<div class="mono" style="font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;">L<sub>d</sub>'s row (complement of the diagonal)</div>`;
+    html += '<table style="font-size:13.5px;"><tr><th></th>';
+    for(let j=1;j<=N;j++) html += `<th>w<sub>${j}</sub></th>`;
+    html += '</tr><tr><th style="text-align:left;color:var(--oxblood);">L<sub>d</sub></th>';
+    for(let j=0;j<N;j++) html += `<td style="background:#fdf0e4;font-weight:700;color:var(--oxblood);">${ld[j]}</td>`;
+    html += '</tr></table>';
+    const members = [];
+    for(let j=1;j<=N;j++) if(ld[j-1]===1) members.push(`w${j}=${colLabels[j-1]}`);
+    html += `<p style="margin-top:10px;">So L<sub>d</sub> ∩ {w₁…w₆} = { ${members.join(', ')} }.</p>`;
+    ldRowHost.innerHTML = html;
+  });
+  resetBtn.addEventListener('click', ()=>{
+    built = false;
+    ldRowHost.innerHTML = '';
+    contraHost.innerHTML = '';
+    pickerHost.querySelectorAll('.pill').forEach(q=>q.classList.remove('active'));
+  });
+
+  renderTable();
+  renderPicker();
+})();
+
+// mobile nav toggle
+document.getElementById('mobToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// button-based nav (no href, per project convention — avoids sandbox nav-dialog bug)
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.getAttribute('data-t');
+    const el = document.getElementById(id);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+    if(window.innerWidth <= 920){ document.getElementById('sidebar').classList.remove('open'); }
+  });
+});
+
+// scrollspy
+const sections = Array.from(document.querySelectorAll('section.topic'));
+const navBtns = Array.from(document.querySelectorAll('.nav-btn'));
+function onScroll(){
+  let current = sections[0] && sections[0].id;
+  const y = window.scrollY + 120;
+  for(const s of sections){
+    if(s.offsetTop <= y) current = s.id;
+  }
+  navBtns.forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-t') === current);
+  });
+}
+window.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+</script>
+</body>
+</html>

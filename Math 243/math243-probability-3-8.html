@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATH 243 — Statistics &amp; Probability | Field Notes</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --ink:#182231;
+  --ink-2:#212e42;
+  --ink-3:#2c3c54;
+  --brass:#b8902e;
+  --brass-light:#d8b45c;
+  --rust:#9c3d2e;
+  --paper:#f2ecdd;
+  --paper-card:#faf6ea;
+  --paper-line: rgba(24,34,49,0.09);
+  --text:#242119;
+  --muted:#6e6656;
+  --good:#3c6e52;
+  --sidebar-w: 300px;
+  --serif: 'Spectral', Georgia, serif;
+  --sans: 'Inter', -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+
+::selection{ background: var(--brass-light); color: var(--ink); }
+
+/* ---------- Layout ---------- */
+.app{ display:flex; min-height:100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width: var(--sidebar-w);
+  flex-shrink:0;
+  background:
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  color:#e7e1d1;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  border-right: 3px solid var(--brass);
+  display:flex; flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{ width:8px; }
+.sidebar::-webkit-scrollbar-thumb{ background: var(--ink-3); border-radius:4px; }
+
+.brand{
+  padding: 26px 24px 18px 24px;
+  border-bottom: 1px solid rgba(216,180,92,0.25);
+  background-image: repeating-linear-gradient(135deg, rgba(216,180,92,0.045) 0 2px, transparent 2px 14px);
+}
+.brand .kicker{
+  font-family: var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color: var(--brass-light); margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.brand .kicker::before{ content:""; width:16px; height:1px; background:var(--brass-light); display:inline-block; }
+.brand h1{
+  font-family: var(--serif); font-weight:700; font-size:26px; line-height:1.15; margin:0 0 6px 0; color:#fbf7ea;
+}
+.brand p{ margin:0; font-size:12.5px; color:#b9b198; line-height:1.5; }
+
+.progress-wrap{ padding: 14px 24px 16px 24px; border-bottom:1px solid rgba(216,180,92,0.2); }
+.progress-label{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:10.5px; color:#a9a08a; margin-bottom:6px; text-transform:uppercase; letter-spacing:.08em;}
+.progress-track{ height:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(216,180,92,0.3); position:relative; }
+.progress-fill{ height:100%; background: linear-gradient(90deg,var(--brass),var(--brass-light)); width:0%; transition:width .4s ease; }
+
+nav.modules{ padding: 10px 12px 20px 12px; flex:1; }
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:11px 12px; margin:2px 0; cursor:pointer;
+  border-left:3px solid transparent;
+  border-radius:2px;
+  transition: background .15s ease, border-color .15s ease;
+  position:relative;
+}
+.nav-item:hover{ background: rgba(216,180,92,0.08); }
+.nav-item.active{ background: rgba(216,180,92,0.14); border-left-color: var(--brass-light); }
+.nav-item .code{
+  font-family:var(--mono); font-size:11px; color:var(--brass-light); min-width:30px; font-weight:600;
+}
+.nav-item .label{ font-size:13.5px; color:#e7e1d1; line-height:1.3; font-weight:500; }
+.nav-item .sub{ font-size:10.5px; color:#8f886f; display:block; margin-top:1px;}
+.nav-item .check{
+  margin-left:auto; width:16px; height:16px; border-radius:50%;
+  border:1.5px solid #6b6350; display:flex; align-items:center; justify-content:center;
+  font-size:10px; color:transparent; flex-shrink:0;
+}
+.nav-item.done .check{ background: var(--good); border-color: var(--good); color:#fff; }
+
+.sidebar-foot{
+  padding:16px 24px 22px 24px; border-top:1px solid rgba(216,180,92,0.2);
+  font-family:var(--mono); font-size:10.5px; color:#8f886f; line-height:1.6;
+}
+
+/* ---------- Main ---------- */
+main{ flex:1; min-width:0; position:relative; }
+.topbar{
+  position:sticky; top:0; z-index:20;
+  background: rgba(242,236,221,0.92); backdrop-filter: blur(6px);
+  border-bottom:1px solid var(--paper-line);
+  padding:14px 44px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+.breadcrumb{ font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.03em; }
+.breadcrumb b{ color:var(--rust); }
+.topbar-actions{ display:flex; gap:10px; align-items:center; }
+.btn{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.03em; text-transform:uppercase;
+  border:1.5px solid var(--ink); background:transparent; color:var(--ink);
+  padding:8px 14px; cursor:pointer; transition: all .15s ease; white-space:nowrap;
+}
+.btn:hover{ background:var(--ink); color:var(--paper-card); }
+.btn.primary{ background:var(--brass); border-color:var(--brass); color:#211a08; }
+.btn.primary:hover{ background:var(--brass-light); border-color:var(--brass-light); }
+.btn.on{ background:var(--good); border-color:var(--good); color:#fff; }
+
+.content-scroll{
+  padding: 40px 44px 120px 44px;
+  max-width: 980px;
+  background-image: radial-gradient(circle, var(--paper-line) 1px, transparent 1px);
+  background-size: 22px 22px;
+  min-height: calc(100vh - 60px);
+}
+
+.panel{ display:none; animation: fadeIn .35s ease; }
+.panel.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.lec-tag{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--rust); display:inline-flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.lec-tag::before{ content:""; width:8px; height:8px; background:var(--rust); display:inline-block; transform:rotate(45deg); }
+
+h2.panel-title{
+  font-family:var(--serif); font-size:34px; font-weight:700; margin:0 0 6px 0; color:var(--ink); line-height:1.1;
+}
+.panel-sub{ font-family:var(--sans); font-size:15px; color:var(--muted); margin:0 0 28px 0; max-width:68ch; line-height:1.55;}
+
+h3.block-title{
+  font-family:var(--serif); font-size:21px; font-weight:600; color:var(--ink);
+  margin: 38px 0 14px 0; padding-bottom:8px; border-bottom:2px solid var(--ink);
+  display:flex; align-items:center; gap:10px;
+}
+h3.block-title .num{ font-family:var(--mono); font-size:13px; color:var(--brass); border:1px solid var(--brass); padding:2px 7px; }
+
+p.lead{ font-size:15px; line-height:1.75; color:#3a3527; margin: 0 0 16px 0;}
+p.lead b{ color:var(--ink); }
+ul.keylist{ margin:0 0 16px 0; padding-left:0; list-style:none; }
+ul.keylist li{ position:relative; padding-left:22px; margin-bottom:9px; font-size:14.5px; line-height:1.6; color:#3a3527;}
+ul.keylist li::before{ content:"—"; position:absolute; left:0; color:var(--brass); font-weight:700; }
+ul.keylist b{ color:var(--ink); }
+
+/* plate / card with corner bolts */
+.plate{
+  position:relative; background:var(--paper-card);
+  border:1px solid var(--ink); padding:22px 24px; margin:18px 0;
+  background-image:
+    radial-gradient(circle, var(--brass) 2.6px, transparent 3px),
+    radial-gradient(circle, var(--brass) 2.6px, transparent 3px),
+    radial-gradient(circle, var(--brass) 2.6px, transparent 3px),
+    radial-gradient(circle, var(--brass) 2.6px, transparent 3px);
+  background-repeat:no-repeat; background-size:7px 7px;
+  background-position: 9px 9px, calc(100% - 9px) 9px, 9px calc(100% - 9px), calc(100% - 9px) calc(100% - 9px);
+  box-shadow: 4px 4px 0 rgba(24,34,49,0.06);
+}
+.plate .plate-label{
+  font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--brass); margin-bottom:10px; display:block;
+}
+.formula{ font-size:16.5px; margin:6px 0; overflow-x:auto; }
+.formula-row{ display:flex; flex-wrap:wrap; gap:26px; align-items:baseline; }
+
+.example{
+  border-left:3px solid var(--ink-3); background:rgba(44,60,84,0.04);
+  padding:16px 20px; margin:16px 0;
+}
+.example .ex-label{
+  font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--ink-3); font-weight:600; margin-bottom:8px; display:block;
+}
+.example p{ font-size:14.5px; line-height:1.7; margin:6px 0; color:#332f24;}
+.example .sol{ margin-top:8px; }
+
+.exam-box{
+  border:1.5px dashed var(--rust); padding:18px 20px; margin:14px 0; background: rgba(156,61,46,0.045);
+}
+.exam-box .ex-tag{
+  font-family:var(--mono); font-size:10.5px; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:8px; display:block;
+}
+.exam-q{ font-size:14.5px; margin:8px 0; padding-left:18px; position:relative; line-height:1.6; }
+.exam-q::before{ content:"Q"; position:absolute; left:0; top:0; font-family:var(--mono); font-size:11px; color:var(--rust); font-weight:700;}
+.reveal-btn{
+  font-family:var(--mono); font-size:11px; color:var(--rust); background:none; border:1px solid var(--rust);
+  padding:3px 9px; margin-left:10px; cursor:pointer; text-transform:uppercase;
+}
+.reveal-btn:hover{ background:var(--rust); color:#fff; }
+.reveal-ans{ display:none; margin-top:8px; padding:10px 14px; background:rgba(156,61,46,0.07); font-size:13.8px; line-height:1.65; }
+.reveal-ans.show{ display:block; }
+
+.brainstorm{
+  background: var(--ink); color:#e7e1d1; padding:20px 24px; margin:22px 0; position:relative;
+  border-left:4px solid var(--brass-light);
+}
+.brainstorm .bs-tag{ font-family:var(--mono); font-size:11px; color:var(--brass-light); text-transform:uppercase; letter-spacing:.12em; margin-bottom:8px; display:block;}
+.brainstorm p{ font-size:14.5px; line-height:1.7; margin:6px 0; color:#dcd6c4;}
+
+table.datatable{ border-collapse:collapse; width:100%; margin:14px 0; font-size:13.8px; }
+table.datatable th, table.datatable td{ border:1px solid var(--ink-3); padding:8px 12px; text-align:center; }
+table.datatable th{ background: var(--ink); color:#f2ecdd; font-family:var(--mono); font-weight:500; font-size:12px;}
+table.datatable td{ background:var(--paper-card); }
+table.datatable td.rowhead{ background:rgba(44,60,84,0.08); font-weight:600; font-family:var(--mono);}
+
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:820px){ .grid2{ grid-template-columns:1fr; } }
+
+.chart-wrap{ background:var(--paper-card); border:1px solid var(--ink); padding:18px; margin:16px 0; }
+.chart-wrap canvas{ max-height:280px; }
+
+.widget{ background:#fff; border:1.5px solid var(--ink); padding:20px; margin:16px 0; }
+.widget label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:4px;}
+.widget input[type=number]{
+  font-family:var(--mono); font-size:15px; padding:7px 10px; border:1px solid var(--ink-3); width:90px; margin-right:14px; background:var(--paper);
+}
+.widget .out{ margin-top:14px; font-size:14.5px; padding:12px 16px; background:rgba(184,144,46,0.1); border-left:3px solid var(--brass); }
+
+.jtable td{ cursor:pointer; transition:background .12s; }
+.jtable td.cell:hover{ background: var(--brass-light) !important; }
+.jtable td.cell.sel{ background: var(--brass) !important; color:#fff; }
+
+.foot-nav{ display:flex; justify-content:space-between; margin-top:56px; padding-top:22px; border-top:2px solid var(--ink); }
+.foot-nav .btn{ min-width:150px; text-align:center; }
+
+.badge-inline{ font-family:var(--mono); font-size:11px; background:var(--ink); color:#f2ecdd; padding:2px 8px; border-radius:2px; }
+
+.roadmap-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0 8px 0;}
+@media(max-width:820px){ .roadmap-grid{ grid-template-columns:1fr; } }
+.road-card{
+  background:var(--paper-card); border:1px solid var(--ink); padding:16px 18px; cursor:pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.road-card:hover{ transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--brass); }
+.road-card .rc-code{ font-family:var(--mono); font-size:11px; color:var(--rust); font-weight:700; }
+.road-card h4{ font-family:var(--serif); font-size:17px; margin:6px 0 6px 0; color:var(--ink); }
+.road-card p{ font-size:12.8px; color:var(--muted); line-height:1.5; margin:0; }
+
+.katex{ font-size:1.02em; }
+.katex-display{ margin: 0.6em 0; }
+
+hr.tear{ border:none; border-top:1px dashed var(--ink-3); margin:34px 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="kicker">Field Notes</div>
+      <h1>MATH&nbsp;243</h1>
+      <p>Statistics &amp; Probability — Lectures 3 through 8, rebuilt as an interactive study companion.</p>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Modules reviewed</span><span id="progress-count">0 / 8</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <nav class="modules" id="nav-list">
+      <div class="nav-item active" data-target="home">
+        <span class="code">§00</span>
+        <span class="label">Course Roadmap<span class="sub">start here</span></span>
+      </div>
+      <div class="nav-item" data-target="sec03">
+        <span class="code">§03</span>
+        <span class="label">Odds &amp; Chance<span class="sub">Lecture 3</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="sec04">
+        <span class="code">§04</span>
+        <span class="label">Joint Probability<span class="sub">Lectures 3–4</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="sec05">
+        <span class="code">§05</span>
+        <span class="label">Conditional Prob. &amp; Bayes<span class="sub">Lecture 5</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="sec06">
+        <span class="code">§06</span>
+        <span class="label">Random Variables &amp; PMF<span class="sub">Lecture 6</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="sec07">
+        <span class="code">§07</span>
+        <span class="label">CDF &amp; PDF<span class="sub">Lecture 7</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="sec08">
+        <span class="code">§08</span>
+        <span class="label">Joint / Marginal / Independence<span class="sub">Lecture 8</span></span>
+        <span class="check">✓</span>
+      </div>
+      <div class="nav-item" data-target="vault">
+        <span class="code">§09</span>
+        <span class="label">Exam Vault<span class="sub">formulas + practice</span></span>
+        <span class="check">✓</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      BUILT FROM: PLecture 3&amp;4 · PLecture 5 · Lecture 6 · Lecture 7 · Lecture 8<br>
+      STATUS: draft-proof, cross-check against your own slide numbering.
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <div class="topbar">
+      <div class="breadcrumb">MATH243 / <b id="crumb-current">Course Roadmap</b></div>
+      <div class="topbar-actions">
+        <button class="btn" id="mark-btn">Mark section reviewed</button>
+      </div>
+    </div>
+
+    <div class="content-scroll" id="content-scroll">
+
+      <!-- ============================================================ HOME -->
+      <section class="panel active" id="panel-home" data-code="home">
+        <div class="lec-tag">Welcome</div>
+        <h2 class="panel-title">Good — let's get you a top result.</h2>
+        <p class="panel-sub">This is your lecture set rebuilt as one continuous study path: Odds → Joint Probability → Conditional Probability &amp; Bayes → Random Variables → Distribution Functions → Joint/Marginal/Conditional Distributions. Every module carries the background, the formulas, worked examples straight from your slides, a few interactive tools, exam-style questions with hidden answers, and a short brainstorm to stress-test your intuition.</p>
+
+        <h3 class="block-title"><span class="num">01</span>How to use this</h3>
+        <ul class="keylist">
+          <li><b>Read background first.</b> Every formula is easier to remember once you know why it exists.</li>
+          <li><b>Work the interactive widgets yourself</b> before reading the readout — type your own numbers in.</li>
+          <li><b>Try the exam questions blind.</b> The reveal button is a last resort, not a first move.</li>
+          <li><b>Finish at the Exam Vault</b> — one formula sheet, plus fully worked versions of every unsolved exercise from your slides.</li>
+        </ul>
+
+        <h3 class="block-title"><span class="num">02</span>The six modules</h3>
+        <div class="roadmap-grid" id="roadmap-grid">
+          <div class="road-card" data-target="sec03">
+            <div class="rc-code">§03 · LECTURE 3</div>
+            <h4>Odds &amp; Chance</h4>
+            <p>Odds vs. probability, odds-in-favor / odds-against, converting between them, independent-event word problems.</p>
+          </div>
+          <div class="road-card" data-target="sec04">
+            <div class="rc-code">§04 · LECTURES 3–4</div>
+            <h4>Joint Probability</h4>
+            <p>P(A∩B) for independent and dependent events, 2×2 contingency tables, marginal totals.</p>
+          </div>
+          <div class="road-card" data-target="sec05">
+            <div class="rc-code">§05 · LECTURE 5</div>
+            <h4>Conditional Probability &amp; Bayes</h4>
+            <p>P(A|B), the multiplication law, and Bayes' theorem — the engine behind medical testing and spam filters.</p>
+          </div>
+          <div class="road-card" data-target="sec06">
+            <div class="rc-code">§06 · LECTURE 6</div>
+            <h4>Random Variables &amp; PMF</h4>
+            <p>Turning outcomes into numbers, discrete vs. continuous, the three rules of a valid pmf.</p>
+          </div>
+          <div class="road-card" data-target="sec07">
+            <div class="rc-code">§07 · LECTURE 7</div>
+            <h4>CDF &amp; PDF</h4>
+            <p>Cumulative distribution functions for discrete variables, then the continuous analogue via integration.</p>
+          </div>
+          <div class="road-card" data-target="sec08">
+            <div class="rc-code">§08 · LECTURE 8</div>
+            <h4>Joint / Marginal / Independence</h4>
+            <p>Multivariate distributions, marginal and conditional distributions, and the independence test.</p>
+          </div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Before you start</span>
+          <p>Every one of these six modules is really the <b>same skeleton</b> repeated at increasing resolution: define the sample space → assign probabilities → combine events → condition on information. If you get lost in a formula, back out to that skeleton and ask which of the four steps you're on.</p>
+        </div>
+      </section>
+
+      <!-- ============================================================ §03 ODDS -->
+      <section class="panel" id="panel-sec03" data-code="sec03">
+        <div class="lec-tag">Lecture 3</div>
+        <h2 class="panel-title">Odds &amp; the Language of Chance</h2>
+        <p class="panel-sub">Probability answers "how likely is A out of everything?" Odds answer a narrower, older question: "how does A compare to not-A?" Odds are the language of bookmakers, geneticists, and insurers — get fluent in converting between the two.</p>
+
+        <h3 class="block-title"><span class="num">3.1</span>What odds actually measure</h3>
+        <p class="lead">Odds compare <b>success against failure</b> directly, rather than success against the whole sample space the way probability does. That's the entire conceptual jump.</p>
+
+        <div class="plate">
+          <span class="plate-label">Core definition</span>
+          <div class="formula">\[ \text{Odds}(A) = \frac{P(A)}{P(\bar{A})} = \frac{P(A)}{1-P(A)} \]</div>
+          <p class="lead" style="margin-top:10px;">valid whenever A and its complement are the only two outcomes, i.e. \(P(A)+P(\bar A)=1\).</p>
+        </div>
+
+        <div class="grid2">
+          <div class="plate">
+            <span class="plate-label">Odds in favor of A</span>
+            <div class="formula">\[ O_A = \frac{n(A)}{n(\bar A)} \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">Odds against A</span>
+            <div class="formula">\[ O_{\bar A} = \frac{n(\bar A)}{n(A)} \]</div>
+          </div>
+        </div>
+        <p class="lead">The two are reciprocals of each other, and odds-in-favor of A is exactly odds-against of B when A and B are complements.</p>
+
+        <div class="plate">
+          <span class="plate-label">Going back to probability</span>
+          <div class="formula">\[ \text{If odds in favor of A are } a:b, \quad P(A)=\frac{a}{a+b}, \qquad P(\bar A)=\frac{b}{a+b} \]</div>
+        </div>
+
+        <h3 class="block-title"><span class="num">3.2</span>Try it yourself</h3>
+        <div class="widget">
+          <span class="plate-label" style="margin-bottom:12px;">Odds → Probability converter</span>
+          <label>Odds in favor, a</label><input type="number" id="odds-a" value="3" min="0">
+          <label>Odds in favor, b</label><input type="number" id="odds-b" value="7" min="0">
+          <div class="out" id="odds-out"></div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — bag of balls</span>
+          <p>A bag has red and blue balls. Odds in favor of red are 3 : 7. Find P(red) and P(blue).</p>
+          <div class="sol"><p>\(n(A)=3,\ n(\bar A)=7,\ n(S)=10\).  \(P(\text{red})=\tfrac{3}{10}=0.3,\quad P(\text{blue})=\tfrac{7}{10}=0.7\).</p></div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — race odds</span>
+          <p>An athlete has probability 0.2 of winning a race. Find the odds against winning.</p>
+          <div class="sol"><p>\(P(W)=0.2,\ P(\bar W)=0.8\). \(O_{\bar W}=\dfrac{P(\bar W)}{P(W)}=\dfrac{0.8}{0.2}=4\), i.e. <b>4 : 1</b> — for every 1 chance of winning, there are 4 chances of not winning.</p></div>
+        </div>
+
+        <h3 class="block-title"><span class="num">3.3</span>Independent vs. dependent word problems</h3>
+        <p class="lead">The classic exam setup: two students X and Y attempt a problem. You're given odds, asked to convert to probabilities, then combine — first assuming independence, then with a stated conditional probability.</p>
+
+        <div class="example">
+          <span class="ex-label">Worked example — odds against X are 8:6, odds in favor of Y are 14:16</span>
+          <p>\(P(X)=\tfrac{3}{7},\ P(\bar X)=\tfrac{4}{7}\) and \(P(Y)=\tfrac{7}{15},\ P(\bar Y)=\tfrac{8}{15}\).</p>
+          <table class="datatable">
+            <tr><th>Question</th><th>Independent (X ⟂ Y)</th></tr>
+            <tr><td class="rowhead">Both solve</td><td>\(P(X)P(Y)=\tfrac{3}{7}\cdot\tfrac{7}{15}=\tfrac15\)</td></tr>
+            <tr><td class="rowhead">Neither solves</td><td>\(P(\bar X)P(\bar Y)=\tfrac{4}{7}\cdot\tfrac{8}{15}=\tfrac{32}{105}\)</td></tr>
+            <tr><td class="rowhead">At least one</td><td>\(1-\tfrac{32}{105}=\tfrac{73}{105}\)</td></tr>
+            <tr><td class="rowhead">Exactly one</td><td>\(P(X)P(\bar Y)+P(\bar X)P(Y)=\tfrac{52}{105}\)</td></tr>
+          </table>
+          <p style="margin-top:10px;">Now the twist: if X solves it, \(P(Y|X)=0.6\) — X and Y are <b>dependent</b>. Then \(P(X\cap Y)=P(X)P(Y|X)=\tfrac37\cdot\tfrac35=\tfrac{9}{35}\) instead of \(\tfrac15\). Everything downstream shifts because the multiplication rule changes from \(P(X)P(Y)\) to \(P(X)P(Y|X)\).</p>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions</span>
+          <div class="exam-q">The odds against an event are 5 : 2. Find P(event) and P(not event). <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">Odds against 5:2 means odds in favor are 2:5, so \(P(A)=\tfrac{2}{7}\), \(P(\bar A)=\tfrac{5}{7}\).</div></div>
+          <div class="exam-q">Two students attempt a question independently with P(X solves)=0.6, P(Y solves)=0.5. Find P(exactly one solves). <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">\(P(X)P(\bar Y)+P(\bar X)P(Y)=0.6(0.5)+0.4(0.5)=0.3+0.2=0.5\).</div></div>
+          <div class="exam-q">Explain, in one sentence, why "odds of 3:1" is not the same statement as "probability of 3/1". <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">Probability can never exceed 1 because it's success ÷ total; odds compare success ÷ failure directly, so odds can be any positive ratio, including numbers bigger than 1:1 without breaking any rule.</div></div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>If odds against an event are 4:1, what are the odds in favor? (Just flip the ratio — 1:4.) Now: is P(A) = 1/4? <b>No.</b> That's the single most common exam trap in this chapter — odds-in-favor 1:4 gives \(P(A)=\tfrac{1}{1+4}=\tfrac15\), not \(\tfrac14\). Always add numerator and denominator to get the total before dividing.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('home')">← Course Roadmap</button>
+          <button class="btn primary" onclick="goTo('sec04')">§04 Joint Probability →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §04 JOINT PROBABILITY -->
+      <section class="panel" id="panel-sec04" data-code="sec04">
+        <div class="lec-tag">Lectures 3–4</div>
+        <h2 class="panel-title">Joint Probability &amp; Contingency Tables</h2>
+        <p class="panel-sub">Joint probability asks about two events at once — "both happen." It's the workhorse behind survey cross-tabs, quality-control tables, and every 2×2 grid you'll see for the rest of this course.</p>
+
+        <h3 class="block-title"><span class="num">4.1</span>Definition</h3>
+        <p class="lead">For events A and B, \(P(A\cap B)\) is the probability that <b>both</b> occur simultaneously.</p>
+
+        <div class="grid2">
+          <div class="plate">
+            <span class="plate-label">Independent events</span>
+            <div class="formula">\[ P(A\cap B)=P(A)\times P(B) \]</div>
+            <p class="lead" style="margin-top:8px;">Coin + die: \(P(\text{heads})\times P(\text{4})=\tfrac12\cdot\tfrac16=\tfrac1{12}\).</p>
+          </div>
+          <div class="plate">
+            <span class="plate-label">Dependent events</span>
+            <div class="formula">\[ P(A\cap B)=P(A)\,P(B|A) \]</div>
+            <p class="lead" style="margin-top:8px;">Two aces, no replacement: \(\tfrac{4}{52}\cdot\tfrac{3}{51}=\tfrac{1}{221}\).</p>
+          </div>
+        </div>
+
+        <h3 class="block-title"><span class="num">4.2</span>The joint-probability table</h3>
+        <p class="lead">Any two binary events can be laid out in a 2×2 grid where each interior cell is a joint probability and the margins are the individual (marginal) probabilities.</p>
+        <table class="datatable">
+          <tr><th></th><th>Y = Yes</th><th>Y = No</th><th>Total</th></tr>
+          <tr><td class="rowhead">X = Yes</td><td>P(X∩Y)</td><td>P(X∩Ȳ)</td><td>P(X)</td></tr>
+          <tr><td class="rowhead">X = No</td><td>P(X̄∩Y)</td><td>P(X̄∩Ȳ)</td><td>P(X̄)</td></tr>
+          <tr><td class="rowhead">Total</td><td>P(Y)</td><td>P(Ȳ)</td><td>1</td></tr>
+        </table>
+
+        <div class="example">
+          <span class="ex-label">Worked example — the machine / defect problem</span>
+          <p>Machine A makes 40% of items (5% defective); Machine B makes 60% (10% defective). Build the joint table, then find P(defective) and P(from A | defective).</p>
+          <table class="datatable">
+            <tr><th></th><th>Y = Defective</th><th>Ȳ = OK</th><th>Total</th></tr>
+            <tr><td class="rowhead">A</td><td>0.4×0.05 = 0.02</td><td>0.4×0.95 = 0.38</td><td>0.4</td></tr>
+            <tr><td class="rowhead">B</td><td>0.6×0.10 = 0.06</td><td>0.6×0.90 = 0.54</td><td>0.6</td></tr>
+            <tr><td class="rowhead">Total</td><td>0.08</td><td>0.92</td><td>1</td></tr>
+          </table>
+          <div class="sol"><p>\(P(\text{defective})=0.02+0.06=0.08\). \(P(A\mid\text{defective})=\dfrac{0.02}{0.08}=0.25\) — only a 25% chance a defective item came from A, even though A makes fewer defects per item overall. <b>This is Bayes' theorem in disguise</b> — keep this example in mind for §05.</p></div>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">Interactive — click a cell</span>
+          <table class="datatable jtable" id="defect-table">
+            <tr><th></th><th>Defective</th><th>OK</th><th>Row total</th></tr>
+            <tr><td class="rowhead">Machine A</td><td class="cell" data-p="0.02" data-row="A" data-col="D">0.02</td><td class="cell" data-p="0.38" data-row="A" data-col="OK">0.38</td><td>0.40</td></tr>
+            <tr><td class="rowhead">Machine B</td><td class="cell" data-p="0.06" data-row="B" data-col="D">0.06</td><td class="cell" data-p="0.54" data-row="B" data-col="OK">0.54</td><td>0.60</td></tr>
+            <tr><td class="rowhead">Column total</td><td>0.08</td><td>0.92</td><td>1.00</td></tr>
+          </table>
+          <div class="out" id="defect-out">Click any interior cell to see the conditional probability it implies.</div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">More worked examples from the slides (quick reference)</span>
+          <p><b>Newspapers:</b> 100 employees, 75 read English, 50 read Bangla, 40 read both → P(English)=0.75, P(at least one)=0.85, P(neither)=0.15, P(Bangla but not English)=0.10.</p>
+          <p><b>Ring/necklace:</b> P(R)=0.20, P(N)=0.30, P(neither)=0.60 → P(R∪N)=0.40, P(R∩N)=0.10.</p>
+          <p><b>Men/women, brown eyes:</b> 10 men + 20 women, half of each group has brown eyes → P(man ∪ brown eyes) = 2/3.</p>
+          <p><b>Balls without replacement:</b> 3 red, 4 green, 5 blue (12 total). P(both red)=1/22, P(one red & one green)=2/11, P(at least one blue)=15/22.</p>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions</span>
+          <div class="exam-q">In a class, 60% study Maths, 50% study Physics, 30% study both. Find P(Maths but not Physics). <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">\(P(M)-P(M\cap P)=0.6-0.3=0.3\).</div></div>
+          <div class="exam-q">Two cards drawn without replacement. Find P(both are kings). <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">\(\tfrac{4}{52}\times\tfrac{3}{51}=\tfrac{1}{221}\) — same structure as the ace example, dependent events.</div></div>
+          <div class="exam-q">From the machine example, find P(item is from B and non-defective). <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">Read straight off the joint table: \(P(\bar X\cap \bar Y)=0.6\times0.9=0.54\).</div></div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>Notice the machine example again: Machine B has the <i>higher</i> defect rate (10% vs 5%), yet if you pull a random defective item, it's <i>more likely</i> to have come from B (75% of defects) simply because B makes more items overall. Volume can outweigh quality. This exact reasoning — separating "rate within a group" from "share of the total" — is the whole intuition behind Bayes' theorem, coming next.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec03')">← §03 Odds</button>
+          <button class="btn primary" onclick="goTo('sec05')">§05 Conditional Probability →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §05 CONDITIONAL / BAYES -->
+      <section class="panel" id="panel-sec05" data-code="sec05">
+        <div class="lec-tag">Lecture 5</div>
+        <h2 class="panel-title">Conditional Probability &amp; Bayes' Theorem</h2>
+        <p class="panel-sub">This is the module where probability starts to feel like reasoning. Every medical test, spam filter, and diagnostic system on earth runs on the formula in this section.</p>
+
+        <h3 class="block-title"><span class="num">5.1</span>Conditional probability</h3>
+        <p class="lead">\(P(A|B)\) — "probability of A given B has occurred" — restricts the sample space down to B, then asks what share of that smaller space belongs to A too.</p>
+        <div class="plate">
+          <span class="plate-label">Definition</span>
+          <div class="formula-row">
+            <div class="formula">\[ P(A|B)=\frac{P(A\cap B)}{P(B)},\ P(B)\ne0 \]</div>
+            <div class="formula">\[ P(B|A)=\frac{P(A\cap B)}{P(A)},\ P(A)\ne0 \]</div>
+          </div>
+        </div>
+
+        <div class="plate">
+          <span class="plate-label">Multiplication law (rearranged from the definition)</span>
+          <div class="formula">\[ P(A\cap B)=P(A)P(B|A)=P(B)P(A|B) \]</div>
+          <p class="lead" style="margin-top:8px;">Extends to any number of events: \(P(A_1\cap\cdots\cap A_k)=P(A_1)P(A_2|A_1)P(A_3|A_1\cap A_2)\cdots P(A_k|A_1\cap\cdots\cap A_{k-1})\).</p>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — dice</span>
+          <p>A pair of dice is thrown. Find P(sum ≥ 10 | first die shows 5).</p>
+          <div class="sol"><p>\(B=\{(5,1)\ldots(5,6)\}\), \(A\cap B=\{(5,5),(5,6)\}\). \(P(A|B)=\dfrac{2/36}{6/36}=\dfrac13\).</p></div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — TV show couple</span>
+          <p>P(husband watches)=0.4, P(wife watches)=0.5, P(husband | wife watches)=0.7. Find P(both watch) and P(at least one).</p>
+          <div class="sol"><p>\(P(W\cap H)=P(W)P(H|W)=0.5\times0.7=0.35\). \(P(W\cup H)=0.4+0.5-0.35=0.55\). Also \(P(W|H)=\tfrac{0.35}{0.4}=0.875\) — note it's <i>not</i> equal to \(P(H|W)\); conditional probability is not symmetric.</p></div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">5.2</span>Bayes' theorem</h3>
+        <p class="lead">Bayes' theorem <b>flips</b> a conditional probability: it lets you get from \(P(\text{evidence}|\text{cause})\) — which is usually what's measured — to \(P(\text{cause}|\text{evidence})\) — which is usually what you actually want to know.</p>
+        <div class="plate">
+          <span class="plate-label">The formula</span>
+          <div class="formula">\[ P(A|B)=\frac{P(B|A)P(A)}{P(B|A)P(A)+P(B|A^c)P(A^c)} \]</div>
+          <p class="lead" style="margin-top:8px;">General form for k mutually exclusive causes \(A_1,\ldots,A_k\): \[ P(A_i|D)=\frac{P(A_i)P(D|A_i)}{\sum_{j=1}^{k}P(A_j)P(D|A_j)} \]</p>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">The classic — blood test</span>
+          <p>A test is 90% effective at detecting a disease when present, but gives a false positive 5% of the time in healthy people. Only 1% of the population actually has the disease. Given a positive result, what's P(disease)?</p>
+          <div class="sol"><p>\[ P(D|+)=\frac{0.01\times0.90}{(0.01\times0.90)+(0.99\times0.05)}=\frac{0.009}{0.009+0.0495}\approx 0.15 \]
+          Only <b>15%</b> — even a "90% accurate" test is mostly wrong when the disease is rare. This is the base-rate fallacy, and it's the single most testable idea in this module.</p></div>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">Interactive Bayes' calculator — blood test example</span>
+          <div class="widget" style="border:none; padding:0; margin:0;">
+            <label>P(Disease), prior</label><input type="number" id="bayes-pd" value="0.01" step="0.01" min="0" max="1">
+            <label>P(+ | Disease)</label><input type="number" id="bayes-pbA" value="0.90" step="0.01" min="0" max="1">
+            <label>P(+ | No disease)</label><input type="number" id="bayes-pbNA" value="0.05" step="0.01" min="0" max="1">
+            <div class="out" id="bayes-out"></div>
+          </div>
+          <svg id="bayes-tree" viewBox="0 0 640 230" style="width:100%; margin-top:16px; font-family:'IBM Plex Mono',monospace; font-size:12px;"></svg>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">More worked examples from the slides</span>
+          <p><b>Two containers, coin flip:</b> Container 1 (2W/7B), Container 2 (5W/6B). Flip decides container, draw ball. Given white was drawn, P(heads) = \(\dfrac{(1/2)(2/9)}{(1/2)(2/9)+(1/2)(5/11)}=\dfrac{22}{67}\).</p>
+          <p><b>Male/female disability:</b> equal population split, 5% of males and 2% of females disabled → given male, P(disabled)=0.05 (this one is a direct conditional, not Bayes — notice the difference).</p>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions — worked in the Exam Vault (§09)</span>
+          <div class="exam-q">A commuter drives 30%, walks 30%, buses 40% of the time; late 3% driving, 10% walking, 7% bus. Find P(late), and P(bus | late).</div>
+          <div class="exam-q">Three testing centers screen 50/20/30% of patients with detection rates 2/12/6%. Find P(positive) and P(Center B | positive).</div>
+          <div class="exam-q">Three exam-prep methods (books 40%/80% pass, video 35%/70%, group 25%/90%). Find P(pass) and P(group study | passed).</div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>Try to say Bayes' theorem in plain English before you memorize the fraction: <i>"your updated belief is your old belief, rescaled by how much more likely the evidence is under your hypothesis than under everything else."</i> If P(evidence) is dominated by false positives from the huge "no disease" population, your posterior stays low no matter how "accurate" the test sounds. That single sentence answers most Bayes' exam questions without needing the exact formula in front of you.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec04')">← §04 Joint Probability</button>
+          <button class="btn primary" onclick="goTo('sec06')">§06 Random Variables →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §06 RANDOM VARIABLES / PMF -->
+      <section class="panel" id="panel-sec06" data-code="sec06">
+        <div class="lec-tag">Lecture 6</div>
+        <h2 class="panel-title">Random Variables &amp; Probability Distributions</h2>
+        <p class="panel-sub">Up to now events have been described in words ("heads", "defective", "male teacher"). A random variable is the bridge that turns those outcomes into numbers you can compute with — averages, variances, and eventually calculus.</p>
+
+        <h3 class="block-title"><span class="num">6.1</span>What a random variable is</h3>
+        <p class="lead">A <b>random variable</b> assigns a definite number to every outcome of a chance experiment. Formally, it's a function from the sample space to the real numbers.</p>
+        <div class="example">
+          <span class="ex-label">Worked example — committee of teachers</span>
+          <p>7 teachers (4 male, 3 female); a 2-person committee is formed. Let Y = number of male teachers chosen.</p>
+          <table class="datatable">
+            <tr><th>Event</th><th>Outcome</th><th>Y</th></tr>
+            <tr><td>e₁</td><td>Male, Male</td><td>2</td></tr>
+            <tr><td>e₂</td><td>Male, Female</td><td>1</td></tr>
+            <tr><td>e₃</td><td>Female, Female</td><td>0</td></tr>
+          </table>
+        </div>
+
+        <div class="grid2">
+          <div class="plate">
+            <span class="plate-label">Discrete random variable</span>
+            <p class="lead" style="margin:0;">Takes finite or countable isolated values. <br><i>e.g. calls received per day, number of children under 5.</i></p>
+          </div>
+          <div class="plate">
+            <span class="plate-label">Continuous random variable</span>
+            <p class="lead" style="margin:0;">Takes any value in an interval. <br><i>e.g. weight of a baby, lifespan of a bulb.</i></p>
+          </div>
+        </div>
+
+        <table class="datatable" style="margin-top:20px;">
+          <tr><th>Discrete distributions</th><th>Continuous distributions</th></tr>
+          <tr><td>Bernoulli — one binary trial</td><td>Uniform — all values equally likely</td></tr>
+          <tr><td>Binomial — successes in n trials</td><td>Normal — symmetric bell curve</td></tr>
+          <tr><td>Poisson — events per interval</td><td>Exponential — waiting time to an event</td></tr>
+        </table>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">6.2</span>The probability mass function (pmf)</h3>
+        <div class="plate">
+          <span class="plate-label">Definition &amp; the three rules</span>
+          <div class="formula">\[ f(x)=P(X=x) \]</div>
+          <ul class="keylist" style="margin-top:10px;">
+            <li>\(f(x)\ge0\) for every x</li>
+            <li>\(\sum_x f(x)=1\)</li>
+            <li>\(P(X=x)=f(x)\)</li>
+          </ul>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — drawing black balls</span>
+          <p>A bag has 10 balls, 4 black. Draw 3 without replacement; X = number of black balls drawn.</p>
+          <div class="sol"><p>\(f(x)=\dfrac{\binom{4}{x}\binom{6}{3-x}}{\binom{10}{3}}\) for \(x=0,1,2,3\).</p></div>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">Visualizing the pmf — black balls example</span>
+          <canvas id="pmf-chart"></canvas>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Verifying a pmf</span>
+          <p>Test: \(f(x)=\dfrac{2x-1}{8}\), x = 0,1,2,3.</p>
+          <div class="sol"><p>Summing gives 1, but \(f(0)=-\tfrac18 < 0\) — <b>not</b> a valid pmf. A negative probability breaks rule 1 even if the total is correct. Always check every individual value, not just the sum.</p></div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Finding an unknown constant k</span>
+          <p>\(P(X=x)\) given by 0, k, 2k, 2k, 3k, k², 2k², 7k²+k for x=0..7. Find k.</p>
+          <div class="sol"><p>\(10k^2+9k-1=0 \Rightarrow (10k-1)(k+1)=0 \Rightarrow k=\tfrac1{10}\) (rejecting k = −1, since probabilities can't be negative). Then \(P(X\le6)=\tfrac{83}{100}\), \(P(3<X\le6)=\tfrac{33}{100}\).</p></div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Infinite pmf (geometric-type)</span>
+          <p>\(f(x)=\alpha\left(\tfrac34\right)^x,\ x=0,1,2,\ldots\) Find α.</p>
+          <div class="sol"><p>Geometric series: \(\alpha\cdot\dfrac{1}{1-3/4}=1\Rightarrow \alpha=\tfrac14\). Then \(P(X\le3)=\tfrac{175}{256}\).</p></div>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions — solved in full in §09</span>
+          <div class="exam-q">\(f(x)=kx,\ x=1,2,3,4\). Find k, P(X=3), P(X&gt;2).</div>
+          <div class="exam-q">\(P(X=x)=k(x^2+1),\ x=0,1,2,4\). Find k and P(X≥2).</div>
+          <div class="exam-q">\(f(x)=k(x+2),\ x=-1,0,1,2,4\). Find k and P(X&lt;1).</div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>A random variable is often called "random" but its <i>distribution</i> is completely fixed and deterministic — what's random is which value shows up on a given trial, not the rulebook (f(x)) that governs the odds. Exam questions love to test whether you can tell the difference between "find P(X=3)" (read the pmf) and "find k" (solve the constraint that the pmf must sum to 1).</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec05')">← §05 Conditional Probability</button>
+          <button class="btn primary" onclick="goTo('sec07')">§07 CDF &amp; PDF →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §07 CDF & PDF -->
+      <section class="panel" id="panel-sec07" data-code="sec07">
+        <div class="lec-tag">Lecture 7</div>
+        <h2 class="panel-title">Distribution Functions: CDF &amp; PDF</h2>
+        <p class="panel-sub">The pmf tells you the probability of hitting one exact value. The cumulative distribution function (CDF) tells you the probability of being at or below a value — the "running total" view, essential for medians, percentiles, and continuous variables where individual points have zero probability.</p>
+
+        <h3 class="block-title"><span class="num">7.1</span>Discrete CDF</h3>
+        <div class="plate">
+          <span class="plate-label">Definition &amp; properties</span>
+          <div class="formula">\[ F(x)=P(X\le x)=\sum_{t\le x} f(t) \]</div>
+          <ul class="keylist" style="margin-top:10px;">
+            <li>Monotonic increasing: \(a\le b \Rightarrow F(a)\le F(b)\)</li>
+            <li>\(\lim_{x\to-\infty}F(x)=0,\quad \lim_{x\to+\infty}F(x)=1\)</li>
+            <li>\(0\le F(x)\le1\) everywhere</li>
+          </ul>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — black balls, continued from §06</span>
+          <table class="datatable">
+            <tr><th>X</th><td>&lt;0</td><td>0</td><td>1</td><td>2</td><td>3</td><td>&gt;3</td></tr>
+            <tr><th>f(x)</th><td>0</td><td>20/120</td><td>60/120</td><td>36/120</td><td>4/120</td><td>0</td></tr>
+            <tr><th>F(x)</th><td>0</td><td>20/120</td><td>80/120</td><td>116/120</td><td>1</td><td>1</td></tr>
+          </table>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">The CDF is the pmf's running total — step chart</span>
+          <canvas id="cdf-chart"></canvas>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">7.2</span>Continuous: the probability density function (pdf)</h3>
+        <div class="plate">
+          <span class="plate-label">Definition &amp; the three rules</span>
+          <ul class="keylist">
+            <li>\(f(x)\ge0\)</li>
+            <li>\(\displaystyle\int_{-\infty}^{\infty} f(x)\,dx = 1\)</li>
+            <li>\(\displaystyle P(a<X<b)=\int_a^b f(x)\,dx\)</li>
+          </ul>
+          <p class="lead" style="margin-top:10px;">Crucial exam trick: for a continuous variable, \(P(X=c)=0\) for any single point c — probability lives in <i>area</i>, not height.</p>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — find k, then a probability</span>
+          <p>\(f(x)=kx,\ 0<x<4\). Find k, then P(1&lt;X&lt;2) and P(X&gt;2).</p>
+          <div class="sol"><p>\(k\int_0^4 x\,dx=1 \Rightarrow k\cdot 8 = 1 \Rightarrow k=\tfrac18\). Then \(P(1<X<2)=\tfrac{3}{16}\), \(P(X>2)=\tfrac34\).</p></div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — piecewise triangular pdf</span>
+          <p>\(f(x)=x\) for \(0<x\le1\), \(f(x)=2-x\) for \(1<x\le2\).</p>
+          <div class="sol"><p>Integrate piece-by-piece: \[F(x)=\begin{cases}0,&x\le0\\ \tfrac{x^2}{2},&0<x\le1\\ 2x-\tfrac{x^2}{2}-1,&1<x\le2\\ 1,&x>2\end{cases}\]</p></div>
+        </div>
+
+        <h3 class="block-title"><span class="num">7.3</span>Continuous CDF</h3>
+        <div class="plate">
+          <span class="plate-label">Definition</span>
+          <div class="formula">\[ F(x)=P(X\le x)=\int_{-\infty}^{x} f(t)\,dt \qquad\text{and if differentiable, } f(x)=F'(x) \]</div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — verifying with F(4) − F(3)</span>
+          <div class="sol"><p>\(f(x)=\tfrac{2}{27}(1+x),\ 2<x<5\). Get \(F(x)=\tfrac{1}{27}(x^2+2x-8)\). Then \(F(3)=\tfrac{7}{27}\), \(F(4)=\tfrac{16}{27}\), so \(F(4)-F(3)=\tfrac13=P(3<X<4)\) — this equivalence is exactly the fundamental theorem of calculus at work.</p></div>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">Continuous pdf vs. CDF — f(x) = x/8 on (0,4)</span>
+          <canvas id="pdf-chart"></canvas>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions — solved in full in §09</span>
+          <div class="exam-q">\(f(x)=k(4-x^2),\ 0\le x\le2\). Find k, then P(X=1) — think before you integrate.</div>
+          <div class="exam-q">\(f(x)=k(x^2+1),\ 0\le x\le3\). Find k and P(X≥2).</div>
+          <div class="exam-q">\(f(x)=kx^2e^{-x},\ x\ge0\), given \(\int_0^\infty x^n e^{-x}dx=n!\). Find k.</div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>Discrete CDF plots as a <b>staircase</b> (jumps at each possible value); continuous CDF plots as a <b>smooth ramp</b> (it's literally the running area under the pdf). If an exam question asks you to find P(X = exact value) for a continuous variable and you get anything other than 0, you've made an error — that's a free sanity check worth remembering under time pressure.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec06')">← §06 Random Variables</button>
+          <button class="btn primary" onclick="goTo('sec08')">§08 Joint &amp; Independence →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §08 JOINT DIST / MARGINAL / INDEPENDENCE -->
+      <section class="panel" id="panel-sec08" data-code="sec08">
+        <div class="lec-tag">Lecture 8</div>
+        <h2 class="panel-title">Joint, Marginal &amp; Conditional Distributions</h2>
+        <p class="panel-sub">The finale: two random variables at once. This is where the whole course converges — the joint pmf/pdf you build here decomposes back into the marginal distributions of §06 and the conditional probabilities of §05, and finally lets you formally test independence.</p>
+
+        <h3 class="block-title"><span class="num">8.1</span>Joint probability distribution</h3>
+        <div class="grid2">
+          <div class="plate">
+            <span class="plate-label">Discrete: joint pmf</span>
+            <div class="formula">\[ f(x,y)=P(X=x,Y=y) \]</div>
+            <ul class="keylist" style="margin-top:8px;"><li>\(f(x,y)\ge0\)</li><li>\(\sum_x\sum_y f(x,y)=1\)</li></ul>
+          </div>
+          <div class="plate">
+            <span class="plate-label">Continuous: joint pdf</span>
+            <div class="formula">\[ \int_{-\infty}^{\infty}\int_{-\infty}^{\infty} f(x,y)\,dx\,dy=1 \]</div>
+            <ul class="keylist" style="margin-top:8px;"><li>\(f(x,y)\ge0\)</li><li>Joint CDF: \(F(x,y)=P(X\le x,Y\le y)\)</li></ul>
+          </div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Worked example — coin tossed three times</span>
+          <p>X = number of heads, Y = number of tails in the <i>last two</i> tosses.</p>
+        </div>
+
+        <div class="chart-wrap">
+          <span class="plate-label">Interactive joint table — click a cell for the conditional probability</span>
+          <table class="datatable jtable" id="joint-table">
+            <tr><th>Y \ X</th><th>0</th><th>1</th><th>2</th><th>3</th><th>Row sum</th></tr>
+            <tr><td class="rowhead">0</td><td class="cell" data-p="0" data-x="0" data-y="0">0</td><td class="cell" data-p="0" data-x="1" data-y="0">0</td><td class="cell" data-p="0.125" data-x="2" data-y="0">1/8</td><td class="cell" data-p="0.125" data-x="3" data-y="0">1/8</td><td>2/8</td></tr>
+            <tr><td class="rowhead">1</td><td class="cell" data-p="0" data-x="0" data-y="1">0</td><td class="cell" data-p="0.25" data-x="1" data-y="1">2/8</td><td class="cell" data-p="0.25" data-x="2" data-y="1">2/8</td><td class="cell" data-p="0" data-x="3" data-y="1">0</td><td>4/8</td></tr>
+            <tr><td class="rowhead">2</td><td class="cell" data-p="0.125" data-x="0" data-y="2">1/8</td><td class="cell" data-p="0.125" data-x="1" data-y="2">1/8</td><td class="cell" data-p="0" data-x="2" data-y="2">0</td><td class="cell" data-p="0" data-x="3" data-y="2">0</td><td>2/8</td></tr>
+            <tr><td class="rowhead">Col sum</td><td>1/8</td><td>3/8</td><td>3/8</td><td>1/8</td><td>1</td></tr>
+          </table>
+          <div class="out" id="joint-out">Click a cell to see how f(x,y), g(x) and h(y) combine into a conditional probability.</div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">8.2</span>Marginal distributions</h3>
+        <p class="lead">The marginal distribution of X is what you get by summing (or integrating) the joint distribution over all values of Y — it's the individual pmf of X "recovered" from the joint table's row or column totals.</p>
+        <div class="plate">
+          <span class="plate-label">Definitions</span>
+          <div class="formula-row">
+            <div class="formula">\[ g(x)=\sum_y f(x,y) \quad\text{or}\quad \int_{-\infty}^{\infty} f(x,y)\,dy \]</div>
+            <div class="formula">\[ h(y)=\sum_x f(x,y) \quad\text{or}\quad \int_{-\infty}^{\infty} f(x,y)\,dx \]</div>
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — continuous marginal density</span>
+          <p>\(f(x,y)=\tfrac18(6-x-y),\ 0<x<2,\ 2<y<4\).</p>
+          <div class="sol"><p>\(g(x)=\tfrac14(3-x),\ 0<x<2\) and \(h(y)=\tfrac14(5-y),\ 2<y<4\). Both integrate to 1 individually — confirming they're genuine probability distributions in their own right.</p></div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">8.3</span>Conditional distributions</h3>
+        <div class="plate">
+          <span class="plate-label">Definitions</span>
+          <div class="formula-row">
+            <div class="formula">\[ f(y|x)=\frac{f(x,y)}{g(x)} \]</div>
+            <div class="formula">\[ f(x|y)=\frac{f(x,y)}{h(y)} \]</div>
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — conditional pmf from a table</span>
+          <p>Given \(h(1)=\tfrac{3}{7}\) and the row \(f(x,1)\) values, the conditional distribution of X given Y=1 works out to \(f(0|1)=\tfrac12,\ f(1|1)=\tfrac12,\ f(2|1)=0\) — note it still sums to 1, because it's a genuine probability distribution over X, just restricted to the slice where Y=1.</p>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">8.4</span>Independence — the formal test</h3>
+        <div class="plate">
+          <span class="plate-label">Test</span>
+          <div class="formula">\[ X \perp Y \iff f(x,y)=g(x)\,h(y) \quad \text{for every } (x,y) \]</div>
+          <p class="lead" style="margin-top:8px;">Equivalently: \(f(x|y)=g(x)\) or \(f(y|x)=h(y)\) — conditioning changes nothing.</p>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — independent case</span>
+          <p>Joint table with column sums 0.40/0.60 and row sums 0.25/0.50/0.25 reproduces every interior cell exactly as \(g(x)h(y)\) (e.g. \(0.40\times0.25=0.10=f(2,1)\)) — <b>independent</b>.</p>
+        </div>
+        <div class="example">
+          <span class="ex-label">Worked example — dependent case</span>
+          <p>\(f(x,y)=\tfrac{x+y}{8},\ 0<x<2,\ 0<y<2\). \(g(x)=\tfrac{x+1}{4},\ h(y)=\tfrac{y+1}{4}\), so \(g(x)h(y)=\tfrac{(x+1)(y+1)}{4}\ne f(x,y)\) — <b>not independent</b>. One mismatched point anywhere is enough to disprove independence.</p>
+        </div>
+
+        <div class="exam-box">
+          <span class="ex-tag">Possible exam questions</span>
+          <div class="exam-q">From a joint table, compute the marginal distribution of X and verify it sums to 1. <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">Sum each column of the joint table (holding X fixed, summing over Y) to get g(x); the column sums by construction always total 1 if the joint table itself is valid.</div></div>
+          <div class="exam-q">Given \(f(x,y)=\tfrac{6}{5}(x+y^2)\) on the unit square, are X and Y independent? <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">\(h(y)=\tfrac65(\tfrac12+y^2)\) depends on y in a way that doesn't factor cleanly out of f(x,y) alongside a clean g(x) — check \(f(x|y)\) at two different y values; if it changes, they're dependent. (Working through it: it is not independent.)</div></div>
+          <div class="exam-q">State, in one line, why f(x|y) must itself sum to 1 over x. <button class="reveal-btn" onclick="toggleReveal(this)">Reveal</button>
+            <div class="reveal-ans">Because f(x|y) is a genuine probability distribution over X — just restricted to the slice Y=y — so it must obey the same "total probability = 1" rule as any pmf.</div></div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Brainstorm</span>
+          <p>Independence is a strict "for every point" claim — a single mismatched cell in a joint table is enough to disprove it, but you need to check <i>every</i> cell to prove it. On an exam, if you're asked to test independence and spot even one \(f(x,y)\ne g(x)h(y)\), you can stop immediately and declare "not independent" — no need to check the rest.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec07')">← §07 CDF &amp; PDF</button>
+          <button class="btn primary" onclick="goTo('vault')">§09 Exam Vault →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ §09 EXAM VAULT -->
+      <section class="panel" id="panel-vault" data-code="vault">
+        <div class="lec-tag">Consolidated review</div>
+        <h2 class="panel-title">The Exam Vault</h2>
+        <p class="panel-sub">One formula sheet for §03–§08, followed by fully worked solutions to every exercise your slides left unsolved. Try each one cold before revealing.</p>
+
+        <h3 class="block-title"><span class="num">A</span>Formula sheet</h3>
+        <div class="grid2">
+          <div class="plate">
+            <span class="plate-label">§03 Odds</span>
+            <div class="formula" style="font-size:14px;">\[ \text{Odds}(A)=\frac{P(A)}{1-P(A)},\quad P(A)=\frac{a}{a+b}\ \text{for odds }a:b \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">§04 Joint probability</span>
+            <div class="formula" style="font-size:14px;">\[ P(A\cap B)=P(A)P(B)\ \text{[indep.]}\quad \text{or}\quad P(A)P(B|A)\ \text{[dep.]} \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">§05 Conditional &amp; Bayes</span>
+            <div class="formula" style="font-size:14px;">\[ P(A|B)=\frac{P(A\cap B)}{P(B)},\quad P(A|B)=\frac{P(B|A)P(A)}{\sum_i P(B|A_i)P(A_i)} \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">§06 PMF</span>
+            <div class="formula" style="font-size:14px;">\[ f(x)=P(X=x)\ge0,\quad \sum_x f(x)=1 \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">§07 CDF / PDF</span>
+            <div class="formula" style="font-size:14px;">\[ F(x)=\sum_{t\le x}f(t)\ \text{or}\ \int_{-\infty}^{x}f(t)dt,\quad P(a<X<b)=F(b)-F(a) \]</div>
+          </div>
+          <div class="plate">
+            <span class="plate-label">§08 Joint / Marginal / Indep.</span>
+            <div class="formula" style="font-size:14px;">\[ g(x)=\sum_y f(x,y),\quad f(y|x)=\frac{f(x,y)}{g(x)},\quad \text{indep. iff } f(x,y)=g(x)h(y) \]</div>
+          </div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">B</span>Bayes' theorem — fully worked exercises</h3>
+
+        <div class="example">
+          <span class="ex-label">Commuter lateness</span>
+          <p>Car 30%/3% late, walk 30%/10% late, bus 40%/7% late. Find P(late), P(bus | late), P(car | late).</p>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(P(\text{late})=0.3(0.03)+0.3(0.10)+0.4(0.07)=0.009+0.03+0.028=\mathbf{0.067}\)<br>
+            \(P(\text{bus}|\text{late})=\dfrac{0.028}{0.067}\approx\mathbf{0.418}\)<br>
+            \(P(\text{car}|\text{late})=\dfrac{0.009}{0.067}\approx\mathbf{0.134}\)
+          </div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Three testing centers</span>
+          <p>A 50%/2% detect, B 20%/12%, C 30%/6%. Find P(positive) and P(Center B | positive).</p>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(P(+)=0.5(0.02)+0.2(0.12)+0.3(0.06)=0.01+0.024+0.018=\mathbf{0.052}\)<br>
+            \(P(B|+)=\dfrac{0.024}{0.052}\approx\mathbf{0.462}\)
+          </div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Three screening methods</span>
+          <p>Blood 40%/80% detect, Imaging 35%/70%, Physical 25%/90%. Find P(detected) and P(physical exam | detected) and P(blood test | detected).</p>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(P(\text{detected})=0.4(0.8)+0.35(0.7)+0.25(0.9)=0.32+0.245+0.225=\mathbf{0.79}\)<br>
+            \(P(\text{physical}|\text{detected})=\dfrac{0.225}{0.79}\approx\mathbf{0.285}\)<br>
+            \(P(\text{blood}|\text{detected})=\dfrac{0.32}{0.79}\approx\mathbf{0.405}\)
+          </div>
+        </div>
+
+        <div class="example">
+          <span class="ex-label">Exam-prep methods</span>
+          <p>Books 40%/80% pass, Video 35%/70%, Group 25%/90%. Find P(pass), P(group | passed), P(books | passed).</p>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(P(\text{pass})=0.4(0.8)+0.35(0.7)+0.25(0.9)=\mathbf{0.79}\)<br>
+            \(P(\text{group}|\text{pass})=\dfrac{0.225}{0.79}\approx\mathbf{0.285}\)<br>
+            \(P(\text{books}|\text{pass})=\dfrac{0.32}{0.79}\approx\mathbf{0.405}\)
+          </div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">C</span>PMF exercises — fully worked</h3>
+
+        <div class="example">
+          <span class="ex-label">1. f(x) = kx, x = 1,2,3,4</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(k(1+2+3+4)=10k=1 \Rightarrow k=\mathbf{0.1}\)<br>
+            \(P(X=3)=3k=\mathbf{0.3}\)<br>
+            \(P(X>2)=P(3)+P(4)=3k+4k=7k=\mathbf{0.7}\)
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">2. P(X=x) = k(x²+1), x = 0,1,2,4</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            Sum \(=k[1+2+5+17]=25k=1 \Rightarrow k=\mathbf{0.04}\)<br>
+            \(P(X=2)=5k=\mathbf{0.2}\)<br>
+            \(P(X\ge2)=5k+17k=22k=\mathbf{0.88}\)<br>
+            \(P(X\le1)=1k+2k=3k=\mathbf{0.12}\)
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">3. f(x) = k(x+2), x = −1,0,1,2,4</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            Sum \(=k[1+2+3+4+6]=16k=1 \Rightarrow k=\mathbf{1/16}\)<br>
+            \(P(X<1)=P(-1)+P(0)=k(1+2)=3k=\mathbf{3/16}\)<br>
+            \(P(X\ge0)=k(2+3+4+6)=15k=\mathbf{15/16}\)
+          </div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">D</span>CDF exercises — fully worked</h3>
+        <div class="example">
+          <span class="ex-label">Using the k values found above</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            <b>f(x)=0.1x:</b> F(1)=0.1, F(2)=0.3, F(3)=0.6, F(4)=1.0<br>
+            <b>f(x)=0.04(x²+1):</b> f(0)=.04, f(1)=.08, f(2)=.2, f(4)=.68 → F(0)=.04, F(1)=.12, F(2)=.32, F(4)=1.0<br>
+            <b>f(x)=(x+2)/16:</b> f(−1)=.0625, f(0)=.125, f(1)=.1875, f(2)=.25, f(4)=.375 → F(−1)=.0625, F(0)=.1875, F(1)=.375, F(2)=.625, F(4)=1.0
+          </div>
+        </div>
+
+        <hr class="tear">
+
+        <h3 class="block-title"><span class="num">E</span>PDF exercises — fully worked</h3>
+        <div class="example">
+          <span class="ex-label">1. f(x) = k(4 − x²), 0 ≤ x ≤ 2</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(k\int_0^2(4-x^2)dx=k(16/3)=1 \Rightarrow k=\mathbf{3/16}\)<br>
+            \(P(X=1)=\mathbf{0}\) (single point, continuous variable — always zero)<br>
+            \(P(0.5\le X\le1.5)\approx \mathbf{0.547}\)<br>
+            \(P(X\ge1)\approx \mathbf{0.3125}\)<br>
+            CDF: \(F(x)=\dfrac34 x-\dfrac{x^3}{16}\), \(0\le x\le2\)
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">2. f(x) = k(x² + 1), 0 ≤ x ≤ 3</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            \(k\int_0^3(x^2+1)dx=k(12)=1\Rightarrow k=\mathbf{1/12}\)<br>
+            \(P(X\ge2)\approx \mathbf{0.611}\)<br>
+            \(P(1\le X\le1.5)\approx \mathbf{0.108}\)<br>
+            \(P(X\le2)\approx \mathbf{0.389}\)<br>
+            CDF: \(F(x)=\dfrac{x^3}{36}+\dfrac{x}{12}\), \(0\le x\le3\)
+          </div>
+        </div>
+        <div class="example">
+          <span class="ex-label">3. f(x) = kx²e⁻ˣ, x ≥ 0</span>
+          <button class="reveal-btn" onclick="toggleReveal(this)">Reveal full solution</button>
+          <div class="reveal-ans">
+            Using \(\int_0^\infty x^2e^{-x}dx=2!=2\): \(k\cdot2=1\Rightarrow k=\mathbf{1/2}\).<br>
+            This is a Gamma(shape 3, rate 1) density, giving \(F(x)=1-e^{-x}\left(1+x+\tfrac{x^2}{2}\right)\).<br>
+            \(P(X\le1)\approx \mathbf{0.080}\), \(P(X\ge2)\approx \mathbf{0.677}\), \(P(1\le X\le3)\approx \mathbf{0.496}\)
+          </div>
+        </div>
+
+        <div class="brainstorm">
+          <span class="bs-tag">Final brainstorm before the exam</span>
+          <p>Walk through §03→§08 one more time as a single story, out loud, without notes: odds compare success to failure → joint probability combines two events → conditional probability restricts the sample space → Bayes flips the condition around → a random variable turns outcomes into numbers → its pmf/pdf assigns probability → its CDF accumulates that probability → and joint distributions do all of it again in two dimensions at once. If you can narrate that chain from memory, you know this course.</p>
+        </div>
+
+        <div class="foot-nav">
+          <button class="btn" onclick="goTo('sec08')">← §08 Joint &amp; Independence</button>
+          <button class="btn primary" onclick="goTo('home')">Back to Roadmap</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   MATH 243 — interactive course companion
+   ============================================================ */
+
+const SECTION_ORDER = ['home','sec03','sec04','sec05','sec06','sec07','sec08','vault'];
+const TITLES = {
+  home:'Course Roadmap', sec03:'§03 Odds & Chance', sec04:'§04 Joint Probability',
+  sec05:'§05 Conditional Probability & Bayes', sec06:'§06 Random Variables & PMF',
+  sec07:'§07 CDF & PDF', sec08:'§08 Joint / Marginal / Independence', vault:'§09 Exam Vault'
+};
+const reviewed = new Set();
+
+function goTo(target){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const panel = document.getElementById('panel-'+target);
+  if(panel) panel.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.target===target));
+
+  document.getElementById('crumb-current').textContent = TITLES[target] || target;
+  document.getElementById('content-scroll').scrollTo({top:0, behavior:'smooth'});
+
+  const markBtn = document.getElementById('mark-btn');
+  if(target==='home'){
+    markBtn.style.visibility='hidden';
+  } else {
+    markBtn.style.visibility='visible';
+    markBtn.classList.toggle('on', reviewed.has(target));
+    markBtn.textContent = reviewed.has(target) ? 'Reviewed ✓' : 'Mark section reviewed';
+  }
+  markBtn.dataset.current = target;
+
+  renderMath();
+}
+
+function toggleReveal(btn){
+  if(!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+  const ans = btn.nextElementSibling;
+  const showing = ans.classList.toggle('show');
+  btn.textContent = showing ? 'Hide' : btn.dataset.orig;
+}
+
+function updateProgress(){
+  const total = SECTION_ORDER.length - 1; // exclude home
+  document.getElementById('progress-count').textContent = `${reviewed.size} / ${total}`;
+  document.getElementById('progress-fill').style.width = (reviewed.size/total*100)+'%';
+  SECTION_ORDER.forEach(t=>{
+    const nav = document.querySelector(`.nav-item[data-target="${t}"]`);
+    if(nav) nav.classList.toggle('done', reviewed.has(t));
+  });
+}
+
+function renderMath(){
+  if(window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left:'\\[', right:'\\]', display:true},
+        {left:'\\(', right:'\\)', display:false}
+      ],
+      throwOnError:false
+    });
+  }
+}
+
+/* ---------- wire up nav + roadmap cards + mark button ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click', ()=> goTo(item.dataset.target));
+  });
+  document.querySelectorAll('.road-card').forEach(card=>{
+    card.addEventListener('click', ()=> goTo(card.dataset.target));
+  });
+  document.getElementById('mark-btn').addEventListener('click', function(){
+    const t = this.dataset.current;
+    if(!t || t==='home') return;
+    if(reviewed.has(t)) reviewed.delete(t); else reviewed.add(t);
+    this.classList.toggle('on', reviewed.has(t));
+    this.textContent = reviewed.has(t) ? 'Reviewed ✓' : 'Mark section reviewed';
+    updateProgress();
+  });
+
+  renderMath();
+  updateProgress();
+  initOddsWidget();
+  initBayesWidget();
+  initDefectTable();
+  initJointTable();
+  initCharts();
+});
+
+/* ============================================================
+   §03 — Odds <-> Probability converter
+   ============================================================ */
+function initOddsWidget(){
+  const a = document.getElementById('odds-a');
+  const b = document.getElementById('odds-b');
+  const out = document.getElementById('odds-out');
+  function update(){
+    const av = parseFloat(a.value)||0, bv = parseFloat(b.value)||0;
+    const total = av+bv;
+    if(total<=0){ out.innerHTML = 'Enter positive odds values.'; return; }
+    const pa = av/total, pb = bv/total;
+    out.innerHTML = `Odds in favor <b>${av}:${bv}</b> &nbsp;→&nbsp; P(A) = ${av}/${total} = <b>${pa.toFixed(4)}</b> &nbsp;·&nbsp; P(not A) = ${bv}/${total} = <b>${pb.toFixed(4)}</b> &nbsp;·&nbsp; Odds against A = <b>${bv}:${av}</b>`;
+  }
+  a.addEventListener('input', update);
+  b.addEventListener('input', update);
+  update();
+}
+
+/* ============================================================
+   §05 — Bayes' theorem live calculator + SVG tree
+   ============================================================ */
+function initBayesWidget(){
+  const pd = document.getElementById('bayes-pd');
+  const pbA = document.getElementById('bayes-pbA');
+  const pbNA = document.getElementById('bayes-pbNA');
+  const out = document.getElementById('bayes-out');
+  const svg = document.getElementById('bayes-tree');
+
+  function update(){
+    const PD = parseFloat(pd.value)||0;
+    const PBA = parseFloat(pbA.value)||0;
+    const PBNA = parseFloat(pbNA.value)||0;
+    const PND = 1-PD;
+    const num = PD*PBA;
+    const den = PD*PBA + PND*PBNA;
+    const post = den>0 ? num/den : 0;
+
+    out.innerHTML = `P(Disease | +) = (${PD.toFixed(3)}×${PBA.toFixed(3)}) / [(${PD.toFixed(3)}×${PBA.toFixed(3)}) + (${PND.toFixed(3)}×${PBNA.toFixed(3)})] = ${num.toFixed(5)} / ${den.toFixed(5)} = <b style="font-size:16px;">${(post*100).toFixed(2)}%</b>`;
+
+    drawBayesTree(svg, PD, PBA, PBNA);
+  }
+  [pd,pbA,pbNA].forEach(el=> el.addEventListener('input', update));
+  update();
+}
+
+function drawBayesTree(svg, PD, PBA, PBNA){
+  const PND = 1-PD;
+  const PNBA = 1-PBA;
+  const PNBNA = 1-PBNA;
+  const jointDpos = PD*PBA, jointDneg = PD*PNBA;
+  const jointNDpos = PND*PBNA, jointNDneg = PND*PNBNA;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+  function line(x1,y1,x2,y2,color){
+    const l = document.createElementNS(ns,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke', color||'#2c3c54'); l.setAttribute('stroke-width','1.6');
+    svg.appendChild(l);
+  }
+  function text(x,y,str,opts={}){
+    const t = document.createElementNS(ns,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y);
+    t.setAttribute('fill', opts.color||'#242119');
+    t.setAttribute('font-weight', opts.bold?'600':'400');
+    t.setAttribute('text-anchor', opts.anchor||'start');
+    t.textContent = str;
+    svg.appendChild(t);
+  }
+  function dot(x,y,r,color){
+    const c = document.createElementNS(ns,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',r); c.setAttribute('fill',color);
+    svg.appendChild(c);
+  }
+
+  const rootX=40, rootY=115;
+  const midX=280;
+  const leafX=560;
+  const yPosD=40, yNegD=90, yPosND=145, yNegND=195;
+
+  dot(rootX,rootY,4,'#182231');
+  text(rootX-5,rootY-12,'Start', {anchor:'start'});
+
+  const midDY = 60, midNDY = 170;
+  line(rootX,rootY, midX, midDY, '#9c3d2e');
+  text((rootX+midX)/2, (rootY+midDY)/2 - 8, `P(D)=${PD.toFixed(2)}`, {color:'#9c3d2e', bold:true});
+  line(rootX,rootY, midX, midNDY, '#2c3c54');
+  text((rootX+midX)/2, (rootY+midNDY)/2 + 16, `P(D̄)=${PND.toFixed(2)}`, {color:'#2c3c54', bold:true});
+
+  dot(midX, midDY, 4, '#9c3d2e'); text(midX+8, midDY-8, 'Disease', {bold:true, color:'#9c3d2e'});
+  dot(midX, midNDY, 4, '#2c3c54'); text(midX+8, midNDY-8, 'No disease', {bold:true, color:'#2c3c54'});
+
+  // from D -> +/-
+  line(midX, midDY, leafX, yPosD, '#b8902e');
+  text((midX+leafX)/2, (midDY+yPosD)/2 - 8, `P(+|D)=${PBA.toFixed(2)}`, {color:'#b8902e'});
+  line(midX, midDY, leafX, yNegD, '#8f886f');
+  text((midX+leafX)/2, (midDY+yNegD)/2 + 14, `P(−|D)=${PNBA.toFixed(2)}`, {color:'#8f886f'});
+
+  // from ND -> +/-
+  line(midX, midNDY, leafX, yPosND, '#b8902e');
+  text((midX+leafX)/2, (midNDY+yPosND)/2 - 8, `P(+|D̄)=${PBNA.toFixed(2)}`, {color:'#b8902e'});
+  line(midX, midNDY, leafX, yNegND, '#8f886f');
+  text((midX+leafX)/2, (midNDY+yNegND)/2 + 14, `P(−|D̄)=${PNBNA.toFixed(2)}`, {color:'#8f886f'});
+
+  dot(leafX,yPosD,3.5,'#b8902e'); text(leafX+8,yPosD+4, `joint = ${jointDpos.toFixed(4)}`, {bold:true});
+  dot(leafX,yNegD,3.5,'#8f886f'); text(leafX+8,yNegD+4, `joint = ${jointDneg.toFixed(4)}`);
+  dot(leafX,yPosND,3.5,'#b8902e'); text(leafX+8,yPosND+4, `joint = ${jointNDpos.toFixed(4)}`, {bold:true});
+  dot(leafX,yNegND,3.5,'#8f886f'); text(leafX+8,yNegND+4, `joint = ${jointNDneg.toFixed(4)}`);
+
+  text(20, 225, `P(D | +) = ${jointDpos.toFixed(4)} / (${jointDpos.toFixed(4)} + ${jointNDpos.toFixed(4)}) — only the two "+" branches (marked brass) matter for the posterior.`, {color:'#6e6656'});
+}
+
+/* ============================================================
+   §04 — defect table click handler
+   ============================================================ */
+function initDefectTable(){
+  const cells = document.querySelectorAll('#defect-table .cell');
+  const out = document.getElementById('defect-out');
+  const colTotals = {D:0.08, OK:0.92};
+  const rowTotals = {A:0.40, B:0.60};
+  cells.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      cells.forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');
+      const p = parseFloat(c.dataset.p);
+      const row = c.dataset.row, col = c.dataset.col;
+      const rowTotal = rowTotals[row];
+      const colTotal = colTotals[col];
+      const rowName = row==='A' ? 'Machine A' : 'Machine B';
+      const colName = col==='D' ? 'defective' : 'OK';
+      out.innerHTML = `P(${rowName} ∩ ${colName}) = <b>${p.toFixed(2)}</b>. &nbsp; Conditional: P(${colName} | ${rowName}) = ${p.toFixed(2)}/${rowTotal.toFixed(2)} = <b>${(p/rowTotal).toFixed(4)}</b> &nbsp;|&nbsp; P(${rowName} | ${colName}) = ${p.toFixed(2)}/${colTotal.toFixed(2)} = <b>${(p/colTotal).toFixed(4)}</b>`;
+    });
+  });
+}
+
+/* ============================================================
+   §08 — joint table click handler
+   ============================================================ */
+function initJointTable(){
+  const cells = document.querySelectorAll('#joint-table .cell');
+  const out = document.getElementById('joint-out');
+  const gX = {0:0.125, 1:0.375, 2:0.375, 3:0.125}; // marginal of X (col sums)
+  const hY = {0:0.25, 1:0.5, 2:0.25}; // marginal of Y (row sums)
+  cells.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      cells.forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');
+      const p = parseFloat(c.dataset.p);
+      const x = c.dataset.x, y = c.dataset.y;
+      const gx = gX[x], hy = hY[y];
+      const fyx = gx>0 ? (p/gx) : 0;
+      const fxy = hy>0 ? (p/hy) : 0;
+      out.innerHTML = `f(${x},${y}) = <b>${p.toFixed(3)}</b> &nbsp;|&nbsp; g(${x}) = ${gx.toFixed(3)}, h(${y}) = ${hy.toFixed(3)} &nbsp;|&nbsp; f(Y=${y}|X=${x}) = ${p.toFixed(3)}/${gx.toFixed(3)} = <b>${fyx.toFixed(3)}</b> &nbsp;|&nbsp; f(X=${x}|Y=${y}) = ${p.toFixed(3)}/${hy.toFixed(3)} = <b>${fxy.toFixed(3)}</b>`;
+    });
+  });
+}
+
+/* ============================================================
+   §06 / §07 — Chart.js visualizations
+   ============================================================ */
+function initCharts(){
+  const inkText = '#242119';
+  const gridColor = 'rgba(24,34,49,0.08)';
+
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.color = inkText;
+
+  // PMF bar chart — black balls example
+  const pmfCtx = document.getElementById('pmf-chart');
+  if(pmfCtx){
+    new Chart(pmfCtx, {
+      type:'bar',
+      data:{
+        labels:['0','1','2','3'],
+        datasets:[{
+          label:'f(x) = P(X=x)',
+          data:[20/120, 60/120, 36/120, 4/120],
+          backgroundColor:'#b8902e',
+          borderColor:'#182231', borderWidth:1.5
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{display:false}, title:{display:true, text:'pmf — number of black balls drawn (X)'} },
+        scales:{
+          x:{ title:{display:true,text:'x'}, grid:{color:gridColor} },
+          y:{ title:{display:true,text:'P(X=x)'}, grid:{color:gridColor}, beginAtZero:true }
+        }
+      }
+    });
+  }
+
+  // CDF step chart — same example
+  const cdfCtx = document.getElementById('cdf-chart');
+  if(cdfCtx){
+    new Chart(cdfCtx, {
+      type:'line',
+      data:{
+        labels:['-0.5','0','1','2','3','3.5'],
+        datasets:[{
+          label:'F(x) = P(X≤x)',
+          data:[0, 20/120, 80/120, 116/120, 1, 1],
+          borderColor:'#9c3d2e', backgroundColor:'rgba(156,61,46,0.08)',
+          stepped:true, fill:true, pointRadius:4, pointBackgroundColor:'#9c3d2e'
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{display:false}, title:{display:true, text:'CDF — staircase, discrete random variable'} },
+        scales:{
+          x:{ title:{display:true,text:'x'}, grid:{color:gridColor} },
+          y:{ title:{display:true,text:'F(x)'}, grid:{color:gridColor}, min:0, max:1.05 }
+        }
+      }
+    });
+  }
+
+  // Continuous pdf + cdf — f(x) = x/8 on (0,4)
+  const pdfCtx = document.getElementById('pdf-chart');
+  if(pdfCtx){
+    const xs = []; const fs = []; const Fs = [];
+    for(let x=0; x<=4; x+=0.2){
+      xs.push(x.toFixed(1));
+      fs.push(x/8);
+      Fs.push((x*x)/16);
+    }
+    new Chart(pdfCtx, {
+      type:'line',
+      data:{
+        labels:xs,
+        datasets:[
+          { label:'f(x) = x/8  (density)', data:fs, borderColor:'#b8902e', backgroundColor:'rgba(184,144,46,0.12)', fill:true, pointRadius:0, tension:0.15, yAxisID:'y' },
+          { label:'F(x) = x²/16  (cumulative)', data:Fs, borderColor:'#2c3c54', borderDash:[6,3], pointRadius:0, tension:0.15, yAxisID:'y1' }
+        ]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{display:true, position:'bottom'}, title:{display:true, text:'Continuous density vs. its cumulative distribution'} },
+        scales:{
+          x:{ title:{display:true,text:'x'}, grid:{color:gridColor} },
+          y:{ position:'left', title:{display:true,text:'f(x)'}, grid:{color:gridColor}, min:0 },
+          y1:{ position:'right', title:{display:true,text:'F(x)'}, min:0, max:1.05, grid:{display:false} }
+        }
+      }
+    });
+  }
+}
+
+</script>
+</body>
+</html>
