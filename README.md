@@ -1,5 +1,9 @@
 # HTMLS for 2-2
 
+## Live Site
+
+> 🌐 https://buet-2-2-notes.vercel.app/
+
 This repository contains lecture notes, study guides, and HTML learning materials for the 2nd year 2nd semester courses covered in the workspace.
 
 ## Contents
